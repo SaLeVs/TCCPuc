@@ -1,5 +1,6 @@
 #if UNITY_EDITOR
 using UnityEngine;
+using UnityEngine.Serialization;
 
 namespace Sortify
 {
@@ -47,10 +48,11 @@ namespace Sortify
         [BetterHeader("Better Header Middle Right", 22, TextAnchor.MiddleRight)]
         public float BetterHeader_MiddleRight;
 
+        [FormerlySerializedAs("tag")]
         [Space(5)]
 
         [Tag]
-        public string tag;
+        public string tags;
         [Layer]
         public int layer;
 

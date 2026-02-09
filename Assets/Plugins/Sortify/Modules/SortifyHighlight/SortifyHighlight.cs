@@ -34,7 +34,7 @@ namespace Sortify
 
             if (selectionRect.Contains(currentEvent.mousePosition))
             {
-                GameObject obj = EditorUtility.InstanceIDToObject(instanceID) as GameObject;
+                GameObject obj = EditorUtility.EntityIdToObject(instanceID) as GameObject;
                 if (obj != null)
                 {
                     if (_hoveredObject != obj)

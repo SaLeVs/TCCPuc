@@ -41,7 +41,8 @@ namespace Sortify
             }
             else
             {
-                GameObject obj = EditorUtility.InstanceIDToObject(instanceID) as GameObject;
+                GameObject obj = EditorUtility.EntityIdToObject(instanceID) as GameObject;
+                
                 if (obj == null)
                     return;
 

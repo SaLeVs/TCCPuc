@@ -9,7 +9,7 @@ namespace Network
     [WorldSystemFilter(WorldSystemFilterFlags.ClientSimulation)]
     partial struct InGameSystem : ISystem
     {
-        // [BurstCompile]
+         [BurstCompile]
         public void OnUpdate(ref SystemState state)
         {
             EntityCommandBuffer entityCommandBuffer = new EntityCommandBuffer(Allocator.Temp); // We use an EntityCommandBuffer to make structural changes

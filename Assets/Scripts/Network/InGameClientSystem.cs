@@ -7,7 +7,7 @@ using UnityEngine;
 namespace Network
 {
     [WorldSystemFilter(WorldSystemFilterFlags.ClientSimulation)]
-    partial struct InGameSystem : ISystem
+    partial struct InGameClientSystem : ISystem
     {
          [BurstCompile]
         public void OnUpdate(ref SystemState state)

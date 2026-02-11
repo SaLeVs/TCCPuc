@@ -22,7 +22,7 @@ namespace Network
                 
                 Entity rpcEntity = entityCommandBuffer.CreateEntity();
                 entityCommandBuffer.AddComponent(rpcEntity, new InGameRequestRpc());
-
+                entityCommandBuffer.AddComponent(rpcEntity, new SendRpcCommandRequest());
             }
 
             entityCommandBuffer.Playback(state.EntityManager);

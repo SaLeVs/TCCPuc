@@ -9,6 +9,12 @@ namespace Network
     [WorldSystemFilter(WorldSystemFilterFlags.ServerSimulation)]
     partial struct InGameServerSystem : ISystem
     {
+        
+        public void OnCreate(ref SystemState state)
+        {
+            state.RequireForUpdate<EntitiesReferences>();
+        }
+        
         //[BurstCompile]
         public void OnUpdate(ref SystemState state)
         {

@@ -44,6 +44,12 @@ namespace Network
                    NetworkId = networkId.Value
                });
                
+               // When the connection is destroyed, all entities in the group will be destroyed as well, including the player entity.
+               entityCommandBuffer.AppendToBuffer(receiveRpcCommandRequest.ValueRO.SourceConnection, new LinkedEntityGroup
+               {
+                   Value = playerEntity
+               });
+               
                entityCommandBuffer.DestroyEntity(entity);
             }
             

@@ -1,4 +1,3 @@
-using Unity.Burst;
 using Unity.Collections;
 using Unity.Entities;
 using Unity.NetCode;
@@ -9,7 +8,12 @@ namespace Network
     [WorldSystemFilter(WorldSystemFilterFlags.ClientSimulation)]
     partial struct InGameClientSystem : ISystem
     {
-         [BurstCompile]
+        public void OnCreate(ref SystemState state)
+        {
+            state.RequireForUpdate<NetworkId>(); 
+        }
+        
+        // [BurstCompile]
         public void OnUpdate(ref SystemState state)
         {
             EntityCommandBuffer entityCommandBuffer = new EntityCommandBuffer(Allocator.Temp); // We use an EntityCommandBuffer to make structural changes

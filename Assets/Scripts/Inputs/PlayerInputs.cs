@@ -111,7 +111,7 @@ public partial class @PlayerInputs: IInputActionCollection2, IDisposable
                     ""initialStateCheck"": false
                 },
                 {
-                    ""name"": ""Crounch"",
+                    ""name"": ""Crouch"",
                     ""type"": ""Button"",
                     ""id"": ""e1a56791-e1a8-4362-b0fb-7293f37d13f3"",
                     ""expectedControlType"": """",
@@ -258,7 +258,7 @@ public partial class @PlayerInputs: IInputActionCollection2, IDisposable
                     ""interactions"": """",
                     ""processors"": """",
                     ""groups"": """",
-                    ""action"": ""Crounch"",
+                    ""action"": ""Crouch"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
                 },
@@ -299,7 +299,7 @@ public partial class @PlayerInputs: IInputActionCollection2, IDisposable
         m_Game = asset.FindActionMap("Game", throwIfNotFound: true);
         m_Game_Move = m_Game.FindAction("Move", throwIfNotFound: true);
         m_Game_Run = m_Game.FindAction("Run", throwIfNotFound: true);
-        m_Game_Crounch = m_Game.FindAction("Crounch", throwIfNotFound: true);
+        m_Game_Crouch = m_Game.FindAction("Crouch", throwIfNotFound: true);
         m_Game_Interact = m_Game.FindAction("Interact", throwIfNotFound: true);
     }
 
@@ -383,7 +383,7 @@ public partial class @PlayerInputs: IInputActionCollection2, IDisposable
     private List<IGameActions> m_GameActionsCallbackInterfaces = new List<IGameActions>();
     private readonly InputAction m_Game_Move;
     private readonly InputAction m_Game_Run;
-    private readonly InputAction m_Game_Crounch;
+    private readonly InputAction m_Game_Crouch;
     private readonly InputAction m_Game_Interact;
     /// <summary>
     /// Provides access to input actions defined in input action map "Game".
@@ -405,9 +405,9 @@ public partial class @PlayerInputs: IInputActionCollection2, IDisposable
         /// </summary>
         public InputAction @Run => m_Wrapper.m_Game_Run;
         /// <summary>
-        /// Provides access to the underlying input action "Game/Crounch".
+        /// Provides access to the underlying input action "Game/Crouch".
         /// </summary>
-        public InputAction @Crounch => m_Wrapper.m_Game_Crounch;
+        public InputAction @Crouch => m_Wrapper.m_Game_Crouch;
         /// <summary>
         /// Provides access to the underlying input action "Game/Interact".
         /// </summary>
@@ -444,9 +444,9 @@ public partial class @PlayerInputs: IInputActionCollection2, IDisposable
             @Run.started += instance.OnRun;
             @Run.performed += instance.OnRun;
             @Run.canceled += instance.OnRun;
-            @Crounch.started += instance.OnCrounch;
-            @Crounch.performed += instance.OnCrounch;
-            @Crounch.canceled += instance.OnCrounch;
+            @Crouch.started += instance.OnCrouch;
+            @Crouch.performed += instance.OnCrouch;
+            @Crouch.canceled += instance.OnCrouch;
             @Interact.started += instance.OnInteract;
             @Interact.performed += instance.OnInteract;
             @Interact.canceled += instance.OnInteract;
@@ -467,9 +467,9 @@ public partial class @PlayerInputs: IInputActionCollection2, IDisposable
             @Run.started -= instance.OnRun;
             @Run.performed -= instance.OnRun;
             @Run.canceled -= instance.OnRun;
-            @Crounch.started -= instance.OnCrounch;
-            @Crounch.performed -= instance.OnCrounch;
-            @Crounch.canceled -= instance.OnCrounch;
+            @Crouch.started -= instance.OnCrouch;
+            @Crouch.performed -= instance.OnCrouch;
+            @Crouch.canceled -= instance.OnCrouch;
             @Interact.started -= instance.OnInteract;
             @Interact.performed -= instance.OnInteract;
             @Interact.canceled -= instance.OnInteract;
@@ -541,12 +541,12 @@ public partial class @PlayerInputs: IInputActionCollection2, IDisposable
         /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
         void OnRun(InputAction.CallbackContext context);
         /// <summary>
-        /// Method invoked when associated input action "Crounch" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
+        /// Method invoked when associated input action "Crouch" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
         /// </summary>
         /// <seealso cref="UnityEngine.InputSystem.InputAction.started" />
         /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
         /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
-        void OnCrounch(InputAction.CallbackContext context);
+        void OnCrouch(InputAction.CallbackContext context);
         /// <summary>
         /// Method invoked when associated input action "Interact" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
         /// </summary>

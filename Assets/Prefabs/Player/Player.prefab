@@ -10,6 +10,8 @@ GameObject:
   m_Component:
   - component: {fileID: 1450085231864165735}
   - component: {fileID: 2207057075489463036}
+  - component: {fileID: 2424994168039296882}
+  - component: {fileID: 1694504125787105123}
   m_Layer: 0
   m_Name: Player
   m_TagString: Untagged
@@ -56,6 +58,47 @@ CapsuleCollider:
   m_Height: 2
   m_Direction: 1
   m_Center: {x: 0, y: 1, z: 0}
+--- !u!114 &2424994168039296882
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6252520807053122715}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Unity.Netcode.Runtime::Unity.Netcode.NetworkObject
+  GlobalObjectIdHash: 0
+  InScenePlacedSourceGlobalObjectIdHash: 0
+  DeferredDespawnTick: 0
+  Ownership: 1
+  AlwaysReplicateAsRoot: 0
+  SynchronizeTransform: 1
+  ActiveSceneSynchronization: 0
+  SceneMigrationSynchronization: 1
+  SpawnWithObservers: 1
+  DontDestroyWithOwner: 0
+  AutoObjectParentSync: 1
+  SyncOwnerTransformWhenParented: 1
+  AllowOwnerToParent: 0
+--- !u!114 &1694504125787105123
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6252520807053122715}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 18cd0db5f3ac0994d9e3481195ae774e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Player::Player.PlayerMovement
+  ShowTopMostFoldoutHeaderGroup: 1
+  inputReader: {fileID: 0}
+  moveSpeed: 0
+  runSpeed: 0
 --- !u!1001 &1399250988306531175
 PrefabInstance:
   m_ObjectHideFlags: 0

@@ -31,9 +31,17 @@ namespace Inputs
         
         }
 
+        
         public void OnMove(InputAction.CallbackContext context)
         {
             OnMoveEvent?.Invoke(context.ReadValue<Vector2>());
+            
+        }
+        
+        public void OnCameraLook(InputAction.CallbackContext context)
+        {
+            OnCameraLookEvent?.Invoke(context.ReadValue<Vector2>());
+            
         }
 
         public void OnRun(InputAction.CallbackContext context)
@@ -59,6 +67,7 @@ namespace Inputs
             {
                 OnCrouchEvent?.Invoke(false);
             }
+            
         }
 
         public void OnFlashlight(InputAction.CallbackContext context)
@@ -71,18 +80,7 @@ namespace Inputs
             {
                 OnFlashlightEvent?.Invoke(false);
             }
-        }
-
-        public void OnMap(InputAction.CallbackContext context)
-        {
-            if (context.performed)
-            {
-                OnMapEvent?.Invoke(true);
-            }
-            else if (context.canceled)
-            {
-                OnMapEvent?.Invoke(false);
-            }
+            
         }
 
         public void OnInteract(InputAction.CallbackContext context)
@@ -95,13 +93,30 @@ namespace Inputs
             {
                 OnInteractEvent?.Invoke(false);
             }
+            
         }
-
-        public void OnCameraLook(InputAction.CallbackContext context)
+        
+        public void OnMap(InputAction.CallbackContext context)
         {
-            OnCameraLookEvent?.Invoke(context.ReadValue<Vector2>());
+            if (context.performed)
+            {
+                OnMapEvent?.Invoke(true);
+            }
+            else if (context.canceled)
+            {
+                OnMapEvent?.Invoke(false);
+            }
+            
         }
     
+        
+        private void OnDisable()
+        {
+            _playerActions.Game.Disable();
+            _playerActions = null;
+            
+        }    
+        
     }
 }
 

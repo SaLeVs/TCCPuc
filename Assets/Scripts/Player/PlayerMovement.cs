@@ -11,7 +11,13 @@ namespace Player
         [SerializeField] private float moveSpeed;
         [SerializeField] private float runSpeed;
         
+        private Vector2 _movementInput;
+        private bool _isRunning;
+        
+        private Vector3 _movementDirection;
+        private float _currentSpeed;
 
+        
         public override void OnNetworkSpawn()
         {
             if (IsOwner)
@@ -25,11 +31,34 @@ namespace Player
         
         private void InputReader_OnMoveEvent(Vector2 movementInput)
         {
-            
+            _movementInput = movementInput;
         }
         
         private void InputReader_OnRunEvent(bool isRunning)
         {
+            _isRunning = isRunning;
+        }
+
+        private void Update()
+        {
+            if (IsOwner)
+            {
+                _movementDirection = transform.TransformDirection(_movementInput.x, 0, _movementInput.y);
+                
+                _currentSpeed = _isRunning ? runSpeed : moveSpeed;
+                transform.position += _movementDirection * (_currentSpeed * Time.deltaTime);
+                
+                MoveOnServerRpc(_movementInput, _currentSpeed);
+                
+            }
+            
+        }
+
+        [Rpc(SendTo.Server)]
+        private void MoveOnServerRpc(Vector2 movementInput, float currentSpeed)
+        {
+            _movementDirection = transform.TransformDirection(movementInput.x, 0, movementInput.y);
+            transform.position += _movementDirection * (currentSpeed * Time.deltaTime);
             
         }
         

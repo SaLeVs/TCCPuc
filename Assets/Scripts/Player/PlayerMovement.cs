@@ -48,7 +48,7 @@ namespace Player
                 _currentSpeed = _isRunning ? runSpeed : moveSpeed;
                 transform.position += _movementDirection * (_currentSpeed * Time.deltaTime);
                 
-                MoveOnServerRpc(_movementInput, _currentSpeed);
+                //MoveOnServerRpc(_movementInput, _currentSpeed);
                 
             }
             

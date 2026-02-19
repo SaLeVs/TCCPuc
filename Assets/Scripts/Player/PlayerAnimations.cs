@@ -13,6 +13,7 @@ namespace Player
         private readonly int _moveYHash = Animator.StringToHash("_yVelocity");
         private readonly int _isRunningHash = Animator.StringToHash("_isRunning");
         
+        private const float SMOOTH_TIME = 0.01f;
         
         public override void OnNetworkSpawn()
         {
@@ -28,8 +29,8 @@ namespace Player
     
         private void InputReader_OnMoveEvent(Vector2 movementInput)
         {
-            animator.SetFloat(_moveXHash, movementInput.x);
-            animator.SetFloat(_moveYHash, movementInput.y);
+            animator.SetFloat(_moveXHash, movementInput.x, SMOOTH_TIME, Time.deltaTime);
+            animator.SetFloat(_moveYHash, movementInput.y, SMOOTH_TIME, Time.deltaTime);
             
         }
     

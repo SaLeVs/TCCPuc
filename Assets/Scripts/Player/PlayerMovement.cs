@@ -48,17 +48,7 @@ namespace Player
                 _currentSpeed = _isRunning ? runSpeed : moveSpeed;
                 transform.position += _movementDirection * (_currentSpeed * Time.deltaTime);
                 
-                //MoveOnServerRpc(_movementInput, _currentSpeed);
-                
             }
-            
-        }
-
-        [Rpc(SendTo.Server)]
-        private void MoveOnServerRpc(Vector2 movementInput, float currentSpeed)
-        {
-            _movementDirection = transform.TransformDirection(movementInput.x, 0, movementInput.y);
-            transform.position += _movementDirection * (currentSpeed * Time.deltaTime);
             
         }
         

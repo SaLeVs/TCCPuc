@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 using Inputs;
@@ -8,17 +9,24 @@ namespace Player
 {
     public class PlayerMovement : NetworkBehaviour
     {
+        public event Action<Vector2> OnPlayerMovement;
+        
         [SerializeField] private InputReader inputReader;
         [SerializeField] private Rigidbody rb;
 
         [SerializeField] private float moveSpeed;
         [SerializeField] private float runSpeed;
+        [SerializeField] private float blendMovementTime = 8.9f;
         
         private Vector2 _movementInput;
         private bool _isRunning;
         
         private Vector3 _movementDirection;
-        private float _currentSpeed;
+        private float _targetSpeed;
+        
+        private Vector2 _currentVelocity;
+        private float _xVelocityDifference;
+        private float _zVelocityDifference;
 
         
         // Prediction and Reconciliation
@@ -131,7 +139,17 @@ namespace Player
         
         private void Move(Vector2 inputVector)
         {
-            Debug.Log($"Moving with input: {inputVector}");
+            _targetSpeed = _isRunning ? runSpeed : moveSpeed;
+            
+            _currentVelocity.x = Mathf.Lerp(_currentVelocity.x,inputVector.x * _targetSpeed, blendMovementTime * Time.fixedDeltaTime);
+            _currentVelocity.y = Mathf.Lerp(_currentVelocity.y,inputVector.y * _targetSpeed, blendMovementTime * Time.fixedDeltaTime);
+            
+            OnPlayerMovement?.Invoke(_currentVelocity);
+            
+            _xVelocityDifference = _currentVelocity.x - rb.linearVelocity.x;
+            _zVelocityDifference = _currentVelocity.y - rb.linearVelocity.z;
+            
+            rb.AddForce(transform.TransformVector(new Vector3(_xVelocityDifference, 0, _zVelocityDifference)), ForceMode.VelocityChange); 
         }
         
         private void ProcessServerTick()

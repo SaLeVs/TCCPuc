@@ -1,4 +1,3 @@
-
 namespace Network
 {
     public class NetworkTimer
@@ -21,7 +20,7 @@ namespace Network
             
         }
 
-        public bool shouldTick()
+        public bool ShouldTick()
         {
             if (_timer >= TimeBetweenTick)
             {

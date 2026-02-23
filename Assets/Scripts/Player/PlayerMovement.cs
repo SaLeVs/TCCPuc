@@ -131,14 +131,55 @@ namespace Player
         
         private void Move(Vector2 inputVector)
         {
-            
+            Debug.Log($"Moving with input: {inputVector}");
         }
         
         private void ProcessServerTick()
         {
+            int bufferIndex = -1;
+
+            while (_serverInputQueue.Count > 0)
+            {
+                InputPayload inputPayload = _serverInputQueue.Dequeue();
+                bufferIndex = inputPayload.Tick % BUFFER_SIZE;
+                
+                StatePayload serverState = SimulateMovement(inputPayload);
+                _serverStateBuffer.Add(serverState, bufferIndex);
+            }
+            
+            if(bufferIndex == -1) return;
+
+            SendStateToClientRpc(_serverStateBuffer.Get(bufferIndex));
+        }
+
+        private StatePayload SimulateMovement(InputPayload inputPayload)
+        {
+            Physics.simulationMode = SimulationMode.Script;
+            Move(inputPayload.InputVector);
+            Physics.Simulate(Time.fixedDeltaTime);
+            Physics.simulationMode = SimulationMode.FixedUpdate;
+
+            return new StatePayload
+            {
+                Tick = inputPayload.Tick,
+                Position = transform.position,
+                Rotation = transform.rotation,
+                Velocity = rb.linearVelocity,
+                AngularVelocity = rb.angularVelocity,
+            };
             
         }
-        
+
+        [Rpc(SendTo.ClientsAndHost)] 
+        private void SendStateToClientRpc(StatePayload statePayload)
+        {
+            if (IsOwner)
+            {
+                _lastServerState = statePayload;
+                
+            }
+        }
+
         public override void OnNetworkDespawn()
         {
             if (IsOwner)

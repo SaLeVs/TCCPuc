@@ -18,6 +18,9 @@ namespace Player
         [SerializeField] private float runSpeed;
         [SerializeField] private float blendMovementTime = 8.9f;
         [SerializeField] private float positionErrorThreshold = 0.5f;
+
+        [SerializeField] private GameObject serverCube;
+        [SerializeField] private GameObject clientCube;
         
         private Vector2 _movementInput;
         private bool _isRunning;
@@ -75,7 +78,11 @@ namespace Player
         private void Update()
         {
             _networkTimer.Update(Time.deltaTime);
-            
+
+            if (Input.GetKeyDown(KeyCode.Q))
+            {
+                transform.position += transform.forward * 20f;
+            }
         }
         
         private void FixedUpdate()
@@ -109,6 +116,9 @@ namespace Player
                 SendInputToServerRpc(inputPayload);
                 
                 StatePayload statePayload = ProcessClientMovement(inputPayload);
+                
+                clientCube.transform.position = new Vector3(statePayload.Position.x, 1f, statePayload.Position.z);
+                
                 _clientStateBuffer.Add(statePayload, bufferIndex);
 
                 SendToReconciliateServerRpc();
@@ -223,6 +233,10 @@ namespace Player
                 bufferIndex = inputPayload.Tick % BUFFER_SIZE;
                 
                 StatePayload serverState = SimulateMovement(inputPayload);
+                
+                serverCube.transform.position =
+                    new Vector3(serverState.Position.x, 1f, serverState.Position.z);
+                
                 _serverStateBuffer.Add(serverState, bufferIndex);
             }
             

@@ -141,7 +141,6 @@ namespace Player
         {
             if (ShouldReconcile())
             {
-                Debug.Log($"Reconciliation: {ShouldReconcile()} ");
                 
                 float positionError = 0f;
                 int bufferIndex = 0;
@@ -160,8 +159,6 @@ namespace Player
                 }
                 
                 _lastProcessedState = _lastServerState;
-                
-                Debug.Log("Server reconciled");
             }
             
         }
@@ -187,7 +184,6 @@ namespace Player
             
             int tickToReprocess = _lastServerState.Tick + 1;
             
-            Debug.Log("Reprocessing ticks from " + tickToReprocess + " to " + _networkTimer.CurrentTick);
             
             while (tickToReprocess <= _networkTimer.CurrentTick)
             {

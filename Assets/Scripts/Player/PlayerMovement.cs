@@ -47,6 +47,8 @@ namespace Player
         private Buffer<StatePayload> _serverStateBuffer;
         private Queue<InputPayload> _serverInputQueue;
         
+        private bool _hasServerState;
+        
         
         private void Awake()
         {
@@ -121,7 +123,7 @@ namespace Player
                 
                 _clientStateBuffer.Add(statePayload, bufferIndex);
 
-                SendToReconciliateServerRpc();
+                ServerReconciliation();
             }
             
         }
@@ -135,13 +137,14 @@ namespace Player
             
         }
         
-        [Rpc(SendTo.Server)]
-        private void SendToReconciliateServerRpc()
+        private void ServerReconciliation()
         {
-            if (!ShouldReconcile())
+            if (ShouldReconcile())
             {
-                float positionError;
-                int bufferIndex;
+                Debug.Log($"Reconciliation: {ShouldReconcile()} ");
+                
+                float positionError = 0f;
+                int bufferIndex = 0;
                 
                 StatePayload rewindState = default;
                 bufferIndex = _lastServerState.Tick % BUFFER_SIZE;
@@ -157,16 +160,18 @@ namespace Player
                 }
                 
                 _lastProcessedState = _lastServerState;
+                
+                Debug.Log("Server reconciled");
             }
             
         }
 
         private bool ShouldReconcile()
         {
-            bool isNewServerState = !_lastServerState.Equals(default);
-            bool isLastStateUndefinedOrDifferent = _lastProcessedState.Equals(default) || !_lastProcessedState.Equals(_lastServerState);
+            if (!_hasServerState)
+                return false;
             
-            return isNewServerState && isLastStateUndefinedOrDifferent;
+            return !_lastProcessedState.Equals(_lastServerState);
         }
         
         private void Reconcile(StatePayload rewindState)
@@ -181,6 +186,8 @@ namespace Player
             _clientStateBuffer.Add(rewindState, rewindState.Tick);
             
             int tickToReprocess = _lastServerState.Tick + 1;
+            
+            Debug.Log("Reprocessing ticks from " + tickToReprocess + " to " + _networkTimer.CurrentTick);
             
             while (tickToReprocess <= _networkTimer.CurrentTick)
             {
@@ -268,8 +275,13 @@ namespace Player
         {
             if (IsOwner)
             {
+                bool wasNoState = !_hasServerState;
+
                 _lastServerState = statePayload;
+                _hasServerState = true;
                 
+                if (wasNoState)
+                    _lastProcessedState = statePayload;
             }
         }
 

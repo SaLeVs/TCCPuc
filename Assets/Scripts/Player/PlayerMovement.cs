@@ -17,6 +17,7 @@ namespace Player
         [SerializeField] private float moveSpeed;
         [SerializeField] private float runSpeed;
         [SerializeField] private float blendMovementTime = 8.9f;
+        [SerializeField] private float positionErrorThreshold = 0.5f;
         
         private Vector2 _movementInput;
         private bool _isRunning;
@@ -109,11 +110,14 @@ namespace Player
                 
                 StatePayload statePayload = ProcessClientMovement(inputPayload);
                 _clientStateBuffer.Add(statePayload, bufferIndex);
-                
+
+                SendToReconciliateServerRpc();
             }
             
         }
+
         
+
         [Rpc(SendTo.Server)]
         private void SendInputToServerRpc(InputPayload input)
         {
@@ -121,6 +125,62 @@ namespace Player
             
         }
         
+        [Rpc(SendTo.Server)]
+        private void SendToReconciliateServerRpc()
+        {
+            if (!ShouldReconcile())
+            {
+                float positionError;
+                int bufferIndex;
+                
+                StatePayload rewindState = default;
+                bufferIndex = _lastServerState.Tick % BUFFER_SIZE;
+
+                if (bufferIndex - 1 < 0) return;
+                
+                rewindState = IsHost ? _serverStateBuffer.Get(bufferIndex - 1) : _lastServerState;
+                positionError = Vector3.Distance(rewindState.Position, _clientStateBuffer.Get(bufferIndex).Position);
+
+                if (positionError > positionErrorThreshold)
+                {
+                    Reconcile(rewindState);
+                }
+                
+                _lastProcessedState = _lastServerState;
+            }
+            
+        }
+
+        private bool ShouldReconcile()
+        {
+            bool isNewServerState = !_lastServerState.Equals(default);
+            bool isLastStateUndefinedOrDifferent = _lastProcessedState.Equals(default) || !_lastProcessedState.Equals(_lastServerState);
+            
+            return isNewServerState && isLastStateUndefinedOrDifferent;
+        }
+        
+        private void Reconcile(StatePayload rewindState)
+        {
+            transform.position = rewindState.Position;
+            transform.rotation = rewindState.Rotation;
+            rb.linearVelocity = rewindState.Velocity;
+            rb.angularVelocity = rewindState.AngularVelocity;
+
+            if (!rewindState.Equals(_lastServerState)) return;
+            
+            _clientStateBuffer.Add(rewindState, rewindState.Tick);
+            
+            int tickToReprocess = _lastServerState.Tick + 1;
+            
+            while (tickToReprocess <= _networkTimer.CurrentTick)
+            {
+                int bufferIndex = tickToReprocess % BUFFER_SIZE;
+                StatePayload statePayload = ProcessClientMovement(_clientInputBuffer.Get(bufferIndex));
+                _clientStateBuffer.Add(statePayload, bufferIndex);
+                tickToReprocess++;
+            }
+        }
+
         private StatePayload ProcessClientMovement(InputPayload input)
         {
             Move(input.InputVector);
@@ -148,7 +208,8 @@ namespace Player
             
             _xVelocityDifference = _currentVelocity.x - rb.linearVelocity.x;
             _zVelocityDifference = _currentVelocity.y - rb.linearVelocity.z;
-            
+
+            //  float lerpFraction = _networkTimer.TimeBetweenTick / (1f / Time.deltaTime);
             rb.AddForce(transform.TransformVector(new Vector3(_xVelocityDifference, 0, _zVelocityDifference)), ForceMode.VelocityChange); 
         }
         

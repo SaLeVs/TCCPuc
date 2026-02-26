@@ -13,6 +13,7 @@ namespace Player
         
         [SerializeField] private InputReader inputReader;
         [SerializeField] private Rigidbody rb;
+        [SerializeField] private Transform orientation;
 
         [SerializeField] private float moveSpeed;
         [SerializeField] private float runSpeed;
@@ -214,8 +215,30 @@ namespace Player
         {
             _targetSpeed = _isRunning ? runSpeed : moveSpeed;
             
-            _currentVelocity.x = Mathf.Lerp(_currentVelocity.x,inputVector.x * _targetSpeed, blendMovementTime * Time.fixedDeltaTime);
-            _currentVelocity.y = Mathf.Lerp(_currentVelocity.y,inputVector.y * _targetSpeed, blendMovementTime * Time.fixedDeltaTime);
+            Vector3 desiredVelocityWorld = Vector3.zero;
+            
+            if (inputVector.sqrMagnitude > 0.0001f)
+            {
+                desiredVelocityWorld = orientation.forward * inputVector.y + orientation.right * inputVector.x;
+                desiredVelocityWorld.y = 0f;
+                float inputMag = desiredVelocityWorld.magnitude;
+                
+                if (inputMag > 0.0001f)
+                {
+                    desiredVelocityWorld = desiredVelocityWorld.normalized * (_targetSpeed * Mathf.Clamp01(inputVector.magnitude));
+                }
+                else
+                {
+                    desiredVelocityWorld = Vector3.zero;
+                }
+            }
+            else
+            {
+                desiredVelocityWorld = Vector3.zero;
+            }
+            
+            _currentVelocity.x = Mathf.Lerp(_currentVelocity.x, desiredVelocityWorld.x, blendMovementTime * Time.fixedDeltaTime);
+            _currentVelocity.y = Mathf.Lerp(_currentVelocity.y, desiredVelocityWorld.z, blendMovementTime * Time.fixedDeltaTime);
             
             OnPlayerMovement?.Invoke(_currentVelocity);
             
@@ -223,7 +246,7 @@ namespace Player
             _zVelocityDifference = _currentVelocity.y - rb.linearVelocity.z;
 
             //  float lerpFraction = _networkTimer.TimeBetweenTick / (1f / Time.deltaTime);
-            rb.AddForce(transform.TransformVector(new Vector3(_xVelocityDifference, 0, _zVelocityDifference)), ForceMode.VelocityChange); 
+            rb.AddForce(new Vector3(_xVelocityDifference, 0f, _zVelocityDifference), ForceMode.VelocityChange); 
         }
         
         private void ProcessServerTick()

@@ -14,9 +14,9 @@ namespace Player
         [SerializeField] private float sensitivity = 20f;
         
         [SerializeField] private CinemachineCamera cinemachineCamera;
-        [SerializeField] private Transform cameraTransform;
+        [SerializeField] private Transform cameraRoot;
         [SerializeField] private InputReader inputReader;
-        [SerializeField] private Transform playerTransform;
+        [SerializeField] private Transform orientation;
         
         private Vector2 _cameraLookInput;
         private float _xRotation;
@@ -48,14 +48,17 @@ namespace Player
         
         private void CameraMovement()
         {
-            cinemachineCamera.transform.position = cameraTransform.position;
-            
             _xRotation -= _cameraLookInput.y * sensitivity * Time.deltaTime;
             _xRotation = Mathf.Clamp(_xRotation, upperClamp, lowerClamp);
             
-            cinemachineCamera.transform.localRotation = Quaternion.Euler(_xRotation, 0, 0);
+            _yRotation = orientation.eulerAngles.y;
             
-            playerTransform.Rotate(Vector3.up, _cameraLookInput.x * sensitivity * Time.deltaTime);
+            cameraRoot.rotation = Quaternion.Euler(_xRotation, _yRotation, 0f);
+            
+            cinemachineCamera.transform.SetPositionAndRotation(cameraRoot.position, cameraRoot.rotation);
+
+
+            orientation.Rotate(Vector3.up, _cameraLookInput.x * sensitivity * Time.deltaTime);
         }
     
     }

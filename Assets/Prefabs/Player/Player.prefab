@@ -31,6 +31,37 @@ Transform:
   m_Children: []
   m_Father: {fileID: 6400761747528298933}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &3114184444502032822
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 847016756603283365}
+  m_Layer: 0
+  m_Name: Orientation
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &847016756603283365
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3114184444502032822}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1450085231864165735}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &3332322568339403280
 GameObject:
   m_ObjectHideFlags: 0
@@ -248,8 +279,9 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
-  - {fileID: 1504653218169054348}
+  - {fileID: 847016756603283365}
   - {fileID: 7631988926882076908}
+  - {fileID: 1504653218169054348}
   - {fileID: 5285031163238599915}
   - {fileID: 5315125677881062935}
   m_Father: {fileID: 0}
@@ -357,6 +389,7 @@ MonoBehaviour:
   ShowTopMostFoldoutHeaderGroup: 1
   inputReader: {fileID: 11400000, guid: b8967103b22990e4685e914ae00843a6, type: 2}
   rb: {fileID: 3158690138509095668}
+  orientation: {fileID: 847016756603283365}
   moveSpeed: 3
   runSpeed: 8
   blendMovementTime: 8.9
@@ -396,9 +429,9 @@ MonoBehaviour:
   lowerClamp: 70
   sensitivity: 15
   cinemachineCamera: {fileID: 6800444975667494322}
-  cameraTransform: {fileID: 5036788259409135564}
+  cameraRoot: {fileID: 5036788259409135564}
   inputReader: {fileID: 11400000, guid: b8967103b22990e4685e914ae00843a6, type: 2}
-  playerTransform: {fileID: 1450085231864165735}
+  orientation: {fileID: 847016756603283365}
 --- !u!54 &3158690138509095668
 Rigidbody:
   m_ObjectHideFlags: 0
@@ -474,8 +507,8 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 8251458222446189011}
   serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 1.63, z: 0}
+  m_LocalRotation: {x: -0.00000001117587, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 0, y: 1.6470631, z: -0.1311669}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []

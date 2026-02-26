@@ -72,19 +72,15 @@ namespace Player
                 inputReader.OnCameraLookEvent += InputReader_OnCameraLookEvent;
                 inputReader.OnRunEvent += InputReader_OnRunEvent;
                 
-                
             }
             
         }
 
         
-
         private void InputReader_OnMoveEvent(Vector2 movementInput) => _movementInput = movementInput;
         private void InputReader_OnCameraLookEvent(Vector2 cameraLookInput) => _cameraLookInput = cameraLookInput;
         private void InputReader_OnRunEvent(bool isRunning) => _isRunning = isRunning;
         
-        
-
         private void Update()
         {
             _networkTimer.Update(Time.deltaTime);
@@ -93,6 +89,7 @@ namespace Player
             {
                 transform.position += transform.forward * 20f;
             }
+            
         }
         
         private void FixedUpdate()
@@ -103,7 +100,9 @@ namespace Player
                 {
                     ProcessClientTick();
                     ProcessServerTick();
+                    
                 }
+                
             }
             
         }
@@ -133,6 +132,7 @@ namespace Player
                 _clientStateBuffer.Add(statePayload, bufferIndex);
 
                 ServerReconciliation();
+                
             }
             
         }
@@ -150,7 +150,6 @@ namespace Player
         {
             if (ShouldReconcile())
             {
-                
                 float positionError = 0f;
                 int bufferIndex = 0;
                 
@@ -168,6 +167,7 @@ namespace Player
                 }
                 
                 _lastProcessedState = _lastServerState;
+                
             }
             
         }
@@ -178,6 +178,7 @@ namespace Player
                 return false;
             
             return !_lastProcessedState.Equals(_lastServerState);
+            
         }
         
         private void Reconcile(StatePayload rewindState)
@@ -200,7 +201,9 @@ namespace Player
                 StatePayload statePayload = ProcessClientMovement(_clientInputBuffer.Get(bufferIndex));
                 _clientStateBuffer.Add(statePayload, bufferIndex);
                 tickToReprocess++;
+                
             }
+            
         }
 
         private StatePayload ProcessClientMovement(InputPayload input)
@@ -214,7 +217,6 @@ namespace Player
                 Rotation = transform.rotation,
                 Velocity = rb.linearVelocity,
                 AngularVelocity = rb.angularVelocity,
-                
             };
             
         }
@@ -227,7 +229,6 @@ namespace Player
 
             orientation.rotation = yawRotation;
             transform.rotation = yawRotation;
-            
             
             _targetSpeed = _isRunning ? runSpeed : moveSpeed;
             
@@ -261,6 +262,7 @@ namespace Player
 
             //  float lerpFraction = _networkTimer.TimeBetweenTick / (1f / Time.deltaTime);
             rb.AddForce(new Vector3(_xVelocityDifference, 0f, _zVelocityDifference), ForceMode.VelocityChange); 
+            
         }
         
         private void ProcessServerTick()
@@ -274,15 +276,16 @@ namespace Player
                 
                 StatePayload serverState = SimulateMovement(inputPayload);
                 
-                serverCube.transform.position =
-                    new Vector3(serverState.Position.x, 1f, serverState.Position.z);
+                serverCube.transform.position = new Vector3(serverState.Position.x, 1f, serverState.Position.z);
                 
                 _serverStateBuffer.Add(serverState, bufferIndex);
+                
             }
             
             if(bufferIndex == -1) return;
 
             SendStateToClientRpc(_serverStateBuffer.Get(bufferIndex));
+            
         }
 
         private StatePayload SimulateMovement(InputPayload inputPayload)
@@ -312,12 +315,17 @@ namespace Player
 
                 _lastServerState = statePayload;
                 _hasServerState = true;
-                
+
                 if (wasNoState)
+                {
                     _lastProcessedState = statePayload;
+                }
+                    
             }
+            
         }
 
+        
         public override void OnNetworkDespawn()
         {
             if (IsOwner)

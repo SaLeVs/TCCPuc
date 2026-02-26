@@ -19,13 +19,16 @@ namespace Player
         [SerializeField] private float runSpeed;
         [SerializeField] private float blendMovementTime = 8.9f;
         [SerializeField] private float positionErrorThreshold = 0.5f;
+        [SerializeField] private float sensitivity = 20f;
 
         [SerializeField] private GameObject serverCube;
         [SerializeField] private GameObject clientCube;
         
         private Vector2 _movementInput;
+        private Vector2 _cameraLookInput;
         private bool _isRunning;
         
+        private float _currentYaw;
         private Vector3 _movementDirection;
         private float _targetSpeed;
         
@@ -68,14 +71,20 @@ namespace Player
             if (IsOwner)
             {
                 inputReader.OnMoveEvent += InputReader_OnMoveEvent;
+                inputReader.OnCameraLookEvent += InputReader_OnCameraLookEvent;
                 inputReader.OnRunEvent += InputReader_OnRunEvent;
+                
                 
             }
             
         }
+
         
+
         private void InputReader_OnMoveEvent(Vector2 movementInput) => _movementInput = movementInput;
+        private void InputReader_OnCameraLookEvent(Vector2 cameraLookInput) => _cameraLookInput = cameraLookInput;
         private void InputReader_OnRunEvent(bool isRunning) => _isRunning = isRunning;
+        
         
 
         private void Update()
@@ -112,6 +121,7 @@ namespace Player
                 {
                     Tick = currentTick,
                     InputVector = _movementInput,
+                    LookVector = _cameraLookInput
                 };
                 
                 _clientInputBuffer.Add(inputPayload, bufferIndex);
@@ -197,7 +207,7 @@ namespace Player
 
         private StatePayload ProcessClientMovement(InputPayload input)
         {
-            Move(input.InputVector);
+            Move(input.InputVector, input.LookVector);
             
             return new StatePayload
             {
@@ -211,21 +221,29 @@ namespace Player
             
         }
         
-        private void Move(Vector2 inputVector)
+        private void Move(Vector2 moveVector, Vector2 lookVector)
         {
+            _currentYaw += lookVector.x * sensitivity * Time.fixedDeltaTime;
+
+            Quaternion yawRotation = Quaternion.Euler(0f, _currentYaw, 0f);
+
+            orientation.rotation = yawRotation;
+            transform.rotation = yawRotation;
+            
+            
             _targetSpeed = _isRunning ? runSpeed : moveSpeed;
             
             Vector3 desiredVelocityWorld = Vector3.zero;
             
-            if (inputVector.sqrMagnitude > 0.0001f)
+            if (moveVector.sqrMagnitude > 0.0001f)
             {
-                desiredVelocityWorld = orientation.forward * inputVector.y + orientation.right * inputVector.x;
+                desiredVelocityWorld = orientation.forward * moveVector.y + orientation.right * moveVector.x;
                 desiredVelocityWorld.y = 0f;
                 float inputMag = desiredVelocityWorld.magnitude;
                 
                 if (inputMag > 0.0001f)
                 {
-                    desiredVelocityWorld = desiredVelocityWorld.normalized * (_targetSpeed * Mathf.Clamp01(inputVector.magnitude));
+                    desiredVelocityWorld = desiredVelocityWorld.normalized * (_targetSpeed * Mathf.Clamp01(moveVector.magnitude));
                 }
                 else
                 {
@@ -244,6 +262,8 @@ namespace Player
             
             _xVelocityDifference = _currentVelocity.x - rb.linearVelocity.x;
             _zVelocityDifference = _currentVelocity.y - rb.linearVelocity.z;
+            
+            
 
             //  float lerpFraction = _networkTimer.TimeBetweenTick / (1f / Time.deltaTime);
             rb.AddForce(new Vector3(_xVelocityDifference, 0f, _zVelocityDifference), ForceMode.VelocityChange); 
@@ -274,7 +294,7 @@ namespace Player
         private StatePayload SimulateMovement(InputPayload inputPayload)
         {
             Physics.simulationMode = SimulationMode.Script;
-            Move(inputPayload.InputVector);
+            Move(inputPayload.InputVector, inputPayload.LookVector);
             Physics.Simulate(Time.fixedDeltaTime);
             Physics.simulationMode = SimulationMode.FixedUpdate;
 

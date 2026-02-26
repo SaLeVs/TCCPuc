@@ -51,14 +51,11 @@ namespace Player
             _xRotation -= _cameraLookInput.y * sensitivity * Time.deltaTime;
             _xRotation = Mathf.Clamp(_xRotation, upperClamp, lowerClamp);
             
-            _yRotation = orientation.eulerAngles.y;
+            float yaw = orientation.eulerAngles.y;
             
-            cameraRoot.rotation = Quaternion.Euler(_xRotation, _yRotation, 0f);
+            cameraRoot.rotation = Quaternion.Euler(_xRotation, yaw, 0f);
             
             cinemachineCamera.transform.SetPositionAndRotation(cameraRoot.position, cameraRoot.rotation);
-
-
-            orientation.Rotate(Vector3.up, _cameraLookInput.x * sensitivity * Time.deltaTime);
         }
     
     }

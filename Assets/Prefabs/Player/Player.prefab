@@ -194,6 +194,7 @@ GameObject:
   - component: {fileID: 7086192777476283295}
   - component: {fileID: 1694504125787105123}
   - component: {fileID: 6388113009287079804}
+  - component: {fileID: 9106684494112449477}
   - component: {fileID: 3158690138509095668}
   - component: {fileID: 2207057075489463036}
   m_Layer: 0
@@ -346,6 +347,21 @@ MonoBehaviour:
   ShowTopMostFoldoutHeaderGroup: 1
   playerMovement: {fileID: 1694504125787105123}
   animator: {fileID: 4756283848191426294}
+--- !u!114 &9106684494112449477
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6252520807053122715}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 474cf5ddf4f750040b15110680345fa3, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Player::PlayerCamera
+  ShowTopMostFoldoutHeaderGroup: 1
+  ownerCameraPriority: 10
+  playerCamera: {fileID: 6800444975667494322}
 --- !u!54 &3158690138509095668
 Rigidbody:
   m_ObjectHideFlags: 0

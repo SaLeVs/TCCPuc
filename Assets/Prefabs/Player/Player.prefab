@@ -1,5 +1,36 @@
 %YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
+--- !u!1 &2253171827023185120
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 5036788259409135564}
+  m_Layer: 0
+  m_Name: CameraRoot
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &5036788259409135564
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2253171827023185120}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0.077, z: 0.128}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 6400761747528298933}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &3332322568339403280
 GameObject:
   m_ObjectHideFlags: 0
@@ -17,7 +48,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &5315125677881062935
 Transform:
   m_ObjectHideFlags: 0
@@ -107,7 +138,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &5285031163238599915
 Transform:
   m_ObjectHideFlags: 0
@@ -235,7 +266,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Unity.Netcode.Runtime::Unity.Netcode.NetworkObject
-  GlobalObjectIdHash: 282796449
+  GlobalObjectIdHash: 3919488120
   InScenePlacedSourceGlobalObjectIdHash: 0
   DeferredDespawnTick: 0
   Ownership: 1
@@ -361,7 +392,13 @@ MonoBehaviour:
   m_EditorClassIdentifier: Player::PlayerCamera
   ShowTopMostFoldoutHeaderGroup: 1
   ownerCameraPriority: 10
-  playerCamera: {fileID: 6800444975667494322}
+  upperClamp: -40
+  lowerClamp: 70
+  sensitivity: 15
+  cinemachineCamera: {fileID: 6800444975667494322}
+  cameraTransform: {fileID: 5036788259409135564}
+  inputReader: {fileID: 11400000, guid: b8967103b22990e4685e914ae00843a6, type: 2}
+  playerTransform: {fileID: 1450085231864165735}
 --- !u!54 &3158690138509095668
 Rigidbody:
   m_ObjectHideFlags: 0
@@ -370,7 +407,7 @@ Rigidbody:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 6252520807053122715}
   serializedVersion: 5
-  m_Mass: 1
+  m_Mass: 55
   m_LinearDamping: 0
   m_AngularDamping: 0.05
   m_CenterOfMass: {x: 0, y: 0, z: 0}
@@ -388,7 +425,7 @@ Rigidbody:
   m_IsKinematic: 0
   m_Interpolate: 1
   m_Constraints: 112
-  m_CollisionDetection: 1
+  m_CollisionDetection: 0
 --- !u!136 &2207057075489463036
 CapsuleCollider:
   m_ObjectHideFlags: 0
@@ -438,7 +475,7 @@ Transform:
   m_GameObject: {fileID: 8251458222446189011}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 2, z: -3}
+  m_LocalPosition: {x: 0, y: 1.63, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -464,11 +501,11 @@ MonoBehaviour:
   m_StreamingVersion: 20241001
   m_LegacyPriority: 0
   Target:
-    TrackingTarget: {fileID: 1450085231864165735}
+    TrackingTarget: {fileID: 0}
     LookAtTarget: {fileID: 0}
     CustomLookAtTarget: 0
   Lens:
-    FieldOfView: 60.000004
+    FieldOfView: 90
     OrthographicSize: 5
     NearClipPlane: 0.3
     FarClipPlane: 1000
@@ -553,7 +590,10 @@ PrefabInstance:
       objectReference: {fileID: 9100000, guid: fa31e0d372d39fd4bbbef3ce97856df5, type: 2}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
-    m_AddedGameObjects: []
+    m_AddedGameObjects:
+    - targetCorrespondingSourceObject: {fileID: -3765236089850875182, guid: 1841c298173cdad4db8df8602c8f1c8d, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 5036788259409135564}
     m_AddedComponents:
     - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 1841c298173cdad4db8df8602c8f1c8d, type: 3}
       insertIndex: -1
@@ -604,5 +644,10 @@ MonoBehaviour:
 --- !u!95 &4756283848191426294 stripped
 Animator:
   m_CorrespondingSourceObject: {fileID: 5866666021909216657, guid: 1841c298173cdad4db8df8602c8f1c8d, type: 3}
+  m_PrefabInstance: {fileID: 1399250988306531175}
+  m_PrefabAsset: {fileID: 0}
+--- !u!4 &6400761747528298933 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: -3765236089850875182, guid: 1841c298173cdad4db8df8602c8f1c8d, type: 3}
   m_PrefabInstance: {fileID: 1399250988306531175}
   m_PrefabAsset: {fileID: 0}

@@ -12,15 +12,19 @@ namespace Player
         [SerializeField] private float upperClamp = -40f;
         [SerializeField] private float lowerClamp = 70f;
         [SerializeField] private float sensitivity = 20f;
+        [SerializeField] private float lerpTime = 20f;
+        
         
         [SerializeField] private CinemachineCamera cinemachineCamera;
         [SerializeField] private Transform cameraRoot;
         [SerializeField] private InputReader inputReader;
         [SerializeField] private Transform orientation;
+        [SerializeField] private PlayerMovement playerMovement;
         
         private Vector2 _cameraLookInput;
         private float _xRotation;
         private float _yRotation;
+        private float _visualYaw;
         
         
         public override void OnNetworkSpawn()
@@ -31,18 +35,23 @@ namespace Player
                 inputReader.OnCameraLookEvent += InputReader_OnCameraLookEvent;
             }
         }
-
+        
+        private void InputReader_OnCameraLookEvent(Vector2 cameraLookInput) => _cameraLookInput = cameraLookInput;
+        
         private void LateUpdate()
         {
             if (IsOwner)
             {
+                SmoothVisualYaw();
                 CameraMovement();
             }
         }
-
-        private void InputReader_OnCameraLookEvent(Vector2 cameraLookInput)
+        
+        private void SmoothVisualYaw()
         {
-            _cameraLookInput = cameraLookInput;
+            float targetYaw = playerMovement.SimulationYaw;
+
+            _visualYaw = Mathf.LerpAngle(_visualYaw, targetYaw, lerpTime * Time.deltaTime);
         }
 
         
@@ -50,11 +59,9 @@ namespace Player
         {
             _xRotation -= _cameraLookInput.y * sensitivity * Time.deltaTime;
             _xRotation = Mathf.Clamp(_xRotation, upperClamp, lowerClamp);
-            
-            float yaw = orientation.eulerAngles.y;
-            
-            cameraRoot.rotation = Quaternion.Euler(_xRotation, yaw, 0f);
-            
+
+            cameraRoot.rotation = Quaternion.Euler(_xRotation, _visualYaw, 0f);
+
             cinemachineCamera.transform.SetPositionAndRotation(cameraRoot.position, cameraRoot.rotation);
         }
     

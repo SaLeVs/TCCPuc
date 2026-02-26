@@ -6,52 +6,24 @@ namespace Player
 {
     public class PlayerAnimations : NetworkBehaviour
     {
-        [SerializeField] private PlayerMovement playerMovement;
         [SerializeField] private Animator animator;
+        [SerializeField] private Rigidbody rb;
+
+        private Vector3 _velocity;
+        private Vector3 _horizontalVelocity;
         
         private readonly int _moveXHash = Animator.StringToHash("_xVelocity");
         private readonly int _moveYHash = Animator.StringToHash("_yVelocity");
         
-        
-        public override void OnNetworkSpawn()
-        {
-            if (IsOwner)
-            {
-                playerMovement.OnPlayerMovement += PlayerMovement_OnPlayerMove;
 
-            }
-        
-        }
+        private void Update()
+        {
+            _velocity = rb.linearVelocity;
+            _horizontalVelocity = transform.InverseTransformDirection(_velocity);
 
-        private void PlayerMovement_OnPlayerMove(Vector2 currentVelocity)
-        {
-            animator.SetFloat(_moveXHash, currentVelocity.x);
-            animator.SetFloat(_moveYHash, currentVelocity.y);
-            
+            animator.SetFloat(_moveXHash, _horizontalVelocity.x);
+            animator.SetFloat(_moveYHash, _horizontalVelocity.z);
         }
-
-        private void FixedUpdate()
-        {
-            MoveAnimation();
-        }
-        
-        private void MoveAnimation()
-        {
-            
-        }
-        
-        
-        public override void OnNetworkDespawn()
-        {
-            if (IsOwner)
-            {
-                playerMovement.OnPlayerMovement -= PlayerMovement_OnPlayerMove;
-            
-            }
-        
-        }
-        
-        
     }
 }
 

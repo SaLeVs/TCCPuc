@@ -9,8 +9,6 @@ namespace Player
 {
     public class PlayerMovement : NetworkBehaviour
     {
-        public event Action<Vector2> OnPlayerMovement;
-        
         [SerializeField] private InputReader inputReader;
         [SerializeField] private Rigidbody rb;
         [SerializeField] private Transform orientation;
@@ -257,8 +255,6 @@ namespace Player
             
             _currentVelocity.x = Mathf.Lerp(_currentVelocity.x, desiredVelocityWorld.x, blendMovementTime * Time.fixedDeltaTime);
             _currentVelocity.y = Mathf.Lerp(_currentVelocity.y, desiredVelocityWorld.z, blendMovementTime * Time.fixedDeltaTime);
-            
-            OnPlayerMovement?.Invoke(_currentVelocity);
             
             _xVelocityDifference = _currentVelocity.x - rb.linearVelocity.x;
             _zVelocityDifference = _currentVelocity.y - rb.linearVelocity.z;

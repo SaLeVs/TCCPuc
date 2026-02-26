@@ -258,8 +258,6 @@ namespace Player
             
             _xVelocityDifference = _currentVelocity.x - rb.linearVelocity.x;
             _zVelocityDifference = _currentVelocity.y - rb.linearVelocity.z;
-            
-            
 
             //  float lerpFraction = _networkTimer.TimeBetweenTick / (1f / Time.deltaTime);
             rb.AddForce(new Vector3(_xVelocityDifference, 0f, _zVelocityDifference), ForceMode.VelocityChange); 

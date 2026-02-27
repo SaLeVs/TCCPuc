@@ -10,6 +10,7 @@ namespace Network
         public Quaternion Rotation;
         public Vector3 Velocity;
         public Vector3 AngularVelocity;
+        public float Stamina;
         
         public void NetworkSerialize<T>(BufferSerializer<T> serializer) where T : IReaderWriter
         {
@@ -18,6 +19,7 @@ namespace Network
             serializer.SerializeValue(ref Rotation);
             serializer.SerializeValue(ref Velocity);
             serializer.SerializeValue(ref AngularVelocity);
+            serializer.SerializeValue(ref Stamina);
         }
     }
 }

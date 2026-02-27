@@ -8,12 +8,14 @@ namespace Network
         public int Tick;
         public Vector3 InputVector;
         public Vector3 LookVector;
+        public bool IsRunning;
         
         public void NetworkSerialize<T>(BufferSerializer<T> serializer) where T : IReaderWriter
         {
             serializer.SerializeValue(ref Tick);
             serializer.SerializeValue(ref InputVector);
             serializer.SerializeValue(ref LookVector);
+            serializer.SerializeValue(ref IsRunning);
         }
     }
 }

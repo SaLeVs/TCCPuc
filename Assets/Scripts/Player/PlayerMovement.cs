@@ -17,6 +17,11 @@ namespace Player
         [SerializeField] private float blendMovementTime = 8.9f;
         [SerializeField] private float positionErrorThreshold = 0.5f;
         [SerializeField] private float sensitivity = 20f;
+        [SerializeField] private float staminaMax;
+        [SerializeField] private float staminaDrainPerSecond;
+        [SerializeField] private float staminaGainPerSecond;
+        [SerializeField] private float staminaCooldownThreshold = 5f;
+        
 
         [SerializeField] private GameObject serverCube;
         [SerializeField] private GameObject clientCube;
@@ -36,7 +41,9 @@ namespace Player
         private Vector2 _currentVelocity;
         private float _xVelocityDifference;
         private float _zVelocityDifference;
-
+        
+        private float _stamina;
+        private bool _isExhausted;
         
         // Prediction and Reconciliation
         private NetworkTimer _networkTimer;
@@ -65,6 +72,8 @@ namespace Player
             _serverStateBuffer = new Buffer<StatePayload>(BUFFER_SIZE);
             _serverInputQueue = new Queue<InputPayload>();
             
+            _stamina = staminaMax;
+            _isExhausted = false;
         }
         
         public override void OnNetworkSpawn()
@@ -121,7 +130,8 @@ namespace Player
                 {
                     Tick = currentTick,
                     InputVector = _movementInput,
-                    LookVector = _cameraLookInput
+                    LookVector = _cameraLookInput,
+                    IsRunning = _isRunning
                 };
                 
                 _clientInputBuffer.Add(inputPayload, bufferIndex);
@@ -188,13 +198,13 @@ namespace Player
             transform.rotation = rewindState.Rotation;
             rb.linearVelocity = rewindState.Velocity;
             rb.angularVelocity = rewindState.AngularVelocity;
-
+            _stamina = rewindState.Stamina;
+            
             if (!rewindState.Equals(_lastServerState)) return;
             
             _clientStateBuffer.Add(rewindState, rewindState.Tick);
             
             int tickToReprocess = _lastServerState.Tick + 1;
-            
             
             while (tickToReprocess <= _networkTimer.CurrentTick)
             {
@@ -209,8 +219,11 @@ namespace Player
 
         private StatePayload ProcessClientMovement(InputPayload input)
         {
+            float tickTime = 1f / SERVER_TICK_RATE;
+            
             Move(input.InputVector);
             Look(input.LookVector);
+            UpdateStamina(input.IsRunning, tickTime);
             
             return new StatePayload
             {
@@ -219,6 +232,7 @@ namespace Player
                 Rotation = transform.rotation,
                 Velocity = rb.linearVelocity,
                 AngularVelocity = rb.angularVelocity,
+                Stamina = _stamina
             };
             
         }
@@ -269,6 +283,32 @@ namespace Player
             rb.AddForce(new Vector3(_xVelocityDifference, 0f, _zVelocityDifference), ForceMode.VelocityChange); 
             
         }
+
+        private void UpdateStamina(bool isRunning, float tickTime)
+        {
+            if (isRunning && !_isExhausted)
+            {
+                _stamina -= staminaDrainPerSecond *  tickTime;
+                
+                if (_stamina <= 0f)
+                {
+                    _stamina = 0f;
+                    _isExhausted = true;
+                    _isRunning = false;
+                }
+            }
+            else
+            {
+                _stamina += staminaGainPerSecond * tickTime;
+                
+                if (_stamina >= staminaCooldownThreshold)
+                {
+                    _isExhausted = false;
+                }
+                
+                _stamina = Mathf.Min(_stamina, staminaMax);
+            }
+        }
         
         private void ProcessServerTick()
         {
@@ -296,8 +336,12 @@ namespace Player
         private StatePayload SimulateMovement(InputPayload inputPayload)
         {
             Physics.simulationMode = SimulationMode.Script;
+            
+            float tickTime = 1f / SERVER_TICK_RATE;
+            
             Move(inputPayload.InputVector);
             Look(inputPayload.LookVector);
+            UpdateStamina(inputPayload.IsRunning, tickTime);
             
             Physics.Simulate(Time.fixedDeltaTime);
             Physics.simulationMode = SimulationMode.FixedUpdate;

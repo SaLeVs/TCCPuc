@@ -249,7 +249,9 @@ namespace Player
 
         private void Move(Vector2 moveVector)
         {
-            _targetSpeed = _isRunning ? runSpeed : moveSpeed;
+            bool canRun = _isRunning && !_isExhausted;
+
+            _targetSpeed = canRun ? runSpeed : moveSpeed;
             
             Vector3 desiredVelocityWorld = Vector3.zero;
             
@@ -286,27 +288,27 @@ namespace Player
 
         private void UpdateStamina(bool isRunning, float tickTime)
         {
-            if (isRunning && !_isExhausted)
+            bool canRun = isRunning && !_isExhausted;
+
+            if (canRun)
             {
-                _stamina -= staminaDrainPerSecond *  tickTime;
-                
+                _stamina -= staminaDrainPerSecond * tickTime;
+
                 if (_stamina <= 0f)
                 {
                     _stamina = 0f;
                     _isExhausted = true;
-                    _isRunning = false;
                 }
             }
             else
             {
                 _stamina += staminaGainPerSecond * tickTime;
-                
-                if (_stamina >= staminaCooldownThreshold)
+                _stamina = Mathf.Min(_stamina, staminaMax);
+
+                if (_isExhausted && _stamina >= staminaCooldownThreshold)
                 {
                     _isExhausted = false;
                 }
-                
-                _stamina = Mathf.Min(_stamina, staminaMax);
             }
         }
         

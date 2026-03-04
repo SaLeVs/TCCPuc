@@ -393,7 +393,6 @@ MonoBehaviour:
   moveSpeed: 3
   runSpeed: 8
   blendMovementTime: 8.9
-  positionErrorThreshold: 0.3
   sensitivity: 20
   staminaMax: 5
   staminaDrainPerSecond: 1.25
@@ -401,6 +400,8 @@ MonoBehaviour:
   staminaCooldownThreshold: 4
   serverCube: {fileID: 4634570931762715566}
   clientCube: {fileID: 3332322568339403280}
+  positionErrorThreshold: 50
+  reconciliationCooldown: 1
 --- !u!114 &6388113009287079804
 MonoBehaviour:
   m_ObjectHideFlags: 0

@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using Components;
 using UnityEngine;
 using Inputs;
 using Network;
@@ -62,7 +63,7 @@ namespace Player
         private Queue<InputPayload> _serverInputQueue;
         
         private bool _hasServerState;
-        
+        private CountdownTimer _reconciliationTimer;
         
         
         private void Awake()
@@ -77,6 +78,9 @@ namespace Player
             
             _stamina = staminaMax;
             _isExhausted = false;
+            
+            _reconciliationTimer = new CountdownTimer(reconciliationCooldown);
+            
         }
         
         public override void OnNetworkSpawn()
@@ -98,6 +102,7 @@ namespace Player
         private void Update()
         {
             _networkTimer.Update(Time.deltaTime);
+            _reconciliationTimer.Tick(Time.deltaTime);
 
             if (Input.GetKeyDown(KeyCode.Q))
             {
@@ -171,6 +176,7 @@ namespace Player
                 if (positionError > positionErrorThreshold)
                 {
                     Reconcile(rewindState);
+                    _reconciliationTimer.Start();
                 }
                 
                 _lastProcessedState = _lastServerState;
@@ -181,7 +187,7 @@ namespace Player
 
         private bool ShouldReconcile()
         {
-            if (!_hasServerState)
+            if (!_hasServerState && !_reconciliationTimer.IsRunning)
                 return false;
             
             return !_lastProcessedState.Equals(_lastServerState);

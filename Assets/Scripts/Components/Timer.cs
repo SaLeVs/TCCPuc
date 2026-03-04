@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 
 namespace Components 
 {
@@ -101,7 +101,7 @@ namespace Components
         }
         
         public void Reset() => Time = 0;
-        
         public float GetTime() => Time;
+        
     }
 }

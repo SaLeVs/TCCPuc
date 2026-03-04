@@ -325,7 +325,7 @@ namespace Player
                 InputPayload inputPayload = _serverInputQueue.Dequeue();
                 bufferIndex = inputPayload.Tick % BUFFER_SIZE;
                 
-                StatePayload serverState = ProcessClientMovement(inputPayload);
+                StatePayload serverState = SimulateMovement(inputPayload);
                 
                 serverCube.transform.position = new Vector3(serverState.Position.x, 1f, serverState.Position.z);
                 
@@ -339,6 +339,30 @@ namespace Player
             
         }
 
+        private StatePayload SimulateMovement(InputPayload inputPayload)
+        {
+            Physics.simulationMode = SimulationMode.Script;
+            
+            float tickTime = 1f / SERVER_TICK_RATE;
+            
+            Move(inputPayload.InputVector);
+            Look(inputPayload.LookVector);
+            UpdateStamina(inputPayload.IsRunning, tickTime);
+            
+            Physics.Simulate(Time.fixedDeltaTime);
+            Physics.simulationMode = SimulationMode.FixedUpdate;
+
+            return new StatePayload
+            {
+                Tick = inputPayload.Tick,
+                Position = transform.position,
+                Rotation = transform.rotation,
+                Velocity = rb.linearVelocity,
+                AngularVelocity = rb.angularVelocity,
+            };
+            
+        }
+        
         [Rpc(SendTo.ClientsAndHost)] 
         private void SendStateToClientRpc(StatePayload statePayload)
         {

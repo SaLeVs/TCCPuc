@@ -15,7 +15,7 @@ namespace Player
         [SerializeField] private float moveSpeed;
         [SerializeField] private float runSpeed;
         [SerializeField] private float blendMovementTime = 8.9f;
-        [SerializeField] private float positionErrorThreshold = 0.5f;
+        
         [SerializeField] private float sensitivity = 20f;
         [SerializeField] private float staminaMax;
         [SerializeField] private float staminaDrainPerSecond;
@@ -25,6 +25,8 @@ namespace Player
 
         [SerializeField] private GameObject serverCube;
         [SerializeField] private GameObject clientCube;
+        [SerializeField] private float positionErrorThreshold = 0.5f;
+        [SerializeField] private float reconciliationCooldown;
         
         public float SimulationYaw => _simulationYaw; 
         
@@ -62,6 +64,7 @@ namespace Player
         private bool _hasServerState;
         
         
+        
         private void Awake()
         {
             _networkTimer = new NetworkTimer(SERVER_TICK_RATE);
@@ -87,7 +90,6 @@ namespace Player
             }
             
         }
-
         
         private void InputReader_OnMoveEvent(Vector2 movementInput) => _movementInput = movementInput;
         private void InputReader_OnCameraLookEvent(Vector2 cameraLookInput) => _cameraLookInput = cameraLookInput;
@@ -106,47 +108,41 @@ namespace Player
         
         private void FixedUpdate()
         {
-            if (IsOwner)
+            while (_networkTimer.ShouldTick())
             {
-                while (_networkTimer.ShouldTick())
-                {
-                    ProcessClientTick();
-                    ProcessServerTick();
-                    
-                }
+                ProcessClientTick();
+                ProcessServerTick();
                 
             }
-            
+                
         }
         
         private void ProcessClientTick()
         {
-            if (IsClient)
+            if(!IsClient || !IsOwner) return;
+            
+            int currentTick = _networkTimer.CurrentTick;
+            int bufferIndex = currentTick % BUFFER_SIZE;
+                
+            InputPayload inputPayload = new InputPayload
             {
-                int currentTick = _networkTimer.CurrentTick;
-                int bufferIndex = currentTick % BUFFER_SIZE;
+                Tick = currentTick,
+                InputVector = _movementInput,
+                LookVector = _cameraLookInput,
+                IsRunning = _isRunning
+            };
                 
-                InputPayload inputPayload = new InputPayload
-                {
-                    Tick = currentTick,
-                    InputVector = _movementInput,
-                    LookVector = _cameraLookInput,
-                    IsRunning = _isRunning
-                };
+            _clientInputBuffer.Add(inputPayload, bufferIndex);
                 
-                _clientInputBuffer.Add(inputPayload, bufferIndex);
+            SendInputToServerRpc(inputPayload);
                 
-                SendInputToServerRpc(inputPayload);
+            StatePayload statePayload = ProcessClientMovement(inputPayload);
                 
-                StatePayload statePayload = ProcessClientMovement(inputPayload);
+            clientCube.transform.position = new Vector3(statePayload.Position.x, 1f, statePayload.Position.z);
                 
-                clientCube.transform.position = new Vector3(statePayload.Position.x, 1f, statePayload.Position.z);
-                
-                _clientStateBuffer.Add(statePayload, bufferIndex);
+            _clientStateBuffer.Add(statePayload, bufferIndex);
 
-                ServerReconciliation();
-                
-            }
+            ServerReconciliation();
             
         }
         
@@ -314,6 +310,8 @@ namespace Player
         
         private void ProcessServerTick()
         {
+            if(!IsServer) return;
+            
             int bufferIndex = -1;
 
             while (_serverInputQueue.Count > 0)
@@ -321,7 +319,7 @@ namespace Player
                 InputPayload inputPayload = _serverInputQueue.Dequeue();
                 bufferIndex = inputPayload.Tick % BUFFER_SIZE;
                 
-                StatePayload serverState = SimulateMovement(inputPayload);
+                StatePayload serverState = ProcessClientMovement(inputPayload);
                 
                 serverCube.transform.position = new Vector3(serverState.Position.x, 1f, serverState.Position.z);
                 
@@ -332,30 +330,6 @@ namespace Player
             if(bufferIndex == -1) return;
 
             SendStateToClientRpc(_serverStateBuffer.Get(bufferIndex));
-            
-        }
-
-        private StatePayload SimulateMovement(InputPayload inputPayload)
-        {
-            Physics.simulationMode = SimulationMode.Script;
-            
-            float tickTime = 1f / SERVER_TICK_RATE;
-            
-            Move(inputPayload.InputVector);
-            Look(inputPayload.LookVector);
-            UpdateStamina(inputPayload.IsRunning, tickTime);
-            
-            Physics.Simulate(Time.fixedDeltaTime);
-            Physics.simulationMode = SimulationMode.FixedUpdate;
-
-            return new StatePayload
-            {
-                Tick = inputPayload.Tick,
-                Position = transform.position,
-                Rotation = transform.rotation,
-                Velocity = rb.linearVelocity,
-                AngularVelocity = rb.angularVelocity,
-            };
             
         }
 

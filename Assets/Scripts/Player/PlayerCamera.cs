@@ -8,15 +8,15 @@ namespace Player
 {
     public class PlayerCamera : NetworkBehaviour
     {
-        [SerializeField] private int ownerCameraPriority = 10;
-        [SerializeField] private float upperClamp = -40f;
-        [SerializeField] private float lowerClamp = 70f;
-        [SerializeField] private float sensitivity = 20f;
-        
         [SerializeField] private CinemachineCamera cinemachineCamera;
         [SerializeField] private Transform cameraRoot;
         [SerializeField] private InputReader inputReader;
         [SerializeField] private Transform orientation;
+        
+        [SerializeField] private int ownerCameraPriority = 10;
+        [SerializeField] private float upperClamp = -40f;
+        [SerializeField] private float lowerClamp = 70f;
+        [SerializeField] private float sensitivity = 20f;
         
         private Vector2 _lookInput;
 
@@ -37,7 +37,6 @@ namespace Player
         
         private void InputReader_OnCameraLookEvent(Vector2 cameraLookInput) => _lookInput = cameraLookInput;
         
-        
         private void LateUpdate()
         {
             if (IsOwner)
@@ -47,8 +46,6 @@ namespace Player
             }
             
         }
-        
-
         
         private void CameraMovement()
         {
@@ -60,6 +57,7 @@ namespace Player
             _pitch = Mathf.Clamp(_pitch, upperClamp, lowerClamp);
             
             orientation.rotation = Quaternion.Euler(0f, _yaw, 0f);
+            transform.rotation = Quaternion.Euler(0f, _yaw, 0f);
             cameraRoot.localRotation = Quaternion.Euler(_pitch, 0f, 0f);
             
         }
@@ -76,7 +74,6 @@ namespace Player
             }
             
         }
-    
     }
 }
 

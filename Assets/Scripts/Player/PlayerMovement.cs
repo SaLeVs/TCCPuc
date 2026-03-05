@@ -15,9 +15,7 @@ namespace Player
         [SerializeField] private float blendMovementTime = 8.9f;
         
         private Vector2 _movementInput;
-        
         private Vector3 _movementDirection;
-        private float _targetSpeed;
         
         private Vector2 _currentVelocity;
         private float _xVelocityDifference;
@@ -61,7 +59,7 @@ namespace Player
                 
                 if (inputMag > 0.0001f)
                 {
-                    desiredVelocityWorld = desiredVelocityWorld.normalized * (_targetSpeed * Mathf.Clamp01(moveVector.magnitude));
+                    desiredVelocityWorld = desiredVelocityWorld.normalized * (moveSpeed * Mathf.Clamp01(moveVector.magnitude));
                 }
                 else
                 {

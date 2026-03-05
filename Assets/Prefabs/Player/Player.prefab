@@ -24,12 +24,13 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2253171827023185120}
   serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0.077, z: 0.128}
+  m_LocalRotation: {x: 0.0000005625188, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 0, y: 1.6470629, z: 0.14483306}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 6400761747528298933}
+  m_Children:
+  - {fileID: 7631988926882076908}
+  m_Father: {fileID: 1450085231864165735}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &3114184444502032822
 GameObject:
@@ -282,7 +283,7 @@ Transform:
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 847016756603283365}
-  - {fileID: 7631988926882076908}
+  - {fileID: 5036788259409135564}
   - {fileID: 1504653218169054348}
   - {fileID: 5285031163238599915}
   - {fileID: 5315125677881062935}
@@ -300,7 +301,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Unity.Netcode.Runtime::Unity.Netcode.NetworkObject
-  GlobalObjectIdHash: 282796449
+  GlobalObjectIdHash: 3919488120
   InScenePlacedSourceGlobalObjectIdHash: 0
   DeferredDespawnTick: 0
   Ownership: 1
@@ -408,11 +409,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: Player::PlayerStamina
   ShowTopMostFoldoutHeaderGroup: 1
   inputReader: {fileID: 11400000, guid: b8967103b22990e4685e914ae00843a6, type: 2}
-  runSpeed: 0
-  sensitivity: 20
-  staminaMax: 0
-  staminaDrainPerSecond: 0
-  staminaGainPerSecond: 0
+  runSpeed: 7
+  staminaMax: 5
+  staminaDrainPerSecond: 1
+  staminaGainPerSecond: 1
   staminaCooldownThreshold: 5
 --- !u!114 &4828051692406128430
 MonoBehaviour:
@@ -440,14 +440,14 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Player::PlayerCamera
   ShowTopMostFoldoutHeaderGroup: 1
-  ownerCameraPriority: 10
-  upperClamp: -40
-  lowerClamp: 70
-  sensitivity: 15
   cinemachineCamera: {fileID: 6800444975667494322}
   cameraRoot: {fileID: 5036788259409135564}
   inputReader: {fileID: 11400000, guid: b8967103b22990e4685e914ae00843a6, type: 2}
   orientation: {fileID: 847016756603283365}
+  ownerCameraPriority: 10
+  upperClamp: -40
+  lowerClamp: 70
+  sensitivity: 15
 --- !u!114 &6388113009287079804
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -539,12 +539,12 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 8251458222446189011}
   serializedVersion: 2
-  m_LocalRotation: {x: -0.00000001117587, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0, y: 1.6470631, z: -0.1311669}
+  m_LocalRotation: {x: -0.00000057369465, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 0, y: -0.025062948, z: -0.02683303}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 1450085231864165735}
+  m_Father: {fileID: 5036788259409135564}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &6800444975667494322
 MonoBehaviour:
@@ -891,10 +891,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
-    m_AddedGameObjects:
-    - targetCorrespondingSourceObject: {fileID: -3765236089850875182, guid: 1841c298173cdad4db8df8602c8f1c8d, type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 5036788259409135564}
+    m_AddedGameObjects: []
     m_AddedComponents:
     - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 1841c298173cdad4db8df8602c8f1c8d, type: 3}
       insertIndex: -1
@@ -945,10 +942,5 @@ MonoBehaviour:
 --- !u!95 &4756283848191426294 stripped
 Animator:
   m_CorrespondingSourceObject: {fileID: 5866666021909216657, guid: 1841c298173cdad4db8df8602c8f1c8d, type: 3}
-  m_PrefabInstance: {fileID: 1399250988306531175}
-  m_PrefabAsset: {fileID: 0}
---- !u!4 &6400761747528298933 stripped
-Transform:
-  m_CorrespondingSourceObject: {fileID: -3765236089850875182, guid: 1841c298173cdad4db8df8602c8f1c8d, type: 3}
   m_PrefabInstance: {fileID: 1399250988306531175}
   m_PrefabAsset: {fileID: 0}

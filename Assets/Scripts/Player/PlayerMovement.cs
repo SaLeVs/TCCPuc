@@ -1,5 +1,7 @@
+using System.Collections.Generic;
 using UnityEngine;
 using Inputs;
+using Interfaces;
 using Unity.Netcode;
 
 
@@ -14,6 +16,8 @@ namespace Player
         [SerializeField] private float moveSpeed;
         [SerializeField] private float blendMovementTime = 8.9f;
         
+        private float _targetSpeed;
+        
         private Vector2 _movementInput;
         private Vector3 _movementDirection;
         
@@ -21,6 +25,29 @@ namespace Player
         private float _xVelocityDifference;
         private float _zVelocityDifference;
         
+        private List<ISpeedModifier> _speedModifiersList;
+        private ISpeedModifier[] _speedModifiers;
+        
+        
+        private void Awake()
+        {
+            SetupSpeedModifiers();
+            
+        }
+
+        private void SetupSpeedModifiers()
+        {
+            _speedModifiersList = new List<ISpeedModifier>();
+            
+            _speedModifiers = GetComponents<ISpeedModifier>();
+            
+            foreach (var modifier in _speedModifiers)
+            {
+                _speedModifiersList.Add(modifier);
+            }
+            
+        }
+
         
         public override void OnNetworkSpawn()
         {
@@ -40,26 +67,27 @@ namespace Player
         {
             if (IsOwner)
             {
-                Move(_movementInput);
-                
+                Move();
             }
             
         }
         
         
-        private void Move(Vector2 moveVector)
+        private void Move()
         {
+           _targetSpeed = ApplySpeedModifiers(moveSpeed);
+            
             Vector3 desiredVelocityWorld = Vector3.zero;
             
-            if (moveVector.sqrMagnitude > 0.0001f)
+            if (_movementInput.sqrMagnitude > 0.0001f)
             {
-                desiredVelocityWorld = orientation.forward * moveVector.y + orientation.right * moveVector.x;
+                desiredVelocityWorld = orientation.forward * _movementInput.y + orientation.right * _movementInput.x;
                 desiredVelocityWorld.y = 0f;
                 float inputMag = desiredVelocityWorld.magnitude;
                 
                 if (inputMag > 0.0001f)
                 {
-                    desiredVelocityWorld = desiredVelocityWorld.normalized * (moveSpeed * Mathf.Clamp01(moveVector.magnitude));
+                    desiredVelocityWorld = desiredVelocityWorld.normalized * (_targetSpeed * Mathf.Clamp01(_movementInput.magnitude));
                 }
                 else
                 {
@@ -81,13 +109,24 @@ namespace Player
             
         }
         
+        private float ApplySpeedModifiers(float baseSpeed)
+        {
+            float finalSpeed = baseSpeed;
+
+            foreach (var modifier in _speedModifiers)
+            {
+                finalSpeed = modifier.ModifySpeed(finalSpeed);
+            }
+
+            return finalSpeed;
+        }
+        
         
         public override void OnNetworkDespawn()
         {
             if (IsOwner)
             {
                 inputReader.OnMoveEvent -= InputReader_OnMoveEvent;
-                
             }
             
         }

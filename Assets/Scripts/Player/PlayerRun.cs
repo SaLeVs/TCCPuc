@@ -1,23 +1,26 @@
 using System;
 using Inputs;
+using Interfaces;
 using Unity.Netcode;
 using UnityEngine;
 
 namespace Player
 {
-    public class PlayerRun : NetworkBehaviour
+    public class PlayerRun : NetworkBehaviour, ISpeedModifier
     {
         [SerializeField] private InputReader inputReader;
-        [SerializeField] private float runSpeed;
+        [SerializeField] private float speedModifier = 2f;
         
         [SerializeField] private float staminaMax;
         [SerializeField] private float staminaDrainPerSecond;
         [SerializeField] private float staminaGainPerSecond;
         [SerializeField] private float staminaCooldownThreshold = 5f;
     
+        
         private float _stamina;
         private bool _isExhausted;
         private bool _isRunning;
+        
         
         public override void OnNetworkSpawn()
         {
@@ -26,7 +29,6 @@ namespace Player
             if (IsOwner)
             {
                 inputReader.OnRunEvent += InputReader_OnRunEvent;
-                
             }
             
         }
@@ -39,7 +41,6 @@ namespace Player
             if (IsOwner)
             {
                 UpdateStamina(_isRunning);
-                
             }
             
         }
@@ -70,6 +71,17 @@ namespace Player
             }
         }
         
+        public float ModifySpeed(float baseSpeed)
+        {
+            if (_isRunning && !_isExhausted)
+            {
+                return baseSpeed * speedModifier;
+            }
+
+            return baseSpeed;
+        }
+        
+        
         
         public override void OnNetworkDespawn()
         {
@@ -80,6 +92,7 @@ namespace Player
             }
             
         }
+
         
     }
 }

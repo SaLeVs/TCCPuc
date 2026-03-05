@@ -257,7 +257,7 @@ GameObject:
   - component: {fileID: 7086192777476283295}
   - component: {fileID: 1694504125787105123}
   - component: {fileID: 4084110916807435523}
-  - component: {fileID: 4828051692406128430}
+  - component: {fileID: 2747145024143162000}
   - component: {fileID: 9106684494112449477}
   - component: {fileID: 6388113009287079804}
   - component: {fileID: 3158690138509095668}
@@ -409,12 +409,12 @@ MonoBehaviour:
   m_EditorClassIdentifier: Player::PlayerStamina
   ShowTopMostFoldoutHeaderGroup: 1
   inputReader: {fileID: 11400000, guid: b8967103b22990e4685e914ae00843a6, type: 2}
-  runSpeed: 7
+  speedModifier: 2
   staminaMax: 5
   staminaDrainPerSecond: 1
   staminaGainPerSecond: 1
   staminaCooldownThreshold: 5
---- !u!114 &4828051692406128430
+--- !u!114 &2747145024143162000
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -425,8 +425,10 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 01301c18fb7124748876c103c3e2229c, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Player::PlayerCrounch
-  crounchSpeed: 0
+  m_EditorClassIdentifier: Player::Player.PlayerCrouch
+  ShowTopMostFoldoutHeaderGroup: 1
+  inputReader: {fileID: 0}
+  speedModifier: 0.5
 --- !u!114 &9106684494112449477
 MonoBehaviour:
   m_ObjectHideFlags: 0

@@ -56,7 +56,7 @@ namespace Player
         // Prediction and Reconciliation
         private NetworkTimer _networkTimer;
         private const float SERVER_TICK_RATE = 60f;
-        private const int BUFFER_SIZE = 1024;
+        private const int BUFFER_SIZE = 2048;
 
         private Buffer<InputPayload> _clientInputBuffer;
         private Buffer<StatePayload> _clientStateBuffer;
@@ -171,6 +171,7 @@ namespace Player
         
         private void ProcessClientTick()
         {
+            
             if(!IsClient || !IsOwner) return;
             
             int currentTick = _networkTimer.CurrentTick;
@@ -179,7 +180,7 @@ namespace Player
             InputPayload inputPayload = new InputPayload
             {
                 Tick = currentTick,
-                TimeStamp = DateTime.Now,
+                TimeStamp = DateTime.UtcNow,
                 NetworkObjectId = NetworkObjectId,
                 InputVector = _movementInput,
                 Position = transform.position,
@@ -210,63 +211,100 @@ namespace Player
         
         private void ServerReconciliation()
         {
-            if (ShouldReconcile())
+            if (!ShouldReconcile()) return;
+
+            int serverTick = _lastServerState.Tick;
+            int bufferIndex = serverTick % BUFFER_SIZE;
+            
+            if (bufferIndex - 1 < 0) return;
+
+            StatePayload rewindState;
+            StatePayload clientStateForTick;
+
+            if (IsHost)
             {
-                float positionError = 0f;
-                int bufferIndex = 0;
-                
-                StatePayload rewindState = default;
-                bufferIndex = _lastServerState.Tick % BUFFER_SIZE;
-
-                if (bufferIndex - 1 < 0) return;
-                
-                rewindState = IsHost ? _serverStateBuffer.Get(bufferIndex - 1) : _lastServerState;
-                positionError = Vector3.Distance(rewindState.Position, _clientStateBuffer.Get(bufferIndex).Position);
-
-                if (positionError > positionErrorThreshold)
-                {
-                    Reconcile(rewindState);
-                    _reconciliationTimer.Start();
-                }
-                
-                _lastProcessedState = _lastServerState;
-                
+                rewindState = _serverStateBuffer.Get(bufferIndex - 1);
+                clientStateForTick = _clientStateBuffer.Get(bufferIndex - 1);
             }
+            else
+            {
+                rewindState = _lastServerState;
+                clientStateForTick = _clientStateBuffer.Get(bufferIndex);
+            }
+            
+            if (rewindState.Equals(default(StatePayload)) || clientStateForTick.Equals(default(StatePayload)))
+            {
+                Debug.Log("Missing buffer data, aborting reconciliation");
+                return;
+            }
+            
+            if (rewindState.Tick != serverTick && !IsHost)
+            {
+                Debug.Log($"rewindState.tick ({rewindState.Tick}) != serverTick ({serverTick}) - abort");
+                return;
+            }
+
+            float positionError = Vector3.Distance(rewindState.Position, clientStateForTick.Position);
+
+            if (positionError > positionErrorThreshold)
+            {
+                Reconcile(rewindState);
+                _reconciliationTimer.Start();
+            }
+    
+            _lastProcessedState = rewindState;
             
         }
 
         private bool ShouldReconcile()
         {
-            if (!_hasServerState && !_reconciliationTimer.IsRunning && !_extrapolationCooldownTimer.IsRunning)
-                return false;
+            if (!_hasServerState) return false;
             
-            return !_lastProcessedState.Equals(_lastServerState);
+            if (_reconciliationTimer.IsRunning || _extrapolationCooldownTimer.IsRunning) return false;
+            
+            if (_lastProcessedState == null || _lastServerState == null) return true;
+            
+            return _lastProcessedState.Tick != _lastServerState.Tick;
             
         }
         
         private void Reconcile(StatePayload rewindState)
         {
+            Debug.Log($"Applying rewind tick={rewindState.Tick} pos={rewindState.Position}");
+
             transform.position = rewindState.Position;
             transform.rotation = rewindState.Rotation;
             rb.linearVelocity = rewindState.Velocity;
             rb.angularVelocity = rewindState.AngularVelocity;
             _stamina = rewindState.Stamina;
             
-            if (!rewindState.Equals(_lastServerState)) return;
+            if (_lastServerState == null || rewindState.Tick != _lastServerState.Tick)
+            {
+                _clientStateBuffer.Add(rewindState, rewindState.Tick % BUFFER_SIZE);
+                return;
+            }
             
-            _clientStateBuffer.Add(rewindState, rewindState.Tick);
+            _clientStateBuffer.Add(rewindState, rewindState.Tick % BUFFER_SIZE);
             
             int tickToReprocess = _lastServerState.Tick + 1;
-            
+
             while (tickToReprocess <= _networkTimer.CurrentTick)
             {
                 int bufferIndex = tickToReprocess % BUFFER_SIZE;
-                StatePayload statePayload = ProcessClientMovement(_clientInputBuffer.Get(bufferIndex));
+
+                InputPayload input = _clientInputBuffer.Get(bufferIndex);
+
+                if (input.Equals(default(InputPayload)) || input.Tick != tickToReprocess)
+                {
+                    Debug.Log($"Missing or mismatched input at tick {tickToReprocess}, aborting replay");
+                    break;
+                }
+
+                StatePayload statePayload = ProcessClientMovement(input);
                 _clientStateBuffer.Add(statePayload, bufferIndex);
+
                 tickToReprocess++;
-                
             }
-            
         }
 
         private StatePayload ProcessClientMovement(InputPayload input)
@@ -373,7 +411,7 @@ namespace Player
             
             InputPayload inputPayload = default;
             
-            while (_serverInputQueue.Count > 0)
+            if (_serverInputQueue.Count > 0)
             {
                 inputPayload = _serverInputQueue.Dequeue();
                 bufferIndex = inputPayload.Tick % BUFFER_SIZE;
@@ -389,7 +427,7 @@ namespace Player
             if(bufferIndex == -1) return;
 
             SendStateToClientRpc(_serverStateBuffer.Get(bufferIndex));
-            ProcessExtrapolation(_serverStateBuffer.Get(bufferIndex), CalculateLatencyInMilliseconds(inputPayload));
+            ProcessExtrapolation(_serverStateBuffer.Get(bufferIndex), CalculateLatencyInSeconds(inputPayload));
         }
 
         
@@ -439,27 +477,31 @@ namespace Player
         
         private void ProcessExtrapolation(StatePayload lastState, float latency)
         {
-            if(latency < extrapolationLimitInMilliseconds && latency > Time.fixedDeltaTime)
-            {
-                float axisLenght = latency * lastState.AngularVelocity.magnitude * Mathf.Deg2Rad;
-                Quaternion angularRotation = Quaternion.AngleAxis(axisLenght,lastState.AngularVelocity);
-                
-                if(_extrapolationState.Position != default)
-                {
-                    lastState = _extrapolationState;
+            float extrapolationLimitSeconds = extrapolationLimitInMilliseconds / 1000f;
 
-                    Vector3 positionCorrection = lastState.Velocity * (1 + latency * extrapolationMultiplier);
-                    _extrapolationState.Position = positionCorrection;
-                    _extrapolationState.Rotation = angularRotation * lastState.Rotation;
-                    _extrapolationState.Velocity = lastState.Velocity;
-                    _extrapolationState.AngularVelocity = lastState.AngularVelocity;
-                    _extrapolationCooldownTimer.Start();
-                }
-                else
-                {
-                    _extrapolationCooldownTimer.Stop();
-                }
+            if (latency < extrapolationLimitSeconds && latency > Time.fixedDeltaTime)
+            {
+                float axisLength = latency * lastState.AngularVelocity.magnitude * Mathf.Deg2Rad;
+                Quaternion angularRotation = Quaternion.AngleAxis(axisLength, lastState.AngularVelocity.normalized);
                 
+                if (_extrapolationState == null)
+                    _extrapolationState = new StatePayload();
+                
+                if (_extrapolationState.Position != default(Vector3))
+                {
+                    lastState = _extrapolationState; 
+                }
+
+                Vector3 positionCorrection = lastState.Velocity * (1 + latency * extrapolationMultiplier);
+                _extrapolationState.Position = lastState.Position + positionCorrection;
+                _extrapolationState.Rotation = angularRotation * lastState.Rotation;
+                _extrapolationState.Velocity = lastState.Velocity;
+                _extrapolationState.AngularVelocity = lastState.AngularVelocity;
+                _extrapolationCooldownTimer.Start();
+            }
+            else
+            {
+                _extrapolationCooldownTimer.Stop();
             }
             
         }
@@ -472,10 +514,9 @@ namespace Player
             }
         }
         
-        private static float CalculateLatencyInMilliseconds(InputPayload inputPayload)
+        private static float CalculateLatencyInSeconds(InputPayload inputPayload)
         {
-            return (DateTime.Now - inputPayload.TimeStamp).Milliseconds / 1000f;
-            
+            return (float)(DateTime.UtcNow - inputPayload.TimeStamp.ToUniversalTime()).TotalSeconds;
         }
 
         

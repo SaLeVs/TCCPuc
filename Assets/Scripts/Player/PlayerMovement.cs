@@ -5,6 +5,7 @@ using UnityEngine;
 using Inputs;
 using Network;
 using Unity.Netcode;
+using Unity.Netcode.Components;
 
 namespace Player
 {
@@ -13,6 +14,7 @@ namespace Player
         [SerializeField] private InputReader inputReader;
         [SerializeField] private Rigidbody rb;
         [SerializeField] private Transform orientation;
+        [SerializeField] private NetworkTransform playerNetworkTransform;
 
         [SerializeField] private float moveSpeed;
         [SerializeField] private float runSpeed;
@@ -29,6 +31,8 @@ namespace Player
         [SerializeField] private GameObject clientCube;
         [SerializeField] private float positionErrorThreshold = 0.5f;
         [SerializeField] private float reconciliationCooldown;
+        [SerializeField] private float extrapolationLimitInMilliseconds = 0.5f;
+        [SerializeField] private float extrapolationMultiplier = 1.2f;
         
         public float SimulationYaw => _simulationYaw; 
         
@@ -66,6 +70,9 @@ namespace Player
         private bool _hasServerState;
         private CountdownTimer _reconciliationTimer;
         
+        // Handle Lag and Extrapolation
+        private StatePayload _extrapolationState;
+        private CountdownTimer _extrapolationCooldownTimer;
         
         private void Awake()
         {
@@ -81,6 +88,24 @@ namespace Player
             _isExhausted = false;
             
             _reconciliationTimer = new CountdownTimer(reconciliationCooldown);
+            _extrapolationCooldownTimer = new CountdownTimer(extrapolationLimitInMilliseconds);
+
+            _reconciliationTimer.OnTimerStart += () =>
+            {
+                _extrapolationCooldownTimer.Stop();
+            };
+
+            _extrapolationCooldownTimer.OnTimerStart += () =>
+            {
+                _reconciliationTimer.Stop();
+                SwitchAuthorityMode(NetworkTransform.AuthorityModes.Server);
+            };
+            
+            _extrapolationCooldownTimer.OnTimerStop += () =>
+            {
+                _extrapolationState = default;
+                SwitchAuthorityMode(NetworkTransform.AuthorityModes.Owner);
+            };
             
         }
         
@@ -99,11 +124,23 @@ namespace Player
         private void InputReader_OnMoveEvent(Vector2 movementInput) => _movementInput = movementInput;
         private void InputReader_OnCameraLookEvent(Vector2 cameraLookInput) => _cameraLookInput = cameraLookInput;
         private void InputReader_OnRunEvent(bool isRunning) => _isRunning = isRunning;
+
+        private void SwitchAuthorityMode(NetworkTransform.AuthorityModes authorityMode)
+        {
+            bool shouldPlayerSync = authorityMode == NetworkTransform.AuthorityModes.Owner;
+            
+            playerNetworkTransform.AuthorityMode = authorityMode;
+            playerNetworkTransform.SyncPositionX = shouldPlayerSync;
+            playerNetworkTransform.SyncPositionY = shouldPlayerSync;
+            playerNetworkTransform.SyncPositionZ = shouldPlayerSync;
+            
+        }
         
         private void Update()
         {
             _networkTimer.Update(Time.deltaTime);
             _reconciliationTimer.Tick(Time.deltaTime);
+            _extrapolationCooldownTimer.Tick(Time.deltaTime);
 
             if (Input.GetKeyDown(KeyCode.Q))
             {
@@ -120,7 +157,8 @@ namespace Player
                 ProcessServerTick();
                 
             }
-                
+
+            Extrapolate();
         }
         
         private void ProcessClientTick()
@@ -191,7 +229,7 @@ namespace Player
 
         private bool ShouldReconcile()
         {
-            if (!_hasServerState && !_reconciliationTimer.IsRunning)
+            if (!_hasServerState && !_reconciliationTimer.IsRunning && !_extrapolationCooldownTimer.IsRunning)
                 return false;
             
             return !_lastProcessedState.Equals(_lastServerState);
@@ -324,10 +362,12 @@ namespace Player
             if(!IsServer) return;
             
             int bufferIndex = -1;
-
+            
+            InputPayload inputPayload = default;
+            
             while (_serverInputQueue.Count > 0)
             {
-                InputPayload inputPayload = _serverInputQueue.Dequeue();
+                inputPayload = _serverInputQueue.Dequeue();
                 bufferIndex = inputPayload.Tick % BUFFER_SIZE;
                 
                 StatePayload serverState = SimulateMovement(inputPayload);
@@ -341,8 +381,10 @@ namespace Player
             if(bufferIndex == -1) return;
 
             SendStateToClientRpc(_serverStateBuffer.Get(bufferIndex));
-            
+            ProcessExtrapolation(_serverStateBuffer.Get(bufferIndex), CalculateLatencyInMilliseconds(inputPayload));
         }
+
+        
 
         private StatePayload SimulateMovement(InputPayload inputPayload)
         {
@@ -384,6 +426,47 @@ namespace Player
                 }
                     
             }
+            
+        }
+        
+        private void ProcessExtrapolation(StatePayload lastState, float latency)
+        {
+            if(latency < extrapolationLimitInMilliseconds && latency > Time.fixedDeltaTime)
+            {
+                float axisLenght = latency * lastState.AngularVelocity.magnitude * Mathf.Deg2Rad;
+                Quaternion angularRotation = Quaternion.AngleAxis(axisLenght,lastState.AngularVelocity);
+                
+                if(_extrapolationState.Position != default)
+                {
+                    lastState = _extrapolationState;
+
+                    Vector3 positionCorrection = lastState.Velocity * (1 + latency * extrapolationMultiplier);
+                    _extrapolationState.Position = positionCorrection;
+                    _extrapolationState.Rotation = angularRotation * lastState.Rotation;
+                    _extrapolationState.Velocity = lastState.Velocity;
+                    _extrapolationState.AngularVelocity = lastState.AngularVelocity;
+                    _extrapolationCooldownTimer.Start();
+                }
+                else
+                {
+                    _extrapolationCooldownTimer.Stop();
+                }
+                
+            }
+            
+        }
+
+        private void Extrapolate()
+        {
+            if (IsServer && _extrapolationCooldownTimer.IsRunning)
+            {
+                transform.position +=  new Vector3(_extrapolationState.Position.x, 0f, _extrapolationState.Position.z);
+            }
+        }
+        
+        private static float CalculateLatencyInMilliseconds(InputPayload inputPayload)
+        {
+            return (DateTime.Now - inputPayload.TimeStamp).Milliseconds / 1000f;
             
         }
 

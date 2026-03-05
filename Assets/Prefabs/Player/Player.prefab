@@ -390,6 +390,7 @@ MonoBehaviour:
   inputReader: {fileID: 11400000, guid: b8967103b22990e4685e914ae00843a6, type: 2}
   rb: {fileID: 3158690138509095668}
   orientation: {fileID: 847016756603283365}
+  playerNetworkTransform: {fileID: 0}
   moveSpeed: 3
   runSpeed: 8
   blendMovementTime: 8.9
@@ -402,6 +403,8 @@ MonoBehaviour:
   clientCube: {fileID: 3332322568339403280}
   positionErrorThreshold: 50
   reconciliationCooldown: 1
+  extrapolationLimitInMilliseconds: 0.6
+  extrapolationMultiplier: 1.2
 --- !u!114 &6388113009287079804
 MonoBehaviour:
   m_ObjectHideFlags: 0

@@ -89,7 +89,15 @@ namespace Player
             
             _reconciliationTimer = new CountdownTimer(reconciliationCooldown);
             _extrapolationCooldownTimer = new CountdownTimer(extrapolationLimitInMilliseconds);
-
+            
+            _extrapolationState = new StatePayload
+            {
+                Position = default,
+                Rotation = default,
+                Velocity = default,
+                AngularVelocity = default
+            };
+            
             _reconciliationTimer.OnTimerStart += () =>
             {
                 _extrapolationCooldownTimer.Stop();

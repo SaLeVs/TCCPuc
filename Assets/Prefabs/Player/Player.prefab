@@ -255,8 +255,10 @@ GameObject:
   - component: {fileID: 1187485453327241583}
   - component: {fileID: 7086192777476283295}
   - component: {fileID: 1694504125787105123}
-  - component: {fileID: 6388113009287079804}
+  - component: {fileID: 4084110916807435523}
+  - component: {fileID: 4828051692406128430}
   - component: {fileID: 9106684494112449477}
+  - component: {fileID: 6388113009287079804}
   - component: {fileID: 3158690138509095668}
   - component: {fileID: 2207057075489463036}
   m_Layer: 0
@@ -298,7 +300,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Unity.Netcode.Runtime::Unity.Netcode.NetworkObject
-  GlobalObjectIdHash: 3919488120
+  GlobalObjectIdHash: 282796449
   InScenePlacedSourceGlobalObjectIdHash: 0
   DeferredDespawnTick: 0
   Ownership: 1
@@ -390,22 +392,9 @@ MonoBehaviour:
   inputReader: {fileID: 11400000, guid: b8967103b22990e4685e914ae00843a6, type: 2}
   rb: {fileID: 3158690138509095668}
   orientation: {fileID: 847016756603283365}
-  playerNetworkTransform: {fileID: 1187485453327241583}
   moveSpeed: 3
-  runSpeed: 8
   blendMovementTime: 8.9
-  sensitivity: 20
-  staminaMax: 5
-  staminaDrainPerSecond: 1.25
-  staminaGainPerSecond: 0.2
-  staminaCooldownThreshold: 4
-  serverCube: {fileID: 4634570931762715566}
-  clientCube: {fileID: 3332322568339403280}
-  positionErrorThreshold: 50
-  reconciliationCooldown: 1
-  extrapolationLimitInMilliseconds: 0.6
-  extrapolationMultiplier: 1.2
---- !u!114 &6388113009287079804
+--- !u!114 &4084110916807435523
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -414,13 +403,30 @@ MonoBehaviour:
   m_GameObject: {fileID: 6252520807053122715}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 9ea0ca075d618554fab1ed3813038212, type: 3}
+  m_Script: {fileID: 11500000, guid: b3e2f2a699ddcde458323a13a84eb28c, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Player::Player.PlayerAnimations
+  m_EditorClassIdentifier: Player::PlayerStamina
   ShowTopMostFoldoutHeaderGroup: 1
-  animator: {fileID: 4756283848191426294}
-  rb: {fileID: 3158690138509095668}
-  animationSmoothing: 0.1
+  inputReader: {fileID: 11400000, guid: b8967103b22990e4685e914ae00843a6, type: 2}
+  runSpeed: 0
+  sensitivity: 20
+  staminaMax: 0
+  staminaDrainPerSecond: 0
+  staminaGainPerSecond: 0
+  staminaCooldownThreshold: 5
+--- !u!114 &4828051692406128430
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6252520807053122715}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 01301c18fb7124748876c103c3e2229c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Player::PlayerCrounch
+  crounchSpeed: 0
 --- !u!114 &9106684494112449477
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -438,12 +444,26 @@ MonoBehaviour:
   upperClamp: -40
   lowerClamp: 70
   sensitivity: 15
-  lerpTime: 20
   cinemachineCamera: {fileID: 6800444975667494322}
   cameraRoot: {fileID: 5036788259409135564}
   inputReader: {fileID: 11400000, guid: b8967103b22990e4685e914ae00843a6, type: 2}
   orientation: {fileID: 847016756603283365}
-  playerMovement: {fileID: 1694504125787105123}
+--- !u!114 &6388113009287079804
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6252520807053122715}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9ea0ca075d618554fab1ed3813038212, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Player::Player.PlayerAnimations
+  ShowTopMostFoldoutHeaderGroup: 1
+  animator: {fileID: 4756283848191426294}
+  rb: {fileID: 3158690138509095668}
+  animationSmoothing: 0.1
 --- !u!54 &3158690138509095668
 Rigidbody:
   m_ObjectHideFlags: 0

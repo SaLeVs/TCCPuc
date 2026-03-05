@@ -12,19 +12,17 @@ namespace Player
         [SerializeField] private float upperClamp = -40f;
         [SerializeField] private float lowerClamp = 70f;
         [SerializeField] private float sensitivity = 20f;
-        [SerializeField] private float lerpTime = 20f;
-        
         
         [SerializeField] private CinemachineCamera cinemachineCamera;
         [SerializeField] private Transform cameraRoot;
         [SerializeField] private InputReader inputReader;
         [SerializeField] private Transform orientation;
-        [SerializeField] private PlayerMovement playerMovement;
         
-        private Vector2 _cameraLookInput;
-        private float _xRotation;
-        private float _yRotation;
-        private float _visualYaw;
+        private Vector2 _lookInput;
+
+        private float _yaw;
+        private float _pitch;
+        
         
         
         public override void OnNetworkSpawn()
@@ -33,36 +31,50 @@ namespace Player
             {
                 cinemachineCamera.Priority = ownerCameraPriority;
                 inputReader.OnCameraLookEvent += InputReader_OnCameraLookEvent;
+                
             }
         }
         
-        private void InputReader_OnCameraLookEvent(Vector2 cameraLookInput) => _cameraLookInput = cameraLookInput;
+        private void InputReader_OnCameraLookEvent(Vector2 cameraLookInput) => _lookInput = cameraLookInput;
+        
         
         private void LateUpdate()
         {
             if (IsOwner)
-            {
-                SmoothVisualYaw();
+            {   
                 CameraMovement();
+                
             }
+            
         }
         
-        private void SmoothVisualYaw()
-        {
-            float targetYaw = playerMovement.SimulationYaw;
-
-            _visualYaw = Mathf.LerpAngle(_visualYaw, targetYaw, lerpTime * Time.deltaTime);
-        }
 
         
         private void CameraMovement()
         {
-            _xRotation -= _cameraLookInput.y * sensitivity * Time.deltaTime;
-            _xRotation = Mathf.Clamp(_xRotation, upperClamp, lowerClamp);
-
-            cameraRoot.rotation = Quaternion.Euler(_xRotation, _visualYaw, 0f);
-
-            cinemachineCamera.transform.SetPositionAndRotation(cameraRoot.position, cameraRoot.rotation);
+            float deltaTime = Time.deltaTime;
+            
+            _yaw += _lookInput.x * sensitivity * deltaTime;
+            
+            _pitch -= _lookInput.y * sensitivity * deltaTime;
+            _pitch = Mathf.Clamp(_pitch, upperClamp, lowerClamp);
+            
+            orientation.rotation = Quaternion.Euler(0f, _yaw, 0f);
+            cameraRoot.localRotation = Quaternion.Euler(_pitch, 0f, 0f);
+            
+        }
+        
+        
+        
+        public override void OnNetworkDespawn()
+        {
+            if (IsOwner)
+            {
+                inputReader.OnCameraLookEvent -= InputReader_OnCameraLookEvent;
+                cinemachineCamera.Priority = 0;
+                
+            }
+            
         }
     
     }

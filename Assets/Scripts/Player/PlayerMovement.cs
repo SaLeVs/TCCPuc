@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using Components;
 using UnityEngine;
@@ -132,7 +133,10 @@ namespace Player
             InputPayload inputPayload = new InputPayload
             {
                 Tick = currentTick,
+                TimeStamp = DateTime.Now,
+                NetworkObjectId = NetworkObjectId,
                 InputVector = _movementInput,
+                Position = transform.position,
                 LookVector = _cameraLookInput,
                 IsRunning = _isRunning
             };
@@ -230,6 +234,7 @@ namespace Player
             return new StatePayload
             {
                 Tick = input.Tick,
+                NetworkObjectId = input.NetworkObjectId,
                 Position = transform.position,
                 Rotation = transform.rotation,
                 Velocity = rb.linearVelocity,

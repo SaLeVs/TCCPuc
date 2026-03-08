@@ -6,6 +6,7 @@ namespace Player
 {
     public class PlayerAnimations : NetworkBehaviour
     {
+        [SerializeField] private PlayerState playerState;
         [SerializeField] private Animator animator;
         [SerializeField] private Rigidbody rb;
         [SerializeField] private float animationSmoothing = 0.1f;
@@ -22,9 +23,13 @@ namespace Player
             _velocity = rb.linearVelocity;
             _horizontalVelocity = transform.InverseTransformDirection(_velocity);
 
-            animator.SetFloat(_moveXHash, _horizontalVelocity.x, animationSmoothing, Time.deltaTime);
-            animator.SetFloat(_moveYHash, _horizontalVelocity.z,animationSmoothing, Time.deltaTime );
+            animator.SetFloat(_moveXHash, playerState.speed.x, animationSmoothing, Time.deltaTime);
+            animator.SetFloat(_moveYHash, playerState.speed.y,animationSmoothing, Time.deltaTime );
+            animator.SetBool
         }
+        
+        
+        
     }
 }
 

@@ -15,7 +15,6 @@ namespace Player
         [SerializeField] private float staminaDrainPerSecond;
         [SerializeField] private float staminaGainPerSecond;
         [SerializeField] private float staminaCooldownThreshold = 5f;
-    
         
         private float _stamina;
         private bool _isExhausted;

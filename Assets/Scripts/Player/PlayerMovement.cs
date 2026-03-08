@@ -12,6 +12,7 @@ namespace Player
         [SerializeField] private InputReader inputReader;
         [SerializeField] private Rigidbody rb;
         [SerializeField] private Transform orientation;
+        [SerializeField] private PlayerState playerState;
 
         [SerializeField] private float moveSpeed;
         [SerializeField] private float blendMovementTime = 8.9f;
@@ -106,7 +107,7 @@ namespace Player
             _zVelocityDifference = _currentVelocity.y - rb.linearVelocity.z;
             
             rb.AddForce(new Vector3(_xVelocityDifference, 0f, _zVelocityDifference), ForceMode.VelocityChange); 
-            
+            playerState.speed = _currentVelocity;
         }
         
         private float ApplySpeedModifiers(float baseSpeed)

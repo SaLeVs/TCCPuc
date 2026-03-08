@@ -1,4 +1,3 @@
-using Inputs;
 using Unity.Netcode;
 using UnityEngine;
 
@@ -8,28 +7,58 @@ namespace Player
     {
         [SerializeField] private PlayerState playerState;
         [SerializeField] private Animator animator;
-        [SerializeField] private Rigidbody rb;
         [SerializeField] private float animationSmoothing = 0.1f;
-
-        private Vector3 _velocity;
-        private Vector3 _horizontalVelocity;
         
         private readonly int _moveXHash = Animator.StringToHash("_xVelocity");
         private readonly int _moveYHash = Animator.StringToHash("_yVelocity");
+        private readonly int _isRunningHash = Animator.StringToHash("_isRunning");
+        private readonly int _isCrouchingHash = Animator.StringToHash("_isCrouching");
         
-
-        private void Update()
+        
+        public override void OnNetworkSpawn()
         {
-            _velocity = rb.linearVelocity;
-            _horizontalVelocity = transform.InverseTransformDirection(_velocity);
-
-            // animator.SetFloat(_moveXHash, playerState.speed.x, animationSmoothing, Time.deltaTime);
-            // animator.SetFloat(_moveYHash, playerState.speed.y,animationSmoothing, Time.deltaTime );
+            if (IsOwner)
+            {
+                playerState.OnPlayerMovement += PlayerState_OnPlayerMovement;
+                playerState.OnRunEvent += PlayerState_OnRunEvent;
+                playerState.OnCrouchEvent += PlayerState_OnCrouchEvent;
+            }
             
         }
         
+        private void Update()
+        {
+
+            // animator.SetFloat(_moveXHash, playerState.speed.x, animationSmoothing, Time.deltaTime);
+            // animator.SetFloat(_moveYHash, playerState.speed.y,animationSmoothing, Time.deltaTime );
+        }
         
+        private void PlayerState_OnPlayerMovement(Vector2 playerMovement)
+        {
+            
+        }
         
+        private void PlayerState_OnRunEvent(bool isRunning)
+        {
+            
+        }
+        
+        private void PlayerState_OnCrouchEvent(bool isCrouching)
+        {
+            
+        }
+
+        
+        public override void OnNetworkDespawn()
+        {
+            if (IsOwner)
+            {
+                playerState.OnPlayerMovement -= PlayerState_OnPlayerMovement;
+                playerState.OnRunEvent -= PlayerState_OnRunEvent;
+                playerState.OnCrouchEvent -= PlayerState_OnCrouchEvent;
+            }
+            
+        }
     }
 }
 

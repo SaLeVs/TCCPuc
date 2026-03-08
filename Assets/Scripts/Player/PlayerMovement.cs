@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using UnityEngine;
 using Inputs;
 using Interfaces;
@@ -28,7 +27,6 @@ namespace Player
         private float _xVelocityDifference;
         private float _zVelocityDifference;
         
-        private List<ISpeedModifier> _speedModifiersList;
         private ISpeedModifier[] _speedModifiers;
         
         
@@ -40,15 +38,7 @@ namespace Player
 
         private void SetupSpeedModifiers()
         {
-            _speedModifiersList = new List<ISpeedModifier>();
-            
             _speedModifiers = GetComponents<ISpeedModifier>();
-            
-            foreach (var modifier in _speedModifiers)
-            {
-                _speedModifiersList.Add(modifier);
-            }
-            
         }
 
         

@@ -13,6 +13,11 @@ namespace Player
         private readonly int _moveYHash = Animator.StringToHash("_yVelocity");
         private readonly int _isRunningHash = Animator.StringToHash("_isRunning");
         private readonly int _isCrouchingHash = Animator.StringToHash("_isCrouching");
+        private readonly int _speedHash = Animator.StringToHash("_speed");
+        
+        private float _targetMoveX;
+        private float _targetMoveY;
+        private float _speed;
         
         
         public override void OnNetworkSpawn()
@@ -28,24 +33,34 @@ namespace Player
         
         private void Update()
         {
-
-            // animator.SetFloat(_moveXHash, playerState.speed.x, animationSmoothing, Time.deltaTime);
-            // animator.SetFloat(_moveYHash, playerState.speed.y,animationSmoothing, Time.deltaTime );
+            if (IsOwner)
+            {
+                animator.SetFloat(_moveXHash, _targetMoveX, animationSmoothing, Time.deltaTime);
+                animator.SetFloat(_moveYHash, _targetMoveY, animationSmoothing, Time.deltaTime);
+                
+                _speed = new Vector2(_targetMoveX, _targetMoveY).magnitude;
+                animator.SetFloat(_speedHash, _speed, animationSmoothing, Time.deltaTime);
+            }
+            
         }
         
         private void PlayerState_OnPlayerMovement(Vector2 playerMovement)
         {
+            Vector3 worldVel = new Vector3(playerMovement.x, 0f, playerMovement.y);
+            Vector3 localVel = transform.InverseTransformDirection(worldVel);
             
+            _targetMoveX = localVel.x;
+            _targetMoveY = localVel.z;
         }
         
         private void PlayerState_OnRunEvent(bool isRunning)
         {
-            
+            animator.SetBool(_isRunningHash, isRunning);
         }
         
         private void PlayerState_OnCrouchEvent(bool isCrouching)
         {
-            
+            animator.SetBool(_isCrouchingHash, isCrouching);
         }
 
         

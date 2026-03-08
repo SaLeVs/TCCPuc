@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 using Inputs;
@@ -9,10 +10,11 @@ namespace Player
 {
     public class PlayerMovement : NetworkBehaviour
     {
+        public event Action<Vector2> OnPlayerMovement;
+        
         [SerializeField] private InputReader inputReader;
         [SerializeField] private Rigidbody rb;
         [SerializeField] private Transform orientation;
-        [SerializeField] private PlayerState playerState;
 
         [SerializeField] private float moveSpeed;
         [SerializeField] private float blendMovementTime = 8.9f;
@@ -107,7 +109,9 @@ namespace Player
             _zVelocityDifference = _currentVelocity.y - rb.linearVelocity.z;
             
             rb.AddForce(new Vector3(_xVelocityDifference, 0f, _zVelocityDifference), ForceMode.VelocityChange); 
-            playerState.speed = _currentVelocity;
+            
+            OnPlayerMovement?.Invoke(_currentVelocity);
+            
         }
         
         private float ApplySpeedModifiers(float baseSpeed)
@@ -120,6 +124,7 @@ namespace Player
             }
 
             return finalSpeed;
+            
         }
         
         

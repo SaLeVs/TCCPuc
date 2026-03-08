@@ -8,6 +8,8 @@ namespace Player
 {
     public class PlayerRun : NetworkBehaviour, ISpeedModifier
     {
+        public event Action<bool> OnRunEvent;
+        
         [SerializeField] private InputReader inputReader;
         [SerializeField] private float speedModifier = 2f;
         
@@ -47,7 +49,8 @@ namespace Player
         private void UpdateStamina(bool isRunning)
         {
             bool canRun = isRunning && !_isExhausted;
-
+            OnRunEvent?.Invoke(canRun);
+            
             if (canRun)
             {
                 _stamina -= staminaDrainPerSecond * Time.deltaTime;

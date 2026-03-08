@@ -23,9 +23,9 @@ namespace Player
             _velocity = rb.linearVelocity;
             _horizontalVelocity = transform.InverseTransformDirection(_velocity);
 
-            animator.SetFloat(_moveXHash, playerState.speed.x, animationSmoothing, Time.deltaTime);
-            animator.SetFloat(_moveYHash, playerState.speed.y,animationSmoothing, Time.deltaTime );
-            animator.SetBool
+            // animator.SetFloat(_moveXHash, playerState.speed.x, animationSmoothing, Time.deltaTime);
+            // animator.SetFloat(_moveYHash, playerState.speed.y,animationSmoothing, Time.deltaTime );
+            
         }
         
         

@@ -446,7 +446,14 @@ MonoBehaviour:
   m_EditorClassIdentifier: Player::Player.PlayerCrouch
   ShowTopMostFoldoutHeaderGroup: 1
   inputReader: {fileID: 11400000, guid: b8967103b22990e4685e914ae00843a6, type: 2}
+  capsuleCollider: {fileID: 2207057075489463036}
   speedModifier: 0.5
+  crouchColliderCenter: {x: 0.12, y: 0.7, z: 0.1}
+  crouchRadius: 0.35
+  crouchHeight: 1.4
+  standColliderCenter: {x: 0, y: 1, z: 0}
+  standRadius: 0.4
+  standHeight: 2
 --- !u!114 &9106684494112449477
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -550,10 +557,10 @@ CapsuleCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 2
-  m_Radius: 0.3975642
+  m_Radius: 0.4
   m_Height: 2
   m_Direction: 1
-  m_Center: {x: -0.005931765, y: 1, z: 0}
+  m_Center: {x: 0, y: 1, z: 0}
 --- !u!1 &8251458222446189011
 GameObject:
   m_ObjectHideFlags: 0
@@ -612,7 +619,7 @@ MonoBehaviour:
   Lens:
     FieldOfView: 90
     OrthographicSize: 5
-    NearClipPlane: 0.1
+    NearClipPlane: 0.01
     FarClipPlane: 800
     Dutch: 0
     ModeOverride: 0

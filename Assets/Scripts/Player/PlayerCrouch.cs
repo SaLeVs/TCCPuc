@@ -25,6 +25,10 @@ namespace Player
         [SerializeField] private float standRadius;
         [SerializeField] private float standHeight;
         
+        [SerializeField] private Transform ceilingCheck;
+        [SerializeField] private float ceilingCheckRadius = 0.25f;
+        [SerializeField] private LayerMask ceilingMask;
+        
         private bool _isCrouching;
         
         
@@ -40,17 +44,24 @@ namespace Player
         
         private void InputReader_OnCrouchEvent(bool isCrouching)
         {
-            _isCrouching = isCrouching;
-
-            if (_isCrouching)
+            if (isCrouching)
             {
+                _isCrouching = true;
                 CrouchCollider();
             }
             else
             {
-                StandCollider();
+                if (!IsCeilingBlocked())
+                {
+                    _isCrouching = false;
+                    StandCollider();
+                }
+                else
+                {
+                    _isCrouching = true;
+                }
             }
-            
+
             OnCrouchEvent?.Invoke(_isCrouching);
             
         }
@@ -67,6 +78,16 @@ namespace Player
             capsuleCollider.center = standColliderCenter;
             capsuleCollider.radius = standRadius;
             capsuleCollider.height = standHeight;
+        }
+        
+        private bool IsCeilingBlocked()
+        {
+            return Physics.CheckSphere(
+                ceilingCheck.position,
+                ceilingCheckRadius,
+                ceilingMask,
+                QueryTriggerInteraction.Ignore
+            );
         }
         
         public float ModifySpeed(float baseSpeed)

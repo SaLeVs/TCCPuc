@@ -454,6 +454,11 @@ MonoBehaviour:
   standColliderCenter: {x: 0, y: 1, z: 0}
   standRadius: 0.4
   standHeight: 2
+  ceilingCheck: {fileID: 794008775365742067}
+  ceilingCheckRadius: 1
+  ceilingMask:
+    serializedVersion: 2
+    m_Bits: 128
 --- !u!114 &9106684494112449477
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -561,6 +566,37 @@ CapsuleCollider:
   m_Height: 2
   m_Direction: 1
   m_Center: {x: 0, y: 1, z: 0}
+--- !u!1 &6465587222570873835
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 794008775365742067}
+  m_Layer: 0
+  m_Name: CeilingCheck
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &794008775365742067
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6465587222570873835}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0.0000005662441, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 6400761747528298933}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &8251458222446189011
 GameObject:
   m_ObjectHideFlags: 0
@@ -974,7 +1010,10 @@ PrefabInstance:
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
-    m_AddedGameObjects: []
+    m_AddedGameObjects:
+    - targetCorrespondingSourceObject: {fileID: -3765236089850875182, guid: 1841c298173cdad4db8df8602c8f1c8d, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 794008775365742067}
     m_AddedComponents:
     - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 1841c298173cdad4db8df8602c8f1c8d, type: 3}
       insertIndex: -1
@@ -1033,5 +1072,10 @@ MonoBehaviour:
 --- !u!95 &4756283848191426294 stripped
 Animator:
   m_CorrespondingSourceObject: {fileID: 5866666021909216657, guid: 1841c298173cdad4db8df8602c8f1c8d, type: 3}
+  m_PrefabInstance: {fileID: 1399250988306531175}
+  m_PrefabAsset: {fileID: 0}
+--- !u!4 &6400761747528298933 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: -3765236089850875182, guid: 1841c298173cdad4db8df8602c8f1c8d, type: 3}
   m_PrefabInstance: {fileID: 1399250988306531175}
   m_PrefabAsset: {fileID: 0}

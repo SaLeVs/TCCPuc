@@ -53,6 +53,7 @@ namespace Player
         private void InputReader_OnCrouchEvent(bool isCrouching)
         {
             _isCrouching = isCrouching;
+
             OnCrouchEvent?.Invoke(_isCrouching);
             
         }
@@ -61,8 +62,11 @@ namespace Player
         {
             Vector3 targetCenter = _standColliderCenter;
             float targetHeight = _standHeight;
+            
+            bool wantCrouch = _isCrouching;
+            bool ceilingBlocked = IsCeilingBlocked();
 
-            if (_isCrouching && !IsCeilingBlocked())
+            if (wantCrouch || ceilingBlocked)
             {
                 targetCenter = crouchColliderCenter;
                 targetHeight = crouchHeight;
@@ -70,6 +74,11 @@ namespace Player
             
             capsuleCollider.height = Mathf.Lerp(capsuleCollider.height, targetHeight, crouchSpeed * Time.deltaTime);
             capsuleCollider.center = Vector3.Lerp(capsuleCollider.center, targetCenter, crouchSpeed * Time.deltaTime);
+
+            if (Mathf.Abs(capsuleCollider.height - targetHeight) < 0.01f)
+            {
+                capsuleCollider.height = targetHeight;
+            }
             
         }
         

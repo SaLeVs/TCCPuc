@@ -39,21 +39,23 @@ namespace Objects
         {
             if (isPlayerTurningOnFlashlight && !_isFlashlightOn && !_isBatteryDied)
             {
-                TurnOnFlashlight();
+                TurnOnFlashlightRpc();
             }
             else if(!isPlayerTurningOnFlashlight && _isFlashlightOn)
             {
-                TurnOffFlashlight();
+                TurnOffFlashlightRpc();
             }
         }
        
-        private void TurnOnFlashlight()
+        [Rpc(SendTo.ClientsAndHost)]
+        private void TurnOnFlashlightRpc()
         {
             flashlight.enabled = true;
             _isFlashlightOn = true;
         }
         
-        private void TurnOffFlashlight()
+        [Rpc(SendTo.ClientsAndHost)]
+        private void TurnOffFlashlightRpc()
         {
             flashlight.enabled = false;
             _isFlashlightOn = false;
@@ -81,7 +83,7 @@ namespace Objects
                 {
                     _currentBatteryPercent = 0;
                     _isBatteryDied = true;
-                    TurnOffFlashlight();
+                    TurnOffFlashlightRpc();
                 }
             }
         }

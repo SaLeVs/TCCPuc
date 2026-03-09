@@ -85,7 +85,18 @@ namespace Player
         
         private bool IsCeilingBlocked()
         {
-            return Physics.CheckSphere(ceilingCheck.position, ceilingCheckRadius, ceilingMask, QueryTriggerInteraction.Ignore);
+            bool blocked = Physics.Raycast(ceilingCheck.position, Vector3.up,
+                ceilingCheckRadius,
+                ceilingMask,
+                QueryTriggerInteraction.Ignore
+            );
+
+            if (blocked)
+            {
+                Debug.Log("Ceiling blocked by raycast");
+            }
+
+            return blocked;
             
         }
         

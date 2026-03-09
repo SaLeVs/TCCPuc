@@ -31,18 +31,19 @@ namespace Player
             {
                 cinemachineCamera.Priority = ownerCameraPriority;
                 inputReader.OnCameraLookEvent += InputReader_OnCameraLookEvent;
-                
             }
+            
         }
+
         
         private void InputReader_OnCameraLookEvent(Vector2 cameraLookInput) => _lookInput = cameraLookInput;
+        
         
         private void LateUpdate()
         {
             if (IsOwner)
             {   
                 CameraMovement();
-                
             }
             
         }
@@ -70,7 +71,6 @@ namespace Player
             {
                 inputReader.OnCameraLookEvent -= InputReader_OnCameraLookEvent;
                 cinemachineCamera.Priority = 0;
-                
             }
             
         }

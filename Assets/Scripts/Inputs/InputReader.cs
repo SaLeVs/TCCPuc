@@ -17,7 +17,8 @@ namespace Inputs
         public event Action<bool> OnFlashlightEvent;
         public event Action<bool> OnInteractEvent;
         public event Action<bool> OnMapEvent;
-
+        
+        private bool _flashlightToggle;
 
         private void OnEnable()
         {
@@ -74,11 +75,8 @@ namespace Inputs
         {
             if (context.performed)
             {
-                OnFlashlightEvent?.Invoke(true);
-            }
-            else if (context.canceled)
-            {
-                OnFlashlightEvent?.Invoke(false);
+                _flashlightToggle = !_flashlightToggle;
+                OnFlashlightEvent?.Invoke(_flashlightToggle);
             }
             
         }

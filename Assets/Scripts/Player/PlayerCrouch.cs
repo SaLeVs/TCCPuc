@@ -29,7 +29,9 @@ namespace Player
             
             private bool _isCrouching;
             private bool _isCeilingBlocked;
+            
             private bool _crouchState;
+            private bool _lastCrouchState;
             
             
             public override void OnNetworkSpawn()
@@ -46,34 +48,41 @@ namespace Player
             private void InputReader_OnCrouchEvent(bool isCrouching)
             {
                 _isCrouching = isCrouching;
-                
-                if (_isCrouching)
-                {
-                    _crouchState = true;
-                    CrouchCollider();
-                    Debug.Log("Crouching");
-                }
-                else if(!_isCrouching && IsCeilingBlocked())
-                {
-                    _crouchState = true;
-                    CrouchCollider();
-                    Debug.Log("Ceiling blocked, cannot stand up");
-                }
-                else
-                {
-                    _crouchState = false;
-                    StandCollider();
-                    Debug.Log("Standing up");
-                }
-                
-                OnCrouchEvent?.Invoke(_crouchState);
-                
             }
             
+            private void Update()
+            {
+                if (IsOwner)
+                {
+                    if (_isCrouching)
+                    {
+                        _crouchState = true;
+                        CrouchCollider(); 
+                    } 
+                    else if (_crouchState && IsCeilingBlocked())
+                    {
+                        _crouchState = true;
+                        CrouchCollider();
+                    }
+                    else
+                    {
+                        _crouchState = false;
+                        StandCollider();
+                    }
+                    
+                    if (_crouchState != _lastCrouchState)
+                    {
+                        _lastCrouchState = _crouchState;
+                        OnCrouchEvent?.Invoke(_crouchState);
+                    }
+                    
+                }
+                
+            }
             private void CrouchCollider()
             {
-                capsuleCollider.height = crouchHeight;
-                capsuleCollider.center = crouchColliderCenter;
+                capsuleCollider.height = Mathf.Lerp(capsuleCollider.height, crouchHeight, crouchSpeed * Time.deltaTime); 
+                capsuleCollider.center = Vector3.Lerp(capsuleCollider.center, crouchColliderCenter, crouchSpeed * Time.deltaTime);
 
                 if (Mathf.Abs(capsuleCollider.height - crouchHeight) < 0.01f)
                 {
@@ -84,8 +93,8 @@ namespace Player
             
             private void StandCollider()
             {
-                capsuleCollider.height = _standHeight;
-                capsuleCollider.center = _standColliderCenter;
+                capsuleCollider.height = Mathf.Lerp(capsuleCollider.height, _standHeight, crouchSpeed * Time.deltaTime);
+                capsuleCollider.center = Vector3.Lerp(capsuleCollider.center, _standColliderCenter, crouchSpeed * Time.deltaTime);
 
                 if (Mathf.Abs(capsuleCollider.height - _standHeight) < 0.01f)
                 {
@@ -97,15 +106,7 @@ namespace Player
             
             private bool IsCeilingBlocked()
             {
-                bool blocked = Physics.CheckSphere(ceilingCheck.position, ceilingCheckRadius, ceilingMask, QueryTriggerInteraction.Ignore);
-
-                if (blocked)
-                {
-                    Debug.Log("Ceiling blocked by raycast");
-                }
-
-                return blocked;
-                
+                return Physics.CheckSphere(ceilingCheck.position, ceilingCheckRadius, ceilingMask, QueryTriggerInteraction.Ignore);
             }
             
             public float ModifySpeed(float baseSpeed)

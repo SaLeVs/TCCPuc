@@ -27,12 +27,12 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 256771491213197926}
   serializedVersion: 2
-  m_LocalRotation: {x: 0.035487365, y: -0, z: -0, w: 0.99937016}
-  m_LocalPosition: {x: 0, y: 0.144, z: 0.22}
+  m_LocalRotation: {x: -0.00000056624407, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: -0.008, y: -0.27119613, z: 0.0119261965}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 4267646824566391799}
+  m_Father: {fileID: 5036788259409135564}
   m_LocalEulerAnglesHint: {x: 90, y: 0, z: 0}
 --- !u!108 &136951641080088674
 Light:
@@ -144,7 +144,7 @@ MonoBehaviour:
   inputReader: {fileID: 11400000, guid: b8967103b22990e4685e914ae00843a6, type: 2}
   flashlight: {fileID: 136951641080088674}
   batteryPercentMax: 100
-  batteryPercentDecreasePerSecond: 10
+  batteryPercentDecreasePerSecond: 1
 --- !u!1 &2253171827023185120
 GameObject:
   m_ObjectHideFlags: 0
@@ -175,6 +175,7 @@ Transform:
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 7631988926882076908}
+  - {fileID: 6435377210224720547}
   m_Father: {fileID: 1450085231864165735}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &3114184444502032822
@@ -971,9 +972,6 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects:
-    - targetCorrespondingSourceObject: {fileID: -6317818615819501424, guid: 1841c298173cdad4db8df8602c8f1c8d, type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 6435377210224720547}
     - targetCorrespondingSourceObject: {fileID: -3765236089850875182, guid: 1841c298173cdad4db8df8602c8f1c8d, type: 3}
       insertIndex: -1
       addedObject: {fileID: 794008775365742067}
@@ -1032,11 +1030,6 @@ MonoBehaviour:
       Synchronize: 1
       ParameterType: 4
   AnimatorParametersExpanded: 0
---- !u!4 &4267646824566391799 stripped
-Transform:
-  m_CorrespondingSourceObject: {fileID: -6317818615819501424, guid: 1841c298173cdad4db8df8602c8f1c8d, type: 3}
-  m_PrefabInstance: {fileID: 1399250988306531175}
-  m_PrefabAsset: {fileID: 0}
 --- !u!95 &4756283848191426294 stripped
 Animator:
   m_CorrespondingSourceObject: {fileID: 5866666021909216657, guid: 1841c298173cdad4db8df8602c8f1c8d, type: 3}

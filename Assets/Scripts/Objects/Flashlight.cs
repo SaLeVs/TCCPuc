@@ -88,7 +88,7 @@ namespace Objects
             }
         }
         
-        private void IncreaseFlashlightBattery(int batteryPercentIncrease)
+        public void IncreaseFlashlightBattery(int batteryPercentIncrease)
         {
             _currentBatteryPercent += batteryPercentIncrease;
             OnBatteryPercentChangedEvent?.Invoke((int)_currentBatteryPercent);

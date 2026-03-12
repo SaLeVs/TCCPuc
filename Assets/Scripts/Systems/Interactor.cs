@@ -1,16 +1,36 @@
+using Inputs;
+using Unity.Netcode;
 using UnityEngine;
 
-public class Interactor : MonoBehaviour
+namespace Systems
 {
-    // Start is called once before the first execution of Update after the MonoBehaviour is created
-    void Start()
+    public class Interactor : NetworkBehaviour
     {
-        
-    }
+        [SerializeField] private InputReader inputReader;
 
-    // Update is called once per frame
-    void Update()
-    {
         
+        public override void OnNetworkSpawn()
+        {
+            if (IsOwner)
+            {
+                inputReader.OnInteractEvent += InputReader_OnInteractEvent;
+            }
+        }
+
+        
+        private void InputReader_OnInteractEvent()
+        {
+            Debug.Log("Interact");
+        }
+
+        
+        public override void OnNetworkDespawn()
+        {
+            if (IsOwner)
+            {
+                inputReader.OnInteractEvent -= InputReader_OnInteractEvent;
+            }
+        }
     }
 }
+

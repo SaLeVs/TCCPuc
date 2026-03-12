@@ -11,6 +11,7 @@ namespace Objects
         
         [SerializeField] private InputReader inputReader;
         [SerializeField] private Light flashlight;
+        [SerializeField] private GameObject lightBeam;
         
         [SerializeField] private int batteryPercentMax = 100;
         [SerializeField] private int batteryPercentDecreasePerSecond = 10;
@@ -25,8 +26,6 @@ namespace Objects
         public override void OnNetworkSpawn()
         {
             _currentBatteryPercent = batteryPercentMax;
-            
-            Debug.Log(_currentBatteryPercent);
             
             if (IsOwner)
             {
@@ -51,6 +50,7 @@ namespace Objects
         private void TurnOnFlashlightRpc()
         {
             flashlight.enabled = true;
+            lightBeam.SetActive(true);
             _isFlashlightOn = true;
         }
         
@@ -58,6 +58,7 @@ namespace Objects
         private void TurnOffFlashlightRpc()
         {
             flashlight.enabled = false;
+            lightBeam.SetActive(false);
             _isFlashlightOn = false;
         }
 
@@ -77,7 +78,6 @@ namespace Objects
             {
                 _currentBatteryPercent -= batteryPercentDecreasePerSecond * Time.deltaTime;
                 OnBatteryPercentChangedEvent?.Invoke((int)_currentBatteryPercent);
-                Debug.Log(_currentBatteryPercent);
                 
                 if (_currentBatteryPercent <= 0)
                 {

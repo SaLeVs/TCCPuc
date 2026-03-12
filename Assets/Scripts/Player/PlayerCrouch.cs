@@ -7,136 +7,120 @@ using UnityEngine;
 namespace Player
 {
     public class PlayerCrouch : NetworkBehaviour, ISpeedModifier
+    {
+        public event Action<bool> OnCrouchEvent;
+        
+        [SerializeField] private InputReader inputReader;
+        [SerializeField] private CapsuleCollider capsuleCollider;
+        
+        [SerializeField] private float speedModifier = 0.5f;
+        
+        [Header("Crouch collider settings")]
+        [SerializeField] private Vector3 crouchColliderCenter;
+        [SerializeField] private float crouchHeight;
+        [SerializeField] private float crouchSpeed;
+        
+        [SerializeField] private Transform ceilingCheck;
+        [SerializeField] private float ceilingCheckRadius = 0.25f;
+        [SerializeField] private LayerMask ceilingMask;
+        
+        private Vector3 _standColliderCenter;
+        private float _standHeight;
+        private bool _isCrouching;
+        
+        
+        public override void OnNetworkSpawn()
         {
-            public event Action<bool> OnCrouchEvent;
-            
-            [SerializeField] private InputReader inputReader;
-            [SerializeField] private CapsuleCollider capsuleCollider;
-            
-            [SerializeField] private float speedModifier = 0.5f;
-            
-            [Header("Crouch collider settings")]
-            [SerializeField] private Vector3 crouchColliderCenter;
-            [SerializeField] private float crouchHeight;
-            [SerializeField] private float crouchSpeed;
-            
-            [SerializeField] private Transform ceilingCheck;
-            [SerializeField] private float ceilingCheckRadius = 0.25f;
-            [SerializeField] private LayerMask ceilingMask;
-            
-            private Vector3 _standColliderCenter;
-            private float _standHeight;
-            
-            private bool _isCrouching;
-            private bool _isCeilingBlocked;
-            
-            private bool _crouchState;
-            private bool _lastCrouchState;
-            
-            
-            public override void OnNetworkSpawn()
+            if (IsOwner)
             {
-                if (IsOwner)
-                {
-                    inputReader.OnCrouchEvent += InputReader_OnCrouchEvent;
-                    _standColliderCenter = capsuleCollider.center;
-                    _standHeight = capsuleCollider.height;
-                }
-                
+                inputReader.OnCrouchEvent += InputReader_OnCrouchEvent;
+                _standColliderCenter = capsuleCollider.center;
+                _standHeight = capsuleCollider.height;
             }
             
-            private void InputReader_OnCrouchEvent(bool isCrouching)
-            {
-                _isCrouching = isCrouching;
-            }
-            
-            private void Update()
-            {
-                if (IsOwner)
-                {
-                    if (_isCrouching)
-                    {
-                        _crouchState = true;
-                        CrouchCollider(); 
-                    } 
-                    else if (_crouchState && IsCeilingBlocked())
-                    {
-                        _crouchState = true;
-                        CrouchCollider();
-                    }
-                    else
-                    {
-                        _crouchState = false;
-                        StandCollider();
-                    }
-                    
-                    if (_crouchState != _lastCrouchState)
-                    {
-                        _lastCrouchState = _crouchState;
-                        OnCrouchEvent?.Invoke(_crouchState);
-                    }
-                    
-                }
-                
-            }
-            private void CrouchCollider()
-            {
-                capsuleCollider.height = Mathf.Lerp(capsuleCollider.height, crouchHeight, crouchSpeed * Time.deltaTime); 
-                capsuleCollider.center = Vector3.Lerp(capsuleCollider.center, crouchColliderCenter, crouchSpeed * Time.deltaTime);
+        }
 
-                if (Mathf.Abs(capsuleCollider.height - crouchHeight) < 0.01f)
-                {
-                    capsuleCollider.height = crouchHeight;
-                }
-                
+        
+        private void Update()
+        {
+            if (IsOwner)
+            {
+                CrouchCollider();
             }
             
-            private void StandCollider()
-            {
-                capsuleCollider.height = Mathf.Lerp(capsuleCollider.height, _standHeight, crouchSpeed * Time.deltaTime);
-                capsuleCollider.center = Vector3.Lerp(capsuleCollider.center, _standColliderCenter, crouchSpeed * Time.deltaTime);
+        }
+        
+        private void InputReader_OnCrouchEvent(bool isCrouching)
+        {
+            _isCrouching = isCrouching;
 
-                if (Mathf.Abs(capsuleCollider.height - _standHeight) < 0.01f)
-                {
-                    capsuleCollider.height = _standHeight;
-                }
-                
-            }
+            OnCrouchEvent?.Invoke(_isCrouching);
             
-            
-            private bool IsCeilingBlocked()
-            {
-                return Physics.CheckSphere(ceilingCheck.position, ceilingCheckRadius, ceilingMask, QueryTriggerInteraction.Ignore);
-            }
-            
-            public float ModifySpeed(float baseSpeed)
-            {
-                if (_crouchState)
-                {
-                    return baseSpeed * speedModifier;
-                }
+        }
 
-                return baseSpeed;
-                
+        private void CrouchCollider()
+        {
+            Vector3 targetCenter = _standColliderCenter;
+            float targetHeight = _standHeight;
+            
+            bool wantCrouch = _isCrouching;
+            bool ceilingBlocked = IsCeilingBlocked();
+
+            if (wantCrouch || ceilingBlocked)
+            {
+                targetCenter = crouchColliderCenter;
+                targetHeight = crouchHeight;
             }
             
-            private void OnDrawGizmos()
-            {
-                if (ceilingCheck == null) return;
+            capsuleCollider.height = Mathf.Lerp(capsuleCollider.height, targetHeight, crouchSpeed * Time.deltaTime);
+            capsuleCollider.center = Vector3.Lerp(capsuleCollider.center, targetCenter, crouchSpeed * Time.deltaTime);
 
-                Gizmos.color = Color.darkRed;
-                Gizmos.DrawWireSphere(ceilingCheck.position, ceilingCheckRadius);
+            if (Mathf.Abs(capsuleCollider.height - targetHeight) < 0.01f)
+            {
+                capsuleCollider.height = targetHeight;
+            }
+            
+        }
+        
+        
+        private bool IsCeilingBlocked()
+        {
+            bool blocked = Physics.Raycast(ceilingCheck.position, Vector3.up,
+                ceilingCheckRadius,
+                ceilingMask,
+                QueryTriggerInteraction.Ignore
+            );
+
+            if (blocked)
+            {
+                Debug.Log("Ceiling blocked by raycast");
             }
 
-            public override void OnNetworkDespawn()
+            return blocked;
+            
+        }
+        
+        public float ModifySpeed(float baseSpeed)
+        {
+            if (_isCrouching)
             {
-                if (IsOwner)
-                {
-                    inputReader.OnCrouchEvent -= InputReader_OnCrouchEvent;
-                }
-                
+                return baseSpeed * speedModifier;
+            }
+
+            return baseSpeed;
+            
+        }
+
+
+        public override void OnNetworkDespawn()
+        {
+            if (IsOwner)
+            {
+                inputReader.OnCrouchEvent -= InputReader_OnCrouchEvent;
             }
             
-        }  
+        }
+        
+    }  
 }
 

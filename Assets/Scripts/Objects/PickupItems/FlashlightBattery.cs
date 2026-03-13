@@ -9,8 +9,9 @@ namespace Objects.PickupItems
     {
         [SerializeField] private ItemDataSO itemData;
         [SerializeField] private int batteryPercentRecharge = 50;
+        
 
-        public bool CanInteract()
+        public bool CanInteract(GameObject interactor)
         {
             return true;
         }

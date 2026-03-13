@@ -1,5 +1,6 @@
 using Inputs;
 using Interfaces;
+using Unity.Cinemachine;
 using Unity.Netcode;
 using UnityEngine;
 
@@ -9,7 +10,7 @@ namespace Player
     {
         [Header("References")]
         [SerializeField] private InputReader inputReader;
-        [SerializeField] private Camera playerCamera;
+        [SerializeField] private CinemachineCamera playerCamera;
 
         [Header("Settings")]
         [SerializeField] private float interactDistance = 3f;
@@ -32,15 +33,15 @@ namespace Player
 
         private void Interact()
         {
-            Ray ray = playerCamera.ViewportPointToRay(new Vector3(0.5f, 0.5f, 0f));
-            
-            if (Physics.Raycast(ray, out RaycastHit hit, interactDistance))
-            {
-                if (hit.collider.TryGetComponent<IInteractable>(out IInteractable interactable))
-                {
-                    interactable.Interact(gameObject);
-                }
-            }
+            // Ray ray = playerCamera.ViewportPointToRay(new Vector3(0.5f, 0.5f, 0f));
+            //
+            // if (Physics.Raycast(ray, out RaycastHit hit, interactDistance))
+            // {
+            //     if (hit.collider.TryGetComponent<IInteractable>(out IInteractable interactable))
+            //     {
+            //         interactable.Interact(gameObject);
+            //     }
+            // }
         }
         
         public override void OnNetworkDespawn()

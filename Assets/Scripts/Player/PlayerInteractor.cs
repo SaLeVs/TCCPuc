@@ -10,7 +10,7 @@ namespace Player
     {
         [Header("References")]
         [SerializeField] private InputReader inputReader;
-        [SerializeField] private CinemachineCamera playerCamera;
+        [SerializeField] private Transform playerView;
 
         [Header("Settings")]
         [SerializeField] private float interactDistance = 3f;
@@ -33,15 +33,16 @@ namespace Player
 
         private void Interact()
         {
-            // Ray ray = playerCamera.ViewportPointToRay(new Vector3(0.5f, 0.5f, 0f));
-            //
-            // if (Physics.Raycast(ray, out RaycastHit hit, interactDistance))
-            // {
-            //     if (hit.collider.TryGetComponent<IInteractable>(out IInteractable interactable))
-            //     {
-            //         interactable.Interact(gameObject);
-            //     }
-            // }
+            Ray ray = new Ray(playerView.position, playerView.forward);
+            Debug.DrawRay(playerView.position, playerView.forward * interactDistance, Color.red, 2f);
+            
+             if (Physics.Raycast(ray, out RaycastHit hit, interactDistance))
+             {
+                 if (hit.collider.TryGetComponent<IInteractable>(out IInteractable interactable))
+                 {
+                     interactable.Interact(gameObject);
+                 }
+             }
         }
         
         public override void OnNetworkDespawn()

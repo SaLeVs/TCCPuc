@@ -17,7 +17,7 @@ namespace Objects.PickupItems
 
         public bool Interact(GameObject playerInteractor)
         {
-            if (playerInteractor.TryGetComponent<Flashlight>(out Flashlight flashlight))
+            if (playerInteractor.GetComponentInChildren<Flashlight>() is Flashlight flashlight)
             {
                 flashlight.IncreaseFlashlightBattery(batteryPercentRecharge);
                 Destroy(gameObject);

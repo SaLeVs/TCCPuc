@@ -15,18 +15,45 @@ namespace Objects.PickupItems
         {
             return true;
         }
-
+        
         public bool Interact(GameObject playerInteractor)
+        {
+            NetworkObject networkObject = playerInteractor.GetComponent<NetworkObject>();
+
+            if (!IsServer)
+            {
+                InteractServerRpc(networkObject);
+                return true;
+            }
+
+            UseBattery(playerInteractor);
+            return true;
+        }
+
+        [Rpc(SendTo.Server)]
+        private void InteractServerRpc(NetworkObjectReference playerRef)
+        {
+            if (playerRef.TryGet(out NetworkObject playerNetworkObject))
+            {
+                UseBattery(playerNetworkObject.gameObject);
+            }
+        }
+
+        private void UseBattery(GameObject playerInteractor)
         {
             if (playerInteractor.GetComponentInChildren<Flashlight>() is Flashlight flashlight)
             {
                 flashlight.IncreaseFlashlightBattery(batteryPercentRecharge);
-                Destroy(gameObject);
-                return true;
+                DisableBatteryClientRpc();
             }
-
-            return false;
         }
+        
+        [Rpc(SendTo.ClientsAndHost)]
+        private void DisableBatteryClientRpc()
+        {
+            gameObject.SetActive(false);
+        }
+        
     }
 }
 

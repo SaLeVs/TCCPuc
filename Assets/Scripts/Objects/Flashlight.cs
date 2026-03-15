@@ -15,8 +15,8 @@ namespace Objects
         
         [SerializeField] private int batteryPercentMax = 100;
         [SerializeField] private int batteryPercentDecreasePerSecond = 10;
-        
-        private float _currentBatteryPercent;
+
+        private NetworkVariable<float> _currentBatteryPercent = new NetworkVariable<float>(0f);
         private bool _isPlayerTurningOnFlashlight;
         
         private bool _isFlashlightOn;
@@ -25,13 +25,23 @@ namespace Objects
         
         public override void OnNetworkSpawn()
         {
-            _currentBatteryPercent = batteryPercentMax;
+            if (IsServer)
+            {
+                _currentBatteryPercent.Value = batteryPercentMax;
+            }
+
+            _currentBatteryPercent.OnValueChanged += OnBatteryChanged;
             
             if (IsOwner)
             {
                 inputReader.OnFlashlightEvent += InputReader_OnFlashlightEvent;
             }
             
+        }
+        
+        private void OnBatteryChanged(float previous, float current)
+        {
+            OnBatteryPercentChangedEvent?.Invoke((int)current);
         }
         
         private void InputReader_OnFlashlightEvent(bool isPlayerTurningOnFlashlight)
@@ -64,24 +74,22 @@ namespace Objects
 
         private void Update()
         {
-            if (IsOwner)
-            {
-                if (!_isFlashlightOn) return;
-                
-                DecreaseFlashlightBattery();
-            }
+            if (!IsServer) return;
+            if (!_isFlashlightOn) return;
+            
+            DecreaseFlashlightBattery();
+            
         }
         
         private void DecreaseFlashlightBattery()
         {
             if (!_isBatteryDied && _isFlashlightOn)
             {
-                _currentBatteryPercent -= batteryPercentDecreasePerSecond * Time.deltaTime;
-                OnBatteryPercentChangedEvent?.Invoke((int)_currentBatteryPercent);
+                _currentBatteryPercent.Value -= batteryPercentDecreasePerSecond * Time.deltaTime;
                 
-                if (_currentBatteryPercent <= 0)
+                if (_currentBatteryPercent.Value <= 0)
                 {
-                    _currentBatteryPercent = 0;
+                    _currentBatteryPercent.Value = 0;
                     _isBatteryDied = true;
                     TurnOffFlashlightRpc();
                 }
@@ -90,8 +98,14 @@ namespace Objects
         
         public void IncreaseFlashlightBattery(int batteryPercentIncrease)
         {
-            _currentBatteryPercent += batteryPercentIncrease;
-            OnBatteryPercentChangedEvent?.Invoke((int)_currentBatteryPercent);
+            if (!IsServer) return;
+
+            _currentBatteryPercent.Value += batteryPercentIncrease;
+
+            if (_currentBatteryPercent.Value > 0)
+            {
+                _isBatteryDied = false;
+            }
             
         }
         

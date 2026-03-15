@@ -17,10 +17,11 @@ namespace Objects
         [SerializeField] private int batteryPercentDecreasePerSecond = 10;
 
         private NetworkVariable<float> _currentBatteryPercent = new NetworkVariable<float>(0f);
-        private bool _isPlayerTurningOnFlashlight;
         
+        private bool _isPlayerTurningOnFlashlight;
         private bool _isFlashlightOn;
         private bool _isBatteryDied;
+        
         
         
         public override void OnNetworkSpawn()
@@ -44,16 +45,21 @@ namespace Objects
             OnBatteryPercentChangedEvent?.Invoke((int)current);
         }
         
-        private void InputReader_OnFlashlightEvent(bool isPlayerTurningOnFlashlight)
+        private void InputReader_OnFlashlightEvent()
         {
-            if (isPlayerTurningOnFlashlight && !_isFlashlightOn && !_isBatteryDied)
+            if (_isBatteryDied && !_isFlashlightOn) return;
+            
+            _isPlayerTurningOnFlashlight = !_isPlayerTurningOnFlashlight;
+
+            if (_isPlayerTurningOnFlashlight && !_isFlashlightOn)
             {
                 TurnOnFlashlightRpc();
             }
-            else if(!isPlayerTurningOnFlashlight && _isFlashlightOn)
+            else if (!_isPlayerTurningOnFlashlight && _isFlashlightOn)
             {
                 TurnOffFlashlightRpc();
             }
+            
         }
        
         [Rpc(SendTo.ClientsAndHost)]
@@ -62,6 +68,8 @@ namespace Objects
             flashlight.enabled = true;
             lightBeam.SetActive(true);
             _isFlashlightOn = true;
+            _isPlayerTurningOnFlashlight = true;
+            Debug.Log("Flashlight turned on");
         }
         
         [Rpc(SendTo.ClientsAndHost)]
@@ -70,6 +78,8 @@ namespace Objects
             flashlight.enabled = false;
             lightBeam.SetActive(false);
             _isFlashlightOn = false;
+            _isPlayerTurningOnFlashlight = false;
+            Debug.Log("Flashlight turned off");
         }
 
         private void Update()

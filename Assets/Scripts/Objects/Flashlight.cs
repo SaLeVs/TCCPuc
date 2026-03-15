@@ -8,127 +8,115 @@ namespace Objects
     public class Flashlight : NetworkBehaviour
     {
         public event Action<int> OnBatteryPercentChangedEvent;
-        
+
         [SerializeField] private InputReader inputReader;
         [SerializeField] private Light flashlight;
         [SerializeField] private GameObject lightBeam;
-        
+
         [SerializeField] private int batteryPercentMax = 100;
         [SerializeField] private int batteryPercentDecreasePerSecond = 10;
 
-        private NetworkVariable<float> _currentBatteryPercent = new NetworkVariable<float>(0f);
-        
-        private bool _isPlayerTurningOnFlashlight;
-        private bool _isFlashlightOn;
-        private bool _isBatteryDied;
-        
-        
-        
+        private NetworkVariable<float> _currentBattery = new NetworkVariable<float>();
+        private NetworkVariable<bool> _isFlashlightOn = new NetworkVariable<bool>();
+
+        private bool _batteryDead;
+
         public override void OnNetworkSpawn()
         {
             if (IsServer)
             {
-                _currentBatteryPercent.Value = batteryPercentMax;
+                _currentBattery.Value = batteryPercentMax;
             }
 
-            _currentBatteryPercent.OnValueChanged += OnBatteryChanged;
-            
+            _currentBattery.OnValueChanged += OnBatteryChanged;
+            _isFlashlightOn.OnValueChanged += OnFlashlightStateChanged;
+
             if (IsOwner)
             {
-                inputReader.OnFlashlightEvent += InputReader_OnFlashlightEvent;
+                inputReader.OnFlashlightEvent += OnFlashlightInput;
             }
-            
+
+            UpdateFlashlightVisual(_isFlashlightOn.Value);
         }
-        
+
         private void OnBatteryChanged(float previous, float current)
         {
             OnBatteryPercentChangedEvent?.Invoke((int)current);
         }
         
-        private void InputReader_OnFlashlightEvent()
+        private void OnFlashlightStateChanged(bool previous, bool current)
         {
-            if (_isBatteryDied && !_isFlashlightOn) return;
-            
-            _isPlayerTurningOnFlashlight = !_isPlayerTurningOnFlashlight;
-
-            if (_isPlayerTurningOnFlashlight && !_isFlashlightOn)
-            {
-                TurnOnFlashlightRpc();
-            }
-            else if (!_isPlayerTurningOnFlashlight && _isFlashlightOn)
-            {
-                TurnOffFlashlightRpc();
-            }
-            
-        }
-       
-        [Rpc(SendTo.ClientsAndHost)]
-        private void TurnOnFlashlightRpc()
-        {
-            flashlight.enabled = true;
-            lightBeam.SetActive(true);
-            _isFlashlightOn = true;
-            _isPlayerTurningOnFlashlight = true;
-            Debug.Log("Flashlight turned on");
+            UpdateFlashlightVisual(current);
         }
         
-        [Rpc(SendTo.ClientsAndHost)]
-        private void TurnOffFlashlightRpc()
+        private void OnFlashlightInput() 
         {
-            flashlight.enabled = false;
-            lightBeam.SetActive(false);
-            _isFlashlightOn = false;
-            _isPlayerTurningOnFlashlight = false;
-            Debug.Log("Flashlight turned off");
+            ToggleFlashlightServerRpc();
         }
 
+        
+        [Rpc(SendTo.Server)]
+        private void ToggleFlashlightServerRpc()
+        {
+            if (_batteryDead) return;
+
+            _isFlashlightOn.Value = !_isFlashlightOn.Value;
+        }
+        
+        private void UpdateFlashlightVisual(bool state)
+        {
+            flashlight.enabled = state;
+            lightBeam.SetActive(state);
+        }
+        
         private void Update()
         {
             if (!IsServer) return;
-            if (!_isFlashlightOn) return;
-            
+            if (!_isFlashlightOn.Value) return;
+
             DecreaseFlashlightBattery();
             
         }
-        
+
         private void DecreaseFlashlightBattery()
         {
-            if (!_isBatteryDied && _isFlashlightOn)
-            {
-                _currentBatteryPercent.Value -= batteryPercentDecreasePerSecond * Time.deltaTime;
-                
-                if (_currentBatteryPercent.Value <= 0)
-                {
-                    _currentBatteryPercent.Value = 0;
-                    _isBatteryDied = true;
-                    TurnOffFlashlightRpc();
-                }
-            }
-        }
-        
-        public void IncreaseFlashlightBattery(int batteryPercentIncrease)
-        {
-            if (!IsServer) return;
+            _currentBattery.Value -= batteryPercentDecreasePerSecond * Time.deltaTime;
 
-            _currentBatteryPercent.Value += batteryPercentIncrease;
-
-            if (_currentBatteryPercent.Value > 0)
+            if (_currentBattery.Value <= 0)
             {
-                _isBatteryDied = false;
+                _currentBattery.Value = 0;
+                _batteryDead = true;
+                _isFlashlightOn.Value = false;
             }
             
         }
         
-        
+        public void IncreaseFlashlightBattery(int amount)
+        {
+            if (!IsServer) return;
+
+            _currentBattery.Value += amount;
+
+            if (_currentBattery.Value > batteryPercentMax)
+            {
+                _currentBattery.Value = batteryPercentMax;
+            }
+
+            if (_currentBattery.Value > 0)
+            {
+                _batteryDead = false;
+            }
+            
+        }
+
         public override void OnNetworkDespawn()
         {
             if (IsOwner)
             {
-                inputReader.OnFlashlightEvent -= InputReader_OnFlashlightEvent;
+                inputReader.OnFlashlightEvent -= OnFlashlightInput;
             }
             
         }
         
     }
 }
-

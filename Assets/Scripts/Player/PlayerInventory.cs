@@ -10,7 +10,7 @@ namespace Player
         
         [SerializeField] private int maxInventorySize = 4;
         
-        public int MaxInventorySize => maxInventorySize;
+        public int MaxInventorySize => maxInventorySize; 
         
         private NetworkList<int> _slots = new NetworkList<int>();
         

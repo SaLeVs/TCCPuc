@@ -18,10 +18,22 @@ namespace Objects
         {
             if (IsOwner)
             {
-                inputReader.
+                inputReader.OnSlotEvent += InputReader_OnSlotEvent;
             }
+            
         }
-        
+
+        private void InputReader_OnSlotEvent(int slotNumberPressed)
+        {
+            Debug.Log($"SlotNumberPressed: {slotNumberPressed}, SlotIndex {SlotIndex} pressed");
+            
+            if (slotNumberPressed == SlotIndex)
+            {
+                Debug.Log("Slot correct");
+            }
+            
+        }
+
         public void Init(int index)
         {
             SlotIndex = index;
@@ -40,12 +52,14 @@ namespace Objects
             icon.SetEnabled(false);
         }
 
+        
         public override void OnNetworkDespawn()
         {
             if (IsOwner)
             {
-                
+                inputReader.OnSlotEvent -= InputReader_OnSlotEvent;
             }
+            
         }
         
     }

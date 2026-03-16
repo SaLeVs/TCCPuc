@@ -17,6 +17,7 @@ namespace Inputs
         public event Action OnFlashlightEvent;
         public event Action OnInteractEvent;
         public event Action<bool> OnMapEvent;
+        public event Action<int> OnSlotEvent;
         
         
 
@@ -101,7 +102,38 @@ namespace Inputs
             }
             
         }
-    
+        
+        public void OnSlot1(InputAction.CallbackContext context)
+        {
+            if (context.performed)
+            {
+                OnSlotEvent?.Invoke(1);
+            }
+        }
+
+        public void OnSlot2(InputAction.CallbackContext context)
+        {
+            if (context.performed)
+            {
+                OnSlotEvent?.Invoke(2);
+            }
+        }
+
+        public void OnSlot3(InputAction.CallbackContext context)
+        {
+            if (context.performed)
+            {
+                OnSlotEvent?.Invoke(3);
+            }
+        }
+
+        public void OnSlot4(InputAction.CallbackContext context)
+        {
+            if (context.performed)
+            {
+                OnSlotEvent?.Invoke(4);
+            }
+        }
         
         private void OnDisable()
         {

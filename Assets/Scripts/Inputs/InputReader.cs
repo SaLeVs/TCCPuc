@@ -16,8 +16,10 @@ namespace Inputs
         public event Action<bool> OnCrouchEvent;
         public event Action OnFlashlightEvent;
         public event Action OnInteractEvent;
+        public event Action OnUseEvent;
         public event Action<bool> OnMapEvent;
         public event Action<int> OnSlotEvent;
+        
         
         
 
@@ -39,7 +41,9 @@ namespace Inputs
             OnMoveEvent?.Invoke(context.ReadValue<Vector2>());
             
         }
+
         
+
         public void OnCameraLook(InputAction.CallbackContext context)
         {
             OnCameraLookEvent?.Invoke(context.ReadValue<Vector2>());
@@ -86,6 +90,15 @@ namespace Inputs
             if (context.performed)
             {
                 OnInteractEvent?.Invoke();
+            }
+            
+        }
+        
+        public void OnUse(InputAction.CallbackContext context)
+        {
+            if (context.performed)
+            {
+                OnUseEvent?.Invoke();
             }
             
         }

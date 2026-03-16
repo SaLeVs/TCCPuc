@@ -11,30 +11,45 @@ namespace Objects
         public event Action<int, ItemDataSO> OnUseRequested;
         [SerializeField] private InputReader inputReader;
         [SerializeField] private Image itemIcon;
+        [SerializeField] private GameObject highlightSlot;
         
         public int SlotIndex { get; private set; }
         
         private ItemDataSO _currentItem;
-
+        private InventorySlot _currentInventorySlotSelected;
+        
         
         private void OnEnable()
         {
             inputReader.OnSlotEvent += InputReader_OnSlotEvent;
+            inputReader.OnUseEvent += InputReader_OnUseEvent;
         }
-
         
         private void InputReader_OnSlotEvent(int slotNumberPressed)
         {
             if ((slotNumberPressed - 1) == SlotIndex)
             {
-                RequestUseItem();
+                SelectSlot();
             }
             
         }
 
-        private void RequestUseItem()
+        private void SelectSlot()
+        {
+            if (_currentInventorySlotSelected != null)
+            {
+                _currentInventorySlotSelected.highlightSlot.SetActive(false);
+            }
+            
+            _currentInventorySlotSelected = this;
+            highlightSlot.SetActive(true);
+            Debug.Log($"Slot {SlotIndex} selected");
+        }
+        
+        private void InputReader_OnUseEvent()
         {
             OnUseRequested?.Invoke(SlotIndex, _currentItem);
+            Debug.Log($"Use requested for slot {SlotIndex}");
         }
 
         public void Init(int index)
@@ -60,6 +75,7 @@ namespace Objects
         private void OnDisable()
         {
             inputReader.OnSlotEvent -= InputReader_OnSlotEvent;
+            inputReader.OnUseEvent -= InputReader_OnUseEvent;
         }
 
         

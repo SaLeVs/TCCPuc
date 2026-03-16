@@ -147,6 +147,15 @@ public partial class @PlayerActions: IInputActionCollection2, IDisposable
                     ""initialStateCheck"": false
                 },
                 {
+                    ""name"": ""Use"",
+                    ""type"": ""Button"",
+                    ""id"": ""0f50afda-33f7-4de3-b4af-e7d6593400cd"",
+                    ""expectedControlType"": """",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
+                },
+                {
                     ""name"": ""CameraLook"",
                     ""type"": ""Value"",
                     ""id"": ""97c66750-ff01-4bb5-8100-757ebbc66129"",
@@ -412,6 +421,17 @@ public partial class @PlayerActions: IInputActionCollection2, IDisposable
                     ""action"": ""Slot4"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""f753b041-fb15-44b5-9e8a-7888be81f51a"",
+                    ""path"": ""<Mouse>/leftButton"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": "";Keyboard & Mouse"",
+                    ""action"": ""Use"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
                 }
             ]
         }
@@ -443,6 +463,7 @@ public partial class @PlayerActions: IInputActionCollection2, IDisposable
         m_Game_Flashlight = m_Game.FindAction("Flashlight", throwIfNotFound: true);
         m_Game_Map = m_Game.FindAction("Map", throwIfNotFound: true);
         m_Game_Interact = m_Game.FindAction("Interact", throwIfNotFound: true);
+        m_Game_Use = m_Game.FindAction("Use", throwIfNotFound: true);
         m_Game_CameraLook = m_Game.FindAction("CameraLook", throwIfNotFound: true);
         m_Game_Slot1 = m_Game.FindAction("Slot1", throwIfNotFound: true);
         m_Game_Slot2 = m_Game.FindAction("Slot2", throwIfNotFound: true);
@@ -534,6 +555,7 @@ public partial class @PlayerActions: IInputActionCollection2, IDisposable
     private readonly InputAction m_Game_Flashlight;
     private readonly InputAction m_Game_Map;
     private readonly InputAction m_Game_Interact;
+    private readonly InputAction m_Game_Use;
     private readonly InputAction m_Game_CameraLook;
     private readonly InputAction m_Game_Slot1;
     private readonly InputAction m_Game_Slot2;
@@ -574,6 +596,10 @@ public partial class @PlayerActions: IInputActionCollection2, IDisposable
         /// Provides access to the underlying input action "Game/Interact".
         /// </summary>
         public InputAction @Interact => m_Wrapper.m_Game_Interact;
+        /// <summary>
+        /// Provides access to the underlying input action "Game/Use".
+        /// </summary>
+        public InputAction @Use => m_Wrapper.m_Game_Use;
         /// <summary>
         /// Provides access to the underlying input action "Game/CameraLook".
         /// </summary>
@@ -638,6 +664,9 @@ public partial class @PlayerActions: IInputActionCollection2, IDisposable
             @Interact.started += instance.OnInteract;
             @Interact.performed += instance.OnInteract;
             @Interact.canceled += instance.OnInteract;
+            @Use.started += instance.OnUse;
+            @Use.performed += instance.OnUse;
+            @Use.canceled += instance.OnUse;
             @CameraLook.started += instance.OnCameraLook;
             @CameraLook.performed += instance.OnCameraLook;
             @CameraLook.canceled += instance.OnCameraLook;
@@ -682,6 +711,9 @@ public partial class @PlayerActions: IInputActionCollection2, IDisposable
             @Interact.started -= instance.OnInteract;
             @Interact.performed -= instance.OnInteract;
             @Interact.canceled -= instance.OnInteract;
+            @Use.started -= instance.OnUse;
+            @Use.performed -= instance.OnUse;
+            @Use.canceled -= instance.OnUse;
             @CameraLook.started -= instance.OnCameraLook;
             @CameraLook.performed -= instance.OnCameraLook;
             @CameraLook.canceled -= instance.OnCameraLook;
@@ -792,6 +824,13 @@ public partial class @PlayerActions: IInputActionCollection2, IDisposable
         /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
         /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
         void OnInteract(InputAction.CallbackContext context);
+        /// <summary>
+        /// Method invoked when associated input action "Use" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
+        /// </summary>
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.started" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
+        void OnUse(InputAction.CallbackContext context);
         /// <summary>
         /// Method invoked when associated input action "CameraLook" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
         /// </summary>

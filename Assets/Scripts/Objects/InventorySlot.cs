@@ -16,6 +16,7 @@ namespace Objects
 
         private void OnEnable()
         {
+            Debug.Log("Slot enabled");
             inputReader.OnSlotEvent += InputReader_OnSlotEvent;
         }
 
@@ -24,7 +25,7 @@ namespace Objects
         {
             if ((slotNumberPressed - 1) == SlotIndex)
             {
-                Debug.Log($"Slot correct {SlotIndex} pressed");
+                Debug.Log($"Slot correct {SlotIndex}");
             }
             
         }

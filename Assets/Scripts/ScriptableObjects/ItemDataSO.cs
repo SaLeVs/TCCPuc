@@ -8,7 +8,7 @@ namespace ScriptableObjects
         public int itemId;
         public string itemName;
         public Sprite icon;
-        
+        public GameObject prefab;
     }
 }
 

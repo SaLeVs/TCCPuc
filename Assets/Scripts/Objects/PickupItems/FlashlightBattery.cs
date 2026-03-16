@@ -1,4 +1,5 @@
 using Interfaces;
+using Player;
 using ScriptableObjects;
 using Unity.Netcode;
 using UnityEngine;
@@ -19,14 +20,14 @@ namespace Objects.PickupItems
         public bool Interact(GameObject playerInteractor)
         {
             NetworkObject networkObject = playerInteractor.GetComponent<NetworkObject>();
-
+            
             if (!IsServer)
             {
                 InteractServerRpc(networkObject);
                 return true;
             }
 
-            UseBattery(playerInteractor);
+            AddItemToInventory(playerInteractor);
             return true;
         }
 
@@ -35,11 +36,23 @@ namespace Objects.PickupItems
         {
             if (playerRef.TryGet(out NetworkObject playerNetworkObject))
             {
-                UseBattery(playerNetworkObject.gameObject);
+                AddItemToInventory(playerNetworkObject.gameObject);
             }
         }
+        
+        private void AddItemToInventory(GameObject playerInteractor)
+        {
+            PlayerInventory inventory = playerInteractor.GetComponent<PlayerInventory>();
 
-        private void UseBattery(GameObject playerInteractor)
+            if (inventory == null) return;
+            if (!inventory.HasInventorySpace()) return;
+
+            inventory.TryAddItemServer(itemData.itemId);
+
+            DisableBatteryClientRpc();
+        }
+
+        public void UseBattery(GameObject playerInteractor)
         {
             if (playerInteractor.GetComponentInChildren<Flashlight>() is Flashlight flashlight)
             {

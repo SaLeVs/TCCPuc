@@ -1,4 +1,5 @@
 using System;
+using ScriptableObjects;
 using Unity.Netcode;
 using UnityEngine;
 
@@ -9,6 +10,7 @@ namespace Player
         public event Action<int,int> OnSlotChanged;
         
         [SerializeField] private int maxInventorySize = 4;
+        [SerializeField] private ItemListSO itemDatabase;
         
         public int MaxInventorySize => maxInventorySize; 
         

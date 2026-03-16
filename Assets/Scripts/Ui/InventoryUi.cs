@@ -12,6 +12,7 @@ namespace UI
         [SerializeField] private ItemListSO itemDatabase;
         [SerializeField] private Transform inventoryHolder;
         [SerializeField] private GameObject inventorySlotPrefab;
+            
         
         private InventorySlot[] _slotUIs;
         private int _maxInventorySize;

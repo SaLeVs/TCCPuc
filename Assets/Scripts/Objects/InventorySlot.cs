@@ -1,6 +1,6 @@
-﻿using Inputs;
+﻿using System;
+using Inputs;
 using ScriptableObjects;
-using Unity.Netcode;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -8,15 +8,17 @@ namespace Objects
 {
     public class InventorySlot : MonoBehaviour
     {
+        public event Action<int, ItemDataSO> OnUseRequested;
         [SerializeField] private InputReader inputReader;
         [SerializeField] private Image itemIcon;
         
         public int SlotIndex { get; private set; }
+        
+        private ItemDataSO _currentItem;
 
-
+        
         private void OnEnable()
         {
-            Debug.Log("Slot enabled");
             inputReader.OnSlotEvent += InputReader_OnSlotEvent;
         }
 
@@ -25,9 +27,14 @@ namespace Objects
         {
             if ((slotNumberPressed - 1) == SlotIndex)
             {
-                Debug.Log($"Slot correct {SlotIndex}");
+                RequestUseItem();
             }
             
+        }
+
+        private void RequestUseItem()
+        {
+            OnUseRequested?.Invoke(SlotIndex, _currentItem);
         }
 
         public void Init(int index)
@@ -40,6 +47,7 @@ namespace Objects
         {
             itemIcon.sprite = itemData.icon;
             itemIcon.enabled = true;
+            _currentItem = itemData;
         }
         
         public void Clear()

@@ -6,7 +6,7 @@ using UnityEngine.UI;
 
 namespace Objects
 {
-    public class InventorySlot : NetworkBehaviour
+    public class InventorySlot : MonoBehaviour
     {
         [SerializeField] private InputReader inputReader;
         [SerializeField] private Image itemIcon;
@@ -14,22 +14,17 @@ namespace Objects
         public int SlotIndex { get; private set; }
 
 
-        public override void OnNetworkSpawn()
+        private void OnEnable()
         {
-            if (IsOwner)
-            {
-                inputReader.OnSlotEvent += InputReader_OnSlotEvent;
-            }
-            
+            inputReader.OnSlotEvent += InputReader_OnSlotEvent;
         }
 
+        
         private void InputReader_OnSlotEvent(int slotNumberPressed)
         {
-            Debug.Log($"SlotNumberPressed: {slotNumberPressed}, SlotIndex {SlotIndex} pressed");
-            
-            if (slotNumberPressed == SlotIndex)
+            if ((slotNumberPressed - 1) == SlotIndex)
             {
-                Debug.Log("Slot correct");
+                Debug.Log($"Slot correct {SlotIndex} pressed");
             }
             
         }
@@ -53,14 +48,11 @@ namespace Objects
         }
 
         
-        public override void OnNetworkDespawn()
+        private void OnDisable()
         {
-            if (IsOwner)
-            {
-                inputReader.OnSlotEvent -= InputReader_OnSlotEvent;
-            }
-            
+            inputReader.OnSlotEvent -= InputReader_OnSlotEvent;
         }
+
         
     }
 }

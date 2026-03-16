@@ -24,6 +24,7 @@ namespace Player
                 for(int i = 0; i < maxInventorySize; i++)
                 {
                     _slots.Add(-1);
+                    
                 }
             }
             

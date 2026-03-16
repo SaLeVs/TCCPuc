@@ -1,4 +1,5 @@
-﻿using Unity.Netcode;
+﻿using Objects;
+using Unity.Netcode;
 using UnityEngine;
 using Player;
 using ScriptableObjects;
@@ -12,29 +13,50 @@ namespace UI
         [SerializeField] private Transform inventoryHolder;
         [SerializeField] private GameObject inventorySlotPrefab;
         
+        private InventorySlot[] _slotUIs;
         private int _maxInventorySize;
         
         
         public override void OnNetworkSpawn()
         {
-            inventory.OnSlotChanged += Inventory_OnSlotChanged;
-            _maxInventorySize = inventory.MaxInventorySize;
+            if (IsOwner)
+            {
+                inventory.OnSlotChanged += Inventory_OnSlotChanged;
+                _maxInventorySize = inventory.MaxInventorySize;
+                CreateInventorySlots();
+            }
             
         }
+        
+        private void CreateInventorySlots()
+        {
+            _slotUIs = new InventorySlot[_maxInventorySize];
 
+            for (int i = 0; i < _maxInventorySize; i++)
+            {
+                GameObject slotUi = Instantiate(inventorySlotPrefab, inventoryHolder);
+
+                if (slotUi.TryGetComponent(out InventorySlot slot))
+                {
+                    slot.Init(i);
+                    slot.Clear();
+                    _slotUIs[i] = slot;
+                }
+            }
+        }
+        
         private void Inventory_OnSlotChanged(int slotIndex, int itemId)
         {
+            if (itemId == -1)
+            {
+                _slotUIs[slotIndex].Clear();
+                return;
+            }
+            
             ItemDataSO item = itemDatabase.GetItem(itemId);
-            if (item == null) return;
-            Debug.Log($"Item {item.itemName} added to slot {slotIndex}");
-            AddItemToSlot(slotIndex, item);
-            
-        }
+            _slotUIs[slotIndex].SetItem(item);
 
-        private void AddItemToSlot(int slotIndex, ItemDataSO item)
-        {
-            
-                
+            Debug.Log($"Item {item.itemName} added to slot {_slotUIs[slotIndex].SlotIndex}");
         }
 
         public override void OnNetworkDespawn()

@@ -2,14 +2,14 @@
 using ScriptableObjects;
 using Unity.Netcode;
 using UnityEngine;
-using UnityEngine.UIElements;
+using UnityEngine.UI;
 
 namespace Objects
 {
     public class InventorySlot : NetworkBehaviour
     {
-        [SerializeField] private Image icon;
         [SerializeField] private InputReader inputReader;
+        [SerializeField] private Image itemIcon;
         
         public int SlotIndex { get; private set; }
 
@@ -42,14 +42,14 @@ namespace Objects
 
         public void SetItem(ItemDataSO itemData)
         {
-            icon.sprite = itemData.icon;
-            icon.SetEnabled(true);
+            itemIcon.sprite = itemData.icon;
+            itemIcon.enabled = true;
         }
         
         public void Clear()
         {
-            icon.sprite = null;
-            icon.SetEnabled(false);
+            itemIcon.sprite = null;
+            itemIcon.enabled = false;
         }
 
         

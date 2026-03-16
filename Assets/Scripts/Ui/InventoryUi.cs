@@ -9,8 +9,11 @@ namespace UI
     {
         [SerializeField] private PlayerInventory inventory;
         [SerializeField] private ItemListSO itemDatabase;
+        [SerializeField] private Transform inventoryHolder;
+        [SerializeField] private GameObject inventorySlotPrefab;
         
         private int _maxInventorySize;
+        
         
         public override void OnNetworkSpawn()
         {

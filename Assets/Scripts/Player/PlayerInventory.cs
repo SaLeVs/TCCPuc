@@ -11,12 +11,14 @@ namespace Player
         public event Action<int,int> OnSlotChanged;
         public event Action<int, int> OnCreateSlot;
         public event Action<int, int> OnRemoveSlot;
+        public event Action<int> OnSelectedSlotChanged;
         
         [SerializeField] private int maxInventorySize = 4;
         [SerializeField] private ItemListSO itemDatabase;
         [SerializeField] private InputReader inputReader;
         
         public int MaxInventorySize => maxInventorySize; 
+        public int CurrentSelectedSlot => _currentSlotSelected;
         
         private NetworkList<int> _slots = new NetworkList<int>();
         private int _currentSlotSelected;
@@ -47,7 +49,7 @@ namespace Player
 
         private void InputReader_OnSlotEvent(int slotSelected)
         {
-            Debug.Log($"Slot {slotSelected} selected");
+            SelectSlot(slotSelected);
         }
 
         private void InputReader_OnUseEvent()
@@ -60,6 +62,16 @@ namespace Player
         {
             OnSlotChanged?.Invoke(change.Index, change.Value);
             Debug.Log($"Slot {change.Index} changed to {change.Value}");
+        }
+        
+        private void SelectSlot(int slotSelected)
+        {
+            if (_currentSlotSelected == slotSelected) return;
+
+            _currentSlotSelected = slotSelected;
+            OnSelectedSlotChanged?.Invoke(_currentSlotSelected);
+
+            Debug.Log($"Selected slot {_currentSlotSelected}");
         }
         
         public void TryAddItemServer(int itemId)

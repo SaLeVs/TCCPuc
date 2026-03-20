@@ -1,3 +1,4 @@
+using Inputs;
 using Interfaces;
 using Unity.Netcode;
 using UnityEngine;
@@ -6,9 +7,18 @@ namespace Objects.UsableItems
 {
     public class FlashlightBattery : NetworkBehaviour, IUsable
     {
+        [SerializeField] private InputReader inputReader;
         [SerializeField] private int batteryPercentRecharge = 50;
-        
-        
+
+
+        public override void OnNetworkSpawn()
+        {
+            if (IsOwner)
+            {
+                
+            }
+        }
+
         public bool CanUse(GameObject playerInteractor)
         {
             return true;

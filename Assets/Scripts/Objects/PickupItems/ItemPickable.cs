@@ -6,10 +6,10 @@ using UnityEngine;
 
 namespace Objects.PickupItems
 {
-    public class FlashlightBattery : NetworkBehaviour, IInteractable
+    public class ItemPickable : NetworkBehaviour, IInteractable
     {
         [SerializeField] private ItemDataSO itemData;
-        [SerializeField] private int batteryPercentRecharge = 50;
+
         
 
         public bool CanInteract(GameObject interactor)
@@ -19,16 +19,22 @@ namespace Objects.PickupItems
         
         public bool Interact(GameObject playerInteractor)
         {
-            NetworkObject networkObject = playerInteractor.GetComponent<NetworkObject>();
-            
-            if (!IsServer)
+            if(CanInteract(playerInteractor))
             {
-                InteractServerRpc(networkObject);
+                NetworkObject networkObject = playerInteractor.GetComponent<NetworkObject>();
+            
+                if (!IsServer)
+                {
+                    InteractServerRpc(networkObject);
+                    return true;
+                }
+
+                AddItemToInventory(playerInteractor);
                 return true;
             }
-
-            AddItemToInventory(playerInteractor);
-            return true;
+            
+            return false;
+            
         }
 
         [Rpc(SendTo.Server)]
@@ -52,14 +58,7 @@ namespace Objects.PickupItems
             DisableBatteryClientRpc();
         }
 
-        public void UseBattery(GameObject playerInteractor)
-        {
-            if (playerInteractor.GetComponentInChildren<Flashlight>() is Flashlight flashlight)
-            {
-                flashlight.IncreaseFlashlightBattery(batteryPercentRecharge);
-                DisableBatteryClientRpc();
-            }
-        }
+        
         
         [Rpc(SendTo.ClientsAndHost)]
         private void DisableBatteryClientRpc()

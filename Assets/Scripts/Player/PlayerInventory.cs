@@ -1,4 +1,5 @@
 using System;
+using Components;
 using Inputs;
 using ScriptableObjects;
 using Unity.Netcode;
@@ -125,7 +126,11 @@ namespace Player
                 if (item != null)
                 {
                     GameObject itemObject = Instantiate(item.prefabUsable, playerHand.position, playerHand.rotation);
-                    itemObject.transform.SetParent(playerHand);
+
+                    if (itemObject.TryGetComponent(out FollowTransform followTransform))
+                    {
+                        followTransform.SetTarget(playerHand);
+                    }
                     
                     if(itemObject.TryGetComponent(out NetworkObject networkObject))
                     {

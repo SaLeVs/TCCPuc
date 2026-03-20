@@ -101,8 +101,9 @@ GameObject:
   - component: {fileID: 9161902892126698875}
   - component: {fileID: 5209401947113218867}
   - component: {fileID: 1428417402532576557}
-  - component: {fileID: 6401992253189397928}
   - component: {fileID: 3922139584381067448}
+  - component: {fileID: 2219798283354880526}
+  - component: {fileID: 6401992253189397928}
   - component: {fileID: 8848498301156342467}
   m_Layer: 0
   m_Name: FlashLightBaterry
@@ -120,7 +121,7 @@ Transform:
   m_GameObject: {fileID: 8874502670472070692}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 1.561, y: 1.026, z: 5.812}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 0.25, y: 0.05, z: 0.1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -139,7 +140,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Unity.Netcode.Runtime::Unity.Netcode.NetworkObject
-  GlobalObjectIdHash: 3103632664
+  GlobalObjectIdHash: 1537952787
   InScenePlacedSourceGlobalObjectIdHash: 0
   DeferredDespawnTick: 0
   Ownership: 1
@@ -198,6 +199,34 @@ MonoBehaviour:
   SwitchTransformSpaceWhenParented: 0
   Interpolate: 1
   SlerpPosition: 0
+--- !u!114 &3922139584381067448
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8874502670472070692}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2f3bc1868a0657e46a827d05f28cbd8e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Objects::Objects.PickupItems.FlashlightBattery
+  ShowTopMostFoldoutHeaderGroup: 1
+  itemData: {fileID: 11400000, guid: 7a2abde7c37397c41a438327c75b2631, type: 2}
+--- !u!114 &2219798283354880526
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8874502670472070692}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 85a97c6aea5db414dbca2dcce5770c9d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Objects::Objects.UsableItems.FlashlightBattery
+  ShowTopMostFoldoutHeaderGroup: 1
+  batteryPercentRecharge: 50
 --- !u!114 &6401992253189397928
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -213,21 +242,6 @@ MonoBehaviour:
   ShowTopMostFoldoutHeaderGroup: 1
   StartEnabled: 1
   Components: []
---- !u!114 &3922139584381067448
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 8874502670472070692}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 2f3bc1868a0657e46a827d05f28cbd8e, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Objects::Objects.PickupItems.FlashlightBattery
-  ShowTopMostFoldoutHeaderGroup: 1
-  itemData: {fileID: 11400000, guid: 7a2abde7c37397c41a438327c75b2631, type: 2}
-  batteryPercentRecharge: 50
 --- !u!65 &8848498301156342467
 BoxCollider:
   m_ObjectHideFlags: 0

@@ -8,9 +8,7 @@ namespace Objects.UsableItems
     {
         [SerializeField] private int batteryPercentRecharge = 50;
         
-        [Rpc(SendTo.ClientsAndHost)]
         
-
         public bool CanUse(GameObject playerInteractor)
         {
             return true;
@@ -29,6 +27,8 @@ namespace Objects.UsableItems
             
         }
         
+        
+        [Rpc(SendTo.ClientsAndHost)]
         private void DisableBatteryClientRpc()
         {
             gameObject.SetActive(false);

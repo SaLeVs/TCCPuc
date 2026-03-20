@@ -9,7 +9,6 @@ namespace Objects.PickupItems
     public class ItemPickable : NetworkBehaviour, IInteractable
     {
         [SerializeField] private ItemDataSO itemData;
-
         
 
         public bool CanInteract(GameObject interactor)

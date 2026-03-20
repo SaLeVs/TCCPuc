@@ -412,7 +412,7 @@ Transform:
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
+  m_ConstrainProportionsScale: 1
   m_Children:
   - {fileID: 847016756603283365}
   - {fileID: 5036788259409135564}
@@ -623,9 +623,9 @@ MonoBehaviour:
   cinemachineCamera: {fileID: 6800444975667494322}
   cameraRoot: {fileID: 5036788259409135564}
   cameraMoveSpeed: 10
-  standingOffset: {x: 0, y: 1.65, z: 0.3}
-  crouchOffset: {x: 0.182, y: 1.297, z: 0.411}
-  runOffset: {x: 0.024, y: 1.513, z: 0.425}
+  standingOffset: {x: 0, y: 1.3, z: 0.3}
+  crouchOffset: {x: 0.2, y: 1, z: 0.3}
+  runOffset: {x: 0, y: 1.3, z: 0.4}
 --- !u!114 &6388113009287079804
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -674,6 +674,7 @@ MonoBehaviour:
   maxInventorySize: 4
   itemDatabase: {fileID: 11400000, guid: 445d4ee483405c346880c081245fee23, type: 2}
   inputReader: {fileID: 11400000, guid: b8967103b22990e4685e914ae00843a6, type: 2}
+  playerHand: {fileID: 4011143355474172937}
 --- !u!54 &3158690138509095668
 Rigidbody:
   m_ObjectHideFlags: 0
@@ -721,9 +722,9 @@ CapsuleCollider:
   m_Enabled: 1
   serializedVersion: 2
   m_Radius: 0.4
-  m_Height: 2.0549357
+  m_Height: 1.45
   m_Direction: 1
-  m_Center: {x: 0, y: 0.97253215, z: 0}
+  m_Center: {x: 0, y: 0.7, z: 0}
 --- !u!1 &6465587222570873835
 GameObject:
   m_ObjectHideFlags: 0
@@ -1021,6 +1022,18 @@ PrefabInstance:
       value: 6
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 1841c298173cdad4db8df8602c8f1c8d, type: 3}
+      propertyPath: m_LocalScale.x
+      value: 0.8
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 1841c298173cdad4db8df8602c8f1c8d, type: 3}
+      propertyPath: m_LocalScale.y
+      value: 0.8
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 1841c298173cdad4db8df8602c8f1c8d, type: 3}
+      propertyPath: m_LocalScale.z
+      value: 0.8
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 1841c298173cdad4db8df8602c8f1c8d, type: 3}
       propertyPath: m_LocalPosition.x
       value: 0
       objectReference: {fileID: 0}
@@ -1059,6 +1072,10 @@ PrefabInstance:
     - target: {fileID: -8679921383154817045, guid: 1841c298173cdad4db8df8602c8f1c8d, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 1841c298173cdad4db8df8602c8f1c8d, type: 3}
+      propertyPath: m_ConstrainProportionsScale
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: -8583992136507829436, guid: 1841c298173cdad4db8df8602c8f1c8d, type: 3}
       propertyPath: m_Layer
@@ -1397,6 +1414,11 @@ MonoBehaviour:
       Synchronize: 1
       ParameterType: 4
   AnimatorParametersExpanded: 0
+--- !u!4 &4011143355474172937 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: -6574882734343921810, guid: 1841c298173cdad4db8df8602c8f1c8d, type: 3}
+  m_PrefabInstance: {fileID: 1399250988306531175}
+  m_PrefabAsset: {fileID: 0}
 --- !u!95 &4756283848191426294 stripped
 Animator:
   m_CorrespondingSourceObject: {fileID: 5866666021909216657, guid: 1841c298173cdad4db8df8602c8f1c8d, type: 3}

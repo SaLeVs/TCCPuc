@@ -12,10 +12,10 @@ namespace UI
         [SerializeField] private ItemListSO itemDatabase;
         [SerializeField] private Transform inventoryHolder;
         [SerializeField] private GameObject inventorySlotPrefab;
-            
         
         private InventorySlot[] _slotUIs;
         private int _maxInventorySize;
+        private int _currentSelectedSlotIndex;
         
         
         public override void OnNetworkSpawn()
@@ -23,8 +23,11 @@ namespace UI
             if (IsOwner)
             {
                 inventory.OnSlotChanged += Inventory_OnSlotChanged;
+                inventory.OnSelectedSlotChanged += Inventory_OnSelectedSlotChanged;
                 _maxInventorySize = inventory.MaxInventorySize;
                 CreateInventorySlots();
+
+                Inventory_OnSelectedSlotChanged(_currentSelectedSlotIndex);
             }
             
         }
@@ -56,13 +59,35 @@ namespace UI
             
             ItemDataSO item = itemDatabase.GetItem(itemId);
             _slotUIs[slotIndex].SetItem(item);
-
+            
             Debug.Log($"Item {item.itemName} added to slot {_slotUIs[slotIndex].SlotIndex}");
         }
+        
+        private void Inventory_OnSelectedSlotChanged(int slotSelected)
+        {
+            int newIndex = slotSelected - 1;
+
+            if (newIndex < 0 || newIndex >= _slotUIs.Length) return;
+
+            if (_currentSelectedSlotIndex >= 0 && _currentSelectedSlotIndex < _slotUIs.Length)
+            {
+                _slotUIs[_currentSelectedSlotIndex].SetHighlight(false);
+            }
+
+            _currentSelectedSlotIndex = newIndex;
+            _slotUIs[_currentSelectedSlotIndex].SetHighlight(true);
+            
+        }
+        
 
         public override void OnNetworkDespawn()
         {
-            inventory.OnSlotChanged -= Inventory_OnSlotChanged;
+            if (IsOwner)
+            {
+                inventory.OnSlotChanged -= Inventory_OnSlotChanged;
+                inventory.OnSelectedSlotChanged -= Inventory_OnSelectedSlotChanged;
+            }
+            
         }
     }
 }

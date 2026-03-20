@@ -74,6 +74,9 @@ PrefabInstance:
     m_AddedComponents:
     - targetCorrespondingSourceObject: {fileID: 7562584035107514966, guid: 13ae32ee9253d894ba1a59dfb4865b69, type: 3}
       insertIndex: -1
+      addedObject: {fileID: 2348685371265815473}
+    - targetCorrespondingSourceObject: {fileID: 7562584035107514966, guid: 13ae32ee9253d894ba1a59dfb4865b69, type: 3}
+      insertIndex: -1
       addedObject: {fileID: 4289722601260015589}
   m_SourcePrefab: {fileID: 100100000, guid: 13ae32ee9253d894ba1a59dfb4865b69, type: 3}
 --- !u!1 &7759364994349068733 stripped
@@ -81,6 +84,25 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 7562584035107514966, guid: 13ae32ee9253d894ba1a59dfb4865b69, type: 3}
   m_PrefabInstance: {fileID: 242489891128695787}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &2348685371265815473
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7759364994349068733}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 463a315a69b46fe4fb567cc55dff4950, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Components::Components.FollowTransform
+  ShowTopMostFoldoutHeaderGroup: 1
+  target: {fileID: 0}
+  followPosition: 1
+  followRotation: 0
+  followScale: 0
+  useInterpolation: 0
+  interpolationSpeed: 0
 --- !u!114 &4289722601260015589
 MonoBehaviour:
   m_ObjectHideFlags: 0

@@ -93,6 +93,7 @@ namespace Player
             }
             
             OnSelectedSlotChanged?.Invoke(_currentSlotSelected);
+            
             CreateItemRpc(_currentItemId);
             
             Debug.Log($"Selected slot {_currentSlotSelected}");
@@ -123,7 +124,7 @@ namespace Player
                 
                 if (item != null)
                 {
-                    GameObject itemObject = Instantiate(item.prefab, playerHand.position, playerHand.rotation);
+                    GameObject itemObject = Instantiate(item.prefabUsable, playerHand.position, playerHand.rotation);
                     itemObject.transform.SetParent(playerHand);
                     
                     if(itemObject.TryGetComponent(out NetworkObject networkObject))

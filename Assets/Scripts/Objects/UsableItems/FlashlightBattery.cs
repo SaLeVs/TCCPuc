@@ -10,13 +10,26 @@ namespace Objects.UsableItems
         [SerializeField] private InputReader inputReader;
         [SerializeField] private int batteryPercentRecharge = 50;
 
-
+        private GameObject _playerInteractor;
+        
         public override void OnNetworkSpawn()
         {
             if (IsOwner)
             {
+                inputReader.OnUseEvent += InputReader_OnUseEvent;
                 
+                Transform playerRoot = transform.root;
+                
+                if(playerRoot.TryGetComponent(out GameObject player))
+                {
+                    _playerInteractor = player;
+                }
             }
+        }
+
+        private void InputReader_OnUseEvent()
+        {
+            Use(_playerInteractor);
         }
 
         public bool CanUse(GameObject playerInteractor)

@@ -59,7 +59,7 @@ namespace UI
             
             ItemDataSO item = itemDatabase.GetItem(itemId);
             _slotUIs[slotIndex].SetItem(item);
-
+            
             Debug.Log($"Item {item.itemName} added to slot {_slotUIs[slotIndex].SlotIndex}");
         }
         

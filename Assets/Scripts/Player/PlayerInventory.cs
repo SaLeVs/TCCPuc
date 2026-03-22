@@ -23,8 +23,10 @@ namespace Player
         public int CurrentSelectedSlot => _currentSlotSelected;
         
         private NetworkList<int> _slots = new NetworkList<int>();
+        
         private int _currentSlotSelected;
         private int _currentItemId = -1;
+        private NetworkObject _currentSpawnedItem;
         
         
         public override void OnNetworkSpawn()
@@ -51,24 +53,19 @@ namespace Player
 
         private void InputReader_OnSlotEvent(int slotSelected)
         {
-            SelectSlot(slotSelected);
+            if (_currentSlotSelected != slotSelected)
+            {
+                SelectSlot(slotSelected);
+                return;
+            }
+
+            DeselectSlot();
         }
         
         private void SelectSlot(int slotSelected)
         {
-            if (_currentSlotSelected == slotSelected)
-            {
-                _currentSlotSelected = -1;
-                _currentItemId = -1;
-
-                OnSelectedSlotChanged?.Invoke(_currentSlotSelected);
-                CreateItemRpc(-1); 
-
-                Debug.Log("Slot deselected");
-                return;
-            }
-
             _currentSlotSelected = slotSelected;
+
             int zeroIndex = _currentSlotSelected - 1;
 
             if (zeroIndex >= 0 && zeroIndex < _slots.Count)
@@ -79,11 +76,20 @@ namespace Player
             {
                 _currentItemId = -1;
             }
-            
+
             OnSelectedSlotChanged?.Invoke(_currentSlotSelected);
             CreateItemRpc(_currentItemId);
-            
-            Debug.Log($"Selected slot {_currentSlotSelected}");
+        }
+
+        private void DeselectSlot()
+        {
+            _currentSlotSelected = -1;
+            _currentItemId = -1;
+
+            OnSelectedSlotChanged?.Invoke(_currentSlotSelected);
+
+            DestroyItemRpc();
+            Debug.Log("Slot deselected");
         }
         
 
@@ -133,6 +139,12 @@ namespace Player
             if (IsServer)
             {
                 if(itemId == -1) return;
+
+                if (_currentSpawnedItem != null && _currentSpawnedItem.IsSpawned)
+                {
+                    _currentSpawnedItem.Despawn();
+                    _currentSpawnedItem = null;
+                }
                 
                 ItemDataSO item = itemDatabase.GetItem(itemId);
                 
@@ -148,11 +160,26 @@ namespace Player
                     if(itemObject.TryGetComponent(out NetworkObject networkObject))
                     {
                         networkObject.SpawnWithOwnership(OwnerClientId);
+                        _currentSpawnedItem = networkObject;
                     }
                 }
             }
             
         }
+
+        [Rpc(SendTo.Server)]
+        private void DestroyItemRpc()
+        {
+            if (IsServer)
+            {
+                if (_currentSpawnedItem != null && _currentSpawnedItem.IsSpawned)
+                {
+                    _currentSpawnedItem.Despawn(true);
+                    _currentSpawnedItem = null;
+                }
+            }
+        }
+        
 
         public bool HasInventorySpace()
         {

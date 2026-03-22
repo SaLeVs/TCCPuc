@@ -78,6 +78,8 @@ namespace Player
             }
 
             OnSelectedSlotChanged?.Invoke(_currentSlotSelected);
+            
+            DestroyItemRpc();
             CreateItemRpc(_currentItemId);
         }
 

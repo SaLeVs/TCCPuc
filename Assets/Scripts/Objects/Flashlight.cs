@@ -96,10 +96,12 @@ namespace Objects
             if (!IsServer) return;
 
             _currentBattery.Value += amount;
-
+            Debug.Log($"IncreaseFlashlightBattery  {_currentBattery.Value}");
+            
             if (_currentBattery.Value > batteryPercentMax)
             {
                 _currentBattery.Value = batteryPercentMax;
+                Debug.Log($"Cap BatteryValue:  {_currentBattery.Value}");
             }
 
             if (_currentBattery.Value > 0)

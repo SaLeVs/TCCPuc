@@ -1,5 +1,6 @@
 using Inputs;
 using Interfaces;
+using Player;
 using Unity.Netcode;
 using UnityEngine;
 
@@ -18,11 +19,11 @@ namespace Objects.UsableItems
             {
                 inputReader.OnUseEvent += InputReader_OnUseEvent;
                 
-                Transform playerRoot = transform.root;
-                
-                if(playerRoot.TryGetComponent(out GameObject player))
+                NetworkObject playerNetworkObject = NetworkManager.Singleton.SpawnManager.GetPlayerNetworkObject(OwnerClientId);
+
+                if (playerNetworkObject != null)
                 {
-                    _playerInteractor = player;
+                    _playerInteractor = playerNetworkObject.gameObject;
                 }
             }
         }
@@ -44,17 +45,23 @@ namespace Objects.UsableItems
                 if (playerInteractor.GetComponentInChildren<Flashlight>() is Flashlight flashlight)
                 {
                     flashlight.IncreaseFlashlightBattery(batteryPercentRecharge);
-                    DisableBatteryClientRpc();
+                    
+                    if (playerInteractor.TryGetComponent(out PlayerInventory inventory))
+                    {
+                        inventory.TryRemoveItemServer();
+                    }
                 }
             }
             
         }
         
-        
-        [Rpc(SendTo.ClientsAndHost)]
-        private void DisableBatteryClientRpc()
+        public override void OnNetworkDespawn()
         {
-            gameObject.SetActive(false);
+            if (IsOwner)
+            {
+                inputReader.OnUseEvent -= InputReader_OnUseEvent;
+                _playerInteractor = null;
+            }
         }
     }  
 }

@@ -117,7 +117,6 @@ namespace Player
             
         }
         
-       
         
         public void TryAddItemServer(int itemId)
         {
@@ -133,6 +132,27 @@ namespace Player
                 }
             }
             
+        }
+
+        public void TryRemoveItemServer()
+        {
+            if (!IsServer) return;
+
+            if (_currentSlotSelected <= 0) return;
+
+            int index = _currentSlotSelected - 1;
+
+            if (index < 0 || index >= _slots.Count) return;
+
+            _slots[index] = -1;
+
+            Debug.Log($"Removed item from slot {index}");
+
+            _currentSlotSelected = -1;
+            _currentItemId = -1;
+
+            DestroyItemRpc();
+            OnSelectedSlotChanged?.Invoke(_currentSlotSelected);
         }
     
         [Rpc(SendTo.Server)]
@@ -176,7 +196,7 @@ namespace Player
             {
                 if (_currentSpawnedItem != null && _currentSpawnedItem.IsSpawned)
                 {
-                    _currentSpawnedItem.Despawn(true);
+                    _currentSpawnedItem.Despawn();
                     _currentSpawnedItem = null;
                 }
             }

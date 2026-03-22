@@ -113,6 +113,8 @@ namespace Player
             if (_currentSlotSelected > 0 && change.Index == selectedZeroBased)
             {
                 _currentItemId = change.Value;
+                DestroyItemRpc();
+                CreateItemRpc(_currentItemId);
             }
             
         }
@@ -120,15 +122,16 @@ namespace Player
         
         public void TryAddItemServer(int itemId)
         {
-            if (!IsServer) return;
-
-            for (int i = 0; i < _slots.Count; i++)
+            if (IsServer)
             {
-                if (_slots[i] == -1)
+                for (int i = 0; i < _slots.Count; i++)
                 {
-                    _slots[i] = itemId;
-                    Debug.Log($"Item {itemId} added to slot {i}");
-                    return;
+                    if (_slots[i] == -1)
+                    {
+                        _slots[i] = itemId;
+                        Debug.Log($"Item {itemId} added to slot {i}");
+                        return;
+                    }
                 }
             }
             
@@ -136,23 +139,25 @@ namespace Player
 
         public void TryRemoveItemServer()
         {
-            if (!IsServer) return;
+            if (IsServer)
+            {
+                if (_currentSlotSelected <= 0) return;
 
-            if (_currentSlotSelected <= 0) return;
+                int index = _currentSlotSelected - 1;
 
-            int index = _currentSlotSelected - 1;
+                if (index < 0 || index >= _slots.Count) return;
 
-            if (index < 0 || index >= _slots.Count) return;
+                _slots[index] = -1;
 
-            _slots[index] = -1;
+                Debug.Log($"Removed item from slot {index}");
 
-            Debug.Log($"Removed item from slot {index}");
+                _currentSlotSelected = -1;
+                _currentItemId = -1;
 
-            _currentSlotSelected = -1;
-            _currentItemId = -1;
-
-            DestroyItemRpc();
-            OnSelectedSlotChanged?.Invoke(_currentSlotSelected);
+                DestroyItemRpc();
+                OnSelectedSlotChanged?.Invoke(_currentSlotSelected);
+            }
+            
         }
     
         [Rpc(SendTo.Server)]

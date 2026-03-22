@@ -9,9 +9,10 @@ namespace ScriptableObjects
         public string missionName;
     
         public List<RoomDataSO> requiredRooms;
-        public List<RoomDataSO> randomRooms;
+        public List<RoomDataSO> baseRooms;
         public List<RoomDataSO> lootRooms;
-    
+        
+        
     }
 }
 

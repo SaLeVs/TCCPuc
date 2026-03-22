@@ -121,6 +121,8 @@ namespace Player
         {
             if (IsServer)
             {
+                if(itemId == -1) return;
+                
                 ItemDataSO item = itemDatabase.GetItem(itemId);
                 
                 if (item != null)

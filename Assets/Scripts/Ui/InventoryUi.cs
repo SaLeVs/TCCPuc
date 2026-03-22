@@ -65,18 +65,21 @@ namespace UI
         
         private void Inventory_OnSelectedSlotChanged(int slotSelected)
         {
-            int newIndex = slotSelected - 1;
-
-            if (newIndex < 0 || newIndex >= _slotUIs.Length) return;
-
             if (_currentSelectedSlotIndex >= 0 && _currentSelectedSlotIndex < _slotUIs.Length)
             {
                 _slotUIs[_currentSelectedSlotIndex].SetHighlight(false);
             }
+            
+            if (slotSelected <= 0 || slotSelected > _slotUIs.Length)
+            {
+                _currentSelectedSlotIndex = -1;
+                return;
+            }
+
+            int newIndex = slotSelected - 1;
 
             _currentSelectedSlotIndex = newIndex;
-            _slotUIs[_currentSelectedSlotIndex].SetHighlight(true);
-            
+            _slotUIs[newIndex].SetHighlight(true);
         }
         
 

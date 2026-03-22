@@ -53,7 +53,39 @@ namespace Player
         {
             SelectSlot(slotSelected);
         }
+        
+        private void SelectSlot(int slotSelected)
+        {
+            if (_currentSlotSelected == slotSelected)
+            {
+                _currentSlotSelected = -1;
+                _currentItemId = -1;
 
+                OnSelectedSlotChanged?.Invoke(_currentSlotSelected);
+                CreateItemRpc(-1); 
+
+                Debug.Log("Slot deselected");
+                return;
+            }
+
+            _currentSlotSelected = slotSelected;
+            int zeroIndex = _currentSlotSelected - 1;
+
+            if (zeroIndex >= 0 && zeroIndex < _slots.Count)
+            {
+                _currentItemId = _slots[zeroIndex];
+            }
+            else
+            {
+                _currentItemId = -1;
+            }
+            
+            OnSelectedSlotChanged?.Invoke(_currentSlotSelected);
+            CreateItemRpc(_currentItemId);
+            
+            Debug.Log($"Selected slot {_currentSlotSelected}");
+        }
+        
 
         private void Slots_OnListChanged(NetworkListEvent<int> change)
         {
@@ -77,28 +109,7 @@ namespace Player
             
         }
         
-        private void SelectSlot(int slotSelected)
-        {
-            if (_currentSlotSelected == slotSelected) return;
-
-            _currentSlotSelected = slotSelected;
-            int zeroIndex = _currentSlotSelected - 1;
-
-            if (zeroIndex >= 0 && zeroIndex < _slots.Count)
-            {
-                _currentItemId = _slots[zeroIndex];
-            }
-            else
-            {
-                _currentItemId = -1;
-            }
-            
-            OnSelectedSlotChanged?.Invoke(_currentSlotSelected);
-            
-            CreateItemRpc(_currentItemId);
-            
-            Debug.Log($"Selected slot {_currentSlotSelected}");
-        }
+       
         
         public void TryAddItemServer(int itemId)
         {
@@ -146,11 +157,6 @@ namespace Player
         public bool HasInventorySpace()
         {
             return _slots.Contains(-1);
-        }
-
-        public void RemoveItem(int itemId)
-        {
-            
         }
         
     }

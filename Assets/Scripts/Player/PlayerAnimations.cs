@@ -11,13 +11,24 @@ namespace Player
         
         private readonly int _moveXHash = Animator.StringToHash("_xVelocity");
         private readonly int _moveYHash = Animator.StringToHash("_yVelocity");
+        private readonly int _speedHash = Animator.StringToHash("_speed");
+        
         private readonly int _isRunningHash = Animator.StringToHash("_isRunning");
         private readonly int _isCrouchingHash = Animator.StringToHash("_isCrouching");
-        private readonly int _speedHash = Animator.StringToHash("_speed");
+        
+        private readonly int _interactHash = Animator.StringToHash("_interact");
+        private readonly int _heldItemHash = Animator.StringToHash("_holdItem");
+        
         
         private float _targetMoveX;
         private float _targetMoveY;
         private float _speed;
+        private bool _isHoldingItem;
+        
+        private const int UPPER_LAYER_INDEX = 1;
+        
+        private float _targetUpperLayerWeight;
+        private float _currentUpperLayerWeight;
         
         
         public override void OnNetworkSpawn()
@@ -35,9 +46,6 @@ namespace Player
         }
 
         
-
-        
-
         private void Update()
         {
             if (IsOwner)
@@ -47,6 +55,9 @@ namespace Player
                 
                 _speed = new Vector2(_targetMoveX, _targetMoveY).magnitude;
                 animator.SetFloat(_speedHash, _speed, animationSmoothing, Time.deltaTime);
+                
+                _currentUpperLayerWeight = Mathf.MoveTowards(_currentUpperLayerWeight, _targetUpperLayerWeight, Time.deltaTime);
+                animator.SetLayerWeight(UPPER_LAYER_INDEX, _currentUpperLayerWeight);
             }
             
         }
@@ -72,13 +83,18 @@ namespace Player
         
         private void PlayerState_OnInteract()
         {
-            
+            animator.SetTrigger(_interactHash);
         }
         
-        private void PlayerState_OnHoldItem(int obj)
+        private void PlayerState_OnHoldItem(int slot)
         {
-            
+            _isHoldingItem = slot > 0;
+
+            animator.SetBool(_heldItemHash, _isHoldingItem);
+
+            _targetUpperLayerWeight = _isHoldingItem ? 1f : 0f;
         }
+        
         
         public override void OnNetworkDespawn()
         {
@@ -93,6 +109,7 @@ namespace Player
             }
             
         }
+        
     }
 }
 

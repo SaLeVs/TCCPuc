@@ -1,6 +1,6 @@
+using System;
 using Inputs;
 using Interfaces;
-using Unity.Cinemachine;
 using Unity.Netcode;
 using UnityEngine;
 
@@ -8,6 +8,8 @@ namespace Player
 {
     public class PlayerInteractor : NetworkBehaviour
     {
+        public event Action OnInteractRequested;
+        
         [Header("References")]
         [SerializeField] private InputReader inputReader;
         [SerializeField] private Transform playerView;
@@ -38,11 +40,13 @@ namespace Player
             
              if (Physics.Raycast(ray, out RaycastHit hit, interactDistance))
              {
-                 if (hit.collider.TryGetComponent<IInteractable>(out IInteractable interactable))
+                 if (hit.collider.TryGetComponent(out IInteractable interactable))
                  {
+                     OnInteractRequested?.Invoke();
                      interactable.Interact(gameObject);
                  }
              }
+             
         }
         
         public override void OnNetworkDespawn()

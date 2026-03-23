@@ -27,10 +27,17 @@ namespace Player
                 playerState.OnPlayerMovement += PlayerState_OnPlayerMovement;
                 playerState.OnRunEvent += PlayerState_OnRunEvent;
                 playerState.OnCrouchEvent += PlayerState_OnCrouchEvent;
+                
+                playerState.OnInteract += PlayerState_OnInteract;
+                playerState.OnHoldItem += PlayerState_OnHoldItem;
             }
             
         }
+
         
+
+        
+
         private void Update()
         {
             if (IsOwner)
@@ -62,7 +69,16 @@ namespace Player
         {
             animator.SetBool(_isCrouchingHash, isCrouching);
         }
-
+        
+        private void PlayerState_OnInteract()
+        {
+            
+        }
+        
+        private void PlayerState_OnHoldItem(int obj)
+        {
+            
+        }
         
         public override void OnNetworkDespawn()
         {
@@ -71,6 +87,9 @@ namespace Player
                 playerState.OnPlayerMovement -= PlayerState_OnPlayerMovement;
                 playerState.OnRunEvent -= PlayerState_OnRunEvent;
                 playerState.OnCrouchEvent -= PlayerState_OnCrouchEvent;
+                
+                playerState.OnInteract -= PlayerState_OnInteract;
+                playerState.OnHoldItem -= PlayerState_OnHoldItem;
             }
             
         }

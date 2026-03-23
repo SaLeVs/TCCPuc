@@ -56,8 +56,7 @@ namespace Player
                 _speed = new Vector2(_targetMoveX, _targetMoveY).magnitude;
                 animator.SetFloat(_speedHash, _speed, animationSmoothing, Time.deltaTime);
                 
-                _currentUpperLayerWeight = Mathf.MoveTowards(_currentUpperLayerWeight, _targetUpperLayerWeight, Time.deltaTime);
-                animator.SetLayerWeight(UPPER_LAYER_INDEX, _currentUpperLayerWeight);
+                animator.SetLayerWeight(UPPER_LAYER_INDEX, 1);
             }
             
         }
@@ -91,8 +90,6 @@ namespace Player
             _isHoldingItem = slot > 0;
 
             animator.SetBool(_heldItemHash, _isHoldingItem);
-
-            _targetUpperLayerWeight = _isHoldingItem ? 1f : 0f;
         }
         
         

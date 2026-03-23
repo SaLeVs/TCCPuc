@@ -179,20 +179,31 @@ namespace Player
                 if (item != null)
                 {
                     GameObject itemObject = Instantiate(item.prefabUsable, playerHand.position, playerHand.rotation);
-
-                    if (itemObject.TryGetComponent(out FollowTransform followTransform))
-                    {
-                        followTransform.SetTarget(playerHand);
-                    }
                     
                     if(itemObject.TryGetComponent(out NetworkObject networkObject))
                     {
                         networkObject.SpawnWithOwnership(OwnerClientId);
                         _currentSpawnedItem = networkObject;
+                        SetFollowTargetClientRpc(networkObject);
                     }
+                    
+                }
+                
+            }
+        }
+        
+        [Rpc(SendTo.ClientsAndHost)]
+        private void SetFollowTargetClientRpc(NetworkObjectReference target)
+        {
+            if (target.TryGet(out NetworkObject networkObject))
+            {
+                GameObject itemObject = networkObject.gameObject;
+
+                if (itemObject.TryGetComponent(out FollowTransform followTransform))
+                {
+                    followTransform.SetTarget(playerHand);
                 }
             }
-            
         }
 
         [Rpc(SendTo.Server)]

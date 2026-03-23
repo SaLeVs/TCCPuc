@@ -22,6 +22,7 @@ namespace Player
         public int MaxInventorySize => maxInventorySize; 
         public int CurrentSelectedSlot => _currentSlotSelected;
         
+        
         private NetworkList<int> _slots = new NetworkList<int>();
         
         private int _currentSlotSelected;
@@ -206,11 +207,48 @@ namespace Player
                 }
             }
         }
-        
+
+        public void ReplaceSelectedItemServer(int newItemId, Vector3 itemPosition, Quaternion itemRotation)
+        {
+            if (IsServer)
+            {
+                if (_currentSlotSelected <= 0) return;
+                
+                int index = _currentSlotSelected - 1;
+                int oldItemId = _slots[index];
+
+                if (oldItemId == -1) return;
+                
+                ItemDataSO oldItem = itemDatabase.GetItem(oldItemId);
+
+                if (oldItem != null)
+                {
+                    GameObject droppedItem = Instantiate(oldItem.prefabPickable, itemPosition, itemRotation);
+
+                    if (droppedItem.TryGetComponent(out NetworkObject networkObject))
+                    {
+                        networkObject.Spawn();
+                    }
+                }
+                
+                _slots[index] = newItemId;
+                
+            }
+        }
 
         public bool HasInventorySpace()
         {
             return _slots.Contains(-1);
+        }
+
+        public int GetItemInSlot(int slotIndex)
+        {
+            if (slotIndex < 0 || slotIndex >= _slots.Count)
+            {
+                return -1;
+            }
+            
+            return _slots[slotIndex];
         }
         
     }

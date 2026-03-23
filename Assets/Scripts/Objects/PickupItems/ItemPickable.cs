@@ -47,20 +47,27 @@ namespace Objects.PickupItems
         
         private void AddItemToInventory(GameObject playerInteractor)
         {
-            PlayerInventory inventory = playerInteractor.GetComponent<PlayerInventory>();
+            if (playerInteractor.TryGetComponent(out PlayerInventory playerInventory))
+            {
+                if (playerInventory.HasInventorySpace())
+                {
+                    playerInventory.TryAddItemServer(itemData.itemId);
+                    DisableItemClientRpc();
+                    return;
+                }
 
-            if (inventory == null) return;
-            if (!inventory.HasInventorySpace()) return;
-
-            inventory.TryAddItemServer(itemData.itemId);
-
-            DisableBatteryClientRpc();
+                if (playerInventory.CurrentSelectedSlot > 0)
+                {
+                    playerInventory.ReplaceSelectedItemServer(itemData.itemId, transform.position, transform.rotation);
+                    DisableItemClientRpc();
+                }
+                
+            }
         }
-
         
         
         [Rpc(SendTo.ClientsAndHost)]
-        private void DisableBatteryClientRpc()
+        private void DisableItemClientRpc()
         {
             gameObject.SetActive(false);
         }

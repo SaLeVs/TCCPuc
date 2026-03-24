@@ -12,6 +12,7 @@ GameObject:
   - component: {fileID: 226626059519911374}
   - component: {fileID: 5175086518404795670}
   - component: {fileID: 2759342152120301046}
+  - component: {fileID: 1117828246169919045}
   - component: {fileID: 80164970372955365}
   m_Layer: 8
   m_Name: ItemPickableBase
@@ -121,6 +122,19 @@ MonoBehaviour:
   m_EditorClassIdentifier: Objects::Objects.PickupItems.ItemPickable
   ShowTopMostFoldoutHeaderGroup: 1
   itemData: {fileID: 0}
+--- !u!114 &1117828246169919045
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6957830180743672895}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2a3dc5ad84c923546b6745c8a52386a9, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Components::Highlight
+  outline: {fileID: 607883748643052767}
 --- !u!65 &80164970372955365
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -153,6 +167,7 @@ GameObject:
   - component: {fileID: 7434392896826482812}
   - component: {fileID: 4313720842687300717}
   - component: {fileID: 3677611971376692807}
+  - component: {fileID: 607883748643052767}
   m_Layer: 8
   m_Name: GFX
   m_TagString: Untagged
@@ -232,3 +247,21 @@ MeshRenderer:
   m_SortingOrder: 0
   m_MaskInteraction: 0
   m_AdditionalVertexStreams: {fileID: 0}
+--- !u!114 &607883748643052767
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8926870211040262102}
+  m_Enabled: 0
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5fea29bb7c508c244a1f805a5fd3fc4d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp-firstpass::Outline
+  outlineMode: 0
+  outlineColor: {r: 1, g: 1, b: 1, a: 1}
+  outlineWidth: 3
+  precomputeOutline: 0
+  bakeKeys: []
+  bakeValues: []

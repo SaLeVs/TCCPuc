@@ -23,7 +23,10 @@ namespace Player
         private Ray _currentRay;
         
         private bool _isPlayerHitInteractable;
+        
         private IInteractable _currentInteractable;
+        private IHighlighted _currentHighlighted;
+        
         
         public override void OnNetworkSpawn()
         {
@@ -67,16 +70,30 @@ namespace Player
         private bool CheckRaycast()
         {
             _currentRay = new Ray(playerView.position, playerView.forward);
-            
+
             if (Physics.Raycast(_currentRay, out RaycastHit hit, interactDistance, layerMask))
             {
                 if (hit.collider.TryGetComponent(out IInteractable interactable))
                 {
-                    _currentInteractable  = interactable;
+                    _currentInteractable = interactable;
+
+                    if (hit.collider.TryGetComponent(out IHighlighted newHighlight))
+                    {
+                        if (_currentHighlighted != newHighlight)
+                        {
+                            _currentHighlighted?.Disable();
+                            _currentHighlighted = newHighlight;
+                            _currentHighlighted.Enable();   
+                        }
+                    }
+
                     return true;
                 }
             }
-
+            
+            _currentHighlighted?.Disable();
+            _currentHighlighted = null;
+            _currentInteractable = null;
             return false;
         }
         

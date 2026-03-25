@@ -29,8 +29,9 @@ namespace Network
             try
             {
                 string lobbyName = "Lobby";
-                Unity.Services.Lobbies.Models.Lobby lobby =
-                    await LobbyService.Instance.CreateLobbyAsync(lobbyName, MAX_PLAYERS);
+                Unity.Services.Lobbies.Models.Lobby lobby = await LobbyService.Instance.CreateLobbyAsync(lobbyName, MAX_PLAYERS);
+                Debug.Log($"Lobby created:{lobby}");
+                
             }
             catch (LobbyServiceException exception)
             {

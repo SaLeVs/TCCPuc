@@ -61,11 +61,11 @@ namespace Network
                 CreateLobbyOptions createLobbyOptions = new CreateLobbyOptions
                 {
                     IsPrivate = false,
-                    Player = new Player
+                    Player = GetPlayer(),
+                    Data = new Dictionary<string, DataObject>
                     {
-                        Data = new Dictionary<string, PlayerDataObject>
                         {
-                            {"PlayerName", new PlayerDataObject(PlayerDataObject.VisibilityOptions.Member, _playerName)}
+                            "GameMode", new DataObject(DataObject.VisibilityOptions.Public, "Survival")
                         }
                     }
                 };
@@ -125,6 +125,31 @@ namespace Network
                 Debug.Log(e);
             }
             
+        }
+
+        public async void LeaveLobby()
+        {
+            try
+            {
+                await LobbyService.Instance.RemovePlayerAsync(_hostLobby.Id, AuthenticationService.Instance.PlayerId);
+            }
+            catch (Exception e)
+            {
+                Debug.Log(e);
+            }
+           
+        }
+
+        private async void KickPlayer()
+        {
+            try
+            {
+                await LobbyService.Instance.RemovePlayerAsync(_hostLobby.Id, _hostLobby.Players[1].Id);
+            }
+            catch (Exception e)
+            {
+                Debug.Log(e);
+            }
         }
 
         private Player GetPlayer()

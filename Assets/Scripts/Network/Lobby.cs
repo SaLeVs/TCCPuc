@@ -55,8 +55,14 @@ namespace Network
         {
             try
             {
+                CreateLobbyOptions createLobbyOptions = new CreateLobbyOptions
+                {
+                    IsPrivate = true
+                };
+                
                 string lobbyName = "Lobby";
-                Unity.Services.Lobbies.Models.Lobby lobby = await LobbyService.Instance.CreateLobbyAsync(lobbyName, MAX_PLAYERS);
+                
+                Unity.Services.Lobbies.Models.Lobby lobby = await LobbyService.Instance.CreateLobbyAsync(lobbyName, MAX_PLAYERS, createLobbyOptions);
                 _hostLobby = lobby;
                 
                 Debug.Log($"Lobby created:{lobby}");
@@ -91,8 +97,22 @@ namespace Network
                 Console.WriteLine(e);
                 throw;
             }
+        }
 
-
+        public async void JoinLobbyByCode(string code)
+        {
+            try
+            {
+                QueryResponse queryResponse = await LobbyService.Instance.QueryLobbiesAsync();
+                await LobbyService.Instance.JoinLobbyByCodeAsync(code);
+                Debug.Log($"Joined Lobby by code: {code}");
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
+                throw;
+            }
+            
         }
     }
 }

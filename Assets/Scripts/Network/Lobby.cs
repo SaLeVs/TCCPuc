@@ -13,6 +13,7 @@ namespace Network
     {
         private const int MAX_PLAYERS = 4;
         private Unity.Services.Lobbies.Models.Lobby _hostLobby;
+        private Unity.Services.Lobbies.Models.Lobby _joinedLobby;
         
         private float _heartBeatTimer;
         private float _heartBeatMaxTimer = 15f;
@@ -74,6 +75,7 @@ namespace Network
                 
                 Unity.Services.Lobbies.Models.Lobby lobby = await LobbyService.Instance.CreateLobbyAsync(lobbyName, MAX_PLAYERS, createLobbyOptions);
                 _hostLobby = lobby;
+                _joinedLobby = _hostLobby;
                 
                 Debug.Log($"Lobby created:{lobby}");
                 
@@ -117,8 +119,9 @@ namespace Network
                 {
                     Player = GetPlayer()
                 };
-                
-                await LobbyService.Instance.JoinLobbyByCodeAsync(code, options);
+                Unity.Services.Lobbies.Models.Lobby lobby  = await LobbyService.Instance.JoinLobbyByCodeAsync(code, options);
+                _joinedLobby = lobby;
+
             }
             catch (Exception e)
             {
@@ -131,7 +134,7 @@ namespace Network
         {
             try
             {
-                await LobbyService.Instance.RemovePlayerAsync(_hostLobby.Id, AuthenticationService.Instance.PlayerId);
+                await LobbyService.Instance.RemovePlayerAsync(_joinedLobby.Id, AuthenticationService.Instance.PlayerId);
             }
             catch (Exception e)
             {
@@ -140,16 +143,45 @@ namespace Network
            
         }
 
-        private async void KickPlayer()
+        public async void KickPlayer()
         {
             try
             {
-                await LobbyService.Instance.RemovePlayerAsync(_hostLobby.Id, _hostLobby.Players[1].Id);
+                await LobbyService.Instance.RemovePlayerAsync(_joinedLobby.Id, _hostLobby.Players[1].Id);
             }
             catch (Exception e)
             {
                 Debug.Log(e);
             }
+        }
+
+        public async void MigrateHost()
+        {
+            try
+            {
+                _hostLobby = await LobbyService.Instance.UpdateLobbyAsync(_hostLobby.Id, new UpdateLobbyOptions
+                {
+                    HostId = _joinedLobby.Players[1].Id
+                });
+                _joinedLobby = _hostLobby;
+            }
+            catch (Exception e)
+            {
+                Debug.Log(e);
+            }
+        }
+
+        public async void DeleteLobby()
+        {
+            try
+            {
+                await LobbyService.Instance.DeleteLobbyAsync(_joinedLobby.Id);
+            }
+            catch (Exception e)
+            {
+                Debug.Log(e);
+            }
+            
         }
 
         private Player GetPlayer()

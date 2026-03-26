@@ -16,6 +16,8 @@ namespace Network
         
         private float _heartBeatTimer;
         private float _heartBeatMaxTimer = 15f;
+
+        private string _playerName;
         
         
         private async void Start()
@@ -25,7 +27,8 @@ namespace Network
             {
                 Debug.Log("Signed in! PlayerID: " + AuthenticationService.Instance.PlayerId);
             };
-            
+
+            _playerName = $"User {UnityEngine.Random.Range(0, 100)}";
             await AuthenticationService.Instance.SignInAnonymouslyAsync(); // Change this for steam after
             
         }
@@ -57,7 +60,14 @@ namespace Network
             {
                 CreateLobbyOptions createLobbyOptions = new CreateLobbyOptions
                 {
-                    IsPrivate = true
+                    IsPrivate = false,
+                    Player = new Player
+                    {
+                        Data = new Dictionary<string, PlayerDataObject>
+                        {
+                            {"PlayerName", new PlayerDataObject(PlayerDataObject.VisibilityOptions.Member, _playerName)}
+                        }
+                    }
                 };
                 
                 string lobbyName = "Lobby";
@@ -103,16 +113,29 @@ namespace Network
         {
             try
             {
-                QueryResponse queryResponse = await LobbyService.Instance.QueryLobbiesAsync();
-                await LobbyService.Instance.JoinLobbyByCodeAsync(code);
-                Debug.Log($"Joined Lobby by code: {code}");
+                JoinLobbyByCodeOptions options = new JoinLobbyByCodeOptions
+                {
+                    Player = GetPlayer()
+                };
+                
+                await LobbyService.Instance.JoinLobbyByCodeAsync(code, options);
             }
             catch (Exception e)
             {
-                Console.WriteLine(e);
-                throw;
+                Debug.Log(e);
             }
             
+        }
+
+        private Player GetPlayer()
+        {
+            return new Player
+            {
+                Data = new Dictionary<string, PlayerDataObject>
+                {
+                    {"PlayerName", new PlayerDataObject(PlayerDataObject.VisibilityOptions.Member, _playerName)}
+                }
+            };
         }
     }
 }

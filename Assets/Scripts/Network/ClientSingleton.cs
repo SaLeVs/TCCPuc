@@ -6,7 +6,7 @@ namespace Network
     public class ClientSingleton : MonoBehaviour
     {
         private static ClientSingleton _instance;
-        private ClientGameManager _gameManager;
+        public ClientGameManager gameManager { get; private set; }
 
         
         public static ClientSingleton instance
@@ -34,10 +34,10 @@ namespace Network
             DontDestroyOnLoad(gameObject);
         }
 
-        public async Task CreateClient()
+        public async Task<bool> CreateClient()
         {
-            _gameManager = new ClientGameManager();
-            await _gameManager.InitAsync();
+            gameManager = new ClientGameManager();
+            return await gameManager.InitAsync();
         }
     }
 }

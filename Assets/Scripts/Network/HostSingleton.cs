@@ -6,7 +6,7 @@ namespace Network
     public class HostSingleton : MonoBehaviour
     {
         private static HostSingleton _instance;
-        private HostGameManager _gameManager;
+        public HostGameManager gameManager { get; private set; }
 
         
         public static HostSingleton instance
@@ -36,8 +36,8 @@ namespace Network
 
         public void CreateHost()
         {
-            _gameManager = new HostGameManager();
-            
+            gameManager = new HostGameManager();
+            gameManager.InitAsync();
         }
     }
 }

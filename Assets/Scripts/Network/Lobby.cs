@@ -19,19 +19,11 @@ namespace Network
         private float _heartBeatMaxTimer = 15f;
 
         private string _playerName;
-        
-        
-        private async void Start()
-        {
-            await UnityServices.InitializeAsync();
-            AuthenticationService.Instance.SignedIn += () =>
-            {
-                Debug.Log("Signed in! PlayerID: " + AuthenticationService.Instance.PlayerId);
-            };
 
+
+        private void Start()
+        {
             _playerName = $"User {UnityEngine.Random.Range(0, 100)}";
-            await AuthenticationService.Instance.SignInAnonymouslyAsync(); // Change this for steam after
-            
         }
 
         private void Update()

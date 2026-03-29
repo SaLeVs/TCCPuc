@@ -23,10 +23,15 @@ namespace Network
             try
             {
                 ClientSingleton clientSingletonObject = Instantiate(clientSingleton);
-                await clientSingletonObject.CreateClient();
+                bool authenticated = await clientSingletonObject.CreateClient();
                 
                 HostSingleton hostSingletonObject = Instantiate(hostSingleton);
                 hostSingletonObject.CreateHost();
+
+                if (authenticated)
+                {
+                    clientSingletonObject.gameManager.StartMenu();
+                }
                 
             }
             catch (Exception e)

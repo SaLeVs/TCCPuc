@@ -1,4 +1,5 @@
 using System.Threading.Tasks;
+using Systems;
 using Unity.Services.Core;
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -27,7 +28,7 @@ namespace Network
 
         public void StartMenu()
         {
-            SceneManager.LoadScene(MENU_SCENE_NAME);
+            Loader.Load(Loader.Scene.MainMenu);
         }
     }
 }

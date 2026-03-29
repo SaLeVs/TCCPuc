@@ -1,0 +1,30 @@
+using UnityEngine;
+using UnityEngine.SceneManagement;
+
+namespace Systems
+{
+    public static class Loader
+    {
+        public enum Scene
+        {
+            MainMenu,
+            Lobby,
+            Game,
+            Loading,
+        }
+
+        private static Scene _targetScene;
+
+        public static void Load(Scene targetScene)
+        {
+            Loader._targetScene = targetScene;
+            SceneManager.LoadScene(Scene.Loading.ToString());
+        }
+
+        public static void LoaderCallback()
+        {
+            SceneManager.LoadScene(_targetScene.ToString());
+        }
+    }
+}
+

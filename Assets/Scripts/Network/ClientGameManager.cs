@@ -8,11 +8,12 @@ namespace Network
     public class ClientGameManager
     {
         private const string MENU_SCENE_NAME = "MainMenu";
+        private const int MAX_TRIES_TO_AUTH = 5;
         
         public async Task<bool> InitAsync()
         {
             await UnityServices.InitializeAsync();
-            AuthenticationState authState = await AuthenticationController.Authenticate();
+            AuthenticationState authState = await AuthenticationController.Authenticate(MAX_TRIES_TO_AUTH);
 
             if (authState == AuthenticationState.Authenticated)
             {

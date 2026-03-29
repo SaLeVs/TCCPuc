@@ -114,6 +114,7 @@ namespace Network
                 };
                 Unity.Services.Lobbies.Models.Lobby lobby  = await LobbyService.Instance.JoinLobbyByCodeAsync(code, options);
                 _joinedLobby = lobby;
+                Debug.Log($"Lobby joined: {lobby.LobbyCode}");
 
             }
             catch (Exception e)

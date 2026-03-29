@@ -12,19 +12,6 @@ namespace UI
         [SerializeField] private TMP_InputField lobbyCodeInputField;
         [SerializeField] private Lobby lobby;
         
-        
-        public void StartHost()
-        {
-            NetworkManager.Singleton.StartHost();
-            Loader.LoadNetwork(Loader.Scene.Lobby);
-            
-        }
-        
-        public void StartClient()
-        {
-            NetworkManager.Singleton.StartClient();
-            
-        }
 
         public void CreateLobby()
         {

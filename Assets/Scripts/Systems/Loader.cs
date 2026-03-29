@@ -19,7 +19,7 @@ namespace Systems
         public static void Load(Scene targetScene)
         {
             Loader._targetScene = targetScene;
-            SceneManager.LoadScene(Scene.Loading.ToString());
+            SceneManager.LoadScene(targetScene.ToString());
         }
 
         public static void LoadNetwork(Scene targetScene)

@@ -37,7 +37,7 @@ namespace Network
         public void CreateHost()
         {
             gameManager = new HostGameManager();
-            gameManager.InitAsync();
+            
         }
     }
 }

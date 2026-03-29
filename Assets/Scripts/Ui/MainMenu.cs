@@ -1,7 +1,5 @@
 using Network;
-using Systems;
 using TMPro;
-using Unity.Netcode;
 using UnityEngine;
 
 
@@ -11,17 +9,20 @@ namespace UI
     {
         [SerializeField] private TMP_InputField lobbyCodeInputField;
         [SerializeField] private Lobby lobby;
+        [SerializeField] private GameObject lobbyPanel;
         
 
-        public void CreateLobby()
+        public async void CreateLobby()
         {
-            lobby.CreateLobby();
+            await lobby.CreateLobbyAsync();
+            lobbyPanel.SetActive(true);
         }
 
         public void JoinLobby()
         {
             string lobbyCode = lobbyCodeInputField.text;
             lobby.JoinLobbyByCode(lobbyCode);
+            lobbyPanel.SetActive(true);
             
         }
     }

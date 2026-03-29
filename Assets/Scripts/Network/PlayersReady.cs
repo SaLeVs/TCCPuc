@@ -7,8 +7,11 @@ namespace Network
 {
     public class PlayersReady : NetworkBehaviour
     {
+        [SerializeField] private Loader.Scene sceneToLoad;
+        
         private Dictionary<ulong, bool> _playerReadyDictionary;
 
+        
         private void Awake()
         {
             _playerReadyDictionary = new Dictionary<ulong, bool>();
@@ -37,7 +40,7 @@ namespace Network
 
             if (areAllClientsReady)
             {
-                Loader.LoadNetwork(Loader.Scene.Game);
+                Loader.LoadNetwork(sceneToLoad);
             }
             
         }

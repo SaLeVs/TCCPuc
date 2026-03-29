@@ -22,11 +22,12 @@ namespace Network
         {
             try
             {
+                HostSingleton hostSingletonObject = Instantiate(hostSingleton);
+                hostSingletonObject.CreateHost();
+                
                 ClientSingleton clientSingletonObject = Instantiate(clientSingleton);
                 bool authenticated = await clientSingletonObject.CreateClient();
                 
-                HostSingleton hostSingletonObject = Instantiate(hostSingleton);
-                hostSingletonObject.CreateHost();
 
                 if (authenticated)
                 {

@@ -28,6 +28,11 @@ namespace Network
         {
             Loader.Load(Loader.Scene.MainMenu);
         }
+
+        public async Task StartClientAsync()
+        {
+            
+        }
         
     }
 }

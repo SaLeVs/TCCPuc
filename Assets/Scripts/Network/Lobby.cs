@@ -13,13 +13,19 @@ namespace Network
     public class Lobby : MonoBehaviour
     {
         private const int MAX_PLAYERS = 4;
+        private const string PLAYER_READY = "Ready";
+        
         private Unity.Services.Lobbies.Models.Lobby _hostLobby;
         private Unity.Services.Lobbies.Models.Lobby _joinedLobby;
         
         private float _heartBeatTimer;
         private float _heartBeatMaxTimer = 15f;
+        
+        private float _lobbyUpdateTimer;
+        private float _lobbyUpdateMaxTimer = 1.1f;
 
         private string _playerName;
+        
 
 
         private void Start()
@@ -30,6 +36,7 @@ namespace Network
         private void Update()
         {
             HeartBeat();
+            LobbyPullForUpdate();
         }
 
         private async void HeartBeat()
@@ -48,6 +55,24 @@ namespace Network
             }
         }
 
+        private async void LobbyPullForUpdate()
+        {
+            if (_joinedLobby != null)
+            {
+                _lobbyUpdateTimer -= Time.deltaTime;
+                
+                if (_lobbyUpdateTimer <= 0f)
+                {
+                    _lobbyUpdateTimer = _lobbyUpdateMaxTimer;
+                    
+                    Unity.Services.Lobbies.Models.Lobby lobby = await LobbyService.Instance.GetLobbyAsync(_joinedLobby.Id);
+                    _joinedLobby =  lobby;
+                    
+                }
+                
+            }
+        }
+
         public async Task CreateLobbyAsync()
         {
             try
@@ -60,6 +85,10 @@ namespace Network
                     {
                         {
                             "GameMode", new DataObject(DataObject.VisibilityOptions.Public, "Survival")
+                            
+                        },
+                        {
+                            "StartGame", new DataObject(DataObject.VisibilityOptions.Member, "0")
                         }
                     }
                 };
@@ -178,6 +207,59 @@ namespace Network
             }
             
         }
+        
+        public async Task SetPlayerReady(bool isReady)
+        {
+            UpdatePlayerOptions playerOptions = new UpdatePlayerOptions
+            {
+                Data = new Dictionary<string, PlayerDataObject>
+                {
+                    {
+                        PLAYER_READY, new PlayerDataObject(PlayerDataObject.VisibilityOptions.Member, isReady ? "1" : "0")
+                    }
+                }
+            };
+            
+            await LobbyService.Instance.UpdatePlayerAsync(_joinedLobby.Id, AuthenticationService.Instance.PlayerId, playerOptions);
+        }
+        
+        public bool AreAllPlayersReady()
+        {
+            foreach (Player player in _joinedLobby.Players)
+            {
+                if (!player.Data.ContainsKey(PLAYER_READY))
+                {
+                    return false; 
+                }
+
+
+                if (player.Data[PLAYER_READY].Value != "1")
+                {
+                    return false;
+                }
+                    
+            }
+
+            return true;
+        }
+        
+        public async Task StartGame()
+        {
+            if (!IsHost()) return;
+            if (!AreAllPlayersReady()) return;
+
+            await LobbyService.Instance.UpdateLobbyAsync(_joinedLobby.Id,
+                new UpdateLobbyOptions
+                {
+                    Data = new Dictionary<string, DataObject>
+                    {
+                        {
+                            "StartGame",
+                            new DataObject(DataObject.VisibilityOptions.Member, "1")
+                        }
+                    }
+                });
+        }
 
         private Player GetPlayer()
         {
@@ -188,6 +270,11 @@ namespace Network
                     {"PlayerName", new PlayerDataObject(PlayerDataObject.VisibilityOptions.Member, _playerName)}
                 }
             };
+        }
+        
+        public bool IsHost()
+        {
+            return _joinedLobby.HostId == AuthenticationService.Instance.PlayerId;
         }
     }
 }

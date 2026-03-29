@@ -69,7 +69,8 @@ namespace Network
                 _hostLobby = lobby;
                 _joinedLobby = _hostLobby;
                 
-                Debug.Log($"Lobby created:{lobby}");
+                Debug.Log($"Lobby created:{lobby.LobbyCode}");
+                
                 
             }
             catch (LobbyServiceException exception)

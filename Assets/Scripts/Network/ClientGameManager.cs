@@ -2,13 +2,11 @@ using System.Threading.Tasks;
 using Systems;
 using Unity.Services.Core;
 using UnityEngine;
-using UnityEngine.SceneManagement;
 
 namespace Network
 {
     public class ClientGameManager
     {
-        private const string MENU_SCENE_NAME = "MainMenu";
         private const int MAX_TRIES_TO_AUTH = 5;
         
         public async Task<bool> InitAsync()
@@ -30,6 +28,7 @@ namespace Network
         {
             Loader.Load(Loader.Scene.MainMenu);
         }
+        
     }
 }
 

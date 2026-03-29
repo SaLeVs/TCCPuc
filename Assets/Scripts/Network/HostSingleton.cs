@@ -3,13 +3,13 @@ using UnityEngine;
 
 namespace Network
 {
-    public class ClientSingleton : MonoBehaviour
+    public class HostSingleton : MonoBehaviour
     {
-        private static ClientSingleton _instance;
-        private ClientGameManager _gameManager;
+        private static HostSingleton _instance;
+        private HostGameManager _gameManager;
 
         
-        public static ClientSingleton instance
+        public static HostSingleton instance
         {
             get
             {
@@ -18,7 +18,7 @@ namespace Network
                     return _instance;
                 }
                 
-                _instance = FindFirstObjectByType<ClientSingleton>();
+                _instance = FindFirstObjectByType<HostSingleton>();
 
                 if (_instance == null)
                 {
@@ -34,10 +34,10 @@ namespace Network
             DontDestroyOnLoad(gameObject);
         }
 
-        public async Task CreateClient()
+        public void CreateHost()
         {
-            _gameManager = new ClientGameManager();
-            await _gameManager.InitAsync();
+            _gameManager = new HostGameManager();
+            
         }
     }
 }

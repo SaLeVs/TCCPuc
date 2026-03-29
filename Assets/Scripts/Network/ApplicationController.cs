@@ -7,26 +7,16 @@ namespace Network
     public class ApplicationController : MonoBehaviour
     {
         [SerializeField] private ClientSingleton clientSingleton;
+        [SerializeField] private HostSingleton hostSingleton;
         
         
         private async void Start()
         {
             DontDestroyOnLoad(gameObject);
 
-            if (SystemInfo.graphicsDeviceType == UnityEngine.Rendering.GraphicsDeviceType.Null)
-            {
-                await LaunchDedicatedServer();
-            }
-            else
-            {
-                await LaunchClientAndHost();
-            }
+            await LaunchClientAndHost();
         }
         
-        private Task LaunchDedicatedServer()
-        {
-            
-        }
 
         private async Task LaunchClientAndHost()
         {
@@ -34,6 +24,10 @@ namespace Network
             {
                 ClientSingleton clientSingletonObject = Instantiate(clientSingleton);
                 await clientSingletonObject.CreateClient();
+                
+                HostSingleton hostSingletonObject = Instantiate(hostSingleton);
+                hostSingletonObject.CreateHost();
+                
             }
             catch (Exception e)
             {

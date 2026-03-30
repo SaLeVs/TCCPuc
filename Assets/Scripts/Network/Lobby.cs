@@ -12,6 +12,8 @@ namespace Network
 {
     public class Lobby : MonoBehaviour
     {
+        public event Action OnJoinedLobby;
+        
         private const int MAX_PLAYERS = 4;
         private const string PLAYER_READY = "Ready";
         
@@ -99,6 +101,8 @@ namespace Network
                 Unity.Services.Lobbies.Models.Lobby lobby = await LobbyService.Instance.CreateLobbyAsync(lobbyName, MAX_PLAYERS, createLobbyOptions);
                 _hostLobby = lobby;
                 _joinedLobby = _hostLobby;
+
+                OnJoinedLobby?.Invoke();
                 
                 Debug.Log($"Lobby created:{lobby.LobbyCode}");
                 
@@ -145,6 +149,9 @@ namespace Network
                 };
                 Unity.Services.Lobbies.Models.Lobby lobby  = await LobbyService.Instance.JoinLobbyByCodeAsync(code, options);
                 _joinedLobby = lobby;
+                
+                OnJoinedLobby?.Invoke();
+                
                 Debug.Log($"Lobby joined: {lobby.LobbyCode}");
 
             }

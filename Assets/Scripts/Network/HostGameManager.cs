@@ -1,5 +1,6 @@
 using System;
 using System.Threading.Tasks;
+using Systems;
 using Unity.Netcode;
 using Unity.Netcode.Transports.UTP;
 using Unity.Networking.Transport.Relay;
@@ -14,9 +15,9 @@ namespace Network
         private const int MAX_CONNECTIONS = 4;
         
         private Allocation _allocation;
+        private string _joinCode;
         
-        
-        public async Task StartHostAsync()
+        public async Task<string> StartHostAsync()
         {
             try
             {
@@ -29,8 +30,8 @@ namespace Network
 
             try
             {
-                string joinCode = await RelayService.Instance.GetJoinCodeAsync(_allocation.AllocationId);
-                Debug.Log($"HostGameManager: Join code: {joinCode}");
+                _joinCode = await RelayService.Instance.GetJoinCodeAsync(_allocation.AllocationId);
+                Debug.Log($"HostGameManager: Join code: {_joinCode}");
             }
             catch (Exception e)
             {
@@ -39,21 +40,12 @@ namespace Network
 
             if (NetworkManager.Singleton.TryGetComponent(out UnityTransport transport))
             {
-                RelayServerData relayData = new RelayServerData(
-                    _allocation.RelayServer.IpV4,
-                    (ushort)_allocation.RelayServer.Port,
-                    _allocation.AllocationIdBytes,
-                    _allocation.Key,
-                    _allocation.ConnectionData,
-                    _allocation.ConnectionData,
-                    true
-                );
-                
-                transport.SetRelayServerData(relayData);
+                transport.SetRelayServerData(AllocationUtils.ToRelayServerData(_allocation, "dtls"));
             }
             
             NetworkManager.Singleton.StartHost();
-            
+            Loader.LoadNetwork(Loader.Scene.Lobby);
+            return _joinCode;
         }
         
     }

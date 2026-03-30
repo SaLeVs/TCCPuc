@@ -53,21 +53,11 @@ namespace Network
             
             if (NetworkManager.Singleton.TryGetComponent(out UnityTransport transport))
             {
-                RelayServerData relayData = new RelayServerData(
-                    _allocation.RelayServer.IpV4,
-                    (ushort)_allocation.RelayServer.Port,
-                    _allocation.AllocationIdBytes,
-                    _allocation.Key,
-                    _allocation.ConnectionData,
-                    _allocation.ConnectionData,
-                    true
-                );
+                transport.SetRelayServerData(AllocationUtils.ToRelayServerData(_allocation, "dtls"));
                 
-                transport.SetRelayServerData(relayData);
-                
-                NetworkManager.Singleton.StartClient();
             }
             
+            NetworkManager.Singleton.StartClient();
             
         }
         

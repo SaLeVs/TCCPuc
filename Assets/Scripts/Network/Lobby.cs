@@ -25,7 +25,7 @@ namespace Network
         private float _lobbyUpdateMaxTimer = 1.1f;
 
         private string _playerName;
-        
+        private bool _hasJoinedGame = false;
 
 
         private void Start()
@@ -68,6 +68,7 @@ namespace Network
                     Unity.Services.Lobbies.Models.Lobby lobby = await LobbyService.Instance.GetLobbyAsync(_joinedLobby.Id);
                     _joinedLobby =  lobby;
                     
+                    CheckIfGameStarted();
                 }
                 
             }
@@ -247,20 +248,39 @@ namespace Network
         {
             if (!IsHost()) return;
             if (!AreAllPlayersReady()) return;
-
+            
+            string joinCode = await HostSingleton.instance.gameManager.StartHostAsync();
+            
             await LobbyService.Instance.UpdateLobbyAsync(_joinedLobby.Id,
                 new UpdateLobbyOptions
                 {
                     Data = new Dictionary<string, DataObject>
                     {
                         {
-                            "StartGame",
-                            new DataObject(DataObject.VisibilityOptions.Member, "1")
+                            "StartGame", new DataObject(DataObject.VisibilityOptions.Member, "1")
+                        },
+                        {
+                            "RelayCode", new DataObject(DataObject.VisibilityOptions.Member, joinCode) 
                         }
                     }
                 });
-        }
+        } 
+        
+        private async void CheckIfGameStarted()
+        {
+            if (_hasJoinedGame) return;
+            
+            if (!_joinedLobby.Data.ContainsKey("StartGame")) return;
 
+            if (_joinedLobby.Data["StartGame"].Value == "1")
+            {
+                _hasJoinedGame = true;
+                string relayCode = _joinedLobby.Data["RelayCode"].Value;
+
+                await ClientSingleton.instance.gameManager.StartClientAsync(relayCode);
+            }
+        }
+        
         private Player GetPlayer()
         {
             return new Player

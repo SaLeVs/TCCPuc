@@ -1,3 +1,4 @@
+using System.Collections;
 using System.Collections.Generic;
 using Unity.Netcode;
 using UnityEngine;
@@ -57,11 +58,17 @@ namespace Systems
             {
                 networkObject.SpawnAsPlayerObject(clientId, destroyWithScene: true);
                 spawnPoint.ReadyTotem.AssignToPlayer(clientId);
-                spawnPoint.ReadyTotem.Activate();
+                StartCoroutine(ActivateTotemNextFrame(spawnPoint.ReadyTotem));
             }
             
         }
      
+        private IEnumerator ActivateTotemNextFrame(ReadyTotem totem)
+        {
+            yield return null; // Wait one frame to ensure the player has fully spawned and ownership is established
+            totem.Activate();
+        }
+        
         // Fisher-Yates shuffle
         private void ShuffleSpawns()
         {

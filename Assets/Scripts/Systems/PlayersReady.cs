@@ -15,23 +15,18 @@ namespace Systems
         {
             _playerReadyDictionary = new Dictionary<ulong, bool>();
         }
-
-        public void SetPlayerReady()
-        {
-            SetPlayerReadyServerRpc();
-            Debug.Log("Call SetPlayerReadyServerRpc");
-        }
         
         [Rpc(SendTo.Server)]
-        private void SetPlayerReadyServerRpc(RpcParams serverParams = default)
+        public void SetPlayerReadyServerRpc(ulong clientId)
         {
-            _playerReadyDictionary[serverParams.Receive.SenderClientId] = true;
-            
+            _playerReadyDictionary[clientId] = true;
+            Debug.Log($"Player {clientId} is ready");
+
             bool areAllClientsReady = true;
 
-            foreach (ulong clientId in NetworkManager.Singleton.ConnectedClientsIds)
+            foreach (ulong id in NetworkManager.Singleton.ConnectedClientsIds)
             {
-                if (!_playerReadyDictionary.ContainsKey(clientId) || !_playerReadyDictionary[clientId])
+                if (!_playerReadyDictionary.ContainsKey(id) || !_playerReadyDictionary[id])
                 {
                     areAllClientsReady = false;
                     break;
@@ -40,7 +35,7 @@ namespace Systems
 
             if (areAllClientsReady)
             {
-                Debug.Log($"All players are ready!");
+                Debug.Log("All players are ready!");
                 Loader.LoadNetwork(sceneToLoad);
             }
             

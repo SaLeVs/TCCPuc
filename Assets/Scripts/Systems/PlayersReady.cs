@@ -1,9 +1,8 @@
 using System.Collections.Generic;
-using Systems;
 using Unity.Netcode;
 using UnityEngine;
 
-namespace Network
+namespace Systems
 {
     public class PlayersReady : NetworkBehaviour
     {
@@ -20,6 +19,7 @@ namespace Network
         public void SetPlayerReady()
         {
             SetPlayerReadyServerRpc();
+            Debug.Log("Call SetPlayerReadyServerRpc");
         }
         
         [Rpc(SendTo.Server)]
@@ -40,6 +40,7 @@ namespace Network
 
             if (areAllClientsReady)
             {
+                Debug.Log($"All players are ready!");
                 Loader.LoadNetwork(sceneToLoad);
             }
             

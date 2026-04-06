@@ -18,10 +18,7 @@ namespace Systems
             if (!IsServer) return;
             
             InitializeSpawnPool();
-            NetworkManager.Singleton.OnClientConnectedCallback += OnClientConnected;
-            
-            // Connect host
-            OnClientConnected(NetworkManager.Singleton.LocalClientId);
+            NetworkManager.SceneManager.OnSceneEvent += NetworkManager_OnSceneEvent;
         }
         
         
@@ -31,23 +28,30 @@ namespace Systems
             _availableSpawns.AddRange(spawnPoints);
             ShuffleSpawns();
         }
+        
+        private void NetworkManager_OnSceneEvent(SceneEvent sceneEvent)
+        {
+            if (sceneEvent.SceneEventType != SceneEventType.LoadComplete) return;
+
+            SpawnClient(sceneEvent.ClientId);
+        }
      
-        private void OnClientConnected(ulong clientId)
+        private void SpawnClient(ulong clientId)
         {
             if (!IsServer) return;
-     
+
             if (_availableSpawns.Count == 0)
             {
                 Debug.LogWarning($"No spawns remaining for client: {clientId}!");
                 return;
             }
-     
+
             SpawnPoint chosenSpawn = _availableSpawns[0];
             _availableSpawns.RemoveAt(0);
-     
+
             SpawnPlayer(clientId, chosenSpawn);
         }
-     
+        
         private void SpawnPlayer(ulong clientId, SpawnPoint spawnPoint)
         {
             GameObject player = Instantiate(playerPrefab, 
@@ -84,7 +88,7 @@ namespace Systems
         {
             if (!IsServer) return;
             
-            NetworkManager.Singleton.OnClientConnectedCallback -= OnClientConnected;
+            NetworkManager.SceneManager.OnSceneEvent -= NetworkManager_OnSceneEvent;
         }
     
     }

@@ -261,7 +261,16 @@ namespace Player
             
             return _slots[slotIndex];
         }
-        
+
+        public override void OnNetworkDespawn()
+        {
+            _slots.OnListChanged -= Slots_OnListChanged;
+            
+            if (IsOwner)
+            {
+                inputReader.OnSlotEvent -= InputReader_OnSlotEvent;
+            }
+        }
     }
 }
 

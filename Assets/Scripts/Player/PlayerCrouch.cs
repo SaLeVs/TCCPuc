@@ -39,6 +39,7 @@ namespace Player
             if (IsOwner)
             {
                 inputReader.OnCrouchEvent += InputReader_OnCrouchEvent;
+                
                 _standColliderCenter = capsuleCollider.center;
                 _standHeight = capsuleCollider.height;
             }

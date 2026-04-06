@@ -19,6 +19,8 @@ namespace Systems
             InitializeSpawnPool();
             NetworkManager.Singleton.OnClientConnectedCallback += OnClientConnected;
             
+            // Connect host
+            OnClientConnected(NetworkManager.Singleton.LocalClientId);
         }
         
         

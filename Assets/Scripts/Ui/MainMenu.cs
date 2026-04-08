@@ -10,6 +10,8 @@ namespace UI
         [SerializeField] private TMP_InputField lobbyCodeInputField;
         [SerializeField] private Lobby lobby;
         [SerializeField] private GameObject lobbyPanel;
+        [SerializeField] private GameObject joinPanel;
+        
         
 
         public async void CreateLobby()
@@ -25,7 +27,12 @@ namespace UI
             lobbyPanel.SetActive(true);
             
         }
+
+        public void ToggleLobbyPanel()
+        {
+            joinPanel.SetActive(!joinPanel.activeSelf);
+        }
+        
     }
-    
 }
 

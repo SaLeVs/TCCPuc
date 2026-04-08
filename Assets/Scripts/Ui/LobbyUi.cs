@@ -25,9 +25,21 @@ namespace UI
         private void OnEnable()
         {
             lobbyManager.OnJoinedLobby += LobbyManager_OnPlayerJoinedInLobby;
+            lobbyManager.OnLobbyUpdated += LobbyManager_OnLobbyRefresh;
+        }
+        
+        
+        private void LobbyManager_OnPlayerJoinedInLobby()
+        {
+            RefreshLobbyInfo();
         }
 
-        private void LobbyManager_OnPlayerJoinedInLobby(string lobbyCode)
+        private void LobbyManager_OnLobbyRefresh()
+        {
+            RefreshLobbyInfo();
+        }
+        
+        private void RefreshLobbyInfo()
         {
             Unity.Services.Lobbies.Models.Lobby currentLobby = lobbyManager.JoinedLobby;
  
@@ -53,13 +65,9 @@ namespace UI
                 }
             }
 
-            if (startGameButton != null)
-            {
-                startGameButton.gameObject.SetActive(lobbyManager.IsHost());
-            }
-            
+            startGameButton.gameObject.SetActive(lobbyManager.IsHost());
         }
-
+        
         public async void ReadyButton()
         {
             _isPlayerReady = !_isPlayerReady;
@@ -87,6 +95,7 @@ namespace UI
         private void OnDisable()
         {
             lobbyManager.OnJoinedLobby -= LobbyManager_OnPlayerJoinedInLobby;
+            lobbyManager.OnLobbyUpdated -= LobbyManager_OnLobbyRefresh;
         }
         
     }

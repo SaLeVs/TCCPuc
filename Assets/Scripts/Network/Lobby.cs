@@ -10,7 +10,7 @@ namespace Network
 {
     public class Lobby : MonoBehaviour
     {
-        public event Action<string> OnJoinedLobby;
+        public event Action OnJoinedLobby;
         public event Action OnLobbyUpdated;
         
         private const int MAX_PLAYERS = 4;
@@ -105,9 +105,8 @@ namespace Network
                 _hostLobby = lobby;
                 _joinedLobby = _hostLobby;
 
-                OnJoinedLobby?.Invoke(lobby.LobbyCode);
+                OnJoinedLobby?.Invoke();
                 
-                Debug.Log($"Lobby created:{lobby.LobbyCode}");
             }
             catch (LobbyServiceException exception)
             {
@@ -149,9 +148,7 @@ namespace Network
                 Unity.Services.Lobbies.Models.Lobby lobby  = await LobbyService.Instance.JoinLobbyByCodeAsync(code, options);
                 _joinedLobby = lobby;
                 
-                OnJoinedLobby?.Invoke(lobby.LobbyCode);
-                
-                Debug.Log($"Lobby joined: {lobby.LobbyCode}");
+                OnJoinedLobby?.Invoke();
 
             }
             catch (Exception e)

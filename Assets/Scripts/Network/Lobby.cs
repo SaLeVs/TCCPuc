@@ -2,10 +2,8 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Unity.Services.Authentication;
-using Unity.Services.Core;
 using Unity.Services.Lobbies;
 using Unity.Services.Lobbies.Models;
-using Unity.Services.Multiplayer;
 using UnityEngine;
 
 namespace Network
@@ -13,6 +11,7 @@ namespace Network
     public class Lobby : MonoBehaviour
     {
         public event Action OnJoinedLobby;
+        public event Action OnLobbyUpdated;
         
         private const int MAX_PLAYERS = 4;
         private const string PLAYER_READY = "Ready";
@@ -27,7 +26,7 @@ namespace Network
         private float _lobbyUpdateMaxTimer = 1.1f;
 
         private string _playerName;
-        private bool _hasJoinedGame = false;
+        private bool _hasJoinedGame;
 
 
         private void Start()

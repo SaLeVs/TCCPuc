@@ -16,6 +16,7 @@ namespace UI
         [SerializeField] private GameObject leaveButton;
 
         [SerializeField] private TextMeshProUGUI readyButtonText;
+        [SerializeField] private TextMeshProUGUI lobbyCodeText;
         
         
         private bool _isPlayerReady;
@@ -26,12 +27,14 @@ namespace UI
             lobbyManager.OnJoinedLobby += LobbyManager_OnPlayerJoinedInLobby;
         }
 
-        public void LobbyManager_OnPlayerJoinedInLobby()
+        private void LobbyManager_OnPlayerJoinedInLobby(string lobbyCode)
         {
-            Unity.Services.Lobbies.Models.Lobby currentLobby = lobbyManager.GetJoinedLobby();
+            Unity.Services.Lobbies.Models.Lobby currentLobby = lobbyManager.JoinedLobby;
  
             if (currentLobby == null) return;
- 
+            
+            lobbyCodeText.text = currentLobby.LobbyCode;
+            
             List<Unity.Services.Lobbies.Models.Player> players = currentLobby.Players;
             string hostId = currentLobby.HostId;
  
@@ -79,6 +82,7 @@ namespace UI
             lobbyManager.LeaveLobby();
             gameObject.SetActive(false);
         }
+        
         
         private void OnDisable()
         {

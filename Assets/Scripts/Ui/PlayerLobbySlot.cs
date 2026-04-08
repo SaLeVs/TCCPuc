@@ -18,6 +18,7 @@ namespace UI
         [SerializeField] private Color notReadyColor = Color.red;
         
         [SerializeField] private Sprite defaultAvatar;
+        [SerializeField] private Sprite playerAvatar;
 
         
         private Unity.Services.Lobbies.Models.Player _player;
@@ -31,6 +32,7 @@ namespace UI
             SetPlayerName(player, isHost);
             SetPlayerInfo(player, isHost);
             SetReadyStatus(player);
+            SetIconImage(player);
         }
         
         private void SetPlayerName(Unity.Services.Lobbies.Models.Player player, bool isHost)
@@ -58,6 +60,11 @@ namespace UI
             if (readyIndicator != null)
                 readyIndicator.color = isReady ? readyColor : notReadyColor;
         }
+
+        private void SetIconImage(Unity.Services.Lobbies.Models.Player player)
+        {
+            playerImage.sprite = playerAvatar;
+        }
         
         public void SetEmpty()
         {
@@ -74,6 +81,7 @@ namespace UI
  
             if (readyIndicator != null)
                 readyIndicator.color = notReadyColor;
+            
         }
  
         private static string GetPlayerData(Unity.Services.Lobbies.Models.Player player, string key, string fallback)

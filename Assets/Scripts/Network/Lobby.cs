@@ -10,11 +10,13 @@ namespace Network
 {
     public class Lobby : MonoBehaviour
     {
-        public event Action OnJoinedLobby;
+        public event Action<string> OnJoinedLobby;
         public event Action OnLobbyUpdated;
         
         private const int MAX_PLAYERS = 4;
         private const string PLAYER_READY = "Ready";
+        
+        public Unity.Services.Lobbies.Models.Lobby JoinedLobby => _joinedLobby;
         
         private Unity.Services.Lobbies.Models.Lobby _hostLobby;
         private Unity.Services.Lobbies.Models.Lobby _joinedLobby;
@@ -69,6 +71,7 @@ namespace Network
                     Unity.Services.Lobbies.Models.Lobby lobby = await LobbyService.Instance.GetLobbyAsync(_joinedLobby.Id);
                     _joinedLobby =  lobby;
                     
+                    OnLobbyUpdated?.Invoke();
                     CheckIfGameStarted();
                 }
                 
@@ -98,14 +101,13 @@ namespace Network
                 string lobbyName = "Lobby";
                 
                 Unity.Services.Lobbies.Models.Lobby lobby = await LobbyService.Instance.CreateLobbyAsync(lobbyName, MAX_PLAYERS, createLobbyOptions);
+                
                 _hostLobby = lobby;
                 _joinedLobby = _hostLobby;
 
-                OnJoinedLobby?.Invoke();
+                OnJoinedLobby?.Invoke(lobby.LobbyCode);
                 
                 Debug.Log($"Lobby created:{lobby.LobbyCode}");
-                
-                
             }
             catch (LobbyServiceException exception)
             {
@@ -123,7 +125,6 @@ namespace Network
                     Filters = new List<QueryFilter>
                     {
                         new QueryFilter(QueryFilter.FieldOptions.AvailableSlots, "0", QueryFilter.OpOptions.GT)
-
                     },
                     Order = new List<QueryOrder>
                     {
@@ -133,8 +134,7 @@ namespace Network
             }
             catch (Exception e)
             {
-                Console.WriteLine(e);
-                throw;
+                Debug.Log(e);
             }
         }
 
@@ -149,7 +149,7 @@ namespace Network
                 Unity.Services.Lobbies.Models.Lobby lobby  = await LobbyService.Instance.JoinLobbyByCodeAsync(code, options);
                 _joinedLobby = lobby;
                 
-                OnJoinedLobby?.Invoke();
+                OnJoinedLobby?.Invoke(lobby.LobbyCode);
                 
                 Debug.Log($"Lobby joined: {lobby.LobbyCode}");
 
@@ -166,6 +166,8 @@ namespace Network
             try
             {
                 await LobbyService.Instance.RemovePlayerAsync(_joinedLobby.Id, AuthenticationService.Instance.PlayerId);
+                _joinedLobby = null;
+                _hostLobby = null;
             }
             catch (Exception e)
             {

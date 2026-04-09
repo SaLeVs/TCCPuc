@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using Unity.Netcode;
 using UnityEngine;
@@ -6,6 +7,9 @@ namespace Components
 {
     public class VisionSensor : NetworkBehaviour
     {
+        public event Action<GameObject> OnTargetEnter;
+        public event Action<GameObject> OnTargetExit;
+        
         [Header("Vision References")] 
         [SerializeField] private Transform origin;
         [SerializeField] private Transform orientation;
@@ -18,34 +22,41 @@ namespace Components
         
         [Header("Scan Settings")]
         [SerializeField, Min(1)] private int scanFrequency;
-        [SerializeField, Min(1)] private int maxColliders;
-
+        
         [SerializeField] public LayerMask targetLayers;
         [SerializeField] private LayerMask occlusionLayers;
         
         [SerializeField] private List<GameObject> detectedObjects = new List<GameObject>();
+        [SerializeField] private List<GameObject> previousDetectedObjects = new List<GameObject>();
         
         
         private Mesh _mesh;
-        private Collider[] _collidersDetected;
+        private Collider[] _collidersDetected = new Collider[50];
         
         private int _collidersCount;
         private float _scanInterval;
         private float _scanTimer;
 
+        private Vector3 _destination;
+        private Vector3 _origin;
+        private Vector3 _direction;
         
-        private void Awake()
-        {
-            _collidersDetected = new Collider[maxColliders];
-        }
         
         private void Start()
         {
             _scanInterval = 1f / scanFrequency;
         }
-
+        
+        private void OnValidate()
+        {
+            _mesh = CreateMesh();
+            _scanInterval = 1f / scanFrequency;
+        }
+        
         private void Update()
         {
+            if (!IsServer) return;
+            
             ScanTimer();
         }
 
@@ -60,58 +71,135 @@ namespace Components
             }
         }
 
+        
         private void ScanTargets()
         {
+            previousDetectedObjects.Clear();
+
+            foreach (GameObject detectedObject in detectedObjects)
+            {
+                previousDetectedObjects.Add(detectedObject);
+            }
+            
+            detectedObjects.Clear();
+            
             _collidersCount = 
                 Physics.OverlapSphereNonAlloc(origin.position, distance, _collidersDetected, targetLayers, QueryTriggerInteraction.Collide);
             
-            detectedObjects.Clear();
+            
 
             for (int i = 0; i < _collidersCount; i++)
             {
                 GameObject objectDetected = _collidersDetected[i].gameObject;
 
-                if (IsObjectInVision(objectDetected))
+                if (!IsObjectInVision(objectDetected))
                 {
-                    detectedObjects.Add(objectDetected);
+                    continue;
+                }
+                
+                detectedObjects.Add(objectDetected);
+
+                if (!previousDetectedObjects.Contains(objectDetected))
+                {
+                    TargetEnter(objectDetected);
+                }
+                
+            }
+            
+            foreach (var detectedObject in previousDetectedObjects)
+            {
+                if (!detectedObjects.Contains(detectedObject))
+                {
+                    TargetExit(detectedObject);
                 }
             }
         }
 
+        private void TargetEnter(GameObject target)
+        {
+            if (!IsServer) return;
+
+            if (target.TryGetComponent(out NetworkObject netObj))
+            {
+                SendTargetEnterClientRpc(netObj.NetworkObjectId);
+            }
+        }
+        
+        private void TargetExit(GameObject target)
+        {
+            if (!IsServer) return;
+
+            if (target.TryGetComponent(out NetworkObject netObj))
+            {
+                SendTargetExitClientRpc(netObj.NetworkObjectId);
+            }
+        }
+        
+        [Rpc(SendTo.ClientsAndHost)]
+        private void SendTargetEnterClientRpc(ulong id)
+        {
+            if (NetworkManager.Singleton.SpawnManager.SpawnedObjects.TryGetValue(id, out NetworkObject netObj))
+            {
+                GameObject detectedObject = netObj.gameObject;
+                OnTargetEnter?.Invoke(detectedObject);
+            }
+        }
+        
+        
+        [Rpc(SendTo.ClientsAndHost)]
+        private void SendTargetExitClientRpc(ulong id)
+        {
+            if (NetworkManager.Singleton.SpawnManager.SpawnedObjects.TryGetValue(id, out NetworkObject netObj))
+            {
+                GameObject detectedObject = netObj.gameObject;
+                OnTargetExit?.Invoke(detectedObject);
+            }
+        }
+        
         private bool IsObjectInVision(GameObject objectForTest)
         {
-            // Check if object is in correct height
-            Vector3 visionOrigin = origin.position;
-            Vector3 destination = objectForTest.transform.position;
-            Vector3 direction = destination - visionOrigin;
+            if (!objectForTest.TryGetComponent(out Collider collider))
+                return false;
 
-            if (direction.y < 0 || direction.y > height)
+            _destination = collider.bounds.center;
+
+            Vector3 originPos = origin.position;
+            Vector3 directionToTarget = _destination - originPos;
+            
+            
+            float verticalDistance = Mathf.Abs(directionToTarget.y);
+            if (verticalDistance > height)
+            {
+                return false; 
+            }
+            
+            // Horizontal distance
+            Vector3 flatDirection = new Vector3(directionToTarget.x, 0, directionToTarget.z);
+            float distanceToTarget = flatDirection.magnitude;
+
+            if (distanceToTarget > distance)
             {
                 return false;
             }
-
-            // Check if object is in correct angle
-            direction.y = 0;
-            float deltaAngle = Vector3.Angle(direction, orientation.forward);
+            
+            flatDirection.Normalize();
+            
+            float deltaAngle = Vector3.Angle(orientation.forward, flatDirection);
 
             if (deltaAngle > angle)
             {
                 return false;
             }
-            
-            // Check if object is occluded
-            if(Physics.Linecast(visionOrigin, destination, occlusionLayers))
+                
+
+            // Occlusion check
+            if (Physics.Linecast(originPos, _destination, occlusionLayers))
             {
                 return false;
             }
-            
+                
+
             return true;
-        }
-        
-        private void OnValidate()
-        {
-            _mesh = CreateMesh();
-            _scanInterval = 1f / scanFrequency;
         }
         
         private Mesh CreateMesh()
@@ -225,5 +313,4 @@ namespace Components
         }
         
     }
-    
 }

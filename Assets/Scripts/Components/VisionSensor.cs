@@ -2,37 +2,46 @@ using System.Collections.Generic;
 using Unity.Netcode;
 using UnityEngine;
 
-namespace Monster
+namespace Components
 {
-    [ExecuteInEditMode] // TEST
-    public class MonsterVision : NetworkBehaviour
+    public class VisionSensor : NetworkBehaviour
     {
+        [Header("Vision References")] 
+        [SerializeField] private Transform origin;
+        [SerializeField] private Transform orientation;
+        
         [Header("Vision Settings")]
         [SerializeField] private float distance;
-        [SerializeField] private float angle;
+        [SerializeField, Range(0f, 180f)] private float angle;
         [SerializeField] private float height;
         [SerializeField] private Color meshColor;
         
         [Header("Scan Settings")]
-        [SerializeField] private int scanFrequency;
+        [SerializeField, Min(1)] private int scanFrequency;
+        [SerializeField, Min(1)] private int maxColliders;
 
-        [SerializeField] public LayerMask ScanLayer;
-        [SerializeField] private LayerMask OcclusionLayer;
+        [SerializeField] public LayerMask targetLayers;
+        [SerializeField] private LayerMask occlusionLayers;
         
         [SerializeField] private List<GameObject> detectedObjects = new List<GameObject>();
         
         
         private Mesh _mesh;
+        private Collider[] _collidersDetected;
         
-        private Collider[] _colliders = new Collider[50];
         private int _collidersCount;
         private float _scanInterval;
         private float _scanTimer;
 
         
+        private void Awake()
+        {
+            _collidersDetected = new Collider[maxColliders];
+        }
+        
         private void Start()
         {
-            _scanInterval = 1 / scanFrequency;
+            _scanInterval = 1f / scanFrequency;
         }
 
         private void Update()
@@ -53,12 +62,14 @@ namespace Monster
 
         private void ScanTargets()
         {
-            _collidersCount = Physics.OverlapSphereNonAlloc(transform.position, distance, _colliders, ScanLayer, QueryTriggerInteraction.Collide);
+            _collidersCount = 
+                Physics.OverlapSphereNonAlloc(origin.position, distance, _collidersDetected, targetLayers, QueryTriggerInteraction.Collide);
+            
             detectedObjects.Clear();
 
             for (int i = 0; i < _collidersCount; i++)
             {
-                GameObject objectDetected = _colliders[i].gameObject;
+                GameObject objectDetected = _collidersDetected[i].gameObject;
 
                 if (IsObjectInVision(objectDetected))
                 {
@@ -70,9 +81,9 @@ namespace Monster
         private bool IsObjectInVision(GameObject objectForTest)
         {
             // Check if object is in correct height
-            Vector3 origin = transform.position;
+            Vector3 visionOrigin = origin.position;
             Vector3 destination = objectForTest.transform.position;
-            Vector3 direction = destination - origin;
+            Vector3 direction = destination - visionOrigin;
 
             if (direction.y < 0 || direction.y > height)
             {
@@ -81,7 +92,7 @@ namespace Monster
 
             // Check if object is in correct angle
             direction.y = 0;
-            float deltaAngle = Vector3.Angle(direction, transform.forward);
+            float deltaAngle = Vector3.Angle(direction, orientation.forward);
 
             if (deltaAngle > angle)
             {
@@ -89,7 +100,7 @@ namespace Monster
             }
             
             // Check if object is occluded
-            if(Physics.Linecast(origin, destination, OcclusionLayer))
+            if(Physics.Linecast(visionOrigin, destination, occlusionLayers))
             {
                 return false;
             }
@@ -100,7 +111,7 @@ namespace Monster
         private void OnValidate()
         {
             _mesh = CreateMesh();
-            _scanInterval = 1 / scanFrequency;
+            _scanInterval = 1f / scanFrequency;
         }
         
         private Mesh CreateMesh()
@@ -194,14 +205,14 @@ namespace Monster
             if (_mesh)
             {
                 Gizmos.color = meshColor;
-                Gizmos.DrawMesh(_mesh, transform.position, transform.rotation);
+                Gizmos.DrawMesh(_mesh, origin.position, origin.rotation);
             }
             
-            Gizmos.DrawWireSphere(transform.position, distance);
+            Gizmos.DrawWireSphere(origin.position, distance);
             
             for (int i = 0; i < _collidersCount; ++i)
             {
-                Gizmos.DrawSphere(_colliders[i].transform.position, 0.2f);
+                Gizmos.DrawSphere(_collidersDetected[i].transform.position, 0.2f);
             }
             
             
@@ -212,6 +223,7 @@ namespace Monster
                 Gizmos.DrawSphere(obj.transform.position, 0.2f);
             }
         }
+        
     }
     
 }

@@ -8,11 +8,10 @@ namespace Monster
         [SerializeField] private float distance;
         [SerializeField] private float angle;
         [SerializeField] private float height;
+
+        [SerializeField] private Color meshColor;
         
-        private Color meshColor = Color.red;
         private Mesh mesh;
-        
-        private const float GIZMOS_ALPHA = 0.4f;
 
 
         private void OnValidate()
@@ -24,7 +23,7 @@ namespace Monster
         {
             if (mesh)
             {
-                Gizmos.color = new Color(meshColor.r, meshColor.g, meshColor.b, GIZMOS_ALPHA);
+                Gizmos.color = meshColor;
                 Gizmos.DrawMesh(mesh, transform.position, transform.rotation);
             }
         }

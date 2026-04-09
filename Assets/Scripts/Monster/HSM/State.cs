@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using Unity.Netcode;
 
 namespace Monster.HSM
@@ -40,7 +41,6 @@ namespace Monster.HSM
                 initialState.Enter();
             }
         }
-
         internal void Exit()
         {
             if (ActiveChild != null)
@@ -51,9 +51,46 @@ namespace Monster.HSM
             ActiveChild = null;
             OnExit();
         }
+        internal void Update(float deltaTime)
+        {
+            State state = GetTransitionState();
 
-        internal void Update(float deltaTime) { }
+            if (state != null)
+            {
+                StateMachine.Sequencer.RequestTransition(this, state);
+                return;
+            }
+
+            if (ActiveChild != null)
+            {
+                ActiveChild.Update(deltaTime);
+            }
+            
+            OnUpdate(deltaTime);
+        }
         
+        
+        // Pass in all state and find the most deap state executing (when return null, we find the most deep)
+        public State Leaf()
+        {
+            State state = this;
+
+            while (state.ActiveChild != null)
+            {
+                state = state.ActiveChild;
+            }
+            
+            return state;
+        }
+        
+        // Path for this state until find the root state
+        public IEnumerable<State> PathToRoot()
+        {
+            for(State state = this; state != null; state = state.ParentState)
+            {
+                yield return state;
+            }
+        }
     }
 }
 

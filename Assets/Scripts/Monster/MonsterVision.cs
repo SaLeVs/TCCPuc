@@ -15,7 +15,9 @@ namespace Monster
         
         [Header("Scan Settings")]
         [SerializeField] private int scanFrequency;
-        [SerializeField] private LayerMask scanLayerMask;
+
+        [SerializeField] public LayerMask ScanLayer;
+        [SerializeField] private LayerMask OcclusionLayer;
         
         [SerializeField] private List<GameObject> detectedObjects = new List<GameObject>();
         
@@ -51,7 +53,7 @@ namespace Monster
 
         private void ScanTargets()
         {
-            _collidersCount = Physics.OverlapSphereNonAlloc(transform.position, distance, _colliders, scanLayerMask, QueryTriggerInteraction.Collide);
+            _collidersCount = Physics.OverlapSphereNonAlloc(transform.position, distance, _colliders, ScanLayer, QueryTriggerInteraction.Collide);
             detectedObjects.Clear();
 
             for (int i = 0; i < _collidersCount; i++)
@@ -67,6 +69,7 @@ namespace Monster
 
         private bool IsObjectInVision(GameObject objectForTest)
         {
+            // Check if object is in correct height
             Vector3 origin = transform.position;
             Vector3 destination = objectForTest.transform.position;
             Vector3 direction = destination - origin;
@@ -76,8 +79,8 @@ namespace Monster
                 return false;
             }
 
+            // Check if object is in correct angle
             direction.y = 0;
-            
             float deltaAngle = Vector3.Angle(direction, transform.forward);
 
             if (deltaAngle > angle)
@@ -85,8 +88,15 @@ namespace Monster
                 return false;
             }
             
+            // Check if object is occluded
+            if(Physics.Linecast(origin, destination, OcclusionLayer))
+            {
+                return false;
+            }
+            
             return true;
         }
+        
         private void OnValidate()
         {
             _mesh = CreateMesh();

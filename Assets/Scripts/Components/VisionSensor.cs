@@ -11,7 +11,6 @@ namespace Components
         public event Action<GameObject> OnTargetExit;
         
         [Header("Vision References")] 
-        [SerializeField] private Transform origin;
         [SerializeField] private Transform orientation;
         
         [Header("Vision Settings")]
@@ -84,7 +83,7 @@ namespace Components
             detectedObjects.Clear();
             
             _collidersCount = 
-                Physics.OverlapSphereNonAlloc(origin.position, distance, _collidersDetected, targetLayers, QueryTriggerInteraction.Collide);
+                Physics.OverlapSphereNonAlloc(orientation.position, distance, _collidersDetected, targetLayers, QueryTriggerInteraction.Collide);
             
             
 
@@ -162,45 +161,24 @@ namespace Components
                 return false;
 
             _destination = collider.bounds.center;
+            Vector3 localPos = orientation.InverseTransformPoint(_destination);
 
-            Vector3 originPos = origin.position;
-            Vector3 directionToTarget = _destination - originPos;
-            
-            
-            float verticalDistance = Mathf.Abs(directionToTarget.y);
-            if (verticalDistance > height)
-            {
-                return false; 
-            }
-            
-            // Horizontal distance
-            Vector3 flatDirection = new Vector3(directionToTarget.x, 0, directionToTarget.z);
-            float distanceToTarget = flatDirection.magnitude;
-
-            if (distanceToTarget > distance)
-            {
+            if (localPos.z < 0f || localPos.z > distance)
                 return false;
-            }
-            
-            flatDirection.Normalize();
-            
-            float deltaAngle = Vector3.Angle(orientation.forward, flatDirection);
 
-            if (deltaAngle > angle)
-            {
+            float halfWidth = Mathf.Tan(angle * Mathf.Deg2Rad) * localPos.z;
+            if (Mathf.Abs(localPos.x) > halfWidth)
                 return false;
-            }
-                
+            
+            if (localPos.y < -height / 2f || localPos.y > height / 2f)
+                return false;
 
-            // Occlusion check
-            if (Physics.Linecast(originPos, _destination, occlusionLayers))
-            {
+            if (Physics.Linecast(orientation.position, _destination, occlusionLayers))
                 return false;
-            }
-                
 
             return true;
         }
+        
         
         private Mesh CreateMesh()
         {
@@ -212,51 +190,53 @@ namespace Components
 
             Vector3[] totalVertices = new Vector3[vertices];
             int[] totalTriangles = new int[vertices];
-            
-            Vector3 bottomCenter = Vector3.zero;
-            Vector3 bottomLeft = Quaternion.Euler(0, -angle, 0) * Vector3.forward * distance;
-            Vector3 bottomRight = Quaternion.Euler(0, angle, 0) * Vector3.forward * distance;
-            
-            Vector3 topCenter = bottomCenter + Vector3.up * height;
-            Vector3 topRight = bottomRight + Vector3.up * height;
-            Vector3 topLeft =  bottomLeft + Vector3.up * height;
+
+            float halfHeight = height / 2f;
+
+            Vector3 bottomCenter = Vector3.down * halfHeight;
+            Vector3 topCenter    = Vector3.up   * halfHeight;
+
+            Vector3 bottomLeft  = Quaternion.Euler(0, -angle, 0) * Vector3.forward * distance + Vector3.down * halfHeight;
+            Vector3 bottomRight = Quaternion.Euler(0,  angle, 0) * Vector3.forward * distance + Vector3.down * halfHeight;
+            Vector3 topLeft     = bottomLeft  + Vector3.up * height;
+            Vector3 topRight    = bottomRight + Vector3.up * height;
 
             int vertexCount = 0;
-            
+
             // Left side
             totalVertices[vertexCount++] = bottomCenter;
             totalVertices[vertexCount++] = bottomLeft;
             totalVertices[vertexCount++] = topLeft;
-            
+
             totalVertices[vertexCount++] = topLeft;
             totalVertices[vertexCount++] = topCenter;
             totalVertices[vertexCount++] = bottomCenter;
-            
+
             // Right side
             totalVertices[vertexCount++] = bottomCenter;
             totalVertices[vertexCount++] = topCenter;
             totalVertices[vertexCount++] = topRight;
-            
+
             totalVertices[vertexCount++] = topRight;
             totalVertices[vertexCount++] = bottomRight;
             totalVertices[vertexCount++] = bottomCenter;
-            
+
             float currentAngle = -angle;
             float deltaAngle = (angle * 2) / segments;
 
             for (int i = 0; i < segments; ++i)
             {
-                bottomLeft = Quaternion.Euler(0, currentAngle, 0) * Vector3.forward * distance;
-                bottomRight = Quaternion.Euler(0, currentAngle + deltaAngle, 0) * Vector3.forward * distance;
-                
+                bottomLeft  = Quaternion.Euler(0, currentAngle, 0) * Vector3.forward * distance + Vector3.down * halfHeight;
+                bottomRight = Quaternion.Euler(0, currentAngle + deltaAngle, 0) * Vector3.forward * distance + Vector3.down * halfHeight;
+
                 topRight = bottomRight + Vector3.up * height;
-                topLeft =  bottomLeft + Vector3.up * height;
-                
+                topLeft  = bottomLeft  + Vector3.up * height;
+
                 // Far side
                 totalVertices[vertexCount++] = bottomLeft;
                 totalVertices[vertexCount++] = bottomRight;
                 totalVertices[vertexCount++] = topRight;
-            
+
                 totalVertices[vertexCount++] = topRight;
                 totalVertices[vertexCount++] = topLeft;
                 totalVertices[vertexCount++] = bottomLeft;
@@ -265,23 +245,19 @@ namespace Components
                 totalVertices[vertexCount++] = topCenter;
                 totalVertices[vertexCount++] = topLeft;
                 totalVertices[vertexCount++] = topRight;
-            
+
                 // Bottom
                 totalVertices[vertexCount++] = bottomCenter;
                 totalVertices[vertexCount++] = bottomRight;
                 totalVertices[vertexCount++] = bottomLeft;
-                
+
                 currentAngle += deltaAngle;
             }
-            
-            
 
             for (int i = 0; i < vertices; ++i)
-            {
                 totalTriangles[i] = i;
-            }
-            
-            mesh.vertices = totalVertices;
+
+            mesh.vertices  = totalVertices;
             mesh.triangles = totalTriangles;
             mesh.RecalculateNormals();
 
@@ -293,10 +269,10 @@ namespace Components
             if (_mesh)
             {
                 Gizmos.color = meshColor;
-                Gizmos.DrawMesh(_mesh, origin.position, origin.rotation);
+                Gizmos.DrawMesh(_mesh, orientation.position, orientation.rotation);
             }
             
-            Gizmos.DrawWireSphere(origin.position, distance);
+            Gizmos.DrawWireSphere(orientation.position, distance);
             
             for (int i = 0; i < _collidersCount; ++i)
             {

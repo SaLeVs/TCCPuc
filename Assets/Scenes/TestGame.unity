@@ -5374,7 +5374,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 3137689553698021825, guid: 67da02b31997ee0429b0c177b0314d3d, type: 3}
       propertyPath: m_LocalPosition.x
-      value: 1.5500002
+      value: 1.09
       objectReference: {fileID: 0}
     - target: {fileID: 3137689553698021825, guid: 67da02b31997ee0429b0c177b0314d3d, type: 3}
       propertyPath: m_LocalPosition.y
@@ -5661,10 +5661,16 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Monster::Monster.MonsterVision
   ShowTopMostFoldoutHeaderGroup: 1
-  distance: 8
-  angle: 40
+  distance: 10
+  angle: 60
   height: 1.8
   meshColor: {r: 1, g: 0.67976373, b: 0, a: 0.4392157}
+  scanFrequency: 5
+  scanLayerMask:
+    serializedVersion: 2
+    m_Bits: 256
+  detectedObjects:
+  - {fileID: 1503346489}
 --- !u!43 &876702260
 Mesh:
   m_ObjectHideFlags: 0
@@ -11847,15 +11853,15 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 2918840838860202277, guid: 81c3902b01a208d4e863f01c4de89aae, type: 3}
       propertyPath: m_LocalPosition.x
-      value: 1.197
+      value: 1.45
       objectReference: {fileID: 0}
     - target: {fileID: 2918840838860202277, guid: 81c3902b01a208d4e863f01c4de89aae, type: 3}
       propertyPath: m_LocalPosition.y
-      value: 1.022
+      value: 1.08
       objectReference: {fileID: 0}
     - target: {fileID: 2918840838860202277, guid: 81c3902b01a208d4e863f01c4de89aae, type: 3}
       propertyPath: m_LocalPosition.z
-      value: 5.823
+      value: 5.94
       objectReference: {fileID: 0}
     - target: {fileID: 2918840838860202277, guid: 81c3902b01a208d4e863f01c4de89aae, type: 3}
       propertyPath: m_LocalRotation.w
@@ -11902,6 +11908,11 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 81c3902b01a208d4e863f01c4de89aae, type: 3}
+--- !u!1 &1503346489 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 2447371455967762635, guid: 81c3902b01a208d4e863f01c4de89aae, type: 3}
+  m_PrefabInstance: {fileID: 1503346488}
+  m_PrefabAsset: {fileID: 0}
 --- !u!43 &1585796200
 Mesh:
   m_ObjectHideFlags: 0

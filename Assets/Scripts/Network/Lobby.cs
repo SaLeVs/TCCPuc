@@ -2,10 +2,8 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Unity.Services.Authentication;
-using Unity.Services.Core;
 using Unity.Services.Lobbies;
 using Unity.Services.Lobbies.Models;
-using Unity.Services.Multiplayer;
 using UnityEngine;
 
 namespace Network
@@ -13,9 +11,12 @@ namespace Network
     public class Lobby : MonoBehaviour
     {
         public event Action OnJoinedLobby;
+        public event Action OnLobbyUpdated;
         
         private const int MAX_PLAYERS = 4;
         private const string PLAYER_READY = "Ready";
+        
+        public Unity.Services.Lobbies.Models.Lobby JoinedLobby => _joinedLobby;
         
         private Unity.Services.Lobbies.Models.Lobby _hostLobby;
         private Unity.Services.Lobbies.Models.Lobby _joinedLobby;
@@ -27,7 +28,7 @@ namespace Network
         private float _lobbyUpdateMaxTimer = 1.1f;
 
         private string _playerName;
-        private bool _hasJoinedGame = false;
+        private bool _hasJoinedGame;
 
 
         private void Start()
@@ -70,6 +71,7 @@ namespace Network
                     Unity.Services.Lobbies.Models.Lobby lobby = await LobbyService.Instance.GetLobbyAsync(_joinedLobby.Id);
                     _joinedLobby =  lobby;
                     
+                    OnLobbyUpdated?.Invoke();
                     CheckIfGameStarted();
                 }
                 
@@ -99,13 +101,11 @@ namespace Network
                 string lobbyName = "Lobby";
                 
                 Unity.Services.Lobbies.Models.Lobby lobby = await LobbyService.Instance.CreateLobbyAsync(lobbyName, MAX_PLAYERS, createLobbyOptions);
+                
                 _hostLobby = lobby;
                 _joinedLobby = _hostLobby;
 
                 OnJoinedLobby?.Invoke();
-                
-                Debug.Log($"Lobby created:{lobby.LobbyCode}");
-                
                 
             }
             catch (LobbyServiceException exception)
@@ -124,7 +124,6 @@ namespace Network
                     Filters = new List<QueryFilter>
                     {
                         new QueryFilter(QueryFilter.FieldOptions.AvailableSlots, "0", QueryFilter.OpOptions.GT)
-
                     },
                     Order = new List<QueryOrder>
                     {
@@ -134,8 +133,7 @@ namespace Network
             }
             catch (Exception e)
             {
-                Console.WriteLine(e);
-                throw;
+                Debug.Log(e);
             }
         }
 
@@ -151,8 +149,6 @@ namespace Network
                 _joinedLobby = lobby;
                 
                 OnJoinedLobby?.Invoke();
-                
-                Debug.Log($"Lobby joined: {lobby.LobbyCode}");
 
             }
             catch (Exception e)
@@ -167,6 +163,8 @@ namespace Network
             try
             {
                 await LobbyService.Instance.RemovePlayerAsync(_joinedLobby.Id, AuthenticationService.Instance.PlayerId);
+                _joinedLobby = null;
+                _hostLobby = null;
             }
             catch (Exception e)
             {

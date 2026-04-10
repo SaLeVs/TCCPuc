@@ -1,5 +1,6 @@
 ﻿using System.Linq;
 using Monster.HSM;
+using Monster.MonsterStates;
 using Unity.Netcode;
 using UnityEngine;
 using UnityEngine.AI;
@@ -18,7 +19,13 @@ namespace Monster
         private State _rootState;
         
         private string _lastPath;
-        
+
+        private void Awake()
+        {
+            _rootState = new MonsterRoot(null, this);
+            StateMachineBuilder stateMachineBuilder = new StateMachineBuilder(_rootState);
+            _stateMachine = stateMachineBuilder.Build();
+        }
         
         private void Update()
         {

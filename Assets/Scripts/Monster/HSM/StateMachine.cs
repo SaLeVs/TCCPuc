@@ -31,7 +31,8 @@ namespace Monster.HSM
                 Start();
             }
             
-            InternalTick(deltaTime);
+            Sequencer.Tick(deltaTime);
+            
         }
         
         internal void InternalTick(float deltaTime) => Root.Update(deltaTime);

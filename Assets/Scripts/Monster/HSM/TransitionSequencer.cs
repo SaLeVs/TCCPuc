@@ -11,7 +11,10 @@ namespace Monster.HSM
             StateMachine = stateMachine;
         }
 
-        public void RequestTransition(State from, State to) { }
+        public void RequestTransition(State from, State to)
+        {
+            StateMachine.ChangeState(from, to);
+        }
 
         /// <summary>
         /// Compute the last common ancestor of two states
@@ -28,7 +31,7 @@ namespace Monster.HSM
                 allParentsInState.Add(firstState);
             }
 
-            
+            // Find the first common parent of StateA and StateB
             for(State secondState = stateB; secondState != null; secondState = secondState.ParentState)
             {
                 if (allParentsInState.Contains(secondState))
@@ -36,6 +39,9 @@ namespace Monster.HSM
                     return secondState;
                 }
             }
+            
+            // if no common ancestor found, return null
+            return null;
         }
     }
 }

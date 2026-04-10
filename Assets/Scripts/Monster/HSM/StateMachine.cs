@@ -7,13 +7,35 @@ namespace Monster.HSM
     {
         public readonly State Root;
         public readonly TransitionSequencer Sequencer;
-
+        
+        private bool _started;
+        
         public StateMachine(State root)
         {
             Root = root;
             Sequencer = new TransitionSequencer(this);
         }
 
+        public void Start()
+        {
+            if(_started) return;
+            
+            _started = true;
+            Root.Enter();
+        }
+
+        public void Tick(float deltaTime)
+        {
+            if (!_started)
+            {
+                Start();
+            }
+            
+            InternalTick(deltaTime);
+        }
+        
+        internal void InternalTick(float deltaTime) => Root.Update(deltaTime);
+        
         // First exit for ancestor and after enter in the target
         public void ChangeState(State from, State to)
         {

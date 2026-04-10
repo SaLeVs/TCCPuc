@@ -1,0 +1,42 @@
+﻿using System.Linq;
+using Monster.HSM;
+using Unity.Netcode;
+using UnityEngine;
+using UnityEngine.AI;
+
+namespace Monster
+{
+    public class MonsterBrain : NetworkBehaviour
+    {
+        [SerializeField] private Animator animator;
+        [SerializeField] private NavMeshAgent navMeshAgent;
+        
+        public Animator Animator => animator;
+        public NavMeshAgent NavMeshAgent => navMeshAgent;
+        
+        private StateMachine _stateMachine;
+        private State _rootState;
+        
+        private string _lastPath;
+        
+        
+        private void Update()
+        {
+            _stateMachine.Tick(Time.deltaTime);
+            
+            string statePath = StatePath(_stateMachine.Root.Leaf());
+            
+            if (statePath != _lastPath)
+            {
+                Debug.Log($"State: {statePath}");
+                _lastPath = statePath;
+            }
+        }
+        
+        
+        private static string StatePath(State state)
+        {
+            return string.Join(" > ", state.PathToRoot().Reverse().Select(node => node.GetType().Name));
+        }
+    }
+}

@@ -1,13 +1,12 @@
 ﻿using Monster.HSM;
 
-namespace Monster.MonsterStates
+namespace Monster.MonsterStates.ParentStates
 {
-    public class MonsterAlert : State
+    public class MonsterHunt : State
     {
         private readonly MonsterBrain _monsterBrain;
         
-            
-        public MonsterAlert(StateMachine stateMachine, State parentState, MonsterBrain monsterBrain) : base(stateMachine, parentState)
+        public MonsterHunt(StateMachine stateMachine, State parentState, MonsterBrain monsterBrain) : base(stateMachine, parentState)
         {
             _monsterBrain = monsterBrain;
         }
@@ -16,6 +15,5 @@ namespace Monster.MonsterStates
         {
                 
         }
-            
     }
 }

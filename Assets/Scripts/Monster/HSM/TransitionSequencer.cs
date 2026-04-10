@@ -13,7 +13,17 @@ namespace Monster.HSM
 
         public void RequestTransition(State from, State to)
         {
-            StateMachine.ChangeState(from, to);
+            // StateMachine.ChangeState(from, to);
+        }
+
+        private void BeginTransition(State from, State to)
+        {
+            
+        }
+
+        private void EndTransition()
+        {
+            
         }
 
         /// <summary>

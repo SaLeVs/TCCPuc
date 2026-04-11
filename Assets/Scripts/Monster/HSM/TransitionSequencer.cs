@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using Interfaces;
 using System;
+using System.Threading;
 
 namespace Monster.HSM
 {
@@ -14,6 +15,9 @@ namespace Monster.HSM
 
         private State _lastStateFrom;
         private State _lastSateTo;
+        
+        private CancellationTokenSource _cancellationTokenSource;
+        public readonly bool UseSequential = true; // Set false to use parallel
         
         
         public TransitionSequencer(StateMachine stateMachine)
@@ -35,22 +39,91 @@ namespace Monster.HSM
             BeginTransition(from, to);
             
         }
-
+        
         private void BeginTransition(State from, State to)
         {
-            // Deactivate an old branch
-            _sequencer = new NoopPhase();
+            State lastCommonAncestor = LastCommonAncestor(from, to);
+            
+            List<State> exitChain = StatesToExit(from, lastCommonAncestor);
+            List<State> enterChain = StatesToEnter(to, lastCommonAncestor);
+            
+            List<PhaseStep> exitSteps = GatherPhaseSteps(exitChain, true);
+            
+            _sequencer = UseSequential ? new SequentialPhase(exitSteps, _cancellationTokenSource.Token) : new ParallelPhase(exitSteps, _cancellationTokenSource.Token);
             _sequencer.StartSequence();
             
             _nextPhase = () =>
             {
                 StateMachine.ChangeState(from, to);
-                _sequencer = new NoopPhase();
+                
+                List<PhaseStep> enterSteps = GatherPhaseSteps(enterChain, false);
+                _sequencer = UseSequential ? new SequentialPhase(enterSteps, _cancellationTokenSource.Token) : new ParallelPhase(enterSteps, _cancellationTokenSource.Token);
+                
                 _sequencer.StartSequence();
             };
             
         }
+        
+        // States to exit: from -> up to (but without LCA)
+        private static List<State> StatesToExit(State from, State lastCommonAncestor)
+        {
+            List<State> list = new List<State>();
 
+            for (State state = from; state != null && state != lastCommonAncestor; state = state.ParentState)
+            {
+                list.Add(state);
+            }
+            
+            return list;
+        }
+        
+        // Create list for all phases to execute in transition
+        private static List<PhaseStep> GatherPhaseSteps(List<State> chain, bool deactivate)
+        {
+            List<PhaseStep> phaseStepsToExecute = new List<PhaseStep>();
+
+            for (int i = 0; i < chain.Count; i++)
+            {
+                IReadOnlyList<IActivity> actions = chain[i].Activities;
+
+                for (int j = 0; j < actions.Count; j++)
+                {
+                    IActivity finishActions = actions[j];
+
+                    if (deactivate)
+                    {
+                        if (finishActions.Mode == ActivityMode.Active)
+                        {
+                            phaseStepsToExecute.Add(cancellationToken => finishActions.DeactivateAsync(cancellationToken));
+                        }
+                    }
+                    else
+                    {
+                        if (finishActions.Mode == ActivityMode.Inactive)
+                        {
+                            phaseStepsToExecute.Add(cancellationToken => finishActions.ActivateAsync(cancellationToken));
+                        }
+                    }
+                }
+            }
+            
+            return phaseStepsToExecute;
+            
+        }
+        
+        // States to enter: from 'to' up to (but without LCA) 
+        private static List<State> StatesToEnter(State to, State lastCommonAncestor)
+        {
+            Stack<State> stack = new Stack<State>();
+
+            for (State state = to; state != lastCommonAncestor; state = state.ParentState)
+            {
+                stack.Push(state);
+            }
+            
+            return new List<State>(stack);
+        }
+        
         private void EndTransition()
         {
             _sequencer = null;
@@ -115,5 +188,6 @@ namespace Monster.HSM
             // if no common ancestor found, return null
             return null;
         }
+        
     }
 }

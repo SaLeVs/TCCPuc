@@ -4,50 +4,45 @@ using System.Threading.Tasks;
 
 namespace Monster.HSM
 {
-    public class SequentialPhase : ISequence
+    public class ParallelPhase : ISequence
     {
         public bool IsDone { get; private set; }
         
         private readonly List<PhaseStep> _steps;
         private readonly CancellationToken _cancellationToken;
-
-        private int _index = -1;
-        private Task _currentTask;
-
-
-        public SequentialPhase(List<PhaseStep> steps, CancellationToken cancellationToken)
+        
+        private List<Task> _tasks;
+        
+        
+        public ParallelPhase(List<PhaseStep> steps, CancellationToken cancellationToken)
         {
             _steps = steps;
             _cancellationToken = cancellationToken;
         }
-
-        public void StartSequence() => Next();
-
-        private void Next()
+        
+        public void StartSequence()
         {
-            _index++;
-            
-            if (_index >= _steps.Count)
+            if (_steps == null || _steps.Count == 0)
             {
                 IsDone = true;
                 return;
             }
             
-            _currentTask = _steps[_index](_cancellationToken);
-            
+            _tasks = new List<Task>(_steps.Count);
+
+            for (int i = 0; i < _steps.Count; i++)
+            {
+                _tasks.Add(_steps[i](_cancellationToken));
+            }
         }
 
         public bool UpdateSequence()
         {
             if (IsDone) return true;
-
-            if (_currentTask == null || _currentTask.IsCompleted)
-            {
-                Next();
-            }
+            
+            IsDone = _tasks == null || _tasks.TrueForAll(task => task.IsCompleted);
             
             return IsDone;
         }
-        
     }
 }

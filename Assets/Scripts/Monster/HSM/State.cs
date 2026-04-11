@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using Unity.Netcode;
 
 namespace Monster.HSM
 {
@@ -8,11 +7,23 @@ namespace Monster.HSM
         public readonly StateMachine StateMachine;
         public readonly State ParentState;
         public State ActiveChild;
+        
+        private readonly List<IActivity> _activities = new List<IActivity>();
+        public IReadOnlyList<IActivity> Activities => _activities;
 
         public State(StateMachine stateMachine, State parentState = null)
         {
             StateMachine = stateMachine;
             ParentState = parentState;
+        }
+
+        // We can add animations, delay or effects using activities
+        public void AddActivity(IActivity activity)
+        {
+            if (activity != null)
+            {
+                _activities.Add(activity);
+            }
         }
 
         protected virtual State GetInitialState() => null; // When I enter, which child can be first to be active (null = this State is leaf, don't have child)

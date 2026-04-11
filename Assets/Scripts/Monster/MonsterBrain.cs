@@ -11,15 +11,18 @@ namespace Monster
     {
         [SerializeField] private Animator animator;
         [SerializeField] private NavMeshAgent navMeshAgent;
+        [SerializeField] private MonsterWander monsterWander;
         
         public Animator Animator => animator;
         public NavMeshAgent NavMeshAgent => navMeshAgent;
+        public MonsterWander MonsterWander => monsterWander;
         
         private StateMachine _stateMachine;
         private State _rootState;
         
         private string _lastPath;
 
+        
         private void Awake()
         {
             _rootState = new MonsterRoot(null, this);
@@ -45,5 +48,6 @@ namespace Monster
         {
             return string.Join(" > ", state.PathToRoot().Reverse().Select(node => node.GetType().Name));
         }
+        
     }
 }

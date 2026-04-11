@@ -25,6 +25,5 @@ namespace Monster.HSM
             Mode = ActivityMode.Inactive;
         }
         
-        
     }
 }

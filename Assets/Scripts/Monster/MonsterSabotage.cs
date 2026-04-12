@@ -34,6 +34,8 @@ namespace Monster
                     _sabotageTargets.Add(sabotageable);
                 }
             }
+            
+            Debug.Log("Monster sabotage initialized");
         }
 
         public void ChooseSabotageType()
@@ -41,17 +43,18 @@ namespace Monster
             SabotageType[] allTypes = (SabotageType[])Enum.GetValues(typeof(SabotageType));
             _currentSabotageType = allTypes[Random.Range(0, allTypes.Length)];
         }
-
-        public ISabotageable GetAvailableTarget()
+        
+        public List<ISabotageable> GetAvailableTargets()
         {
+            List<ISabotageable> available = new List<ISabotageable>();
+    
             foreach (ISabotageable target in _sabotageTargets)
             {
                 if (target.SabotageType == _currentSabotageType && !target.IsSabotaged)
-                {
-                    return target;
-                }
+                    available.Add(target);
             }
-            return null;
+    
+            return available;
         }
         
         public ISabotageable GetSabotagedTargets()
@@ -66,15 +69,16 @@ namespace Monster
             return null;
         }
 
-        public void Execute(ISabotageable target)
+        public void Execute(List<ISabotageable> targets)
         {
-            if (target == null) return;
-
-            int index = _sabotageTargets.IndexOf(target);
-            if (index < 0) return;
-            
-            target.Sabotage();
-            SabotageClientRpc(index);
+            foreach (ISabotageable target in targets)
+            {
+                int index = _sabotageTargets.IndexOf(target);
+                if (index < 0) continue;
+        
+                target.Sabotage();
+                SabotageClientRpc(index);
+            }
         }
 
         public void Restore(ISabotageable target)

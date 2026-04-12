@@ -34,6 +34,7 @@ namespace Monster.MonsterStates.ParentStates
         {
             _sabotageTimer = 0f;
             _sabotageDuration = Random.Range(_minTimeToSabotage, _maxTimeToSabotage);
+            Debug.Log($"Entering in monster roaming, sabotage duration: {_sabotageDuration}");
         }
 
         protected override void OnUpdate(float deltaTime)
@@ -47,7 +48,8 @@ namespace Monster.MonsterStates.ParentStates
             {
                 _sabotageTimer = 0f;
                 _sabotageDuration = Random.Range(_minTimeToSabotage, _maxTimeToSabotage);
-
+                Debug.Log($"sabotage duration when switch state: {_sabotageDuration}");
+                
                 if (ActiveChild == wanderState)
                 {
                     return sabotageState;

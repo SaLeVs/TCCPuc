@@ -1,4 +1,5 @@
 ﻿using Monster.HSM;
+using UnityEngine;
 
 namespace Monster.MonsterStates.RoamingStates
 {
@@ -19,7 +20,7 @@ namespace Monster.MonsterStates.RoamingStates
         protected override void OnEnter()
         {
             _monsterBrain.MonsterSabotage.ChooseSabotageType();
-            _monsterBrain.MonsterSabotage.Execute(_monsterBrain.MonsterSabotage.GetAvailableTarget());
+            _monsterBrain.MonsterSabotage.Execute(_monsterBrain.MonsterSabotage.GetAvailableTargets());
         }
         
     }

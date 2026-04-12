@@ -11,7 +11,7 @@ namespace Monster
 {
     public class MonsterSabotage : NetworkBehaviour
     {
-        [SerializeField] private List<MonoBehaviour> allSabotageObjects;
+        [SerializeField] private List<GameObject> allSabotageObjects;
         
         private List<ISabotageable> _sabotageTargets;
         private SabotageType _currentSabotageType;
@@ -19,7 +19,15 @@ namespace Monster
         
         public void Initialize()
         {
-            _sabotageTargets = allSabotageObjects.OfType<ISabotageable>().ToList();
+            _sabotageTargets = new List<ISabotageable>();
+    
+            foreach (GameObject obj in allSabotageObjects)
+            {
+                if (obj.TryGetComponent(out ISabotageable sabotageable))
+                {
+                    _sabotageTargets.Add(sabotageable);
+                }
+            }
         }
 
         public void ChooseSabotageType()

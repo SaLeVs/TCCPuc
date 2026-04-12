@@ -13,9 +13,11 @@ namespace Monster.MonsterStates.ParentStates
         
         private readonly float _minTimeToSabotage;
         private readonly float _maxTimeToSabotage;
+        private readonly float _minSabotageCooldown;
+        private readonly float _maxSabotageCooldown;
 
-        private float _sabotageTimer;
-        private float _sabotageDuration;
+        private float _timer;
+        private float _transitionDuration;
         
         public MonsterRoaming(StateMachine stateMachine, State parentState ,MonsterBrain monsterBrain) : base(stateMachine, parentState)
         {
@@ -26,37 +28,41 @@ namespace Monster.MonsterStates.ParentStates
             
             _minTimeToSabotage = monsterBrain.MonsterSabotage.MinTimeToSabotage;
             _maxTimeToSabotage = monsterBrain.MonsterSabotage.MaxTimeToSabotage;
+            
+            _minSabotageCooldown = monsterBrain.MonsterSabotage.MinSabotageCooldown;
+            _maxSabotageCooldown = monsterBrain.MonsterSabotage.MaxSabotageCooldown;
         }
         
         protected override State GetInitialState() => wanderState;
 
         protected override void OnEnter()
         {
-            _sabotageTimer = 0f;
-            _sabotageDuration = Random.Range(_minTimeToSabotage, _maxTimeToSabotage);
-            Debug.Log($"Entering in monster roaming, sabotage duration: {_sabotageDuration}");
+            _timer = 0f;
+            _transitionDuration = Random.Range(_minTimeToSabotage, _maxTimeToSabotage);
         }
 
         protected override void OnUpdate(float deltaTime)
         {
-            _sabotageTimer += deltaTime;
+            _timer += deltaTime;
         }
 
         protected override State GetTransitionState()
         {
-            if (_sabotageTimer >= _sabotageDuration)
+            if (_timer >= _transitionDuration)
             {
-                _sabotageTimer = 0f;
-                _sabotageDuration = Random.Range(_minTimeToSabotage, _maxTimeToSabotage);
-                Debug.Log($"sabotage duration when switch state: {_sabotageDuration}");
-                
+                _timer = 0f;
+
                 if (ActiveChild == wanderState)
                 {
+                    _transitionDuration = Random.Range(_minSabotageCooldown, _maxSabotageCooldown);
+                    Debug.Log("Transitioning to Sabotage State");
                     return sabotageState;
                 }
-                
+
                 if (ActiveChild == sabotageState)
                 {
+                    _transitionDuration = Random.Range(_minTimeToSabotage, _maxTimeToSabotage);
+                    Debug.Log("Transitioning to wander State");
                     return wanderState;
                 }
             }

@@ -21,7 +21,6 @@ namespace Monster.MonsterStates.RoamingStates
         protected override void OnEnter()
         {
             _monsterBrain.MonsterWander.StartWander();
-            Debug.Log("Monster wander entered");
         }
 
         protected override void OnUpdate(float deltaTime)
@@ -32,7 +31,6 @@ namespace Monster.MonsterStates.RoamingStates
         protected override void OnExit()
         {
             _monsterBrain.MonsterWander.StopWander();
-            Debug.Log("Monster wander exited");
         }
         
     }

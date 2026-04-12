@@ -13,11 +13,15 @@ namespace Monster
     {
         [SerializeField] private float minTimeToSabotage = 10f;
         [SerializeField] private float maxTimeToSabotage = 30f;
-
+        [SerializeField] private float minSabotageCooldown = 1f;
+        [SerializeField] private float maxSabotageCooldown = 3f;
+        [SerializeField] private List<GameObject> allSabotageObjects;
+        
         public float MinTimeToSabotage => minTimeToSabotage;
         public float MaxTimeToSabotage => maxTimeToSabotage;
+        public float MinSabotageCooldown => minSabotageCooldown;
+        public float MaxSabotageCooldown => maxSabotageCooldown;
         
-        [SerializeField] private List<GameObject> allSabotageObjects;
         
         private List<ISabotageable> _sabotageTargets;
         private SabotageType _currentSabotageType;
@@ -34,8 +38,6 @@ namespace Monster
                     _sabotageTargets.Add(sabotageable);
                 }
             }
-            
-            Debug.Log("Monster sabotage initialized");
         }
 
         public void ChooseSabotageType()

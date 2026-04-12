@@ -1,6 +1,4 @@
-﻿using Interfaces;
-
-namespace Monster.HSM
+﻿namespace Monster.HSM
 {
     // For states that don't need time to transition
     public class NoopPhase : ISequence

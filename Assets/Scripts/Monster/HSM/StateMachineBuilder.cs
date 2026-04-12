@@ -28,7 +28,7 @@ namespace Monster.HSM
             
             // Define flags for search in hierarchy
             BindingFlags flags = BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.FlattenHierarchy;
-            FieldInfo machineField = typeof(State).GetField("stateMachine", flags);
+            FieldInfo machineField = typeof(State).GetField("StateMachine", flags);
 
             if (machineField != null)
             {

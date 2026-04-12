@@ -22,6 +22,7 @@ namespace Monster.HSM
         public TransitionSequencer(StateMachine stateMachine)
         {
             StateMachine = stateMachine;
+            _cancellationTokenSource = new CancellationTokenSource();
         }
 
         public void RequestTransition(State from, State to)

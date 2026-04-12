@@ -1,5 +1,4 @@
 ﻿using Monster.HSM;
-using Monster.MonsterSabotages;
 
 namespace Monster.MonsterStates.RoamingStates
 {
@@ -14,10 +13,16 @@ namespace Monster.MonsterStates.RoamingStates
 
         protected override void OnInitialize()
         {
-            
+            _monsterBrain.MonsterSabotage.Initialize();
         }
 
         protected override void OnEnter()
+        {
+            _monsterBrain.MonsterSabotage.ChooseSabotageType();
+            _monsterBrain.MonsterSabotage.Execute(_monsterBrain.MonsterSabotage.GetAvailableTarget());
+        }
+
+        protected override void OnExit()
         {
             
         }

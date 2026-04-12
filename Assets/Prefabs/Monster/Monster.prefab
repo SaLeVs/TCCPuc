@@ -15,7 +15,7 @@ GameObject:
   - component: {fileID: 9158156660860726962}
   - component: {fileID: 7437886285449800429}
   - component: {fileID: 1764714957470938397}
-  - component: {fileID: 856803638069055355}
+  - component: {fileID: 8380299532564787982}
   m_Layer: 9
   m_Name: Monster
   m_TagString: Untagged
@@ -52,7 +52,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Unity.Netcode.Runtime::Unity.Netcode.NetworkObject
-  GlobalObjectIdHash: 3148608675
+  GlobalObjectIdHash: 2315160054
   InScenePlacedSourceGlobalObjectIdHash: 3265427313
   DeferredDespawnTick: 0
   Ownership: 1
@@ -81,7 +81,7 @@ MonoBehaviour:
   animator: {fileID: 3390758818505724829}
   navMeshAgent: {fileID: 9158156660860726962}
   monsterWander: {fileID: 1764714957470938397}
-  sabotage: {fileID: 856803638069055355}
+  sabotage: {fileID: 0}
   patrolSectors:
   - {fileID: 0}
   - {fileID: 0}
@@ -178,7 +178,7 @@ MonoBehaviour:
   minTimeInSector: 25
   maxTimeInSector: 60
   waypointReachedDistance: 0.15
---- !u!114 &856803638069055355
+--- !u!114 &8380299532564787982
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -191,12 +191,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Monster::Monster.MonsterSabotage
   ShowTopMostFoldoutHeaderGroup: 1
-  sabotageTargets:
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
+  allSabotageObjects: []
 --- !u!1 &8968525623132493308
 GameObject:
   m_ObjectHideFlags: 0

@@ -1,4 +1,5 @@
 ﻿using Monster.HSM;
+using UnityEngine;
 
 namespace Monster.MonsterStates.RoamingStates
 {
@@ -14,7 +15,7 @@ namespace Monster.MonsterStates.RoamingStates
         
         protected override void OnInitialize()
         {
-            _monsterBrain.MonsterWander.Initialize(_monsterBrain.NavMeshAgent, _monsterBrain.PatrolSectors);
+            _monsterBrain.MonsterWander.Initialize(_monsterBrain.NavMeshAgent);
         }
         
         protected override void OnEnter()

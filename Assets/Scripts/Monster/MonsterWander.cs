@@ -13,9 +13,9 @@ public class MonsterWander : NetworkBehaviour
     [SerializeField] private float minTimeInSector;
     [SerializeField] private float maxTimeInSector;
     [SerializeField] private float waypointReachedDistance;
+    [SerializeField] private PatrolSector[] allSectors;
     
     private NavMeshAgent _agent;
-    private PatrolSector[] _allSectors;
     private PatrolSector _currentSector;
 
     private float _sectorTimer;
@@ -26,10 +26,9 @@ public class MonsterWander : NetworkBehaviour
     private bool _waitingAtPoint;
     
     
-    public void Initialize(NavMeshAgent monsterAgent,  PatrolSector[] allSectors)
+    public void Initialize(NavMeshAgent monsterAgent)
     {
         _agent = monsterAgent;
-        _allSectors = allSectors;
     }
     
     public void StartWander()
@@ -58,9 +57,9 @@ public class MonsterWander : NetworkBehaviour
         PatrolSector mostRelevantSector = null;
         float bestDistance = float.MaxValue;
 
-        foreach (PatrolSector sector in _allSectors)
+        foreach (PatrolSector sector in allSectors)
         {
-            if (sector == _currentSector && _allSectors.Length > 1) continue;
+            if (sector == _currentSector && allSectors.Length > 1) continue;
 
             float distance = Vector3.Distance(sector.Position, playersCenter);
 
@@ -71,7 +70,7 @@ public class MonsterWander : NetworkBehaviour
             }
         }
 
-        return mostRelevantSector ?? _allSectors[Random.Range(0, _allSectors.Length)];
+        return mostRelevantSector ?? allSectors[Random.Range(0, allSectors.Length)];
     }
     
     /// <summary>

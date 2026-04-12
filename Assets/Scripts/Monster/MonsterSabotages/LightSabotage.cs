@@ -2,23 +2,23 @@
 
 namespace Monster.MonsterSabotages
 {
-    public class LightSabotage : Sabotage
+    public class LightSabotage : MonoBehaviour, ISabotageable
     {
         [SerializeField] private Light light;
         
-        public override SabotageType Type { get; }
-        
-        
-        public override void Execute(SabotageTarget target, MonsterBrain brain)
+        public SabotageType SabotageType => SabotageType.Light;
+        public bool IsSabotaged { get; private set; }
+
+        public void Sabotage()
         {
+            IsSabotaged = true;
             light.enabled = false;
-            target.MarkAsSabotaged();
         }
 
-        public override void Restore(SabotageTarget target, MonsterBrain brain)
+        public void Restore()
         {
+            IsSabotaged = false;
             light.enabled = true;
-            target.Restore();
         }
         
     }

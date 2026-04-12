@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using System.Collections.Generic;
+using System.Linq;
 using Monster.HSM;
 using Monster.MonsterStates;
 using Unity.Netcode;
@@ -13,13 +14,16 @@ namespace Monster
         [SerializeField] private NavMeshAgent navMeshAgent;
         [SerializeField] private MonsterWander monsterWander;
         [SerializeField] private MonsterSabotage sabotage;
+        
         [SerializeField] private PatrolSector[] patrolSectors;
+        [SerializeField] private List<MonoBehaviour> sabotageTargets;
         
         public Animator Animator => animator;
         public NavMeshAgent NavMeshAgent => navMeshAgent;
         public MonsterWander MonsterWander => monsterWander;
         public MonsterSabotage Sabotage => sabotage;
         public PatrolSector[] PatrolSectors => patrolSectors;
+        public List<MonoBehaviour> SabotageTargets => sabotageTargets;
         
         private StateMachine _stateMachine;
         private State _rootState;

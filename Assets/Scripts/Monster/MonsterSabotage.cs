@@ -2,51 +2,38 @@
 using Monster.MonsterSabotages;
 using Unity.Netcode;
 using UnityEngine;
+using UnityEngine.AI;
 
 
 namespace Monster
 {
     public class MonsterSabotage : NetworkBehaviour
     {
-        [SerializeField] private List<SabotageTarget> sabotageTargets;
+        [SerializeField] private List<ISabotageable> allSabotagesObjects;
         
-        private Dictionary<SabotageType, Sabotage> _sabotages;
-        private MonsterBrain _monsterBrain;
+        private List<ISabotageable> _currentSabotagesTargets;
         
         
-        public void Initialize(MonsterBrain monsterBrain)
+        public ISabotageable GetAvailableTargets(SabotageType type)
         {
-            _monsterBrain = monsterBrain;
-            
-            _sabotages = new Dictionary<SabotageType, Sabotage>
-            {
-                {
-                    SabotageType.Light, new LightSabotage()
-                },
-            };
-            
-        }
-
-        public SabotageTarget GetAvailableTarget(SabotageType type)
-        {
-            foreach (SabotageTarget target in sabotageTargets)
+            foreach (ISabotageable target in _currentSabotagesTargets)
             {
                 if (target.SabotageType == type && !target.IsSabotaged)
                 {
-                    return target; 
+                    return target;
                 }
             }
-            
             return null;
         }
 
-        public void Execute(SabotageTarget target)
+        public void Execute(ISabotageable target)
         {
-            if (_sabotages.TryGetValue(target.SabotageType, out Sabotage sabotage))
-            {
-                sabotage.Execute(target, _monsterBrain);
-            }
+            target.Sabotage();
         }
-        
+
+        public void Restore(ISabotageable target)
+        {
+            target.Restore();
+        }
     }
 }

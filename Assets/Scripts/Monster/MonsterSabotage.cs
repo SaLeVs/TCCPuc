@@ -33,14 +33,23 @@ namespace Monster
             foreach (ISabotageable target in _sabotageTargets)
             {
                 if (target.SabotageType == _currentSabotageType && !target.IsSabotaged)
+                {
                     return target;
+                }
             }
             return null;
         }
         
-        public List<ISabotageable> GetSabotagedTargets()
+        public ISabotageable GetSabotagedTargets()
         {
-            return _sabotageTargets.Where(sabotageObject => sabotageObject.IsSabotaged).ToList();
+            foreach (ISabotageable target in _sabotageTargets)
+            {
+                if (target.SabotageType == _currentSabotageType && target.IsSabotaged)
+                {
+                    return target;
+                }
+            }
+            return null;
         }
 
         public void Execute(ISabotageable target)

@@ -24,7 +24,7 @@ namespace Monster.MonsterStates.RoamingStates
 
         protected override void OnExit()
         {
-            
+            _monsterBrain.MonsterSabotage.Restore(_monsterBrain.MonsterSabotage.GetSabotagedTargets());
         }
         
         // protected override State GetTransitionState() { } 

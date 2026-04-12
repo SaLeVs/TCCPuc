@@ -15,13 +15,10 @@ namespace Monster
         [SerializeField] private MonsterWander monsterWander;
         [SerializeField] private MonsterSabotage monsterSabotage;
         
-        [SerializeField] private PatrolSector[] patrolSectors;
-        
         public Animator Animator => animator;
         public NavMeshAgent NavMeshAgent => navMeshAgent;
         public MonsterWander MonsterWander => monsterWander;
         public MonsterSabotage MonsterSabotage => monsterSabotage;
-        public PatrolSector[] PatrolSectors => patrolSectors;
         
         private StateMachine _stateMachine;
         private State _rootState;

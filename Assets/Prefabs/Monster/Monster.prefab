@@ -15,6 +15,7 @@ GameObject:
   - component: {fileID: 9158156660860726962}
   - component: {fileID: 7437886285449800429}
   - component: {fileID: 1764714957470938397}
+  - component: {fileID: 856803638069055355}
   m_Layer: 9
   m_Name: Monster
   m_TagString: Untagged
@@ -80,7 +81,9 @@ MonoBehaviour:
   animator: {fileID: 3390758818505724829}
   navMeshAgent: {fileID: 9158156660860726962}
   monsterWander: {fileID: 1764714957470938397}
+  sabotage: {fileID: 856803638069055355}
   patrolSectors:
+  - {fileID: 0}
   - {fileID: 0}
   - {fileID: 0}
 --- !u!114 &5801510265212588046
@@ -175,6 +178,25 @@ MonoBehaviour:
   minTimeInSector: 25
   maxTimeInSector: 60
   waypointReachedDistance: 0.15
+--- !u!114 &856803638069055355
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2397166377357422809}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f2e5b2a271ad448ca488c3d19331cd6a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Monster::Monster.MonsterSabotage
+  ShowTopMostFoldoutHeaderGroup: 1
+  sabotageTargets:
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
 --- !u!1 &8968525623132493308
 GameObject:
   m_ObjectHideFlags: 0

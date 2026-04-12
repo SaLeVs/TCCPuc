@@ -20,8 +20,11 @@ namespace Monster.MonsterStates.RoamingStates
         protected override void OnEnter()
         {
             SabotageTarget target = _monsterBrain.Sabotage.GetAvailableTarget(SabotageType.Light);
+            
             if (target != null)
+            {
                 _monsterBrain.Sabotage.Execute(target);
+            }
         }
         
         // protected override State GetTransitionState() { } 

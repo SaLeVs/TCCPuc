@@ -32,8 +32,11 @@ namespace Monster
             foreach (SabotageTarget target in sabotageTargets)
             {
                 if (target.SabotageType == type && !target.IsSabotaged)
-                    return target;
+                {
+                    return target; 
+                }
             }
+            
             return null;
         }
 

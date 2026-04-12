@@ -366,6 +366,115 @@ Transform:
   - {fileID: 111760603}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1001 &62161475
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 73018314}
+    m_Modifications:
+    - target: {fileID: 6713110056931503498, guid: 6fd5a3f689829124d8d234957ae0faac, type: 3}
+      propertyPath: m_Name
+      value: SabotageLight (2)
+      objectReference: {fileID: 0}
+    - target: {fileID: 7787597016519866678, guid: 6fd5a3f689829124d8d234957ae0faac, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 14.99
+      objectReference: {fileID: 0}
+    - target: {fileID: 7787597016519866678, guid: 6fd5a3f689829124d8d234957ae0faac, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 1.36
+      objectReference: {fileID: 0}
+    - target: {fileID: 7787597016519866678, guid: 6fd5a3f689829124d8d234957ae0faac, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: -12.18
+      objectReference: {fileID: 0}
+    - target: {fileID: 7787597016519866678, guid: 6fd5a3f689829124d8d234957ae0faac, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 7787597016519866678, guid: 6fd5a3f689829124d8d234957ae0faac, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7787597016519866678, guid: 6fd5a3f689829124d8d234957ae0faac, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7787597016519866678, guid: 6fd5a3f689829124d8d234957ae0faac, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7787597016519866678, guid: 6fd5a3f689829124d8d234957ae0faac, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7787597016519866678, guid: 6fd5a3f689829124d8d234957ae0faac, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7787597016519866678, guid: 6fd5a3f689829124d8d234957ae0faac, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: 6fd5a3f689829124d8d234957ae0faac, type: 3}
+--- !u!114 &62161476 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 982040477570888209, guid: 6fd5a3f689829124d8d234957ae0faac, type: 3}
+  m_PrefabInstance: {fileID: 62161475}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6b114debe2a4a8d4880a96f7d8214ed0, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Monster::Monster.MonsterSabotages.SabotageTarget
+--- !u!4 &62161477 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 7787597016519866678, guid: 6fd5a3f689829124d8d234957ae0faac, type: 3}
+  m_PrefabInstance: {fileID: 62161475}
+  m_PrefabAsset: {fileID: 0}
+--- !u!1 &73018313
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 73018314}
+  m_Layer: 0
+  m_Name: SabotageObjects
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &73018314
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 73018313}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children:
+  - {fileID: 647439687}
+  - {fileID: 341111835}
+  - {fileID: 62161477}
+  - {fileID: 847241392}
+  - {fileID: 1999125397}
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &111760597
 GameObject:
   m_ObjectHideFlags: 0
@@ -3667,6 +3776,79 @@ MonoBehaviour:
       m_PostInfinity: 2
       m_RotationOrder: 4
   CustomBlends: {fileID: 0}
+--- !u!1001 &341111833
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 73018314}
+    m_Modifications:
+    - target: {fileID: 6713110056931503498, guid: 6fd5a3f689829124d8d234957ae0faac, type: 3}
+      propertyPath: m_Name
+      value: SabotageLight (1)
+      objectReference: {fileID: 0}
+    - target: {fileID: 7787597016519866678, guid: 6fd5a3f689829124d8d234957ae0faac, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7787597016519866678, guid: 6fd5a3f689829124d8d234957ae0faac, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 1.36
+      objectReference: {fileID: 0}
+    - target: {fileID: 7787597016519866678, guid: 6fd5a3f689829124d8d234957ae0faac, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: -12.18
+      objectReference: {fileID: 0}
+    - target: {fileID: 7787597016519866678, guid: 6fd5a3f689829124d8d234957ae0faac, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 7787597016519866678, guid: 6fd5a3f689829124d8d234957ae0faac, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7787597016519866678, guid: 6fd5a3f689829124d8d234957ae0faac, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7787597016519866678, guid: 6fd5a3f689829124d8d234957ae0faac, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7787597016519866678, guid: 6fd5a3f689829124d8d234957ae0faac, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7787597016519866678, guid: 6fd5a3f689829124d8d234957ae0faac, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7787597016519866678, guid: 6fd5a3f689829124d8d234957ae0faac, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: 6fd5a3f689829124d8d234957ae0faac, type: 3}
+--- !u!114 &341111834 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 982040477570888209, guid: 6fd5a3f689829124d8d234957ae0faac, type: 3}
+  m_PrefabInstance: {fileID: 341111833}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6b114debe2a4a8d4880a96f7d8214ed0, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Monster::Monster.MonsterSabotages.SabotageTarget
+--- !u!4 &341111835 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 7787597016519866678, guid: 6fd5a3f689829124d8d234957ae0faac, type: 3}
+  m_PrefabInstance: {fileID: 341111833}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1001 &344730908
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -4242,6 +4424,22 @@ Mesh:
       - serializedVersion: 1
         m_IndexStart: 0
         m_IndexCount: 0
+--- !u!4 &647439687 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 7787597016519866678, guid: 6fd5a3f689829124d8d234957ae0faac, type: 3}
+  m_PrefabInstance: {fileID: 7457502747872241741}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &647439688 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 982040477570888209, guid: 6fd5a3f689829124d8d234957ae0faac, type: 3}
+  m_PrefabInstance: {fileID: 7457502747872241741}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6b114debe2a4a8d4880a96f7d8214ed0, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Monster::Monster.MonsterSabotages.SabotageTarget
 --- !u!43 &652389016
 Mesh:
   m_ObjectHideFlags: 0
@@ -5026,6 +5224,79 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1001 &847241390
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 73018314}
+    m_Modifications:
+    - target: {fileID: 6713110056931503498, guid: 6fd5a3f689829124d8d234957ae0faac, type: 3}
+      propertyPath: m_Name
+      value: SabotageLight (3)
+      objectReference: {fileID: 0}
+    - target: {fileID: 7787597016519866678, guid: 6fd5a3f689829124d8d234957ae0faac, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 14.99
+      objectReference: {fileID: 0}
+    - target: {fileID: 7787597016519866678, guid: 6fd5a3f689829124d8d234957ae0faac, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 1.36
+      objectReference: {fileID: 0}
+    - target: {fileID: 7787597016519866678, guid: 6fd5a3f689829124d8d234957ae0faac, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: -33.9
+      objectReference: {fileID: 0}
+    - target: {fileID: 7787597016519866678, guid: 6fd5a3f689829124d8d234957ae0faac, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 7787597016519866678, guid: 6fd5a3f689829124d8d234957ae0faac, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7787597016519866678, guid: 6fd5a3f689829124d8d234957ae0faac, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7787597016519866678, guid: 6fd5a3f689829124d8d234957ae0faac, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7787597016519866678, guid: 6fd5a3f689829124d8d234957ae0faac, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7787597016519866678, guid: 6fd5a3f689829124d8d234957ae0faac, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7787597016519866678, guid: 6fd5a3f689829124d8d234957ae0faac, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: 6fd5a3f689829124d8d234957ae0faac, type: 3}
+--- !u!114 &847241391 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 982040477570888209, guid: 6fd5a3f689829124d8d234957ae0faac, type: 3}
+  m_PrefabInstance: {fileID: 847241390}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6b114debe2a4a8d4880a96f7d8214ed0, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Monster::Monster.MonsterSabotages.SabotageTarget
+--- !u!4 &847241392 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 7787597016519866678, guid: 6fd5a3f689829124d8d234957ae0faac, type: 3}
+  m_PrefabInstance: {fileID: 847241390}
+  m_PrefabAsset: {fileID: 0}
 --- !u!43 &876702260
 Mesh:
   m_ObjectHideFlags: 0
@@ -8400,6 +8671,26 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 856803638069055355, guid: df83281545a37654988173f7c89e3785, type: 3}
+      propertyPath: 'sabotageTargets.Array.data[0]'
+      value: 
+      objectReference: {fileID: 647439688}
+    - target: {fileID: 856803638069055355, guid: df83281545a37654988173f7c89e3785, type: 3}
+      propertyPath: 'sabotageTargets.Array.data[1]'
+      value: 
+      objectReference: {fileID: 341111834}
+    - target: {fileID: 856803638069055355, guid: df83281545a37654988173f7c89e3785, type: 3}
+      propertyPath: 'sabotageTargets.Array.data[2]'
+      value: 
+      objectReference: {fileID: 62161476}
+    - target: {fileID: 856803638069055355, guid: df83281545a37654988173f7c89e3785, type: 3}
+      propertyPath: 'sabotageTargets.Array.data[3]'
+      value: 
+      objectReference: {fileID: 847241391}
+    - target: {fileID: 856803638069055355, guid: df83281545a37654988173f7c89e3785, type: 3}
+      propertyPath: 'sabotageTargets.Array.data[4]'
+      value: 
+      objectReference: {fileID: 1999125396}
     - target: {fileID: 2397166377357422809, guid: df83281545a37654988173f7c89e3785, type: 3}
       propertyPath: m_Name
       value: Monster
@@ -8447,10 +8738,6 @@ PrefabInstance:
     - target: {fileID: 2931985732990858266, guid: df83281545a37654988173f7c89e3785, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 7177534589021983017, guid: df83281545a37654988173f7c89e3785, type: 3}
-      propertyPath: patrolSectors.Array.size
-      value: 3
       objectReference: {fileID: 0}
     - target: {fileID: 7177534589021983017, guid: df83281545a37654988173f7c89e3785, type: 3}
       propertyPath: 'patrolSectors.Array.data[0]'
@@ -11165,52 +11452,22 @@ Transform:
   m_Children: []
   m_Father: {fileID: 39569404}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!1 &1340628859
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 1340628860}
-  - component: {fileID: 1340628861}
-  m_Layer: 0
-  m_Name: SectorStage
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!4 &1340628860
+--- !u!4 &1340628860 stripped
 Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
+  m_CorrespondingSourceObject: {fileID: 6912459970787244118, guid: 54b46d9a46c02ea479d862ce00566621, type: 3}
+  m_PrefabInstance: {fileID: 3254891961698637668}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1340628859}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -14.34, y: 0, z: -34.86}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 1002072928}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &1340628861
+--- !u!114 &1340628861 stripped
 MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
+  m_CorrespondingSourceObject: {fileID: 8106327842948540480, guid: 54b46d9a46c02ea479d862ce00566621, type: 3}
+  m_PrefabInstance: {fileID: 3254891961698637668}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1340628859}
+  m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 7dcdc9288cb84232ae61234bb98924ad, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Monster::Monster.PatrolSector
-  patrolSectorRadius: 15
-  patrolRadiusColor: {r: 0.9150943, g: 0.17697577, b: 0.17697577, a: 0.4627451}
 --- !u!43 &1377376193
 Mesh:
   m_ObjectHideFlags: 0
@@ -16907,6 +17164,79 @@ Transform:
   m_Children: []
   m_Father: {fileID: 1240284740}
   m_LocalEulerAnglesHint: {x: 0, y: 90, z: 0}
+--- !u!1001 &1999125395
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 73018314}
+    m_Modifications:
+    - target: {fileID: 6713110056931503498, guid: 6fd5a3f689829124d8d234957ae0faac, type: 3}
+      propertyPath: m_Name
+      value: SabotageLight (4)
+      objectReference: {fileID: 0}
+    - target: {fileID: 7787597016519866678, guid: 6fd5a3f689829124d8d234957ae0faac, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: -16.28
+      objectReference: {fileID: 0}
+    - target: {fileID: 7787597016519866678, guid: 6fd5a3f689829124d8d234957ae0faac, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 1.36
+      objectReference: {fileID: 0}
+    - target: {fileID: 7787597016519866678, guid: 6fd5a3f689829124d8d234957ae0faac, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: -33.9
+      objectReference: {fileID: 0}
+    - target: {fileID: 7787597016519866678, guid: 6fd5a3f689829124d8d234957ae0faac, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 7787597016519866678, guid: 6fd5a3f689829124d8d234957ae0faac, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7787597016519866678, guid: 6fd5a3f689829124d8d234957ae0faac, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7787597016519866678, guid: 6fd5a3f689829124d8d234957ae0faac, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7787597016519866678, guid: 6fd5a3f689829124d8d234957ae0faac, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7787597016519866678, guid: 6fd5a3f689829124d8d234957ae0faac, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7787597016519866678, guid: 6fd5a3f689829124d8d234957ae0faac, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: 6fd5a3f689829124d8d234957ae0faac, type: 3}
+--- !u!114 &1999125396 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 982040477570888209, guid: 6fd5a3f689829124d8d234957ae0faac, type: 3}
+  m_PrefabInstance: {fileID: 1999125395}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6b114debe2a4a8d4880a96f7d8214ed0, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Monster::Monster.MonsterSabotages.SabotageTarget
+--- !u!4 &1999125397 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 7787597016519866678, guid: 6fd5a3f689829124d8d234957ae0faac, type: 3}
+  m_PrefabInstance: {fileID: 1999125395}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1 &2002937319
 GameObject:
   m_ObjectHideFlags: 0
@@ -17017,6 +17347,120 @@ Transform:
   - {fileID: 1853002191}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1001 &3254891961698637668
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 1002072928}
+    m_Modifications:
+    - target: {fileID: 1710151722030139120, guid: 54b46d9a46c02ea479d862ce00566621, type: 3}
+      propertyPath: m_Name
+      value: SectorStage
+      objectReference: {fileID: 0}
+    - target: {fileID: 6912459970787244118, guid: 54b46d9a46c02ea479d862ce00566621, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: -14.34
+      objectReference: {fileID: 0}
+    - target: {fileID: 6912459970787244118, guid: 54b46d9a46c02ea479d862ce00566621, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6912459970787244118, guid: 54b46d9a46c02ea479d862ce00566621, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: -34.86
+      objectReference: {fileID: 0}
+    - target: {fileID: 6912459970787244118, guid: 54b46d9a46c02ea479d862ce00566621, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 6912459970787244118, guid: 54b46d9a46c02ea479d862ce00566621, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6912459970787244118, guid: 54b46d9a46c02ea479d862ce00566621, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6912459970787244118, guid: 54b46d9a46c02ea479d862ce00566621, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6912459970787244118, guid: 54b46d9a46c02ea479d862ce00566621, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6912459970787244118, guid: 54b46d9a46c02ea479d862ce00566621, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6912459970787244118, guid: 54b46d9a46c02ea479d862ce00566621, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: 54b46d9a46c02ea479d862ce00566621, type: 3}
+--- !u!1001 &7457502747872241741
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 73018314}
+    m_Modifications:
+    - target: {fileID: 6713110056931503498, guid: 6fd5a3f689829124d8d234957ae0faac, type: 3}
+      propertyPath: m_Name
+      value: SabotageLight
+      objectReference: {fileID: 0}
+    - target: {fileID: 7787597016519866678, guid: 6fd5a3f689829124d8d234957ae0faac, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7787597016519866678, guid: 6fd5a3f689829124d8d234957ae0faac, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 1.36
+      objectReference: {fileID: 0}
+    - target: {fileID: 7787597016519866678, guid: 6fd5a3f689829124d8d234957ae0faac, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: -3.28
+      objectReference: {fileID: 0}
+    - target: {fileID: 7787597016519866678, guid: 6fd5a3f689829124d8d234957ae0faac, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 7787597016519866678, guid: 6fd5a3f689829124d8d234957ae0faac, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7787597016519866678, guid: 6fd5a3f689829124d8d234957ae0faac, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7787597016519866678, guid: 6fd5a3f689829124d8d234957ae0faac, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7787597016519866678, guid: 6fd5a3f689829124d8d234957ae0faac, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7787597016519866678, guid: 6fd5a3f689829124d8d234957ae0faac, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7787597016519866678, guid: 6fd5a3f689829124d8d234957ae0faac, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: 6fd5a3f689829124d8d234957ae0faac, type: 3}
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0
@@ -17028,6 +17472,7 @@ SceneRoots:
   - {fileID: 361155697}
   - {fileID: 1778917217}
   - {fileID: 1002072928}
+  - {fileID: 73018314}
   - {fileID: 1898027996}
   - {fileID: 1915884618}
   - {fileID: 1931746088}

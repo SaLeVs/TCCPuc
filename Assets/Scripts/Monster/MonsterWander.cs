@@ -113,7 +113,6 @@ public class MonsterWander : NetworkBehaviour
         
         if (!_waitingAtPoint && ReachedDestination())
         {
-            Debug.Log("Reached Destination");
             _waitingAtPoint = true;
             _wanderTimer = 0f;
             _agent.isStopped = true;
@@ -121,12 +120,10 @@ public class MonsterWander : NetworkBehaviour
 
         if (_waitingAtPoint)
         {
-            Debug.Log("Waiting for Wander");
             _wanderTimer += deltaTime;
 
             if (_wanderTimer >= _currentWanderInterval)
             {
-                Debug.Log("Wander to new point in sector");
                 _waitingAtPoint = false;
                 _wanderTimer = 0f;
                 _currentWanderInterval = Random.Range(minWanderIntervalForEachPoint, maxWanderIntervalForEachPoint);

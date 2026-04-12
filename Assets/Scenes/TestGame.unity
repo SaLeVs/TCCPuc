@@ -5366,7 +5366,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 1930167763120381473, guid: 67da02b31997ee0429b0c177b0314d3d, type: 3}
       propertyPath: m_Layer
-      value: 7
+      value: 10
       objectReference: {fileID: 0}
     - target: {fileID: 3137689553698021825, guid: 67da02b31997ee0429b0c177b0314d3d, type: 3}
       propertyPath: m_LocalScale.x
@@ -5532,7 +5532,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 1930167763120381473, guid: 67da02b31997ee0429b0c177b0314d3d, type: 3}
       propertyPath: m_Layer
-      value: 7
+      value: 10
       objectReference: {fileID: 0}
     - target: {fileID: 3137689553698021825, guid: 67da02b31997ee0429b0c177b0314d3d, type: 3}
       propertyPath: m_LocalScale.x
@@ -8913,7 +8913,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 1930167763120381473, guid: 67da02b31997ee0429b0c177b0314d3d, type: 3}
       propertyPath: m_Layer
-      value: 7
+      value: 10
       objectReference: {fileID: 0}
     - target: {fileID: 3137689553698021825, guid: 67da02b31997ee0429b0c177b0314d3d, type: 3}
       propertyPath: m_LocalScale.x
@@ -9024,11 +9024,42 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 7177534589021983017, guid: df83281545a37654988173f7c89e3785, type: 3}
+      propertyPath: monsterWander
+      value: 
+      objectReference: {fileID: 1071231246}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 2397166377357422809, guid: df83281545a37654988173f7c89e3785, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1071231246}
   m_SourcePrefab: {fileID: 100100000, guid: df83281545a37654988173f7c89e3785, type: 3}
+--- !u!1 &1071231245 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 2397166377357422809, guid: df83281545a37654988173f7c89e3785, type: 3}
+  m_PrefabInstance: {fileID: 1071231244}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &1071231246
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1071231245}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 71ef1355c80d4274988d84dc44f392a5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Monster::MonsterWander
+  ShowTopMostFoldoutHeaderGroup: 1
+  walkSpeed: 0
+  wanderRadius: 0
+  wanderIntervalForEachPoint: 0
+  minTimeInSector: 0
+  maxTimeInSector: 0
+  waypointReachedDistance: 0
 --- !u!43 &1117997124
 Mesh:
   m_ObjectHideFlags: 0

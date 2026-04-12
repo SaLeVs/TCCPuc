@@ -10,6 +10,22 @@ namespace Monster.MonsterStates.RoamingStates
         {
             _monsterBrain = monsterBrain;
         }
+
+        protected override void OnEnter()
+        {
+            _monsterBrain.MonsterWander.Initialize(_monsterBrain.NavMeshAgent, _monsterBrain.PatrolSectors);
+            _monsterBrain.MonsterWander.StartWander();
+        }
+
+        protected override void OnUpdate(float deltaTime)
+        {
+            _monsterBrain.MonsterWander.UpdateWander(deltaTime);
+        }
+        
+        protected override void OnExit()
+        {
+            _monsterBrain.MonsterWander.StopWander();
+        }
         
         // protected override State GetTransitionState() { } 
     }

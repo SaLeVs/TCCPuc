@@ -8,7 +8,8 @@ public class MonsterWander : NetworkBehaviour
 {
     [SerializeField] private float walkSpeed;
     [SerializeField] private float wanderRadius;
-    [SerializeField] private float wanderIntervalForEachPoint;
+    [SerializeField] private float minWanderIntervalForEachPoint;
+    [SerializeField] private float maxWanderIntervalForEachPoint;
     [SerializeField] private float minTimeInSector;
     [SerializeField] private float maxTimeInSector;
     [SerializeField] private float waypointReachedDistance;
@@ -20,13 +21,15 @@ public class MonsterWander : NetworkBehaviour
     private float _sectorTimer;
     private float _sectorDuration;
     private float _wanderTimer;
+    private float _currentWanderInterval;
 
+    private bool _waitingAtPoint;
+    
     
     public void Initialize(NavMeshAgent monsterAgent,  PatrolSector[] allSectors)
     {
         _agent = monsterAgent;
         _allSectors = allSectors;
-        
     }
     
     public void StartWander()
@@ -40,9 +43,12 @@ public class MonsterWander : NetworkBehaviour
     private void MigrateToNewSector()
     {
         _currentSector = GetMostRelevantSector();
+        
         _sectorDuration = Random.Range(minTimeInSector, maxTimeInSector);
+        _currentWanderInterval = Random.Range(minWanderIntervalForEachPoint, maxWanderIntervalForEachPoint);
+        
+        _wanderTimer = _currentWanderInterval;
         _sectorTimer = 0f;
-        _wanderTimer = wanderIntervalForEachPoint;
     }
     
     private PatrolSector GetMostRelevantSector()
@@ -99,18 +105,34 @@ public class MonsterWander : NetworkBehaviour
     public void UpdateWander(float deltaTime)
     {
         _sectorTimer += deltaTime;
-        _wanderTimer += deltaTime;
 
         if (_sectorTimer >= _sectorDuration)
         {
             MigrateToNewSector();
         }
         
-        // Control movement for monster in each interval or if monster Reached destination
-        if (_wanderTimer >= wanderIntervalForEachPoint || ReachedDestination())
+        if (!_waitingAtPoint && ReachedDestination())
         {
+            Debug.Log("Reached Destination");
+            _waitingAtPoint = true;
             _wanderTimer = 0f;
-            _agent.SetDestination(_currentSector.GetRandomPointInSector());
+            _agent.isStopped = true;
+        }
+
+        if (_waitingAtPoint)
+        {
+            Debug.Log("Waiting for Wander");
+            _wanderTimer += deltaTime;
+
+            if (_wanderTimer >= _currentWanderInterval)
+            {
+                Debug.Log("Wander to new point in sector");
+                _waitingAtPoint = false;
+                _wanderTimer = 0f;
+                _currentWanderInterval = Random.Range(minWanderIntervalForEachPoint, maxWanderIntervalForEachPoint);
+                _agent.isStopped = false;
+                _agent.SetDestination(_currentSector.GetRandomPointInSector());
+            }
         }
     }
     

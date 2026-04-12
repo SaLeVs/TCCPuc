@@ -10,10 +10,15 @@ namespace Monster.MonsterStates.RoamingStates
         {
             _monsterBrain = monsterBrain;
         }
-
-        protected override void OnEnter()
+        
+        
+        protected override void OnInitialize()
         {
             _monsterBrain.MonsterWander.Initialize(_monsterBrain.NavMeshAgent, _monsterBrain.PatrolSectors);
+        }
+        
+        protected override void OnEnter()
+        {
             _monsterBrain.MonsterWander.StartWander();
         }
 

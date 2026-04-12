@@ -10,6 +10,9 @@ namespace Monster.HSM
         
         private readonly List<IActivity> _activities = new List<IActivity>();
         public IReadOnlyList<IActivity> Activities => _activities;
+        
+        private bool _initialized;
+        
 
         public State(StateMachine stateMachine, State parentState = null)
         {
@@ -29,7 +32,8 @@ namespace Monster.HSM
         protected virtual State GetInitialState() => null; // When I enter, which child can be first to be active (null = this State is leaf, don't have child)
         
         protected virtual State GetTransitionState() => null; // When I want to switch state (null == I Want to switch for the current state)
-        
+
+        protected virtual void OnInitialize() { }
         protected virtual void OnEnter() { }
         protected virtual void OnExit() { }
         protected virtual void OnUpdate(float deltaTime) { }
@@ -41,6 +45,12 @@ namespace Monster.HSM
             if (ParentState != null)
             {
                 ParentState.ActiveChild = this;
+            }
+            
+            if (!_initialized)
+            {
+                _initialized = true;
+                OnInitialize();
             }
             
             OnEnter();

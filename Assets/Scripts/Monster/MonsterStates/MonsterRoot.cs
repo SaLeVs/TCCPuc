@@ -17,7 +17,6 @@ namespace Monster.MonsterStates
             RoamingState = new MonsterRoaming(stateMachine, this, brain);
             AlertState = new MonsterAlert(stateMachine, this, brain);
             HuntState = new MonsterHunt(stateMachine, this, brain);
-            
         }
 
         protected override State GetInitialState() => RoamingState;

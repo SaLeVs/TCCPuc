@@ -31,6 +31,7 @@ namespace Monster
             _rootState = new MonsterRoot(null, this);
             StateMachineBuilder stateMachineBuilder = new StateMachineBuilder(_rootState);
             _stateMachine = stateMachineBuilder.Build();
+            Debug.Log($"StateMachine in Root: {_rootState.StateMachine}");
         }
         
         private void Update()

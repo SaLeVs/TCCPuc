@@ -21,12 +21,6 @@ namespace Monster.MonsterStates.RoamingStates
             _monsterBrain.MonsterSabotage.ChooseSabotageType();
             _monsterBrain.MonsterSabotage.Execute(_monsterBrain.MonsterSabotage.GetAvailableTarget());
         }
-
-        protected override void OnExit()
-        {
-            _monsterBrain.MonsterSabotage.Restore(_monsterBrain.MonsterSabotage.GetSabotagedTargets());
-        }
         
-        // protected override State GetTransitionState() { } 
     }
 }

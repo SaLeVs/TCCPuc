@@ -423,17 +423,6 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 6fd5a3f689829124d8d234957ae0faac, type: 3}
---- !u!114 &62161476 stripped
-MonoBehaviour:
-  m_CorrespondingSourceObject: {fileID: 982040477570888209, guid: 6fd5a3f689829124d8d234957ae0faac, type: 3}
-  m_PrefabInstance: {fileID: 62161475}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 62161478}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 6b114debe2a4a8d4880a96f7d8214ed0, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Monster::Monster.MonsterSabotages.SabotageTarget
 --- !u!4 &62161477 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 7787597016519866678, guid: 6fd5a3f689829124d8d234957ae0faac, type: 3}
@@ -3838,17 +3827,6 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 6fd5a3f689829124d8d234957ae0faac, type: 3}
---- !u!114 &341111834 stripped
-MonoBehaviour:
-  m_CorrespondingSourceObject: {fileID: 982040477570888209, guid: 6fd5a3f689829124d8d234957ae0faac, type: 3}
-  m_PrefabInstance: {fileID: 341111833}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 341111836}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 6b114debe2a4a8d4880a96f7d8214ed0, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Monster::Monster.MonsterSabotages.SabotageTarget
 --- !u!4 &341111835 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 7787597016519866678, guid: 6fd5a3f689829124d8d234957ae0faac, type: 3}
@@ -5285,17 +5263,6 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 6fd5a3f689829124d8d234957ae0faac, type: 3}
---- !u!114 &847241391 stripped
-MonoBehaviour:
-  m_CorrespondingSourceObject: {fileID: 982040477570888209, guid: 6fd5a3f689829124d8d234957ae0faac, type: 3}
-  m_PrefabInstance: {fileID: 847241390}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 847241393}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 6b114debe2a4a8d4880a96f7d8214ed0, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Monster::Monster.MonsterSabotages.SabotageTarget
 --- !u!4 &847241392 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 7787597016519866678, guid: 6fd5a3f689829124d8d234957ae0faac, type: 3}
@@ -8680,26 +8647,18 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
-    - target: {fileID: 856803638069055355, guid: df83281545a37654988173f7c89e3785, type: 3}
-      propertyPath: 'sabotageTargets.Array.data[0]'
+    - target: {fileID: 1764714957470938397, guid: df83281545a37654988173f7c89e3785, type: 3}
+      propertyPath: 'allSectors.Array.data[0]'
       value: 
-      objectReference: {fileID: 0}
-    - target: {fileID: 856803638069055355, guid: df83281545a37654988173f7c89e3785, type: 3}
-      propertyPath: 'sabotageTargets.Array.data[1]'
+      objectReference: {fileID: 1340628861}
+    - target: {fileID: 1764714957470938397, guid: df83281545a37654988173f7c89e3785, type: 3}
+      propertyPath: 'allSectors.Array.data[1]'
       value: 
-      objectReference: {fileID: 341111834}
-    - target: {fileID: 856803638069055355, guid: df83281545a37654988173f7c89e3785, type: 3}
-      propertyPath: 'sabotageTargets.Array.data[2]'
+      objectReference: {fileID: 1626571402}
+    - target: {fileID: 1764714957470938397, guid: df83281545a37654988173f7c89e3785, type: 3}
+      propertyPath: 'allSectors.Array.data[2]'
       value: 
-      objectReference: {fileID: 62161476}
-    - target: {fileID: 856803638069055355, guid: df83281545a37654988173f7c89e3785, type: 3}
-      propertyPath: 'sabotageTargets.Array.data[3]'
-      value: 
-      objectReference: {fileID: 847241391}
-    - target: {fileID: 856803638069055355, guid: df83281545a37654988173f7c89e3785, type: 3}
-      propertyPath: 'sabotageTargets.Array.data[4]'
-      value: 
-      objectReference: {fileID: 1999125396}
+      objectReference: {fileID: 494147336}
     - target: {fileID: 2397166377357422809, guid: df83281545a37654988173f7c89e3785, type: 3}
       propertyPath: m_Name
       value: Monster
@@ -8748,21 +8707,13 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
-    - target: {fileID: 7177534589021983017, guid: df83281545a37654988173f7c89e3785, type: 3}
-      propertyPath: 'patrolSectors.Array.data[0]'
-      value: 
-      objectReference: {fileID: 1340628861}
-    - target: {fileID: 7177534589021983017, guid: df83281545a37654988173f7c89e3785, type: 3}
-      propertyPath: 'patrolSectors.Array.data[1]'
-      value: 
-      objectReference: {fileID: 1626571402}
-    - target: {fileID: 7177534589021983017, guid: df83281545a37654988173f7c89e3785, type: 3}
-      propertyPath: 'patrolSectors.Array.data[2]'
-      value: 
-      objectReference: {fileID: 494147336}
     - target: {fileID: 8380299532564787982, guid: df83281545a37654988173f7c89e3785, type: 3}
-      propertyPath: allSabotageObjects.Array.size
-      value: 5
+      propertyPath: maxTimeToSabotage
+      value: 7
+      objectReference: {fileID: 0}
+    - target: {fileID: 8380299532564787982, guid: df83281545a37654988173f7c89e3785, type: 3}
+      propertyPath: minTimeToSabotage
+      value: 3
       objectReference: {fileID: 0}
     - target: {fileID: 8380299532564787982, guid: df83281545a37654988173f7c89e3785, type: 3}
       propertyPath: 'allSabotageObjects.Array.data[0]'
@@ -8784,10 +8735,6 @@ PrefabInstance:
       propertyPath: 'allSabotageObjects.Array.data[4]'
       value: 
       objectReference: {fileID: 1999125399}
-    - target: {fileID: 8380299532564787982, guid: df83281545a37654988173f7c89e3785, type: 3}
-      propertyPath: 'allSabotageObjects.Array.data[5]'
-      value: 
-      objectReference: {fileID: 1999125398}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -17258,33 +17205,11 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 6fd5a3f689829124d8d234957ae0faac, type: 3}
---- !u!114 &1999125396 stripped
-MonoBehaviour:
-  m_CorrespondingSourceObject: {fileID: 982040477570888209, guid: 6fd5a3f689829124d8d234957ae0faac, type: 3}
-  m_PrefabInstance: {fileID: 1999125395}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1999125399}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 6b114debe2a4a8d4880a96f7d8214ed0, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Monster::Monster.MonsterSabotages.SabotageTarget
 --- !u!4 &1999125397 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 7787597016519866678, guid: 6fd5a3f689829124d8d234957ae0faac, type: 3}
   m_PrefabInstance: {fileID: 1999125395}
   m_PrefabAsset: {fileID: 0}
---- !u!114 &1999125398 stripped
-MonoBehaviour:
-  m_CorrespondingSourceObject: {fileID: 5192561541322418251, guid: 6fd5a3f689829124d8d234957ae0faac, type: 3}
-  m_PrefabInstance: {fileID: 1999125395}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1999125399}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 474bcb49853aa07438625e644c072ee6, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Unity.RenderPipelines.Universal.Runtime::UnityEngine.Rendering.Universal.UniversalAdditionalLightData
 --- !u!1 &1999125399 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 6713110056931503498, guid: 6fd5a3f689829124d8d234957ae0faac, type: 3}

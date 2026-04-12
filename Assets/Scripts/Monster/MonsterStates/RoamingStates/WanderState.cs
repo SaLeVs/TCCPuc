@@ -33,6 +33,5 @@ namespace Monster.MonsterStates.RoamingStates
             _monsterBrain.MonsterWander.StopWander();
         }
         
-        // protected override State GetTransitionState() { } 
     }
 }

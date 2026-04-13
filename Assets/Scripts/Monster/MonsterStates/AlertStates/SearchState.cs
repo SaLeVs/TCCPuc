@@ -1,0 +1,16 @@
+﻿using Monster.HSM;
+
+namespace Monster.MonsterStates.AlertStates
+{
+    public class SearchState  : State
+    {
+        private readonly MonsterBrain _monsterBrain;
+        
+        public SearchState(StateMachine stateMachine, State parentState, MonsterBrain monsterBrain) : base(stateMachine, parentState)
+        {
+            _monsterBrain = monsterBrain;
+        }
+        
+        // protected override State GetTransitionState() { }
+    }
+}

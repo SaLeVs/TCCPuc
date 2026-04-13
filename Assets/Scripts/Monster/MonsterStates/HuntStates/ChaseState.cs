@@ -10,7 +10,21 @@ namespace Monster.MonsterStates.HuntStates
         {
             _monsterBrain = monsterBrain;
         }
-        
+
+        protected override void OnEnter()
+        {
+            
+        }
+
+        protected override void OnUpdate(float deltaTime)
+        {
+            _monsterBrain.MonsterChase.ChaseUpdate();
+        }
+
+        protected override void OnExit()
+        {
+            
+        }
         // protected override State GetTransitionState() { } 
     }
 }

@@ -11,16 +11,16 @@ namespace Monster
 {
     public class MonsterSabotage : NetworkBehaviour
     {
-        [SerializeField] private float minTimeToSabotage = 10f;
-        [SerializeField] private float maxTimeToSabotage = 30f;
-        [SerializeField] private float minSabotageCooldown = 1f;
-        [SerializeField] private float maxSabotageCooldown = 3f;
+        [SerializeField] private float minSabotageCooldown = 15f;     
+        [SerializeField] private float maxSabotageCooldown = 30f;
+        [SerializeField] private float minSabotageStateDuration = 5f; 
+        [SerializeField] private float maxSabotageStateDuration = 10f;
         [SerializeField] private List<GameObject> allSabotageObjects;
         
-        public float MinTimeToSabotage => minTimeToSabotage;
-        public float MaxTimeToSabotage => maxTimeToSabotage;
         public float MinSabotageCooldown => minSabotageCooldown;
         public float MaxSabotageCooldown => maxSabotageCooldown;
+        public float MinSabotageStateDuration => minSabotageStateDuration;
+        public float MaxSabotageStateDuration => maxSabotageStateDuration;
         
         
         private List<ISabotageable> _sabotageTargets;
@@ -53,7 +53,10 @@ namespace Monster
             foreach (ISabotageable target in _sabotageTargets)
             {
                 if (target.SabotageType == _currentSabotageType && !target.IsSabotaged)
+                {
                     available.Add(target);
+                    Debug.Log($"Available target: {target}");
+                }
             }
     
             return available;

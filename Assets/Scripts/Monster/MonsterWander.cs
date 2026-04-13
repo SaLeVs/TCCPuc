@@ -29,7 +29,6 @@ public class MonsterWander : NetworkBehaviour
     public void Initialize(NavMeshAgent monsterAgent)
     {
         _agent = monsterAgent;
-        Debug.Log("Monster wander initialized");
     }
     
     public void StartWander()

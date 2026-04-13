@@ -12,16 +12,11 @@ namespace Monster.MonsterStates.RoamingStates
             _monsterBrain = monsterBrain;
         }
 
-        protected override void OnInitialize()
-        {
-            _monsterBrain.MonsterSabotage.Initialize();
-        }
-
         protected override void OnEnter()
         {
+            _monsterBrain.MonsterSabotage.Initialize();
             _monsterBrain.MonsterSabotage.ChooseSabotageType();
             _monsterBrain.MonsterSabotage.Execute(_monsterBrain.MonsterSabotage.GetAvailableTargets());
-            Debug.Log("Executing sabotage");
         }
         
     }

@@ -26,16 +26,27 @@ namespace Monster
         private string _lastPath;
 
         
+        public override void OnNetworkSpawn()
+        {
+            MonsterSabotage.Initialize();
+            MonsterWander.Initialize(NavMeshAgent);
+
+            if (!IsServer) return;
+            
+            _stateMachine.Start();
+        }
+        
         private void Awake()
         {
             _rootState = new MonsterRoot(null, this);
             StateMachineBuilder stateMachineBuilder = new StateMachineBuilder(_rootState);
             _stateMachine = stateMachineBuilder.Build();
-            Debug.Log($"StateMachine in Root: {_rootState.StateMachine}");
         }
         
         private void Update()
         {
+            if (!IsServer) return;
+            
             _stateMachine.Tick(Time.deltaTime);
             
             string statePath = StatePath(_stateMachine.Root.Leaf());

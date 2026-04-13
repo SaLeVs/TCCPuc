@@ -5,7 +5,6 @@ namespace UI
 {
     public class NetworkCanvas : MonoBehaviour
     {
-        
         public void StartHost()
         {
             NetworkManager.Singleton.StartHost();
@@ -15,7 +14,6 @@ namespace UI
         {
             NetworkManager.Singleton.StartClient();
         }
-        
     }
 
 }

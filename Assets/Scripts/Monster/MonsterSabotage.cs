@@ -55,7 +55,7 @@ namespace Monster
                 if (target.SabotageType == _currentSabotageType && !target.IsSabotaged)
                 {
                     available.Add(target);
-                    Debug.Log($"Available target: {target}");
+                    
                 }
             }
     
@@ -82,6 +82,7 @@ namespace Monster
                 if (index < 0) continue;
         
                 target.Sabotage();
+                Debug.Log($"Sabotage target in server");
                 SabotageClientRpc(index);
             }
         }
@@ -103,6 +104,7 @@ namespace Monster
             if (IsServer) return;
             
             _sabotageTargets[index].Sabotage();
+            Debug.Log($"Sabotage target in client");
         }
 
         [Rpc(SendTo.ClientsAndHost)]

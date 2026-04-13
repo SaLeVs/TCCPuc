@@ -62,6 +62,7 @@ namespace Monster.HSM
                 initialState.Enter();
             }
         }
+        
         internal void Exit()
         {
             if (ActiveChild != null)
@@ -72,6 +73,7 @@ namespace Monster.HSM
             ActiveChild = null;
             OnExit();
         }
+        
         internal void Update(float deltaTime)
         {
             State state = GetTransitionState();
@@ -89,7 +91,6 @@ namespace Monster.HSM
             
             OnUpdate(deltaTime);
         }
-        
         
         // Pass in all state and find the most deap state executing (when return null, we find the most deep)
         public State Leaf()

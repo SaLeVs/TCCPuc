@@ -20,7 +20,8 @@ namespace UI
         
         
         private bool _isPlayerReady;
-        
+        private const string PLAYER_READY = "READY";
+        private const string PLAYER_NOT_READY = "NOT READY";
         
         private void OnEnable()
         {
@@ -75,7 +76,7 @@ namespace UI
             
             if (readyButton != null)
             {
-                readyButtonText.text = _isPlayerReady ? "Not Ready" : "Ready";
+                readyButtonText.text = _isPlayerReady ? PLAYER_NOT_READY : PLAYER_READY;
             }
             
         }

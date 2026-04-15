@@ -22,7 +22,9 @@ namespace UI
 
         
         private Unity.Services.Lobbies.Models.Player _player;
-        
+        private const string HOST_TAG = "[HOST]";
+        private const string PLAYER_INFO_PLACEHOLDER = "All infos about player, just placeholder for test font";
+        private const string PLAYER_NULL_INFO = "WAITING...";
         
         
         public void SetPlayer(Unity.Services.Lobbies.Models.Player player, bool isHost = false)
@@ -38,16 +40,15 @@ namespace UI
         private void SetPlayerName(Unity.Services.Lobbies.Models.Player player, bool isHost)
         {
             string name = GetPlayerData(player, "PlayerName", $"Player {player.Id[..4]}");
-            string hostTag = isHost ? " <color=#FFD700>[HOST]</color>" : "";
+            string hostTag = isHost ? HOST_TAG : null;
             playerNameText.text = name + hostTag;
         }
  
         private void SetPlayerInfo(Unity.Services.Lobbies.Models.Player player, bool isHost)
         {
             if (playerInfoText == null) return;
- 
-            string role = isHost ? "Host" : "Guest";
-            playerInfoText.text = role;
+            
+            playerInfoText.text = PLAYER_INFO_PLACEHOLDER;
         }
  
         private void SetReadyStatus(Unity.Services.Lobbies.Models.Player player)
@@ -68,7 +69,7 @@ namespace UI
         
         public void SetEmpty()
         {
-            playerNameText.text = "Waiting...";
+            playerNameText.text = PLAYER_NULL_INFO;
  
             if (playerInfoText != null)
                 playerInfoText.text = "";
@@ -81,16 +82,18 @@ namespace UI
  
             if (readyIndicator != null)
                 readyIndicator.color = notReadyColor;
-            
         }
  
         private static string GetPlayerData(Unity.Services.Lobbies.Models.Player player, string key, string fallback)
         {
             if (player.Data != null && player.Data.TryGetValue(key, out PlayerDataObject data))
+            {
                 return data.Value;
- 
+            }
+            
             return fallback;
         }
+        
     }
 }
 

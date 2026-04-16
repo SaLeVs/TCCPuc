@@ -1,4 +1,5 @@
-﻿using Monster.HSM;
+﻿using System.Linq;
+using Monster.HSM;
 using Monster.MonsterStates.ParentStates;
 
 namespace Monster.MonsterStates
@@ -20,6 +21,22 @@ namespace Monster.MonsterStates
         }
 
         protected override State GetInitialState() => RoamingState;
-        // protected override State GetTransitionState() { } Need to add Transitions here for Roaming, alert and hunt
+
+        protected override State GetTransitionState()
+        {
+            bool hasTargets = _monsterBrain._playersInVision.Any(playerTarget => playerTarget);
+            
+            if (hasTargets && ActiveChild != HuntState)
+            {
+                return HuntState;
+            }
+            
+            if (!hasTargets && ActiveChild != RoamingState)
+            {
+                return RoamingState;
+            }
+
+            return null;  
+        } 
     }
 }

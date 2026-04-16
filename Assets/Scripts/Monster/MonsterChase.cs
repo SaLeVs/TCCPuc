@@ -74,6 +74,7 @@ namespace Monster
             _currentTarget = target;
             _agent.isStopped = false;
             _agent.speed = chaseSpeed;
+            Debug.Log("Setting Target");
         }
         
         private void ClearTarget()
@@ -84,6 +85,7 @@ namespace Monster
             {
                 _agent.isStopped = true;
             }
+            Debug.Log("Cleared Target");
         }
         
         public void StartChase()
@@ -92,6 +94,7 @@ namespace Monster
             
             _agent.isStopped = false;
             _agent.speed = chaseSpeed;
+            Debug.Log("Starting Chase");
         }
         
         public void ChaseUpdate()
@@ -107,6 +110,7 @@ namespace Monster
             if (_agent == null) return;
             
             _agent.isStopped = true;
+            Debug.Log("Stopping Chase");
         }
         
         public void Uninitialize(List<Transform> monsterTargets, NavMeshAgent agent, MonsterBrain monsterBrain)

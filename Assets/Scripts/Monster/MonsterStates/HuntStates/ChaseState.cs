@@ -13,7 +13,7 @@ namespace Monster.MonsterStates.HuntStates
 
         protected override void OnEnter()
         {
-            
+            _monsterBrain.MonsterChase.StartChase();
         }
 
         protected override void OnUpdate(float deltaTime)
@@ -23,8 +23,9 @@ namespace Monster.MonsterStates.HuntStates
 
         protected override void OnExit()
         {
-            
+            _monsterBrain.MonsterChase.StopChase();
         }
+        
         // protected override State GetTransitionState() { } 
     }
 }

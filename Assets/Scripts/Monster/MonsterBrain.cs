@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using Components;
 using Monster.HSM;
@@ -11,6 +12,9 @@ namespace Monster
 {
     public class MonsterBrain : NetworkBehaviour
     {
+        public event Action<Transform> OnPlayerEnterInVision;
+        public event Action<Transform> OnPlayerExitInVision;
+        
         [SerializeField] private Animator animator;
         [SerializeField] private VisionSensor visionSensor;
         [SerializeField] private NavMeshAgent navMeshAgent;
@@ -32,7 +36,6 @@ namespace Monster
         private string _lastPath;
 
         
-        
         private void Awake()
         {
             _rootState = new MonsterRoot(null, this);
@@ -43,8 +46,8 @@ namespace Monster
         public override void OnNetworkSpawn()
         {
             MonsterSabotage.Initialize();
-            MonsterWander.Initialize(NavMeshAgent);
-            MonsterChase.Initialize(_playersInVision);
+            MonsterWander.Initialize(navMeshAgent);
+            MonsterChase.Initialize(_playersInVision, navMeshAgent, this);
 
             if (!IsServer) return;
             
@@ -56,11 +59,13 @@ namespace Monster
         private void VisionSensor_OnTargetEnter(GameObject player)
         {
             _playersInVision.Add(player.transform);
+            OnPlayerEnterInVision?.Invoke(player.transform);
         }
         
         private void VisionSensor_OnTargetExit(GameObject player)
         {
             _playersInVision.Remove(player.transform);
+            OnPlayerExitInVision?.Invoke(player.transform);
         }
         
         private void Update()
@@ -83,12 +88,16 @@ namespace Monster
             return string.Join(" > ", state.PathToRoot().Reverse().Select(node => node.GetType().Name));
         }
 
+        
         public override void OnNetworkDespawn()
         {
+            MonsterChase.Uninitialize(_playersInVision, navMeshAgent, this);
+            
             if (!IsServer) return;
             
             visionSensor.OnTargetEnter -= VisionSensor_OnTargetEnter;
             visionSensor.OnTargetExit -= VisionSensor_OnTargetExit;
         }
+        
     }
 }

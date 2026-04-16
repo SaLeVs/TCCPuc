@@ -29,7 +29,20 @@ namespace Monster.MonsterStates.ParentStates
 
         protected override void OnUpdate(float deltaTime)
         {
-            
+            if (distanceToTarget <= distanceToAttack)
+            {
+                if (ActiveChild != attackState)
+                {
+                    StateMachine.Sequencer.RequestTransition(chaseState, attackState);
+                }
+            }
+            else
+            {
+                if (ActiveChild != chaseState)
+                {
+                    StateMachine.Sequencer.RequestTransition(attackState, chaseState);
+                }
+            }
         }
 
         protected override State GetTransitionState() => null;

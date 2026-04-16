@@ -394,6 +394,7 @@ GameObject:
   - component: {fileID: 7401217255654113804}
   - component: {fileID: 1861191804149879818}
   - component: {fileID: 1377124246796650101}
+  - component: {fileID: 411051831112395948}
   - component: {fileID: 3158690138509095668}
   - component: {fileID: 2207057075489463036}
   m_Layer: 11
@@ -724,6 +725,25 @@ MonoBehaviour:
   m_EditorClassIdentifier: Objects::Objects.Camera.CameraVision
   ShowTopMostFoldoutHeaderGroup: 1
   visionSensor: {fileID: 1861191804149879818}
+--- !u!114 &411051831112395948
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6252520807053122715}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8c59234c6eecd63459a65f1c983e35c5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Components::Components.Health
+  ShowTopMostFoldoutHeaderGroup: 1
+  <MaxHealth>k__BackingField: 100
+  currentHealth:
+    UpdateTraits:
+      MinSecondsBetweenUpdates: 0
+      MaxSecondsBetweenUpdates: 0
+    m_InternalValue: 0
 --- !u!54 &3158690138509095668
 Rigidbody:
   m_ObjectHideFlags: 0

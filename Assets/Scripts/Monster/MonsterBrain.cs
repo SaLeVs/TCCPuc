@@ -21,12 +21,13 @@ namespace Monster
         [SerializeField] private MonsterWander monsterWander;
         [SerializeField] private MonsterSabotage monsterSabotage;
         [SerializeField] private MonsterChase monsterChase;
+        [SerializeField] private MonsterAttack monsterAttack;
         
-        public Animator Animator => animator;
-        public NavMeshAgent NavMeshAgent => navMeshAgent;
         public MonsterWander MonsterWander => monsterWander;
         public MonsterSabotage MonsterSabotage => monsterSabotage;
         public MonsterChase MonsterChase => monsterChase;
+        public MonsterAttack MonsterAttack => monsterAttack;
+        
         
         public readonly List<Transform> _playersInVision = new();
         

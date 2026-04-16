@@ -288,5 +288,18 @@ namespace Components
             }
         }
         
+        private void OnDisable()
+        {
+            _collidersCount = 0;
+            
+            if (_collidersDetected != null)
+            {
+                for (int i = 0; i < _collidersDetected.Length; i++)
+                    _collidersDetected[i] = null;
+            }
+
+            detectedObjects?.Clear();
+            previousDetectedObjects?.Clear();
+        }
     }
 }

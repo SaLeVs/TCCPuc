@@ -10,15 +10,17 @@ namespace Monster
     {
         [SerializeField] private float chaseSpeed = 8f;
         
-        public List<Transform> _monsterTargets;
+        public List<Transform> monsterTargets;
+        public float DistanceFromTarget => _currentDistanceFromTarget;
         
         private NavMeshAgent _agent;
         private Transform _currentTarget;
+        private float _currentDistanceFromTarget;
         
         
-        public void Initialize(List<Transform> monsterTargets, NavMeshAgent agent, MonsterBrain monsterBrain)
+        public void Initialize(List<Transform> monsterTargetsList, NavMeshAgent agent, MonsterBrain monsterBrain)
         {
-            _monsterTargets = monsterTargets;
+            monsterTargets = monsterTargetsList;
             _agent = agent;
             
             if (monsterBrain != null)
@@ -52,9 +54,9 @@ namespace Monster
             {
                 ClearTarget();
                 
-                if (_monsterTargets.Count > 0)
+                if (monsterTargets.Count > 0)
                 {
-                    List<Transform> currentListOfPlayers = _monsterTargets.Where(monsterTargets => monsterTargets != null).ToList();
+                    List<Transform> currentListOfPlayers = monsterTargets.Where(monsterTarget => monsterTarget).ToList();
                     
                     if (currentListOfPlayers.Count > 0)
                     {
@@ -112,9 +114,9 @@ namespace Monster
             Debug.Log("Stopping Chase");
         }
         
-        public void Uninitialize(List<Transform> monsterTargets, NavMeshAgent agent, MonsterBrain monsterBrain)
+        public void Uninitialize(List<Transform> monsterTargetsList, NavMeshAgent agent, MonsterBrain monsterBrain)
         {
-            _monsterTargets = null;
+            monsterTargets = null;
             _agent = null;
 
             if (monsterBrain != null)

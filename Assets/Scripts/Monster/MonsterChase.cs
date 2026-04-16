@@ -74,7 +74,6 @@ namespace Monster
             _currentTarget = target;
             _agent.isStopped = false;
             _agent.speed = chaseSpeed;
-            Debug.Log("Setting Target");
         }
         
         private void ClearTarget()
@@ -84,8 +83,8 @@ namespace Monster
             if (_agent)
             {
                 _agent.isStopped = true;
+                _agent.ResetPath();
             }
-            Debug.Log("Cleared Target");
         }
         
         public void StartChase()
@@ -94,7 +93,6 @@ namespace Monster
             
             _agent.isStopped = false;
             _agent.speed = chaseSpeed;
-            Debug.Log("Starting Chase");
         }
         
         public void ChaseUpdate()
@@ -103,6 +101,7 @@ namespace Monster
             if (!_currentTarget) return;
             
             _agent.SetDestination(_currentTarget.position);
+            Debug.Log("Chasing Target");
         }
         
         public void StopChase()

@@ -15,7 +15,7 @@ namespace Monster
         public float AttackCooldown => attackCooldown;
         
         private float _timer;
-        
+        private bool _isAttacking;
         
         private void Start()
         {
@@ -28,22 +28,37 @@ namespace Monster
         public void StartAttack()
         {
             if (!IsServer) return;
-
+            
+            _timer = 0f;
+            _isAttacking = true;
+            
             hitbox.ResetHits();
             hitbox.EnableHitbox();
+            Debug.Log("Attack started");
         }
 
         private void Update()
         {
-            
+            if (!IsServer) return;
+            if (!_isAttacking) return;
+
+            _timer += Time.deltaTime;
+
+            if (_timer >= attackDuration)
+            {
+                EndAttack();
+            }
         }
 
         public void EndAttack()
         {
             if (!IsServer) return;
-
+            
+            _isAttacking = false;
             hitbox.DisableHitbox();
+            Debug.Log("Attack ended");
         }
+        
     } 
 }
 

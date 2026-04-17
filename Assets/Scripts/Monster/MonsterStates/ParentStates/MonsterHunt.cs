@@ -1,5 +1,6 @@
 ﻿using Monster.HSM;
 using Monster.MonsterStates.HuntStates;
+using UnityEngine;
 
 namespace Monster.MonsterStates.ParentStates
 {
@@ -20,27 +21,25 @@ namespace Monster.MonsterStates.ParentStates
             attackState = new AttackState(stateMachine, this, monsterBrain);
         }
     
-        protected override void OnEnter()
+        protected override State GetInitialState() => chaseState;
+
+        protected override void OnUpdate(float deltaTime)
         {
             distanceToTarget = _monsterBrain.MonsterChase.DistanceFromTarget;
             distanceToAttack = _monsterBrain.MonsterAttack.DistanceToAttack;
             
-        }
-
-        protected override void OnUpdate(float deltaTime)
-        {
-            if (distanceToTarget <= distanceToAttack)
-            {
-                if (ActiveChild != attackState)
-                {
-                    StateMachine.Sequencer.RequestTransition(chaseState, attackState);
-                }
-            }
-            else
+            if (distanceToAttack <= distanceToTarget)
             {
                 if (ActiveChild != chaseState)
                 {
                     StateMachine.Sequencer.RequestTransition(attackState, chaseState);
+                }
+            }
+            else
+            {
+                if (ActiveChild != attackState)
+                {
+                    StateMachine.Sequencer.RequestTransition(chaseState, attackState);
                 }
             }
         }

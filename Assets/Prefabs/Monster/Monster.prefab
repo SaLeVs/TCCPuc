@@ -55,7 +55,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Unity.Netcode.Runtime::Unity.Netcode.NetworkObject
-  GlobalObjectIdHash: 2315160054
+  GlobalObjectIdHash: 3148608675
   InScenePlacedSourceGlobalObjectIdHash: 3265427313
   DeferredDespawnTick: 0
   Ownership: 1
@@ -235,8 +235,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Monster::Monster.MonsterAttack
   ShowTopMostFoldoutHeaderGroup: 1
-  distanceToAttack: 5
+  distanceToAttack: 1.2
   damageAmountPerAttack: 10
+  attackCooldown: 1.5
+  attackDuration: 3
   hitbox: {fileID: 1072242717128448040}
 --- !u!195 &9158156660860726962
 NavMeshAgent:

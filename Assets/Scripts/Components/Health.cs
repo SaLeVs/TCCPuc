@@ -19,7 +19,7 @@ namespace Components
         {
             if (!IsServer) return;
         
-            currentHealth.Value = 0;
+            currentHealth.Value = MaxHealth;
         }
 
         public void TakeDamage(float damage)
@@ -36,10 +36,10 @@ namespace Components
         {
             if (_isDead) return;
         
-            float newHealth = currentHealth.Value + value;
+            float newHealth = currentHealth.Value - value;
             currentHealth.Value = Mathf.Clamp(newHealth, 0f, MaxHealth);
         
-            if (currentHealth.Value >= MaxHealth)
+            if (currentHealth.Value <= 0f)
             {
                 OnDie?.Invoke(this);
                 _isDead = true; 

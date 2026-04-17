@@ -81,6 +81,7 @@ namespace Monster
         private void ClearTarget()
         {
             _currentTarget = null;
+            _currentDistanceFromTarget = 0;
             
             if (_agent)
             {
@@ -103,7 +104,8 @@ namespace Monster
             if (!_currentTarget) return;
             
             _agent.SetDestination(_currentTarget.position);
-            Debug.Log("Chasing Target");
+            _currentDistanceFromTarget =
+                Vector3.Distance(_agent.transform.position, _currentTarget.position);
         }
         
         public void StopChase()
@@ -111,7 +113,6 @@ namespace Monster
             if (_agent == null) return;
             
             _agent.isStopped = true;
-            Debug.Log("Stopping Chase");
         }
         
         public void Uninitialize(List<Transform> monsterTargetsList, NavMeshAgent agent, MonsterBrain monsterBrain)

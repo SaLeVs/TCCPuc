@@ -49,6 +49,7 @@ namespace Monster
             {
                 _hitTargets.Add(netObj);
                 health.TakeDamage(_damage);
+                Debug.Log("Hitbox hit " + netObj.name);
             }
         }
     }

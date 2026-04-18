@@ -25,6 +25,7 @@ namespace Components
         public void TakeDamage(float damage)
         {
             ModifyHealth(damage);
+            Debug.Log($"TakeDamage on {gameObject.name}, damage: {damage}");
         }
 
         public void RestoreHealth(float heal)
@@ -38,7 +39,8 @@ namespace Components
         
             float newHealth = currentHealth.Value - value;
             currentHealth.Value = Mathf.Clamp(newHealth, 0f, MaxHealth);
-        
+            Debug.Log($"ModifyHealth on {gameObject.name}, new health: {newHealth}");
+            
             if (currentHealth.Value <= 0f)
             {
                 OnDie?.Invoke(this);

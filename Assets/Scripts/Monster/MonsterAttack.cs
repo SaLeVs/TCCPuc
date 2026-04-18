@@ -16,8 +16,9 @@ namespace Monster
         
         private float _timer;
         private bool _isAttacking;
-        
-        private void Start()
+
+
+        public override void OnNetworkSpawn()
         {
             if (!IsServer) return;
 
@@ -34,7 +35,6 @@ namespace Monster
             
             hitbox.ResetHits();
             hitbox.EnableHitbox();
-            Debug.Log("Attack started");
         }
 
         private void Update()
@@ -56,7 +56,6 @@ namespace Monster
             
             _isAttacking = false;
             hitbox.DisableHitbox();
-            Debug.Log("Attack ended");
         }
         
     } 

@@ -12,9 +12,9 @@ GameObject:
   - component: {fileID: 2554784949663478114}
   - component: {fileID: 2471495703422557301}
   - component: {fileID: 7177534589021983017}
+  - component: {fileID: 5801510265212588046}
   - component: {fileID: 1764714957470938397}
   - component: {fileID: 8380299532564787982}
-  - component: {fileID: 5801510265212588046}
   - component: {fileID: 5988213072746127775}
   - component: {fileID: 3757600163404236341}
   - component: {fileID: 9158156660860726962}
@@ -128,12 +128,39 @@ MonoBehaviour:
   m_EditorClassIdentifier: Monster::Monster.MonsterBrain
   ShowTopMostFoldoutHeaderGroup: 1
   animator: {fileID: 3390758818505724829}
-  visionSensor: {fileID: 5801510265212588046}
   navMeshAgent: {fileID: 9158156660860726962}
+  visionSensor: {fileID: 5801510265212588046}
   monsterWander: {fileID: 1764714957470938397}
   monsterSabotage: {fileID: 8380299532564787982}
   monsterChase: {fileID: 5988213072746127775}
   monsterAttack: {fileID: 3757600163404236341}
+--- !u!114 &5801510265212588046
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2397166377357422809}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: dcd84c8e4b5974446b9905be1d873c6d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Components::Components.VisionSensor
+  ShowTopMostFoldoutHeaderGroup: 1
+  orientation: {fileID: 4949085718853090176}
+  distance: 10
+  angle: 60
+  height: 1.8
+  meshColor: {r: 0.9339623, g: 0.88655144, b: 0.2863564, a: 0.7647059}
+  scanFrequency: 1
+  targetLayers:
+    serializedVersion: 2
+    m_Bits: 2048
+  occlusionLayers:
+    serializedVersion: 2
+    m_Bits: 1152
+  detectedObjects: []
+  previousDetectedObjects: []
 --- !u!114 &1764714957470938397
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -180,33 +207,6 @@ MonoBehaviour:
   - {fileID: 0}
   - {fileID: 0}
   - {fileID: 0}
---- !u!114 &5801510265212588046
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2397166377357422809}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: dcd84c8e4b5974446b9905be1d873c6d, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Components::Components.VisionSensor
-  ShowTopMostFoldoutHeaderGroup: 1
-  orientation: {fileID: 4949085718853090176}
-  distance: 10
-  angle: 60
-  height: 1.8
-  meshColor: {r: 0.9339623, g: 0.88655144, b: 0.2863564, a: 0.7647059}
-  scanFrequency: 1
-  targetLayers:
-    serializedVersion: 2
-    m_Bits: 2048
-  occlusionLayers:
-    serializedVersion: 2
-    m_Bits: 1152
-  detectedObjects: []
-  previousDetectedObjects: []
 --- !u!114 &5988213072746127775
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -588,6 +588,10 @@ PrefabInstance:
       propertyPath: m_Layer
       value: 9
       objectReference: {fileID: 0}
+    - target: {fileID: 5866666021909216657, guid: 2faa610713d3b3c439473daa55e8c60a, type: 3}
+      propertyPath: m_Controller
+      value: 
+      objectReference: {fileID: 9100000, guid: 9588d5a9dc4e0a346a55d5a0b85d2317, type: 2}
     - target: {fileID: 6574529281785038257, guid: 2faa610713d3b3c439473daa55e8c60a, type: 3}
       propertyPath: m_Layer
       value: 9

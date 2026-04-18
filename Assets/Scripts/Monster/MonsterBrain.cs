@@ -16,8 +16,9 @@ namespace Monster
         public event Action<Transform> OnPlayerExitInVision;
         
         [SerializeField] private Animator animator;
-        [SerializeField] private VisionSensor visionSensor;
         [SerializeField] private NavMeshAgent navMeshAgent;
+        
+        [SerializeField] private VisionSensor visionSensor;
         [SerializeField] private MonsterWander monsterWander;
         [SerializeField] private MonsterSabotage monsterSabotage;
         [SerializeField] private MonsterChase monsterChase;

@@ -51,7 +51,8 @@ namespace Monster
             MonsterSabotage.Initialize();
             MonsterWander.Initialize(navMeshAgent);
             MonsterChase.Initialize(_playersInVision, navMeshAgent, this);
-
+            MonsterAnimator.Initialize(this);
+            
             if (!IsServer) return;
             
             _stateMachine.Start();
@@ -95,6 +96,7 @@ namespace Monster
         public override void OnNetworkDespawn()
         {
             MonsterChase.Uninitialize(_playersInVision, navMeshAgent, this);
+            MonsterAnimator.Uninitialize(this);
             
             if (!IsServer) return;
             

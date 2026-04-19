@@ -11,6 +11,9 @@ namespace Monster
 {
     public class MonsterSabotage : NetworkBehaviour
     {
+        public event Action OnSabotageStartedAnimation;
+        public event Action OnSabotageEndedAnimation;
+        
         [SerializeField] private float minSabotageCooldown = 15f;     
         [SerializeField] private float maxSabotageCooldown = 30f;
         [SerializeField] private float minSabotageStateDuration = 5f; 
@@ -75,14 +78,23 @@ namespace Monster
 
         public void Execute(List<ISabotageable> targets)
         {
+            // Nothing to sabotage
+            if (targets == null || targets.Count == 0)
+            {
+                OnSabotageEndedAnimation?.Invoke(); 
+                return;
+            }
+
             foreach (ISabotageable target in targets)
             {
                 int index = _sabotageTargets.IndexOf(target);
                 if (index < 0) continue;
-        
+
                 target.Sabotage();
                 SabotageClientRpc(index);
             }
+            
+            OnSabotageStartedAnimation?.Invoke();
         }
 
         public void Restore(ISabotageable target)

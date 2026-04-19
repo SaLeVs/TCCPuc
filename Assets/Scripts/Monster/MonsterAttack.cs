@@ -1,3 +1,4 @@
+using System;
 using Unity.Netcode;
 using UnityEngine;
 
@@ -5,6 +6,9 @@ namespace Monster
 {
     public class MonsterAttack : NetworkBehaviour
     {
+        public event Action OnAttackStartedAnimation;
+        public event Action OnAttackEndedAnimation;
+        
         [SerializeField] private float distanceToAttack;
         [SerializeField] private float damageAmountPerAttack;
         [SerializeField] private float attackCooldown;
@@ -33,8 +37,10 @@ namespace Monster
             _timer = 0f;
             _isAttacking = true;
             
+            OnAttackStartedAnimation?.Invoke();
             hitbox.ResetHits();
             hitbox.EnableHitbox();
+            
         }
 
         private void Update()
@@ -54,6 +60,7 @@ namespace Monster
         {
             if (!IsServer) return;
             
+            OnAttackEndedAnimation?.Invoke();
             _isAttacking = false;
             hitbox.DisableHitbox();
         }

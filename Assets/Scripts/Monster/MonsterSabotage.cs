@@ -44,7 +44,6 @@ namespace Monster
         {
             SabotageType[] allTypes = (SabotageType[])Enum.GetValues(typeof(SabotageType));
             _currentSabotageType = allTypes[Random.Range(0, allTypes.Length)];
-            Debug.Log($"ChooseSabotageType: {_currentSabotageType}");
         }
         
         public List<ISabotageable> GetAvailableTargets()
@@ -56,7 +55,6 @@ namespace Monster
                 if (target.SabotageType == _currentSabotageType && !target.IsSabotaged)
                 {
                     available.Add(target);
-                    Debug.Log($"Add Sabotage target {target} to available list");
                 }
             }
     
@@ -83,7 +81,6 @@ namespace Monster
                 if (index < 0) continue;
         
                 target.Sabotage();
-                Debug.Log($"Sabotage target in server");
                 SabotageClientRpc(index);
             }
         }
@@ -105,7 +102,6 @@ namespace Monster
             if (IsServer) return;
             
             _sabotageTargets[index].Sabotage();
-            Debug.Log($"Sabotage target in client");
         }
 
         [Rpc(SendTo.ClientsAndHost)]

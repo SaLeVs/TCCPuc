@@ -19,6 +19,7 @@ namespace Monster.MonsterStates.HuntStates
             _timer = 0f;
             _attackCooldown = _monsterBrain.MonsterAttack.AttackCooldown;
             _monsterBrain.MonsterAttack.StartAttack();
+            _monsterBrain.MonsterAnimator.PlayAttack();
         }
 
         protected override void OnUpdate(float deltaTime)
@@ -29,6 +30,7 @@ namespace Monster.MonsterStates.HuntStates
             {
                 _timer = 0f;
                 _monsterBrain.MonsterAttack.StartAttack();
+                _monsterBrain.MonsterAnimator.PlayAttack();
             }
         }
 

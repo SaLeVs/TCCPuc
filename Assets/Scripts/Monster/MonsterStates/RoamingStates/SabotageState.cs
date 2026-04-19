@@ -14,9 +14,9 @@ namespace Monster.MonsterStates.RoamingStates
 
         protected override void OnEnter()
         {
-            Debug.Log("SabotageState");
             _monsterBrain.MonsterSabotage.ChooseSabotageType();
             _monsterBrain.MonsterSabotage.Execute(_monsterBrain.MonsterSabotage.GetAvailableTargets());
+            _monsterBrain.MonsterAnimator.PlaySabotage();
         }
         
     }

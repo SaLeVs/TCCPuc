@@ -15,7 +15,7 @@ namespace Monster.MonsterStates.RoamingStates
         protected override void OnEnter()
         {
             _monsterBrain.MonsterWander.StartWander();
-
+            _monsterBrain.MonsterAnimator.PlayWander();
         }
 
         protected override void OnUpdate(float deltaTime)
@@ -26,7 +26,7 @@ namespace Monster.MonsterStates.RoamingStates
         protected override void OnExit()
         {
             _monsterBrain.MonsterWander.StopWander();
-            
+            _monsterBrain.MonsterAnimator.PlayIdle();
         }
         
     }

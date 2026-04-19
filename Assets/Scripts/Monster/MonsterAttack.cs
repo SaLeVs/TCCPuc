@@ -50,7 +50,7 @@ namespace Monster
             }
         }
 
-        public void EndAttack()
+        private void EndAttack()
         {
             if (!IsServer) return;
             

@@ -40,6 +40,7 @@ public class MonsterWander : NetworkBehaviour
     {
         _agent.isStopped = false;
         _agent.speed = walkSpeed;
+        OnStartedMovingAnimation?.Invoke();
 
         MigrateToNewSector();
     }
@@ -144,6 +145,7 @@ public class MonsterWander : NetworkBehaviour
     public void StopWander()
     {
         _agent.isStopped = true;
+        _agent.ResetPath();
         _sectorTimer = 0f;
         _wanderTimer = 0f;
     }

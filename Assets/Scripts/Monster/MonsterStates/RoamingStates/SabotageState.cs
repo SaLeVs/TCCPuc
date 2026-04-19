@@ -17,6 +17,11 @@ namespace Monster.MonsterStates.RoamingStates
             _monsterBrain.MonsterSabotage.ChooseSabotageType();
             _monsterBrain.MonsterSabotage.Execute(_monsterBrain.MonsterSabotage.GetAvailableTargets());
         }
+
+        protected override void OnExit()
+        {
+            _monsterBrain.MonsterSabotage.EndSabotage();
+        }
         
     }
 }

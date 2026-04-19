@@ -15,7 +15,6 @@ namespace Monster
         private readonly int _idleState = Animator.StringToHash("Idle");
         private readonly int _sabotageState = Animator.StringToHash("Sabotage");
         
-        
         private MonsterBrain _monsterBrain;
 
 
@@ -36,13 +35,12 @@ namespace Monster
             _monsterBrain.MonsterSabotage.OnSabotageEndedAnimation += PlayIdle;
         }
 
-        private void PlayWander()     => animator.CrossFade(_wanderState,   transitionDuration);
-        private void PlayChase()      => animator.CrossFade(_chaseState,    transitionDuration);
-        private void PlayAttack()     => animator.CrossFade(_attackState,   transitionDuration);
-        private void PlayIdle()       => animator.CrossFade(_idleState,     transitionDuration);
-        private void PlayIdleCombat() => animator.CrossFade(_idleCombat,    transitionDuration);
-        private void PlaySabotage()   => animator.CrossFade(_sabotageState, transitionDuration);
-        
+        private void PlayWander() => animator.CrossFade(_wanderState, transitionDuration);
+        private void PlayChase() => animator.CrossFade(_chaseState, transitionDuration);
+        private void PlayAttack() => animator.CrossFade(_attackState, transitionDuration);
+        private void PlayIdle() => animator.CrossFade(_idleState, transitionDuration);
+        private void PlayIdleCombat() => animator.CrossFade(_idleCombat, transitionDuration);
+        private void PlaySabotage() => animator.CrossFade(_sabotageState, transitionDuration);
         
         public void Uninitialize(MonsterBrain brain)
         {

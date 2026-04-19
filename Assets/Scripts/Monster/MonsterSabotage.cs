@@ -78,13 +78,6 @@ namespace Monster
 
         public void Execute(List<ISabotageable> targets)
         {
-            // Nothing to sabotage
-            if (targets == null || targets.Count == 0)
-            {
-                OnSabotageEndedAnimation?.Invoke(); 
-                return;
-            }
-
             foreach (ISabotageable target in targets)
             {
                 int index = _sabotageTargets.IndexOf(target);
@@ -122,6 +115,11 @@ namespace Monster
             if (IsServer) return;
             
             _sabotageTargets[index].Restore();
+        }
+
+        public void EndSabotage()
+        {
+            OnSabotageEndedAnimation?.Invoke();
         }
     }
 }

@@ -13,11 +13,33 @@ namespace Monster
         private readonly int _idleState = Animator.StringToHash("Idle");
         private readonly int _sabotageState = Animator.StringToHash("Sabotage");
         
-        public void PlayWander() => animator.Play(_wanderState);
-        public void PlayChase()  => animator.Play(_chaseState);
-        public void PlayAttack() => animator.Play(_attackState);
-        public void PlayIdle()   => animator.Play(_idleState);
-        public void PlaySabotage() => animator.Play(_sabotageState);
+        private MonsterBrain _monsterBrain;
+
+
+        public void Initialize(MonsterBrain brain)
+        {
+            _monsterBrain = brain;
+            
+            _monsterBrain.MonsterWander.OnStartedMovingAnimation += PlayWander;
+            _monsterBrain.MonsterWander.OnStoppedMovingAnimation += PlayIdle;
+            
+            
+        }
+
+        private void PlayWander() => animator.Play(_wanderState);
+        private void PlayChase()  => animator.Play(_chaseState);
+        private void PlayAttack() => animator.Play(_attackState);
+        private void PlayIdle()   => animator.Play(_idleState);
+        private void PlaySabotage() => animator.Play(_sabotageState);
+        
+        
+        public void Uninitialize(MonsterBrain brain)
+        {
+            _monsterBrain.MonsterWander.OnStartedMovingAnimation -= PlayWander;
+            _monsterBrain.MonsterWander.OnStoppedMovingAnimation -= PlayIdle;
+            
+            _monsterBrain = null;
+        }
         
     }
 

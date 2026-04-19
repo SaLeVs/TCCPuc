@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Unity.Netcode;
@@ -8,6 +9,8 @@ namespace Monster
 {
     public class MonsterChase : NetworkBehaviour
     {
+        
+        
         [SerializeField] private float chaseSpeed = 8f;
         
         public List<Transform> monsterTargets;

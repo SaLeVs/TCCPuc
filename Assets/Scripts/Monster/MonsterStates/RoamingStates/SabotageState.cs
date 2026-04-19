@@ -16,7 +16,6 @@ namespace Monster.MonsterStates.RoamingStates
         {
             _monsterBrain.MonsterSabotage.ChooseSabotageType();
             _monsterBrain.MonsterSabotage.Execute(_monsterBrain.MonsterSabotage.GetAvailableTargets());
-            _monsterBrain.MonsterAnimator.PlaySabotage();
         }
         
     }

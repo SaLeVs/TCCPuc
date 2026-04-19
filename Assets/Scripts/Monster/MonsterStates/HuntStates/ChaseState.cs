@@ -14,7 +14,6 @@ namespace Monster.MonsterStates.HuntStates
         protected override void OnEnter()
         {
             _monsterBrain.MonsterChase.StartChase();
-            _monsterBrain.MonsterAnimator.PlayChase();
         }
 
         protected override void OnUpdate(float deltaTime)
@@ -25,7 +24,6 @@ namespace Monster.MonsterStates.HuntStates
         protected override void OnExit()
         {
             _monsterBrain.MonsterChase.StopChase();
-            _monsterBrain.MonsterAnimator.PlayIdle();
         }
         
     }

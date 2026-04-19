@@ -1,11 +1,16 @@
+using System;
 using System.Collections.Generic;
 using Monster;
 using Unity.Netcode;
 using UnityEngine;
 using UnityEngine.AI;
+using Random = UnityEngine.Random;
 
 public class MonsterWander : NetworkBehaviour
 {
+    public event Action OnStartedMovingAnimation;
+    public event Action OnStoppedMovingAnimation;
+    
     [SerializeField] private float walkSpeed;
     [SerializeField] private float wanderRadius;
     [SerializeField] private float minWanderIntervalForEachPoint;
@@ -115,6 +120,8 @@ public class MonsterWander : NetworkBehaviour
             _waitingAtPoint = true;
             _wanderTimer = 0f;
             _agent.isStopped = true;
+            
+            OnStoppedMovingAnimation?.Invoke();
         }
 
         if (_waitingAtPoint)
@@ -128,6 +135,8 @@ public class MonsterWander : NetworkBehaviour
                 _currentWanderInterval = Random.Range(minWanderIntervalForEachPoint, maxWanderIntervalForEachPoint);
                 _agent.isStopped = false;
                 _agent.SetDestination(_currentSector.GetRandomPointInSector());
+                
+                OnStartedMovingAnimation?.Invoke();
             }
         }
     }

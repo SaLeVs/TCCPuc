@@ -11,6 +11,9 @@ namespace Monster
 {
     public class MonsterSabotage : NetworkBehaviour
     {
+        public event Action OnSabotageStartedAnimation;
+        public event Action OnSabotageEndedAnimation;
+        
         [SerializeField] private float minSabotageCooldown = 15f;     
         [SerializeField] private float maxSabotageCooldown = 30f;
         [SerializeField] private float minSabotageStateDuration = 5f; 
@@ -44,7 +47,6 @@ namespace Monster
         {
             SabotageType[] allTypes = (SabotageType[])Enum.GetValues(typeof(SabotageType));
             _currentSabotageType = allTypes[Random.Range(0, allTypes.Length)];
-            Debug.Log($"ChooseSabotageType: {_currentSabotageType}");
         }
         
         public List<ISabotageable> GetAvailableTargets()
@@ -56,7 +58,6 @@ namespace Monster
                 if (target.SabotageType == _currentSabotageType && !target.IsSabotaged)
                 {
                     available.Add(target);
-                    Debug.Log($"Add Sabotage target {target} to available list");
                 }
             }
     
@@ -81,11 +82,12 @@ namespace Monster
             {
                 int index = _sabotageTargets.IndexOf(target);
                 if (index < 0) continue;
-        
+
                 target.Sabotage();
-                Debug.Log($"Sabotage target in server");
                 SabotageClientRpc(index);
             }
+            
+            OnSabotageStartedAnimation?.Invoke();
         }
 
         public void Restore(ISabotageable target)
@@ -105,7 +107,6 @@ namespace Monster
             if (IsServer) return;
             
             _sabotageTargets[index].Sabotage();
-            Debug.Log($"Sabotage target in client");
         }
 
         [Rpc(SendTo.ClientsAndHost)]
@@ -114,6 +115,11 @@ namespace Monster
             if (IsServer) return;
             
             _sabotageTargets[index].Restore();
+        }
+
+        public void EndSabotage()
+        {
+            OnSabotageEndedAnimation?.Invoke();
         }
     }
 }

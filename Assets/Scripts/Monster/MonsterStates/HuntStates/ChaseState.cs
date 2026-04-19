@@ -26,6 +26,5 @@ namespace Monster.MonsterStates.HuntStates
             _monsterBrain.MonsterChase.StopChase();
         }
         
-        // protected override State GetTransitionState() { } 
     }
 }

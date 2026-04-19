@@ -1,5 +1,7 @@
 using System.Collections.Generic;
 using ScriptableObjects;
+using Unity.AI;
+using Unity.AI.Navigation;
 using Unity.Netcode;
 using UnityEngine;
 
@@ -9,6 +11,7 @@ namespace Systems
     {
         [SerializeField] private MissionsSO currentMission;
         [SerializeField] private Transform[] spawnPoints;
+        [SerializeField] private NavMeshSurface navMeshSurface;
         
         private List<RoomDataSO> _generatedRooms = new List<RoomDataSO>();
 
@@ -49,7 +52,10 @@ namespace Systems
 
             RandomizeRoomsSpawns();
             SpawnRoom();
+            RebuildNavMeshRpc();
         }
+
+        
         
         private RoomDataSO GetRandomRoom(List<RoomDataSO> pool)
         {
@@ -83,6 +89,12 @@ namespace Systems
                 }
             }
             
+        }
+        
+        [Rpc(SendTo.ClientsAndHost)]
+        private void RebuildNavMeshRpc()
+        {
+            navMeshSurface.BuildNavMesh();
         }
         
     }

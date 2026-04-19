@@ -17,6 +17,7 @@ GameObject:
   - component: {fileID: 8380299532564787982}
   - component: {fileID: 5988213072746127775}
   - component: {fileID: 3757600163404236341}
+  - component: {fileID: 8840795157782606983}
   - component: {fileID: 9158156660860726962}
   - component: {fileID: 7437886285449800429}
   m_Layer: 9
@@ -127,13 +128,13 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Monster::Monster.MonsterBrain
   ShowTopMostFoldoutHeaderGroup: 1
-  animator: {fileID: 3390758818505724829}
   navMeshAgent: {fileID: 9158156660860726962}
   visionSensor: {fileID: 5801510265212588046}
   monsterWander: {fileID: 1764714957470938397}
   monsterSabotage: {fileID: 8380299532564787982}
   monsterChase: {fileID: 5988213072746127775}
   monsterAttack: {fileID: 3757600163404236341}
+  monsterAnimator: {fileID: 8840795157782606983}
 --- !u!114 &5801510265212588046
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -174,7 +175,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Monster::MonsterWander
   ShowTopMostFoldoutHeaderGroup: 1
-  walkSpeed: 2
+  walkSpeed: 3
   wanderRadius: 20
   minWanderIntervalForEachPoint: 0.5
   maxWanderIntervalForEachPoint: 2.5
@@ -220,7 +221,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Monster::Monster.MonsterChase
   ShowTopMostFoldoutHeaderGroup: 1
-  chaseSpeed: 0.5
+  chaseSpeed: 5
   monsterTargets: []
 --- !u!114 &3757600163404236341
 MonoBehaviour:
@@ -235,11 +236,33 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Monster::Monster.MonsterAttack
   ShowTopMostFoldoutHeaderGroup: 1
-  distanceToAttack: 1.2
-  damageAmountPerAttack: 10
-  attackCooldown: 1.5
-  attackDuration: 3
+  distanceToAttack: 1
+  damageAmountPerAttack: 15
+  attackCooldown: 2
+  attackDuration: 1.05
   hitbox: {fileID: 1072242717128448040}
+--- !u!114 &8840795157782606983
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2397166377357422809}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 986323ee91e6f404aa129a6c0a6f86b3, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Monster::Monster.MonsterAnimator
+  ShowTopMostFoldoutHeaderGroup: 1
+  NetworkAnimatorExpanded: 0
+  AuthorityMode: 1
+  m_Animator: {fileID: 3390758818505724829}
+  TransitionStateInfoList: []
+  AnimatorParameterEntries:
+    ParameterEntries: []
+  AnimatorParametersExpanded: 0
+  animator: {fileID: 3390758818505724829}
+  transitionDuration: 0.1
 --- !u!195 &9158156660860726962
 NavMeshAgent:
   m_ObjectHideFlags: 0
@@ -592,6 +615,10 @@ PrefabInstance:
       propertyPath: m_Controller
       value: 
       objectReference: {fileID: 9100000, guid: 9588d5a9dc4e0a346a55d5a0b85d2317, type: 2}
+    - target: {fileID: 5866666021909216657, guid: 2faa610713d3b3c439473daa55e8c60a, type: 3}
+      propertyPath: m_ApplyRootMotion
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 6574529281785038257, guid: 2faa610713d3b3c439473daa55e8c60a, type: 3}
       propertyPath: m_Layer
       value: 9
@@ -666,8 +693,8 @@ BoxCollider:
   m_ProvidesContacts: 0
   m_Enabled: 0
   serializedVersion: 3
-  m_Size: {x: 0.6958701, y: 0.48145002, z: 0.8403645}
-  m_Center: {x: -0.79900396, y: 0.43115, z: 0.20391648}
+  m_Size: {x: 0.6899085, y: 0.17090312, z: 0.16415694}
+  m_Center: {x: -0.15504576, y: 0.0051460993, z: -0.029192828}
 --- !u!4 &8786041264181299687 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: 2faa610713d3b3c439473daa55e8c60a, type: 3}

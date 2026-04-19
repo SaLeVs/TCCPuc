@@ -2,7 +2,6 @@
 {
     public enum SabotageType
     {
-        Light,
-        Door,
+        Light
     }
 }

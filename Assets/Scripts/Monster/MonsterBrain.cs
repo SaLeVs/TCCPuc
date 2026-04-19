@@ -15,7 +15,6 @@ namespace Monster
         public event Action<Transform> OnPlayerEnterInVision;
         public event Action<Transform> OnPlayerExitInVision;
         
-        [SerializeField] private Animator animator;
         [SerializeField] private NavMeshAgent navMeshAgent;
         
         [SerializeField] private VisionSensor visionSensor;
@@ -23,11 +22,13 @@ namespace Monster
         [SerializeField] private MonsterSabotage monsterSabotage;
         [SerializeField] private MonsterChase monsterChase;
         [SerializeField] private MonsterAttack monsterAttack;
+        [SerializeField] private MonsterAnimator monsterAnimator;
         
         public MonsterWander MonsterWander => monsterWander;
         public MonsterSabotage MonsterSabotage => monsterSabotage;
         public MonsterChase MonsterChase => monsterChase;
         public MonsterAttack MonsterAttack => monsterAttack;
+        public MonsterAnimator MonsterAnimator => monsterAnimator;
         
         
         public readonly List<Transform> _playersInVision = new();

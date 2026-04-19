@@ -9,7 +9,8 @@ namespace Monster
 {
     public class MonsterChase : NetworkBehaviour
     {
-        
+        public event Action OnStartedChasingAnimation;
+        public event Action OnStoppedChasingAnimation;
         
         [SerializeField] private float chaseSpeed = 8f;
         
@@ -99,6 +100,7 @@ namespace Monster
             
             _agent.isStopped = false;
             _agent.speed = chaseSpeed;
+            OnStartedChasingAnimation?.Invoke();
         }
         
         public void ChaseUpdate()
@@ -114,6 +116,7 @@ namespace Monster
             if (_agent == null) return;
             
             _agent.isStopped = true;
+            OnStoppedChasingAnimation?.Invoke();
         }
         
         public void UpdateDistanceFromTarget()

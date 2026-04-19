@@ -23,6 +23,9 @@ namespace Monster
             _monsterBrain.MonsterWander.OnStartedMovingAnimation += PlayWander;
             _monsterBrain.MonsterWander.OnStoppedMovingAnimation += PlayIdle;
             
+            _monsterBrain.MonsterChase.OnStartedChasingAnimation += PlayChase;
+            _monsterBrain.MonsterChase.OnStoppedChasingAnimation += PlayIdle;
+            
             
         }
 

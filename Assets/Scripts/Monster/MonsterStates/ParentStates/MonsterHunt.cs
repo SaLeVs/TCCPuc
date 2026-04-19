@@ -25,21 +25,23 @@ namespace Monster.MonsterStates.ParentStates
 
         protected override void OnUpdate(float deltaTime)
         {
+            _monsterBrain.MonsterChase.UpdateDistanceFromTarget();
+            
             distanceToTarget = _monsterBrain.MonsterChase.DistanceFromTarget;
             distanceToAttack = _monsterBrain.MonsterAttack.DistanceToAttack;
             
-            if (distanceToAttack <= distanceToTarget)
-            {
-                if (ActiveChild != chaseState)
-                {
-                    StateMachine.Sequencer.RequestTransition(attackState, chaseState);
-                }
-            }
-            else
+            if (distanceToTarget <= distanceToAttack)
             {
                 if (ActiveChild != attackState)
                 {
                     StateMachine.Sequencer.RequestTransition(chaseState, attackState);
+                }
+            }
+            else
+            {
+                if (ActiveChild != chaseState)
+                {
+                    StateMachine.Sequencer.RequestTransition(attackState, chaseState);
                 }
             }
         }

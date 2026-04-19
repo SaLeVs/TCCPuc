@@ -104,8 +104,6 @@ namespace Monster
             if (!_currentTarget) return;
             
             _agent.SetDestination(_currentTarget.position);
-            _currentDistanceFromTarget =
-                Vector3.Distance(_agent.transform.position, _currentTarget.position);
         }
         
         public void StopChase()
@@ -113,6 +111,20 @@ namespace Monster
             if (_agent == null) return;
             
             _agent.isStopped = true;
+        }
+        
+        public void UpdateDistanceFromTarget()
+        {
+            if (_currentTarget == null)
+            {
+                _currentDistanceFromTarget = float.MaxValue;
+                return;
+            }
+    
+            _currentDistanceFromTarget = Vector3.Distance(
+                _agent.transform.position, 
+                _currentTarget.position
+            );
         }
         
         public void Uninitialize(List<Transform> monsterTargetsList, NavMeshAgent agent, MonsterBrain monsterBrain)

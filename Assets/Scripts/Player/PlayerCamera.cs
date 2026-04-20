@@ -8,6 +8,7 @@ namespace Player
 {
     public class PlayerCamera : NetworkBehaviour
     {
+        [SerializeField] private PlayerState playerState;
         [SerializeField] private CinemachineCamera cinemachineCamera;
         [SerializeField] private Transform cameraRoot;
         [SerializeField] private InputReader inputReader;
@@ -23,6 +24,7 @@ namespace Player
         private float _yaw;
         private float _pitch;
         
+        private bool _isDead;
         
         
         public override void OnNetworkSpawn()
@@ -31,17 +33,18 @@ namespace Player
             {
                 cinemachineCamera.Priority = ownerCameraPriority;
                 inputReader.OnCameraLookEvent += InputReader_OnCameraLookEvent;
+                playerState.OnPlayerDead += PlayerState_OnPlayerDead;
             }
             
         }
 
-        
+
         private void InputReader_OnCameraLookEvent(Vector2 cameraLookInput) => _lookInput = cameraLookInput;
-        
+        private void PlayerState_OnPlayerDead(bool isDead) => _isDead = isDead;
         
         private void LateUpdate()
         {
-            if (IsOwner)
+            if (IsOwner && !_isDead)
             {   
                 CameraMovement();
             }
@@ -70,6 +73,7 @@ namespace Player
             if (IsOwner)
             {
                 inputReader.OnCameraLookEvent -= InputReader_OnCameraLookEvent;
+                playerState.OnPlayerDead -= PlayerState_OnPlayerDead;
                 cinemachineCamera.Priority = 0;
             }
             

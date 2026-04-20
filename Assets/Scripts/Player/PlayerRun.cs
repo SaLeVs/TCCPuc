@@ -10,6 +10,7 @@ namespace Player
     {
         public event Action<bool> OnRunEvent;
         
+        [SerializeField] private PlayerState playerState;
         [SerializeField] private InputReader inputReader;
         [SerializeField] private float speedModifier = 2f;
         
@@ -21,6 +22,7 @@ namespace Player
         private float _stamina;
         private bool _isExhausted;
         private bool _isRunning;
+        private bool _isDead;
         
         
         public override void OnNetworkSpawn()
@@ -30,20 +32,31 @@ namespace Player
             if (IsOwner)
             {
                 inputReader.OnRunEvent += InputReader_OnRunEvent;
+                playerState.OnPlayerDead += PlayerState_OnPlayerDead;
             }
             
         }
         
+
         private void InputReader_OnRunEvent(bool isRunning) => _isRunning = isRunning;
+        
+        private void PlayerState_OnPlayerDead(bool isDead)
+        {
+            _isDead = isDead;
+            
+            if (_isDead)
+            {
+                OnRunEvent?.Invoke(false);
+            }
+        }
         
         
         private void Update()
         {
-            if (IsOwner)
+            if (IsOwner && !_isDead)
             {
-                UpdateStamina(_isRunning);
+                UpdateStamina(_isRunning); 
             }
-            
         }
         
         private void UpdateStamina(bool isRunning)
@@ -84,17 +97,14 @@ namespace Player
         }
         
         
-        
         public override void OnNetworkDespawn()
         {
             if (IsOwner)
             {
                 inputReader.OnRunEvent -= InputReader_OnRunEvent;
-                
+                playerState.OnPlayerDead -= PlayerState_OnPlayerDead;
             }
-            
         }
-
         
     }
 }

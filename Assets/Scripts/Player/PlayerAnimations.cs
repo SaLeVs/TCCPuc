@@ -19,6 +19,8 @@ namespace Player
         private readonly int _interactHash = Animator.StringToHash("_interact");
         private readonly int _heldItemHash = Animator.StringToHash("_holdItem");
         
+        private readonly int _deadHash = Animator.StringToHash("_dead");
+        
         
         private float _targetMoveX;
         private float _targetMoveY;
@@ -41,11 +43,13 @@ namespace Player
                 
                 playerState.OnInteract += PlayerState_OnInteract;
                 playerState.OnHoldItem += PlayerState_OnHoldItem;
+                
+                playerState.OnPlayerDead += PlayerState_OnPlayerDead;
             }
             
         }
 
-        
+
         private void Update()
         {
             if (IsOwner)
@@ -92,6 +96,11 @@ namespace Player
             animator.SetBool(_heldItemHash, _isHoldingItem);
         }
         
+        private void PlayerState_OnPlayerDead(bool isDead)
+        {
+            animator.SetTrigger(_deadHash);
+        }
+        
         
         public override void OnNetworkDespawn()
         {
@@ -103,6 +112,8 @@ namespace Player
                 
                 playerState.OnInteract -= PlayerState_OnInteract;
                 playerState.OnHoldItem -= PlayerState_OnHoldItem;
+                
+                playerState.OnPlayerDead -= PlayerState_OnPlayerDead;
             }
             
         }

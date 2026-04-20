@@ -392,9 +392,10 @@ GameObject:
   - component: {fileID: 6388113009287079804}
   - component: {fileID: 2227621069659648431}
   - component: {fileID: 7401217255654113804}
-  - component: {fileID: 1861191804149879818}
   - component: {fileID: 1377124246796650101}
+  - component: {fileID: 3147938662615095034}
   - component: {fileID: 411051831112395948}
+  - component: {fileID: 1861191804149879818}
   - component: {fileID: 3158690138509095668}
   - component: {fileID: 2207057075489463036}
   m_Layer: 11
@@ -435,7 +436,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Unity.Netcode.Runtime::Unity.Netcode.NetworkObject
-  GlobalObjectIdHash: 3919488120
+  GlobalObjectIdHash: 282796449
   InScenePlacedSourceGlobalObjectIdHash: 0
   DeferredDespawnTick: 0
   Ownership: 1
@@ -684,6 +685,53 @@ MonoBehaviour:
   layerMask:
     serializedVersion: 2
     m_Bits: 256
+--- !u!114 &1377124246796650101
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6252520807053122715}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 475407362d7cb2449a91308e023042ab, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Objects::Objects.Camera.CameraVision
+  ShowTopMostFoldoutHeaderGroup: 1
+  visionSensor: {fileID: 1861191804149879818}
+--- !u!114 &3147938662615095034
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6252520807053122715}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 60a5167ab4748c94b91fb16a49c38ef4, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Player::Player.PlayerDead
+  ShowTopMostFoldoutHeaderGroup: 1
+  playerHealth: {fileID: 411051831112395948}
+--- !u!114 &411051831112395948
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6252520807053122715}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8c59234c6eecd63459a65f1c983e35c5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Components::Components.Health
+  ShowTopMostFoldoutHeaderGroup: 1
+  <MaxHealth>k__BackingField: 100
+  currentHealth:
+    UpdateTraits:
+      MinSecondsBetweenUpdates: 0
+      MaxSecondsBetweenUpdates: 0
+    m_InternalValue: 0
 --- !u!114 &1861191804149879818
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -711,39 +759,6 @@ MonoBehaviour:
     m_Bits: 128
   detectedObjects: []
   previousDetectedObjects: []
---- !u!114 &1377124246796650101
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 6252520807053122715}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 475407362d7cb2449a91308e023042ab, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Objects::Objects.Camera.CameraVision
-  ShowTopMostFoldoutHeaderGroup: 1
-  visionSensor: {fileID: 1861191804149879818}
---- !u!114 &411051831112395948
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 6252520807053122715}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 8c59234c6eecd63459a65f1c983e35c5, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Components::Components.Health
-  ShowTopMostFoldoutHeaderGroup: 1
-  <MaxHealth>k__BackingField: 100
-  currentHealth:
-    UpdateTraits:
-      MinSecondsBetweenUpdates: 0
-      MaxSecondsBetweenUpdates: 0
-    m_InternalValue: 0
 --- !u!54 &3158690138509095668
 Rigidbody:
   m_ObjectHideFlags: 0

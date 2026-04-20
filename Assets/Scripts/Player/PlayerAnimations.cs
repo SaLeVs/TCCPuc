@@ -19,7 +19,7 @@ namespace Player
         private readonly int _interactHash = Animator.StringToHash("_interact");
         private readonly int _heldItemHash = Animator.StringToHash("_holdItem");
         
-        private readonly int _deadHash = Animator.StringToHash("_dead");
+        private readonly int _deadHash = Animator.StringToHash("_isDead");
         
         
         private float _targetMoveX;

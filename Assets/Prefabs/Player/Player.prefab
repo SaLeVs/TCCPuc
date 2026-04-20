@@ -436,7 +436,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Unity.Netcode.Runtime::Unity.Netcode.NetworkObject
-  GlobalObjectIdHash: 282796449
+  GlobalObjectIdHash: 3919488120
   InScenePlacedSourceGlobalObjectIdHash: 0
   DeferredDespawnTick: 0
   Ownership: 1
@@ -633,11 +633,12 @@ MonoBehaviour:
   playerState: {fileID: 315419889962386199}
   cinemachineCamera: {fileID: 6800444975667494322}
   cameraRoot: {fileID: 5036788259409135564}
+  deathCameraBone: {fileID: 6400761747528298933}
   cameraMoveSpeed: 10
   standingOffset: {x: 0, y: 1.3, z: 0.3}
   crouchOffset: {x: 0.2, y: 1, z: 0.3}
   runOffset: {x: 0, y: 1.3, z: 0.4}
-  deadOffset: {x: 0, y: 0, z: 0}
+  deadOffset: {x: -0.3, y: -0.5, z: 0.3}
 --- !u!114 &6388113009287079804
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -734,7 +735,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Components::Components.Health
   ShowTopMostFoldoutHeaderGroup: 1
-  <MaxHealth>k__BackingField: 100
+  <MaxHealth>k__BackingField: 30
   currentHealth:
     UpdateTraits:
       MinSecondsBetweenUpdates: 0
@@ -1417,6 +1418,10 @@ PrefabInstance:
       propertyPath: m_Controller
       value: 
       objectReference: {fileID: 9100000, guid: fa31e0d372d39fd4bbbef3ce97856df5, type: 2}
+    - target: {fileID: 5866666021909216657, guid: 1841c298173cdad4db8df8602c8f1c8d, type: 3}
+      propertyPath: m_WarningMessage
+      value: 
+      objectReference: {fileID: 0}
     - target: {fileID: 6379265584044378490, guid: 1841c298173cdad4db8df8602c8f1c8d, type: 3}
       propertyPath: m_LocalEulerAnglesHint.x
       value: -14.794567
@@ -1513,6 +1518,10 @@ MonoBehaviour:
       NameHash: -1191487845
       Synchronize: 1
       ParameterType: 4
+    - name: _isDead
+      NameHash: -1255425109
+      Synchronize: 1
+      ParameterType: 9
   AnimatorParametersExpanded: 0
 --- !u!4 &4011143355474172937 stripped
 Transform:

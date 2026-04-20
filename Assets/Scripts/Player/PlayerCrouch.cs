@@ -75,32 +75,31 @@ namespace Player
         {
             if (IsOwner && !_isDead)
             {
-                if (_isCrouching)
-                {
-                    _crouchState = true;
-                    CrouchCollider();
-                }
-                else if (_crouchState && IsCeilingBlocked())
-                {
-                    _crouchState = true;
-                    CrouchCollider();
-                }
-                else
-                {
-                    _crouchState = false;
-                    StandCollider();
-                }
-
-                if (_crouchState != _lastCrouchState)
-                {
-                    _lastCrouchState = _crouchState;
-                    OnCrouchEvent?.Invoke(_crouchState);
-                }
-
+                UpdateCrouch();
             }
 
         }
+        
+        private void UpdateCrouch()
+        {
+            _crouchState = _isCrouching || (_crouchState && IsCeilingBlocked());
 
+            if (_crouchState)
+            {
+                CrouchCollider();
+            }
+            else
+            {
+                StandCollider();
+            }
+
+            if (_crouchState != _lastCrouchState)
+            {
+                _lastCrouchState = _crouchState;
+                OnCrouchEvent?.Invoke(_crouchState);
+            }
+        }
+        
         private void CrouchCollider()
         {
             capsuleCollider.height = Mathf.Lerp(capsuleCollider.height, crouchHeight, crouchSpeed * Time.deltaTime);

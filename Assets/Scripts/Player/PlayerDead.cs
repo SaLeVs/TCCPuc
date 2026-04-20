@@ -13,7 +13,7 @@ namespace Player
 
         public bool IsDead => _isDead.Value;
         
-        private NetworkVariable<bool> _isDead;
+        private NetworkVariable<bool> _isDead = new NetworkVariable<bool>();
 
         
         public override void OnNetworkSpawn()

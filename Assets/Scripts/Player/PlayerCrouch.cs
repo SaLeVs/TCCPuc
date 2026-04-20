@@ -9,6 +9,8 @@ namespace Player
     public class PlayerCrouch : NetworkBehaviour, ISpeedModifier
     {
         public event Action<bool> OnCrouchEvent;
+        
+        [SerializeField] private PlayerState playerState;
         [SerializeField] private InputReader inputReader;
         [SerializeField] private CapsuleCollider capsuleCollider;
 
@@ -33,18 +35,36 @@ namespace Player
         private bool _crouchState;
         private bool _lastCrouchState;
 
+        private bool _isDead;
+
 
         public override void OnNetworkSpawn()
         {
             if (IsOwner)
             {
                 inputReader.OnCrouchEvent += InputReader_OnCrouchEvent;
+                playerState.OnPlayerDead += PlayerState_OnPlayerDead;
                 
                 _standColliderCenter = capsuleCollider.center;
                 _standHeight = capsuleCollider.height;
             }
 
         }
+        
+        private void PlayerState_OnPlayerDead(bool isDead)
+        {
+            _isDead = isDead;
+            
+            if (_isDead)
+            {
+                _isCrouching = false;
+                _crouchState = false;
+                _lastCrouchState = false;
+                StandCollider();
+                OnCrouchEvent?.Invoke(false);
+            }
+        }
+        
 
         private void InputReader_OnCrouchEvent(bool isCrouching)
         {
@@ -53,7 +73,7 @@ namespace Player
 
         private void Update()
         {
-            if (IsOwner)
+            if (IsOwner && !_isDead)
             {
                 if (_isCrouching)
                 {
@@ -107,7 +127,6 @@ namespace Player
 
         }
 
-
         private bool IsCeilingBlocked()
         {
             return Physics.Raycast(ceilingCheck.position, Vector3.up,ceilingCheckDistance, ceilingMask);
@@ -132,13 +151,14 @@ namespace Player
             Gizmos.DrawRay(ceilingCheck.position, Vector3.up * ceilingCheckDistance);
         }
 
+        
         public override void OnNetworkDespawn()
         {
             if (IsOwner)
             {
                 inputReader.OnCrouchEvent -= InputReader_OnCrouchEvent;
+                playerState.OnPlayerDead -= PlayerState_OnPlayerDead;
             }
-
         }
 
     }

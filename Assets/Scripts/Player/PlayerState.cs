@@ -19,7 +19,8 @@ namespace Player
         [SerializeField] private PlayerInventory playerInventory;
         [SerializeField] private PlayerInteractor playerInteractor;
         [SerializeField] private PlayerDead playerDead;
-        
+
+        public bool IsDead => playerDead.IsDead;
         
         public override void OnNetworkSpawn()
         {

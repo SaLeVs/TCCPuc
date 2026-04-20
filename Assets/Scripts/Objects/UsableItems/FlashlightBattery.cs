@@ -35,6 +35,11 @@ namespace Objects.UsableItems
 
         public bool CanUse(GameObject playerInteractor)
         {
+            if (playerInteractor.TryGetComponent(out PlayerState playerState))
+            {
+                return !playerState.IsDead;
+            }
+            
             return true;
         }
 

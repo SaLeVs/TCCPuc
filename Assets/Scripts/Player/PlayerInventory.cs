@@ -14,6 +14,7 @@ namespace Player
         public event Action<int, int> OnRemoveSlot;
         public event Action<int> OnSelectedSlotChanged;
         
+        [SerializeField] private PlayerState playerState;
         [SerializeField] private int maxInventorySize = 4;
         [SerializeField] private ItemListSO itemDatabase;
         [SerializeField] private InputReader inputReader;
@@ -28,6 +29,8 @@ namespace Player
         private int _currentSlotSelected;
         private int _currentItemId = -1;
         private NetworkObject _currentSpawnedItem;
+
+        private bool _isDead;
         
         
         public override void OnNetworkSpawn()
@@ -48,12 +51,17 @@ namespace Player
             if (IsOwner)
             {
                 inputReader.OnSlotEvent += InputReader_OnSlotEvent;
+                playerState.OnPlayerDead += PlayerState_OnPlayerDead;
             }
             
         }
 
+        
+
         private void InputReader_OnSlotEvent(int slotSelected)
         {
+            if(_isDead) return;
+            
             if (_currentSlotSelected != slotSelected)
             {
                 SelectSlot(slotSelected);
@@ -62,6 +70,17 @@ namespace Player
 
             DeselectSlot();
         }
+        
+        private void PlayerState_OnPlayerDead(bool isDead)
+        {
+            _isDead = isDead;
+
+            if (_isDead)
+            {
+                DeselectSlot(); 
+            }
+        }
+        
         
         private void SelectSlot(int slotSelected)
         {
@@ -269,6 +288,7 @@ namespace Player
             if (IsOwner)
             {
                 inputReader.OnSlotEvent -= InputReader_OnSlotEvent;
+                playerState.OnPlayerDead -= PlayerState_OnPlayerDead;
             }
         }
     }

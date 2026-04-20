@@ -15,10 +15,12 @@ namespace Player
         [SerializeField] private Vector3 standingOffset;
         [SerializeField] private Vector3 crouchOffset;
         [SerializeField] private Vector3 runOffset;
+        [SerializeField] private Vector3 deadOffset;
         
         private Vector3 _targetCameraOffset;
         private bool _isRunning;
         private bool _isCrouching;
+        private bool _isDead;
         
         
         public override void OnNetworkSpawn()
@@ -27,12 +29,13 @@ namespace Player
             {
                 playerState.OnRunEvent += PlayerState_OnRunEvent;
                 playerState.OnCrouchEvent += PlayerState_OnCrouchEvent;
+                playerState.OnPlayerDead += PlayerState_OnPlayerDead;
                 
                 _targetCameraOffset = standingOffset;
                 cameraRoot.localPosition = standingOffset;
             }
-            
         }
+        
 
         private void LateUpdate()
         {
@@ -54,22 +57,32 @@ namespace Player
             UpdateCameraOffset();
         }
         
+        private void PlayerState_OnPlayerDead(bool isDead)
+        {
+            _isDead = isDead;
+            UpdateCameraOffset();
+        }
+        
         private void UpdateCameraOffset()
         {
-            if (_isCrouching)
+            if (_isDead)
             {
-                _targetCameraOffset = crouchOffset;
+                _targetCameraOffset = deadOffset;
             }
             else if (_isRunning)
             {
                 _targetCameraOffset = runOffset;
             }
+            else if (_isCrouching)
+            {
+                _targetCameraOffset = crouchOffset;
+            }
             else
             {
                 _targetCameraOffset = standingOffset;
             }
-            
         }
+        
         
         public override void OnNetworkDespawn()
         {
@@ -77,6 +90,7 @@ namespace Player
             {
                 playerState.OnRunEvent -= PlayerState_OnRunEvent;
                 playerState.OnCrouchEvent -= PlayerState_OnCrouchEvent;
+                playerState.OnPlayerDead -= PlayerState_OnPlayerDead;
             }
         }
         

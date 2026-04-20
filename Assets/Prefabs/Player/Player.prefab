@@ -530,6 +530,7 @@ MonoBehaviour:
   playerCrouch: {fileID: 2747145024143162000}
   playerInventory: {fileID: 2227621069659648431}
   playerInteractor: {fileID: 7401217255654113804}
+  playerDead: {fileID: 3147938662615095034}
 --- !u!114 &1694504125787105123
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -543,6 +544,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Player::Player.PlayerMovement
   ShowTopMostFoldoutHeaderGroup: 1
+  playerState: {fileID: 315419889962386199}
   inputReader: {fileID: 11400000, guid: b8967103b22990e4685e914ae00843a6, type: 2}
   rb: {fileID: 3158690138509095668}
   orientation: {fileID: 847016756603283365}
@@ -632,6 +634,7 @@ MonoBehaviour:
   standingOffset: {x: 0, y: 1.3, z: 0.3}
   crouchOffset: {x: 0.2, y: 1, z: 0.3}
   runOffset: {x: 0, y: 1.3, z: 0.4}
+  deadOffset: {x: 0, y: 0, z: 0}
 --- !u!114 &6388113009287079804
 MonoBehaviour:
   m_ObjectHideFlags: 0

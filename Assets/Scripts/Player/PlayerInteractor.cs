@@ -20,6 +20,8 @@ namespace Player
         [SerializeField] private float checkInterval = 0.2f;
         [SerializeField] private LayerMask layerMask;
 
+        public IInteractable CurrentInteractable => _currentInteractable;
+        
         private float _checkTimer;
         private Ray _currentRay;
         

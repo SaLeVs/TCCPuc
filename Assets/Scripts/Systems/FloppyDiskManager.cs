@@ -54,7 +54,7 @@ namespace Systems
             {
                 _completedTotems++;
 
-                if (_completedTotems >= spawnPoints.Length)
+                if (_completedTotems >= totemCount)
                 {
                     OnAllDisksPlaced?.Invoke();
                     Debug.Log("All Disks Placed");

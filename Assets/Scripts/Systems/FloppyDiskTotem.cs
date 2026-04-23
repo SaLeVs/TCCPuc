@@ -47,6 +47,7 @@ namespace Systems
             if (IsComplete) return;
 
             _hasDisksInTotem.Value = true;
+            Debug.Log($"Place Disk Server: {_hasDisksInTotem.Value}");
             _floppyDiskManager.NotifyDiskPlaced(this);
         }
         

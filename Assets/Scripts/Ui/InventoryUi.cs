@@ -24,6 +24,7 @@ namespace UI
             {
                 inventory.OnSlotChanged += Inventory_OnSlotChanged;
                 inventory.OnSelectedSlotChanged += Inventory_OnSelectedSlotChanged;
+                
                 _maxInventorySize = inventory.MaxInventorySize;
                 CreateInventorySlots();
 

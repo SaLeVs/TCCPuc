@@ -1,6 +1,6 @@
 %YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
---- !u!1001 &242489891128695787
+--- !u!1001 &6724261456406634864
 PrefabInstance:
   m_ObjectHideFlags: 0
   serializedVersion: 2
@@ -14,11 +14,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 3206557893903330009, guid: 13ae32ee9253d894ba1a59dfb4865b69, type: 3}
       propertyPath: m_LocalScale.y
-      value: 0.05
+      value: 0.1
       objectReference: {fileID: 0}
     - target: {fileID: 3206557893903330009, guid: 13ae32ee9253d894ba1a59dfb4865b69, type: 3}
       propertyPath: m_LocalScale.z
-      value: 0.1
+      value: 0.35
       objectReference: {fileID: 0}
     - target: {fileID: 3206557893903330009, guid: 13ae32ee9253d894ba1a59dfb4865b69, type: 3}
       propertyPath: m_LocalPosition.x
@@ -62,37 +62,40 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4397857806281928981, guid: 13ae32ee9253d894ba1a59dfb4865b69, type: 3}
       propertyPath: GlobalObjectIdHash
-      value: 3363994933
+      value: 1838030375
       objectReference: {fileID: 0}
     - target: {fileID: 7562584035107514966, guid: 13ae32ee9253d894ba1a59dfb4865b69, type: 3}
       propertyPath: m_Name
-      value: FlashlightUsable
+      value: FloppyDiskUsable
       objectReference: {fileID: 0}
+    - target: {fileID: 7611962643462156629, guid: 13ae32ee9253d894ba1a59dfb4865b69, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 7c4c1feb6072e3a40a7a3067c73edfce, type: 2}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
     m_AddedComponents:
     - targetCorrespondingSourceObject: {fileID: 7562584035107514966, guid: 13ae32ee9253d894ba1a59dfb4865b69, type: 3}
       insertIndex: -1
-      addedObject: {fileID: 4289722601260015589}
+      addedObject: {fileID: 153433943568216505}
   m_SourcePrefab: {fileID: 100100000, guid: 13ae32ee9253d894ba1a59dfb4865b69, type: 3}
---- !u!1 &7759364994349068733 stripped
+--- !u!1 &3864882561375816486 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 7562584035107514966, guid: 13ae32ee9253d894ba1a59dfb4865b69, type: 3}
-  m_PrefabInstance: {fileID: 242489891128695787}
+  m_PrefabInstance: {fileID: 6724261456406634864}
   m_PrefabAsset: {fileID: 0}
---- !u!114 &4289722601260015589
+--- !u!114 &153433943568216505
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 7759364994349068733}
+  m_GameObject: {fileID: 3864882561375816486}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 85a97c6aea5db414dbca2dcce5770c9d, type: 3}
+  m_Script: {fileID: 11500000, guid: 8361a0365e6c42e69666cac2492dad48, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Objects::Objects.UsableItems.FlashlightBattery
+  m_EditorClassIdentifier: Objects::Objects.UsableItems.FloppyDisk
   ShowTopMostFoldoutHeaderGroup: 1
   inputReader: {fileID: 11400000, guid: b8967103b22990e4685e914ae00843a6, type: 2}
-  batteryPercentRecharge: 50

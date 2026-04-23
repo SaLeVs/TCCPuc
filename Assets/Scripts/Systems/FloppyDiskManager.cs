@@ -43,9 +43,8 @@ namespace Systems
                 if (totemObject.TryGetComponent(out FloppyDiskTotem floppyDiskTotem))
                 {
                     floppyDiskTotem.Initialize(diskObjectPrefab, this);
+                    _totems[i] = floppyDiskTotem;
                 }
-
-                _totems[i] = floppyDiskTotem;
             }
         }
         
@@ -58,6 +57,7 @@ namespace Systems
                 if (_completedTotems >= spawnPoints.Length)
                 {
                     OnAllDisksPlaced?.Invoke();
+                    Debug.Log("All Disks Placed");
                 }
             }
         }

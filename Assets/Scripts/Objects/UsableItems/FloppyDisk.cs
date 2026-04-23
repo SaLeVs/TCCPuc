@@ -39,11 +39,11 @@ namespace Objects.UsableItems
 
         public bool CanUse(GameObject playerInteractor)
         {
-            if (playerInteractor.TryGetComponent(out PlayerState playerState))
+            if (playerInteractor.TryGetComponent(out PlayerState playerState) && playerState.IsDead)
             {
-                return !playerState.IsDead;
+                return false;
             }
-
+            
             return _interactor?.CurrentInteractable is FloppyDiskTotem totem && !totem.IsComplete;
         }
 

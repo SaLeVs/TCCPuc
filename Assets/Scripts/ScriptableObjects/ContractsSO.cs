@@ -3,10 +3,10 @@ using UnityEngine;
 
 namespace ScriptableObjects
 {
-    [CreateAssetMenu(fileName = "New Mission", menuName = "ScriptableObjects/Game/Mission")]
-    public class MissionsSO : ScriptableObject
+    [CreateAssetMenu(fileName = "New Contract", menuName = "ScriptableObjects/Game/Contract")]
+    public class ContractsSO : ScriptableObject
     {
-        public string missionName;
+        public string contractName;
     
         public List<RoomDataSO> requiredRooms;
         public List<RoomDataSO> baseRooms;

@@ -371,6 +371,37 @@ MonoBehaviour:
   m_DefaultSpriteDPI: 96
   m_DynamicPixelsPerUnit: 1
   m_PresetInfoIsWorld: 0
+--- !u!1 &4199361639171934614
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 4901709329882476397}
+  m_Layer: 11
+  m_Name: DiskSpawnPoint
+  m_TagString: Untagged
+  m_Icon: {fileID: -5442936267250999957, guid: 0000000000000000d000000000000000, type: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &4901709329882476397
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4199361639171934614}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: -0.08, y: 0, z: 1.4}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1450085231864165735}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &6252520807053122715
 GameObject:
   m_ObjectHideFlags: 0
@@ -392,9 +423,11 @@ GameObject:
   - component: {fileID: 6388113009287079804}
   - component: {fileID: 2227621069659648431}
   - component: {fileID: 7401217255654113804}
-  - component: {fileID: 1861191804149879818}
   - component: {fileID: 1377124246796650101}
+  - component: {fileID: 3147938662615095034}
+  - component: {fileID: 6893754932152127621}
   - component: {fileID: 411051831112395948}
+  - component: {fileID: 1861191804149879818}
   - component: {fileID: 3158690138509095668}
   - component: {fileID: 2207057075489463036}
   m_Layer: 11
@@ -421,6 +454,7 @@ Transform:
   - {fileID: 5036788259409135564}
   - {fileID: 1504653218169054348}
   - {fileID: 3401048168953547627}
+  - {fileID: 4901709329882476397}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &2424994168039296882
@@ -529,6 +563,7 @@ MonoBehaviour:
   playerCrouch: {fileID: 2747145024143162000}
   playerInventory: {fileID: 2227621069659648431}
   playerInteractor: {fileID: 7401217255654113804}
+  playerDead: {fileID: 3147938662615095034}
 --- !u!114 &1694504125787105123
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -542,6 +577,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Player::Player.PlayerMovement
   ShowTopMostFoldoutHeaderGroup: 1
+  playerState: {fileID: 315419889962386199}
   inputReader: {fileID: 11400000, guid: b8967103b22990e4685e914ae00843a6, type: 2}
   rb: {fileID: 3158690138509095668}
   orientation: {fileID: 847016756603283365}
@@ -560,6 +596,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Player::PlayerStamina
   ShowTopMostFoldoutHeaderGroup: 1
+  playerState: {fileID: 315419889962386199}
   inputReader: {fileID: 11400000, guid: b8967103b22990e4685e914ae00843a6, type: 2}
   speedModifier: 2
   staminaMax: 50
@@ -579,6 +616,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Player::Player.PlayerCrouch
   ShowTopMostFoldoutHeaderGroup: 1
+  playerState: {fileID: 315419889962386199}
   inputReader: {fileID: 11400000, guid: b8967103b22990e4685e914ae00843a6, type: 2}
   capsuleCollider: {fileID: 2207057075489463036}
   speedModifier: 0.5
@@ -603,6 +641,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Player::PlayerCamera
   ShowTopMostFoldoutHeaderGroup: 1
+  playerState: {fileID: 315419889962386199}
   cinemachineCamera: {fileID: 6800444975667494322}
   cameraRoot: {fileID: 5036788259409135564}
   inputReader: {fileID: 11400000, guid: b8967103b22990e4685e914ae00843a6, type: 2}
@@ -627,10 +666,12 @@ MonoBehaviour:
   playerState: {fileID: 315419889962386199}
   cinemachineCamera: {fileID: 6800444975667494322}
   cameraRoot: {fileID: 5036788259409135564}
+  deathCameraBone: {fileID: 6400761747528298933}
   cameraMoveSpeed: 10
   standingOffset: {x: 0, y: 1.3, z: 0.3}
   crouchOffset: {x: 0.2, y: 1, z: 0.3}
   runOffset: {x: 0, y: 1.3, z: 0.4}
+  deadOffset: {x: -0.3, y: -0.5, z: 0.3}
 --- !u!114 &6388113009287079804
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -660,6 +701,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Player::Player.PlayerInventory
   ShowTopMostFoldoutHeaderGroup: 1
+  playerState: {fileID: 315419889962386199}
   maxInventorySize: 4
   itemDatabase: {fileID: 11400000, guid: 445d4ee483405c346880c081245fee23, type: 2}
   inputReader: {fileID: 11400000, guid: b8967103b22990e4685e914ae00843a6, type: 2}
@@ -677,13 +719,83 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Systems::Systems.Interactor
   ShowTopMostFoldoutHeaderGroup: 1
+  playerState: {fileID: 315419889962386199}
   inputReader: {fileID: 11400000, guid: b8967103b22990e4685e914ae00843a6, type: 2}
   playerView: {fileID: 5036788259409135564}
-  interactDistance: 10
+  interactDistance: 1
   checkInterval: 0.2
   layerMask:
     serializedVersion: 2
     m_Bits: 256
+--- !u!114 &1377124246796650101
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6252520807053122715}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 475407362d7cb2449a91308e023042ab, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Objects::Objects.Camera.CameraVision
+  ShowTopMostFoldoutHeaderGroup: 1
+  visionSensor: {fileID: 1861191804149879818}
+--- !u!114 &3147938662615095034
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6252520807053122715}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 60a5167ab4748c94b91fb16a49c38ef4, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Player::Player.PlayerDead
+  ShowTopMostFoldoutHeaderGroup: 1
+  playerHealth: {fileID: 411051831112395948}
+  deadLayer:
+    serializedVersion: 2
+    m_Bits: 4096
+  aliveLayer:
+    serializedVersion: 2
+    m_Bits: 2048
+--- !u!114 &6893754932152127621
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6252520807053122715}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fcc260f9cf2e5794c86aea63e72bb800, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Player::PlayerDiskSpawn
+  ShowTopMostFoldoutHeaderGroup: 1
+  diskPrefab: {fileID: 5671474131081167835, guid: 4ce62b7e69b707445b1a3f0a89b86fea, type: 3}
+  playerDead: {fileID: 3147938662615095034}
+  diskSpawnPoint: {fileID: 4901709329882476397}
+--- !u!114 &411051831112395948
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6252520807053122715}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8c59234c6eecd63459a65f1c983e35c5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Components::Components.Health
+  ShowTopMostFoldoutHeaderGroup: 1
+  <MaxHealth>k__BackingField: 30
+  currentHealth:
+    UpdateTraits:
+      MinSecondsBetweenUpdates: 0
+      MaxSecondsBetweenUpdates: 0
+    m_InternalValue: 0
 --- !u!114 &1861191804149879818
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -711,39 +823,6 @@ MonoBehaviour:
     m_Bits: 128
   detectedObjects: []
   previousDetectedObjects: []
---- !u!114 &1377124246796650101
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 6252520807053122715}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 475407362d7cb2449a91308e023042ab, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Objects::Objects.Camera.CameraVision
-  ShowTopMostFoldoutHeaderGroup: 1
-  visionSensor: {fileID: 1861191804149879818}
---- !u!114 &411051831112395948
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 6252520807053122715}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 8c59234c6eecd63459a65f1c983e35c5, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Components::Components.Health
-  ShowTopMostFoldoutHeaderGroup: 1
-  <MaxHealth>k__BackingField: 100
-  currentHealth:
-    UpdateTraits:
-      MinSecondsBetweenUpdates: 0
-      MaxSecondsBetweenUpdates: 0
-    m_InternalValue: 0
 --- !u!54 &3158690138509095668
 Rigidbody:
   m_ObjectHideFlags: 0
@@ -1394,6 +1473,10 @@ PrefabInstance:
       propertyPath: m_Controller
       value: 
       objectReference: {fileID: 9100000, guid: fa31e0d372d39fd4bbbef3ce97856df5, type: 2}
+    - target: {fileID: 5866666021909216657, guid: 1841c298173cdad4db8df8602c8f1c8d, type: 3}
+      propertyPath: m_WarningMessage
+      value: 
+      objectReference: {fileID: 0}
     - target: {fileID: 6379265584044378490, guid: 1841c298173cdad4db8df8602c8f1c8d, type: 3}
       propertyPath: m_LocalEulerAnglesHint.x
       value: -14.794567
@@ -1490,6 +1573,10 @@ MonoBehaviour:
       NameHash: -1191487845
       Synchronize: 1
       ParameterType: 4
+    - name: _isDead
+      NameHash: -1255425109
+      Synchronize: 1
+      ParameterType: 9
   AnimatorParametersExpanded: 0
 --- !u!4 &4011143355474172937 stripped
 Transform:

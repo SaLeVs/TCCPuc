@@ -11,13 +11,16 @@ namespace Player
         public event Action<bool> OnCrouchEvent;
         public event Action OnInteract;
         public event Action<int> OnHoldItem;
+        public event Action<bool> OnPlayerDead;
         
         [SerializeField] private PlayerMovement playerMovement;
         [SerializeField] private PlayerRun playerRun;
         [SerializeField] private PlayerCrouch playerCrouch;
         [SerializeField] private PlayerInventory playerInventory;
         [SerializeField] private PlayerInteractor playerInteractor;
-        
+        [SerializeField] private PlayerDead playerDead;
+
+        public bool IsDead => playerDead.IsDead;
         
         public override void OnNetworkSpawn()
         {
@@ -29,10 +32,11 @@ namespace Player
                 
                 playerInteractor.OnInteractRequested += PlayerInteractor_OnInteractRequested;
                 playerInventory.OnSelectedSlotChanged += PlayerInventory_OnSelectedSlotChanged;
+                
+                playerDead.OnDeathEvent += PlayerDead_OnDeathEvent;
             }
-            
         }
-        
+
 
         private void PlayerMovement_OnPlayerMovement(Vector2 playerVelocity)
         {
@@ -59,8 +63,10 @@ namespace Player
             OnHoldItem?.Invoke(slot);
         }
         
-        
-        
+        private void PlayerDead_OnDeathEvent(bool isDead)
+        {
+            OnPlayerDead?.Invoke(isDead);
+        }
         
         
         public override void OnNetworkDespawn()
@@ -73,8 +79,10 @@ namespace Player
                 
                 playerInteractor.OnInteractRequested -= PlayerInteractor_OnInteractRequested;
                 playerInventory.OnSelectedSlotChanged -= PlayerInventory_OnSelectedSlotChanged;
+                
+                playerDead.OnDeathEvent -= PlayerDead_OnDeathEvent;
             }
-            
         }
+        
     }
 }

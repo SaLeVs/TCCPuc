@@ -7,7 +7,7 @@ namespace Components
 {
     public class Health : NetworkBehaviour, IDamageable
     {
-        public Action<Health> OnDie;
+        public event Action<Health> OnDie;
         
         [field: SerializeField] public float MaxHealth {get; private set;}
         

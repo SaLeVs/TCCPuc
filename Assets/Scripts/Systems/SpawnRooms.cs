@@ -4,12 +4,13 @@ using Unity.AI;
 using Unity.AI.Navigation;
 using Unity.Netcode;
 using UnityEngine;
+using UnityEngine.Serialization;
 
 namespace Systems
 {
     public class SpawnRooms : NetworkBehaviour
     {
-        [SerializeField] private MissionsSO currentMission;
+        [FormerlySerializedAs("currentMission")] [SerializeField] private ContractsSO currentContract;
         [SerializeField] private Transform[] spawnPoints;
         [SerializeField] private NavMeshSurface navMeshSurface;
         
@@ -35,9 +36,9 @@ namespace Systems
 
         private void GenerateRooms()
         {
-            _generatedRooms.AddRange(currentMission.requiredRooms);
-            _generatedRooms.AddRange(currentMission.lootRooms);
-            _generatedRooms.AddRange(currentMission.baseRooms);
+            _generatedRooms.AddRange(currentContract.requiredRooms);
+            _generatedRooms.AddRange(currentContract.lootRooms);
+            _generatedRooms.AddRange(currentContract.baseRooms);
 
             if (_generatedRooms.Count > _totalRoomsToSpawn)
             {
@@ -46,7 +47,7 @@ namespace Systems
             
             while (_generatedRooms.Count < _totalRoomsToSpawn)
             {
-                RoomDataSO randomBaseRoom = GetRandomRoom(currentMission.baseRooms);
+                RoomDataSO randomBaseRoom = GetRandomRoom(currentContract.baseRooms);
                 _generatedRooms.Add(randomBaseRoom);
             }
 

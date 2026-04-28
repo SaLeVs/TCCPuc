@@ -11,6 +11,7 @@ namespace Player
         public event Action OnInteractRequested;
         
         [Header("References")]
+        [SerializeField] private PlayerState playerState;
         [SerializeField] private InputReader inputReader;
         [SerializeField] private Transform playerView;
 
@@ -19,6 +20,8 @@ namespace Player
         [SerializeField] private float checkInterval = 0.2f;
         [SerializeField] private LayerMask layerMask;
 
+        public IInteractable CurrentInteractable => _currentInteractable;
+        
         private float _checkTimer;
         private Ray _currentRay;
         
@@ -26,6 +29,8 @@ namespace Player
         
         private IInteractable _currentInteractable;
         private IHighlighted _currentHighlighted;
+
+        private bool _isDead;
         
         
         public override void OnNetworkSpawn()
@@ -33,10 +38,25 @@ namespace Player
             if (IsOwner)
             {
                 inputReader.OnInteractEvent += InputReader_OnInteractEvent;
+                playerState.OnPlayerDead += PlayerState_OnPlayerDead;
             }
         }
 
         
+        private void PlayerState_OnPlayerDead(bool isDead)
+        {
+            _isDead = isDead;
+    
+            if (_isDead)
+            {
+                _currentHighlighted?.Disable();
+                _currentHighlighted = null;
+                _currentInteractable = null;
+                _isPlayerHitInteractable = false;
+            }
+        }
+
+
         private void InputReader_OnInteractEvent()
         {
             Interact();
@@ -44,7 +64,7 @@ namespace Player
 
         private void Interact()
         {
-            if (_isPlayerHitInteractable)
+            if (_isPlayerHitInteractable && !_isDead)
             {
                 OnInteractRequested?.Invoke();
                 _currentInteractable.Interact(gameObject);
@@ -54,7 +74,7 @@ namespace Player
 
         private void Update()
         {
-            if(IsOwner)
+            if (IsOwner && !_isDead)
             {
                 _checkTimer += Time.deltaTime;
 
@@ -97,13 +117,16 @@ namespace Player
             return false;
         }
         
+        
         public override void OnNetworkDespawn()
         {
             if (IsOwner)
             {
                 inputReader.OnInteractEvent -= InputReader_OnInteractEvent;
+                playerState.OnPlayerDead -= PlayerState_OnPlayerDead;
             }
         }
+        
     }
 }
 

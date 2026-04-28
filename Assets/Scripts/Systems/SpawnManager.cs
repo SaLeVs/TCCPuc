@@ -61,7 +61,7 @@ namespace Systems
             if(player.TryGetComponent(out NetworkObject networkObject))
             {
                 networkObject.SpawnAsPlayerObject(clientId, destroyWithScene: true);
-                spawnPoint.ReadyTotem.AssignToPlayer(clientId);
+                spawnPoint.ReadyTotem.AssignToPlayer(clientId); 
                 StartCoroutine(ActivateTotemNextFrame(spawnPoint.ReadyTotem));
             }
             

@@ -10,15 +10,19 @@ namespace Player
         [SerializeField] private PlayerState playerState;
         [SerializeField] private CinemachineCamera cinemachineCamera;
         [SerializeField] private Transform cameraRoot;
+        [SerializeField] private Transform deathCameraBone;
         
         [SerializeField] private float cameraMoveSpeed = 10f;
         [SerializeField] private Vector3 standingOffset;
         [SerializeField] private Vector3 crouchOffset;
         [SerializeField] private Vector3 runOffset;
+        [SerializeField] private Vector3 deadOffset;
         
         private Vector3 _targetCameraOffset;
+        private Transform _originalParent;
         private bool _isRunning;
         private bool _isCrouching;
+        private bool _isDead;
         
         
         public override void OnNetworkSpawn()
@@ -27,12 +31,14 @@ namespace Player
             {
                 playerState.OnRunEvent += PlayerState_OnRunEvent;
                 playerState.OnCrouchEvent += PlayerState_OnCrouchEvent;
+                playerState.OnPlayerDead += PlayerState_OnPlayerDead;
                 
                 _targetCameraOffset = standingOffset;
                 cameraRoot.localPosition = standingOffset;
+                _originalParent = cameraRoot.parent;
             }
-            
         }
+        
 
         private void LateUpdate()
         {
@@ -54,22 +60,42 @@ namespace Player
             UpdateCameraOffset();
         }
         
+        private void PlayerState_OnPlayerDead(bool isDead)
+        {
+            _isDead = isDead;
+    
+            if (_isDead && deathCameraBone != null)
+            {
+                cameraRoot.SetParent(deathCameraBone, worldPositionStays: true);
+            }
+            else
+            {
+                cameraRoot.SetParent(_originalParent, worldPositionStays: true);
+            }
+    
+            UpdateCameraOffset();
+        }
+        
         private void UpdateCameraOffset()
         {
-            if (_isCrouching)
+            if (_isDead)
             {
-                _targetCameraOffset = crouchOffset;
+                _targetCameraOffset = deadOffset;
             }
             else if (_isRunning)
             {
                 _targetCameraOffset = runOffset;
             }
+            else if (_isCrouching)
+            {
+                _targetCameraOffset = crouchOffset;
+            }
             else
             {
                 _targetCameraOffset = standingOffset;
             }
-            
         }
+        
         
         public override void OnNetworkDespawn()
         {
@@ -77,6 +103,7 @@ namespace Player
             {
                 playerState.OnRunEvent -= PlayerState_OnRunEvent;
                 playerState.OnCrouchEvent -= PlayerState_OnCrouchEvent;
+                playerState.OnPlayerDead -= PlayerState_OnPlayerDead;
             }
         }
         

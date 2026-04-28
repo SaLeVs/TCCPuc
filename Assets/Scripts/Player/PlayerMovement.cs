@@ -11,6 +11,8 @@ namespace Player
     {
         public event Action<Vector2> OnPlayerMovement;
         
+        [SerializeField] private PlayerState playerState;
+        
         [SerializeField] private InputReader inputReader;
         [SerializeField] private Rigidbody rb;
         [SerializeField] private Transform orientation;
@@ -29,40 +31,47 @@ namespace Player
         
         private ISpeedModifier[] _speedModifiers;
         
+        private bool _isDead;
+        
         
         private void Awake()
         {
             SetupSpeedModifiers();
-            
         }
 
         private void SetupSpeedModifiers()
         {
             _speedModifiers = GetComponents<ISpeedModifier>();
         }
-
         
         public override void OnNetworkSpawn()
         {
             if (IsOwner)
             {
                 inputReader.OnMoveEvent += InputReader_OnMoveEvent;
-                
+                playerState.OnPlayerDead += PlayerState_OnPlayerDead;
             }
             
         }
         
         private void InputReader_OnMoveEvent(Vector2 movementInput) => _movementInput = movementInput;
         
-        
+        private void PlayerState_OnPlayerDead(bool isDead)
+        {
+            _isDead = isDead;
+            
+            if (isDead)
+            {
+                _movementInput = Vector2.zero;
+            }
+        }
         
         private void FixedUpdate()
         {
-            if (IsOwner)
+            if (IsOwner && !_isDead)
             {
                 Move();
             }
-            
         }
         
         
@@ -114,7 +123,6 @@ namespace Player
             }
 
             return finalSpeed;
-            
         }
         
         
@@ -123,8 +131,8 @@ namespace Player
             if (IsOwner)
             {
                 inputReader.OnMoveEvent -= InputReader_OnMoveEvent;
+                playerState.OnPlayerDead -= PlayerState_OnPlayerDead;
             }
-            
         }
         
     }

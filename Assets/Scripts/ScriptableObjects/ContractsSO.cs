@@ -18,23 +18,22 @@ namespace ScriptableObjects
         
         public List<RoomDataSO> GetAllRequiredRooms()
         {
-            List<RoomDataSO> rooms = new List<RoomDataSO>(requiredRooms);
-            
-            foreach (MissionSO mission in personalMissions)
-            {
-                foreach (int roomID in mission.requiredRoomIDs)
-                {
-                    RoomDataSO matchRoom = 
-                        requiredRooms.Find(roomData => roomData.roomID == roomID) ?? baseRooms.Find(roomData => roomData.roomID == roomID);
+            List<RoomDataSO> allRequiredRooms = new List<RoomDataSO>();
 
-                    if (matchRoom != null && !rooms.Contains(matchRoom))
-                    {
-                        rooms.Add(matchRoom);
-                    }
-                }
+            if (mainMission.requiredRoom != null)
+            {
+                allRequiredRooms.Add(mainMission.requiredRoom);
             }
 
-            return rooms;
+            foreach (MissionSO mission in personalMissions)
+            {
+                if (mission.requiredRoom != null)
+                {
+                    allRequiredRooms.Add(mission.requiredRoom); 
+                }
+            }
+            
+            return allRequiredRooms;
         }
         
         public MissionSO GetMissionByID(int id)

@@ -66,6 +66,7 @@ namespace Systems
         {
             MissionSO mission = currentContract.GetMissionByID(missionID);
             Debug.Log($"MissionManager: Mission received - {mission.missionName}");
+            Debug.Log($"MissionManager: Mission received - {mission.instructions}");
         }
         
         

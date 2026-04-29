@@ -8,12 +8,10 @@ namespace ScriptableObjects
     {
         public int missionID;
         
-        public int[] requiredRoomIDs;
-        
-        public MissionObjectiveType objectiveType;
-        
         public string missionName;
         public string instructions;
+        
+        public MissionObjectiveType objectiveType;
+        public RoomDataSO requiredRoom;
     }
-    
 }

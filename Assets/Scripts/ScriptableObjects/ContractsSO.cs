@@ -11,7 +11,6 @@ namespace ScriptableObjects
         public MissionSO mainMission;
         public List<MissionSO> personalMissions;
         
-        public List<RoomDataSO> requiredRooms;
         public List<RoomDataSO> baseRooms;
         public List<RoomDataSO> lootRooms;
         
@@ -19,11 +18,6 @@ namespace ScriptableObjects
         public List<RoomDataSO> GetAllRequiredRooms()
         {
             List<RoomDataSO> allRequiredRooms = new List<RoomDataSO>();
-
-            if (mainMission.requiredRoom != null)
-            {
-                allRequiredRooms.Add(mainMission.requiredRoom);
-            }
 
             foreach (MissionSO mission in personalMissions)
             {

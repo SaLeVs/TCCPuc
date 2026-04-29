@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using ScriptableObjects;
-using Unity.Collections;
 using Unity.Netcode;
 using UnityEngine;
 
@@ -11,68 +10,99 @@ namespace Systems
         [SerializeField] private ContractsSO currentContract;
         [SerializeField] private int individualMissionsPerPlayer;
         
-        private Dictionary<ulong, List<MissionSO>> _personalMissions = new();
-
+        private Dictionary<ulong, List<MissionSO>> _personalMissionsForPlayers = new Dictionary<ulong, List<MissionSO>>();
         
+        private readonly List<MissionSO> _allMissionsAtContract = new List<MissionSO>();
+        private IReadOnlyList<ulong> _playersInGame;
+        
+
         public override void OnNetworkSpawn()
         {
             if (IsServer)
             {
-                DistributePersonalMissions();
+                DistributeMissionsForPlayers();
             }
         }
 
-        private void DistributePersonalMissions()
+        private void DistributeMissionsForPlayers()
         {
-            List<MissionSO> personalMissionsList = new List<MissionSO>(currentContract.personalMissions);
-
-            if (personalMissionsList.Count == 0)
+            _allMissionsAtContract.Clear();
+            _allMissionsAtContract.AddRange(currentContract.personalMissions);
+            
+            _playersInGame = NetworkManager.Singleton.ConnectedClientsIds;
+            
+            if (!ValidateMissionPool()) return;
+            
+            ShuffleMissions();
+            AssignMissionsToAllPlayers();
+        }
+        
+        private bool ValidateMissionPool()
+        {
+            if (_allMissionsAtContract.Count == 0)
             {
                 Debug.LogError("MissionManager: None personal mission in contract.");
-                return;
+                return false;
             }
 
-            for (int i = personalMissionsList.Count - 1; i > 0; i--)
+            int missionsNeeded = _playersInGame.Count * individualMissionsPerPlayer;
+
+            if (_allMissionsAtContract.Count < missionsNeeded)
+            {
+                Debug.LogError(
+                    $"MissionManager: Insufficient personal missions ({currentContract.contractName}). Required: {missionsNeeded}, available: {_allMissionsAtContract.Count}"
+                    );
+                return false;
+            }
+
+            return true;
+        }
+        
+        private void ShuffleMissions()
+        {
+            for (int i = _allMissionsAtContract.Count - 1; i > 0; i--)
             {
                 int randomIndex = Random.Range(0, i + 1);
-                (personalMissionsList[i], personalMissionsList[randomIndex]) = (personalMissionsList[randomIndex], personalMissionsList[i]);
+                (_allMissionsAtContract[i], _allMissionsAtContract[randomIndex]) = (_allMissionsAtContract[randomIndex], _allMissionsAtContract[i]);
             }
-
-            IReadOnlyList<ulong> playersInGame = NetworkManager.Singleton.ConnectedClientsIds;
-            int missionListIndex = 0;
-
-            foreach (ulong clientId in playersInGame)
+        }
+        
+        private void AssignMissionsToAllPlayers()
+        {
+            foreach (ulong clientId in _playersInGame)
             {
-                List<MissionSO> missionsAssigned = new List<MissionSO>();
-
-                for (int i = 0; i < individualMissionsPerPlayer; i++)
-                {
-                    missionsAssigned.Add(personalMissionsList[missionListIndex % personalMissionsList.Count]);
-                    missionListIndex++;
-                }
-
-                _personalMissions[clientId] = missionsAssigned;
-
-                foreach (MissionSO mission in missionsAssigned)
-                {
-                    SendPersonalMissionRpc(mission.missionID, RpcTarget.Single(clientId, RpcTargetUse.Temp));
-                }
+                List<MissionSO> missionsAssigned = AssignMissionsToPlayer();
+                _personalMissionsForPlayers[clientId] = missionsAssigned;
+                SendMissionsToPlayer(clientId, missionsAssigned);
             }
-            
+        }
+
+        private List<MissionSO> AssignMissionsToPlayer()
+        {
+            List<MissionSO> missionAssigned = new List<MissionSO>();
+
+            for (int i = 0; i < individualMissionsPerPlayer; i++)
+            {
+                missionAssigned.Add(_allMissionsAtContract[0]);
+                _allMissionsAtContract.RemoveAt(0);
+            }
+
+            return missionAssigned;
+        }
+
+        private void SendMissionsToPlayer(ulong clientId, List<MissionSO> missions)
+        {
+            foreach (MissionSO mission in missions)
+            {
+                SendPersonalMissionRpc(mission.missionID, RpcTarget.Single(clientId, RpcTargetUse.Temp)); 
+            }
         }
 
         [Rpc(SendTo.SpecifiedInParams)]
         private void SendPersonalMissionRpc(int missionID, RpcParams rpcParams = default)
         {
             MissionSO mission = currentContract.GetMissionByID(missionID);
-            Debug.Log($"MissionManager: Mission received - {mission.missionName}");
-            Debug.Log($"MissionManager: Mission received - {mission.instructions}");
-        }
-        
-        
-        public void OnRoomsSpawned()
-        {
-            
+            Debug.Log($"MissionManager: Mission received: {mission.missionName} - {mission.instructions}");
         }
         
     }

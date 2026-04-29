@@ -10,6 +10,8 @@ namespace Systems
         [SerializeField] private ContractsSO currentContract;
         [SerializeField] private int individualMissionsPerPlayer;
         
+        public ContractsSO CurrentContract => currentContract;
+        
         private Dictionary<ulong, List<MissionSO>> _personalMissionsForPlayers = new Dictionary<ulong, List<MissionSO>>();
         
         private readonly List<MissionSO> _allMissionsAtContract = new List<MissionSO>();
@@ -103,6 +105,11 @@ namespace Systems
         {
             MissionSO mission = currentContract.GetMissionByID(missionID);
             Debug.Log($"MissionManager: Mission received: {mission.missionName} - {mission.instructions}");
+        }
+
+        public void OnRoomsSpawned()
+        {
+            Debug.Log("MissionManager: OnRoomsSpawned");
         }
         
     }

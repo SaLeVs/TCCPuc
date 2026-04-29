@@ -9,89 +9,123 @@ using UnityEngine.Serialization;
 namespace Systems
 {
     public class SpawnRooms : NetworkBehaviour
-    {
-        [FormerlySerializedAs("currentMission")] [SerializeField] private ContractsSO currentContract;
+    { 
+        [SerializeField] private MissionManager missionManager;
+        
         [SerializeField] private Transform[] spawnPoints;
         [SerializeField] private NavMeshSurface navMeshSurface;
         
-        private List<RoomDataSO> _generatedRooms = new List<RoomDataSO>();
-
-        private int _totalRoomsToSpawn;
-        private int _requiredRooms;
-        private int _lootRooms;
-        private int _baseRooms;
         
-        private int _remainingRoomsToSpawn;
+        private ContractsSO _currentContract;
+        private List<RoomDataSO> _roomsToSpawn = new List<RoomDataSO>();
+        private int _totalSpawnPoints;
+        private int _remainingSlots;
 
         
         public override void OnNetworkSpawn()
         {
-            if (IsServer)
-            {
-                _totalRoomsToSpawn = spawnPoints.Length;
-                GenerateRooms();
-            }
-            
+            if (!IsServer) return;
+
+            _currentContract = missionManager.CurrentContract;
+            _totalSpawnPoints = spawnPoints.Length;
+
+            GenerateRooms();
         }
 
         private void GenerateRooms()
         {
-            _generatedRooms.AddRange(currentContract.requiredRooms);
-            _generatedRooms.AddRange(currentContract.lootRooms);
-            _generatedRooms.AddRange(currentContract.baseRooms);
+            if (!BuildRoomList()) return;
 
-            if (_generatedRooms.Count > _totalRoomsToSpawn)
-            {
-                _generatedRooms = _generatedRooms.GetRange(0, _totalRoomsToSpawn);
-            }
-            
-            while (_generatedRooms.Count < _totalRoomsToSpawn)
-            {
-                RoomDataSO randomBaseRoom = GetRandomRoom(currentContract.baseRooms);
-                _generatedRooms.Add(randomBaseRoom);
-            }
-
-            RandomizeRoomsSpawns();
-            SpawnRoom();
+            ShuffleRooms();
+            SpawnAllRooms();
+            missionManager.OnRoomsSpawned();
             RebuildNavMeshRpc();
         }
 
+        private bool BuildRoomList()
+        {
+            List<RoomDataSO> requiredRooms = _currentContract.GetAllRequiredRooms();
+
+            if (requiredRooms.Count > _totalSpawnPoints)
+            {
+                Debug.LogError($"SpawnRooms: Required rooms number ({requiredRooms.Count}) is bigger than SpawnPoints ({_totalSpawnPoints}).");
+                return false;
+            }
+
+            _roomsToSpawn.AddRange(requiredRooms);
+
+            _remainingSlots = _totalSpawnPoints - _roomsToSpawn.Count;
+
+            FillWithLootRooms();
+            FillWithBaseRooms();
+
+            if (_remainingSlots > 0)
+            {
+                Debug.LogWarning($"SpawnRooms: {_remainingSlots} SpawnPoints without rooms, add more rooms in contract {_currentContract.contractName}");
+            }
+            
+            return true;
+        }
         
+        private void FillWithLootRooms()
+        {
+            foreach (RoomDataSO room in _currentContract.lootRooms)
+            {
+                if (_remainingSlots <= 0) break;
+                if (room.isUniqueRoom && _roomsToSpawn.Contains(room)) continue;
+
+                _roomsToSpawn.Add(room);
+                _remainingSlots--;
+            }
+        }
+        private void FillWithBaseRooms()
+        {
+            int attempts = 0;
+            int maxAttempts = _currentContract.baseRooms.Count * 2;
+
+            while (_remainingSlots > 0)
+            {
+                if (attempts++ > maxAttempts)
+                {
+                    Debug.LogWarning("SpawnRoom: No base rooms available.");
+                    break;
+                }
+
+                RoomDataSO room = GetRandomRoom(_currentContract.baseRooms);
+                if (room.isUniqueRoom && _roomsToSpawn.Contains(room)) continue;
+
+                _roomsToSpawn.Add(room);
+                _remainingSlots--;
+            }
+        }
+        private void ShuffleRooms()
+        {
+            for (int i = _roomsToSpawn.Count - 1; i > 0; i--)
+            {
+                int randomIndex = Random.Range(0, i + 1);
+                (_roomsToSpawn[i], _roomsToSpawn[randomIndex]) = (_roomsToSpawn[randomIndex], _roomsToSpawn[i]);
+            }
+        }
+
         
+        private void SpawnAllRooms()
+        {
+            for (int i = 0; i < _roomsToSpawn.Count; i++)
+            {
+                GameObject roomObject = Instantiate(_roomsToSpawn[i].prefab, spawnPoints[i].position, spawnPoints[i].rotation);
+
+                if (roomObject.TryGetComponent(out NetworkObject networkObject))
+                {
+                    networkObject.Spawn(); 
+                }
+            }
+        }
+
         private RoomDataSO GetRandomRoom(List<RoomDataSO> pool)
         {
             return pool[Random.Range(0, pool.Count)];
         }
 
-        private void RandomizeRoomsSpawns()
-        {
-            for (int i = 0; i < _generatedRooms.Count; i++)
-            {
-                int randomIndex = Random.Range(i, _generatedRooms.Count);
-                
-                // Randomize rooms spawns with Fisher-Yates shuffle
-                (_generatedRooms[i], _generatedRooms[randomIndex]) = (_generatedRooms[randomIndex], _generatedRooms[i]);
-            }
-            
-        }
-
-        private void SpawnRoom()
-        {
-            for (int i = 0; i < _generatedRooms.Count; i++)
-            {
-                RoomDataSO roomData = _generatedRooms[i];
-                Transform spawnPoint = spawnPoints[i];
-
-                GameObject roomObject = Instantiate(roomData.prefab, spawnPoint.position, spawnPoint.rotation);
-
-                if (roomObject.TryGetComponent(out NetworkObject networkObject))
-                {
-                    networkObject.Spawn();
-                }
-            }
-            
-        }
-        
         [Rpc(SendTo.ClientsAndHost)]
         private void RebuildNavMeshRpc()
         {

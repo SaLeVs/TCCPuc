@@ -48,52 +48,59 @@ namespace Systems
 
             if (requiredRooms.Count > _totalSpawnPoints)
             {
-                Debug.LogError($"SpawnRooms: Required rooms number ({requiredRooms.Count}) is bigger than SpawnPoints ({_totalSpawnPoints}).");
+                Debug.LogError($"SpawnRooms: Required rooms ({requiredRooms.Count}) exceeds SpawnPoints ({_totalSpawnPoints}).");
                 return false;
             }
 
             _roomsToSpawn.AddRange(requiredRooms);
-
             _remainingSlots = _totalSpawnPoints - _roomsToSpawn.Count;
 
             FillWithLootRooms();
-            FillWithBaseRooms();
+            FillWithUniqueBaseRooms();
+            FillWithRandomBaseRooms();
 
             if (_remainingSlots > 0)
-            {
-                Debug.LogWarning($"SpawnRooms: {_remainingSlots} SpawnPoints without rooms, add more rooms in contract {_currentContract.contractName}");
-            }
-            
+                Debug.LogWarning($"SpawnRooms: {_remainingSlots} SpawnPoints without rooms in contract {_currentContract.contractName}.");
+
             return true;
         }
-        
+
         private void FillWithLootRooms()
         {
             foreach (RoomDataSO room in _currentContract.lootRooms)
             {
                 if (_remainingSlots <= 0) break;
-                if (room.isUniqueRoom && _roomsToSpawn.Contains(room)) continue;
 
                 _roomsToSpawn.Add(room);
                 _remainingSlots--;
             }
         }
-        private void FillWithBaseRooms()
+
+        private void FillWithUniqueBaseRooms()
         {
-            int attempts = 0;
-            int maxAttempts = _currentContract.baseRooms.Count * 2;
+            foreach (RoomDataSO room in _currentContract.baseRooms)
+            {
+                if (_remainingSlots <= 0) break;
+                if (!room.isUniqueRoom) continue;
+
+                _roomsToSpawn.Add(room);
+                _remainingSlots--;
+            }
+        }
+
+        private void FillWithRandomBaseRooms()
+        {
+            List<RoomDataSO> nonUniqueBaseRooms = _currentContract.baseRooms.FindAll(room => !room.isUniqueRoom);
+
+            if (nonUniqueBaseRooms.Count == 0)
+            {
+                Debug.LogWarning("SpawnRooms: No non-unique base rooms available.");
+                return;
+            }
 
             while (_remainingSlots > 0)
             {
-                if (attempts++ > maxAttempts)
-                {
-                    Debug.LogWarning("SpawnRoom: No base rooms available.");
-                    break;
-                }
-
-                RoomDataSO room = GetRandomRoom(_currentContract.baseRooms);
-                if (room.isUniqueRoom && _roomsToSpawn.Contains(room)) continue;
-
+                RoomDataSO room = GetRandomRoom(nonUniqueBaseRooms);
                 _roomsToSpawn.Add(room);
                 _remainingSlots--;
             }

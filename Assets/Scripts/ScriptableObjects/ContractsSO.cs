@@ -36,6 +36,12 @@ namespace ScriptableObjects
 
             return rooms;
         }
+        
+        public MissionSO GetMissionByID(int id)
+        {
+            return personalMissions.Find(missionSo => missionSo.missionID == id);
+        }
+        
     }
 }
 

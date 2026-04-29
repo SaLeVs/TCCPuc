@@ -6,6 +6,8 @@ namespace ScriptableObjects
     [CreateAssetMenu(fileName = "New Mission", menuName = "ScriptableObjects/Game/Mission")]
     public class MissionSO : ScriptableObject
     {
+        public int missionID;
+        
         public int[] requiredRoomIDs;
         
         public MissionObjectiveType objectiveType;

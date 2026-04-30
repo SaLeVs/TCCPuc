@@ -109,8 +109,29 @@ namespace Systems
 
         public void OnRoomsSpawned()
         {
-            Debug.Log("MissionManager: OnRoomsSpawned");
+            if (!IsServer) return;
+
+            AssignInteractableOwners();
         }
-        
+
+        private void AssignInteractableOwners()
+        {
+            MissionOwnershipSelector[] missionObjects = FindObjectsByType<MissionOwnershipSelector>(FindObjectsSortMode.None);
+
+            foreach (ulong clientId in _personalMissionsForPlayers.Keys)
+            {
+                foreach (MissionSO mission in _personalMissionsForPlayers[clientId])
+                {
+                    foreach (MissionOwnershipSelector selector in missionObjects)
+                    {
+                        if (selector.Mission == mission)
+                        {
+                            selector.AssignOwner(clientId);
+                        }
+                    }
+                }
+            }
+        }
+
     }
 }

@@ -2592,6 +2592,7 @@ GameObject:
   m_Component:
   - component: {fileID: 4609640169079164357}
   - component: {fileID: 3103156624186781998}
+  - component: {fileID: 3348400603211878541}
   m_Layer: 0
   m_Name: MissionRoom
   m_TagString: Untagged
@@ -2645,6 +2646,20 @@ MonoBehaviour:
   AutoObjectParentSync: 1
   SyncOwnerTransformWhenParented: 1
   AllowOwnerToParent: 0
+--- !u!114 &3348400603211878541
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5528375855920179126}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2d9ded4d07982524bbc3bc8a50f8edb0, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Systems::Systems.MissionOwnershipSelector
+  ShowTopMostFoldoutHeaderGroup: 1
+  mission: {fileID: 11400000, guid: f3d117ab9cc3df144a89898f1eb23f4d, type: 2}
 --- !u!1 &7571543151276031664
 GameObject:
   m_ObjectHideFlags: 0

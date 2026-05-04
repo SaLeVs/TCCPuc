@@ -1,10 +1,11 @@
 using System.Collections.Generic;
+using Missions;
+using Missions.PersonalMissions;
 using ScriptableObjects;
-using Unity.AI;
 using Unity.AI.Navigation;
 using Unity.Netcode;
 using UnityEngine;
-using UnityEngine.Serialization;
+
 
 namespace Systems
 {
@@ -123,17 +124,17 @@ namespace Systems
                 RoomDataSO roomData = _roomsToSpawn[i];
 
                 GameObject roomObject = Instantiate(roomData.prefab, spawnPoint.position, spawnPoint.rotation);
+                MissionOwnershipSelector selector = roomObject.GetComponent<MissionOwnershipSelector>();
 
                 if (roomObject.TryGetComponent(out NetworkObject networkObject))
                 {
                     networkObject.Spawn(); 
                 }
-                Debug.Log("SpawnRooms: Spawned rooms");
-                SpawnNetworkEntries(roomData, spawnPoint);
+                SpawnNetworkEntries(roomData, spawnPoint, selector);
             }
         }
         
-        private void SpawnNetworkEntries(RoomDataSO roomData, Transform spawnPoint)
+        private void SpawnNetworkEntries(RoomDataSO roomData, Transform spawnPoint, MissionOwnershipSelector selector)
         {
             foreach (NetworkSpawnEntry entry in roomData.networkSpawnEntries)
             {
@@ -141,8 +142,13 @@ namespace Systems
 
                 Vector3 worldPos = spawnPoint.TransformPoint(entry.localOffset);
                 Quaternion worldRot = spawnPoint.rotation * Quaternion.Euler(entry.localRotation);
-
+                
                 GameObject spawned = Instantiate(entry.prefab, worldPos, worldRot);
+                
+                if (spawned.TryGetComponent(out MissionTotem totem))
+                {
+                    totem.SetOwnershipSelector(selector);
+                }
 
                 if (spawned.TryGetComponent(out NetworkObject netObj))
                 {

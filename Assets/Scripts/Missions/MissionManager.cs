@@ -1,9 +1,10 @@
 using System.Collections.Generic;
+using Missions.PersonalMissions;
 using ScriptableObjects;
 using Unity.Netcode;
 using UnityEngine;
 
-namespace Systems
+namespace Missions
 {
     public class MissionManager : NetworkBehaviour
     {

@@ -2,6 +2,7 @@ using Inputs;
 using Interfaces;
 using Missions.PersonalMissions;
 using Player;
+using ScriptableObjects;
 using Unity.Netcode;
 using UnityEngine;
 
@@ -10,28 +11,31 @@ namespace Objects.UsableItems
     public class MissionPlaceable : NetworkBehaviour, IUsable
     {
         [SerializeField] private InputReader inputReader;
-
+        [SerializeField] private ItemDataSO itemData;
+        
+        private GameObject _playerInteractor;
         private PlayerInteractor _interactor;
-        private GameObject _playerGameObject;
-
+        
         public override void OnNetworkSpawn()
         {
-            if (!IsOwner) return;
+            if (IsOwner)
+            {
+                inputReader.OnUseEvent += InputReader_OnUseEvent;
 
-            inputReader.OnUseEvent += InputReader_OnUseEvent;
+                NetworkObject playerNetworkObject = NetworkManager.Singleton.SpawnManager.GetPlayerNetworkObject(OwnerClientId);
 
-            NetworkObject playerNetworkObject = NetworkManager.Singleton.SpawnManager.GetPlayerNetworkObject(OwnerClientId);
-
-            if (playerNetworkObject == null) return;
-
-            _playerGameObject = playerNetworkObject.gameObject;
-            _playerGameObject.TryGetComponent(out _interactor);
+                if (playerNetworkObject != null)
+                {
+                    _playerInteractor = playerNetworkObject.gameObject;
+                    if (_playerInteractor.TryGetComponent(out _interactor)) ;
+                }
+            }
         }
 
         private void InputReader_OnUseEvent()
         {
-            Use(_playerGameObject);
-        }
+            Use(_playerInteractor);
+        } 
 
         public bool CanUse(GameObject playerInteractor)
         {
@@ -57,6 +61,13 @@ namespace Objects.UsableItems
             if (!NetworkManager.Singleton.SpawnManager.SpawnedObjects.TryGetValue(totemNetworkId, out NetworkObject netObj)) return;
             if (!netObj.TryGetComponent(out MissionTotem totem)) return;
             
+            if (totem.TryDeposit(OwnerClientId, itemData.itemId))
+            {
+                if (_playerInteractor.TryGetComponent(out PlayerInventory inventory))
+                {
+                    inventory.TryRemoveItemServer();
+                }
+            }
         }
 
         public override void OnNetworkDespawn()
@@ -64,7 +75,7 @@ namespace Objects.UsableItems
             if (!IsOwner) return;
 
             inputReader.OnUseEvent -= InputReader_OnUseEvent;
-            _playerGameObject = null;
+            _playerInteractor = null;
             _interactor = null;
         }
     }

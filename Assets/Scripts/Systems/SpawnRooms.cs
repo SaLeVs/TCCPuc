@@ -119,11 +119,35 @@ namespace Systems
         {
             for (int i = 0; i < _roomsToSpawn.Count; i++)
             {
-                GameObject roomObject = Instantiate(_roomsToSpawn[i].prefab, spawnPoints[i].position, spawnPoints[i].rotation);
+                Transform spawnPoint = spawnPoints[i];
+                RoomDataSO roomData = _roomsToSpawn[i];
+
+                GameObject roomObject = Instantiate(roomData.prefab, spawnPoint.position, spawnPoint.rotation);
 
                 if (roomObject.TryGetComponent(out NetworkObject networkObject))
                 {
                     networkObject.Spawn(); 
+                }
+                Debug.Log("SpawnRooms: Spawned rooms");
+                SpawnNetworkEntries(roomData, spawnPoint);
+            }
+        }
+        
+        private void SpawnNetworkEntries(RoomDataSO roomData, Transform spawnPoint)
+        {
+            foreach (NetworkSpawnEntry entry in roomData.networkSpawnEntries)
+            {
+                if (entry.prefab == null) continue;
+
+                Vector3 worldPos = spawnPoint.TransformPoint(entry.localOffset);
+                Quaternion worldRot = spawnPoint.rotation * Quaternion.Euler(entry.localRotation);
+
+                GameObject spawned = Instantiate(entry.prefab, worldPos, worldRot);
+
+                if (spawned.TryGetComponent(out NetworkObject netObj))
+                {
+                    netObj.Spawn();
+                    Debug.Log($"SpawnRooms: Spawned network entry {entry.prefab.name} in room {roomData.roomID}");
                 }
             }
         }

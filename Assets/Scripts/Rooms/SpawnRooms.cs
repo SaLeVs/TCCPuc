@@ -7,7 +7,7 @@ using Unity.Netcode;
 using UnityEngine;
 
 
-namespace Systems
+namespace Rooms
 {
     public class SpawnRooms : NetworkBehaviour
     { 

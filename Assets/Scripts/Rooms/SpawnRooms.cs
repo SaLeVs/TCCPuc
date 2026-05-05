@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using Missions;
-using Missions.PersonalMissions;
 using ScriptableObjects;
 using Unity.AI.Navigation;
 using Unity.Netcode;
@@ -47,9 +46,8 @@ namespace Rooms
         {
             List<RoomDataSO> requiredRooms = _currentContract.GetAllRequiredRooms();
 
-            if (requiredRooms.Count > _totalSpawnPoints)
+            if (requiredRooms.Count > _totalSpawnPoints) 
             {
-                Debug.LogError($"SpawnRooms: Required rooms ({requiredRooms.Count}) exceeds SpawnPoints ({_totalSpawnPoints}).");
                 return false;
             }
 
@@ -59,9 +57,6 @@ namespace Rooms
             FillWithLootRooms();
             FillWithUniqueBaseRooms();
             FillWithRandomBaseRooms();
-
-            if (_remainingSlots > 0)
-                Debug.LogWarning($"SpawnRooms: {_remainingSlots} SpawnPoints without rooms in contract {_currentContract.contractName}.");
 
             return true;
         }
@@ -93,11 +88,7 @@ namespace Rooms
         {
             List<RoomDataSO> nonUniqueBaseRooms = _currentContract.baseRooms.FindAll(room => !room.isUniqueRoom);
 
-            if (nonUniqueBaseRooms.Count == 0)
-            {
-                Debug.LogWarning("SpawnRooms: No non-unique base rooms available.");
-                return;
-            }
+            if (nonUniqueBaseRooms.Count == 0) return;
 
             while (_remainingSlots > 0)
             {
@@ -114,7 +105,6 @@ namespace Rooms
                 (_roomsToSpawn[i], _roomsToSpawn[randomIndex]) = (_roomsToSpawn[randomIndex], _roomsToSpawn[i]);
             }
         }
-
         
         private void SpawnAllRooms()
         {
@@ -124,17 +114,15 @@ namespace Rooms
                 RoomDataSO roomData = _roomsToSpawn[i];
 
                 GameObject roomObject = Instantiate(roomData.prefab, spawnPoint.position, spawnPoint.rotation);
-                MissionOwnershipSelector selector = roomObject.GetComponent<MissionOwnershipSelector>();
 
                 if (roomObject.TryGetComponent(out NetworkObject networkObject))
-                {
-                    networkObject.Spawn(); 
-                }
-                SpawnNetworkEntries(roomData, spawnPoint, selector);
+                    networkObject.Spawn();
+
+                SpawnNetworkEntries(roomData, spawnPoint); 
             }
         }
-        
-        private void SpawnNetworkEntries(RoomDataSO roomData, Transform spawnPoint, MissionOwnershipSelector selector)
+
+        private void SpawnNetworkEntries(RoomDataSO roomData, Transform spawnPoint)
         {
             foreach (NetworkSpawnEntry entry in roomData.networkSpawnEntries)
             {
@@ -142,18 +130,12 @@ namespace Rooms
 
                 Vector3 worldPos = spawnPoint.TransformPoint(entry.localOffset);
                 Quaternion worldRot = spawnPoint.rotation * Quaternion.Euler(entry.localRotation);
-                
+
                 GameObject spawned = Instantiate(entry.prefab, worldPos, worldRot);
-                
-                if (spawned.TryGetComponent(out MissionTotem totem))
-                {
-                    totem.SetOwnershipSelector(selector);
-                }
 
                 if (spawned.TryGetComponent(out NetworkObject netObj))
                 {
                     netObj.Spawn();
-                    Debug.Log($"SpawnRooms: Spawned network entry {entry.prefab.name} in room {roomData.roomID}");
                 }
             }
         }

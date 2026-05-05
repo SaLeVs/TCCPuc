@@ -12,6 +12,7 @@ GameObject:
   - component: {fileID: 6963309155124286682}
   - component: {fileID: 1698157630344582870}
   - component: {fileID: 7800152998079439562}
+  - component: {fileID: 6274050057357208858}
   - component: {fileID: 4304839754335802677}
   m_Layer: 8
   m_Name: FloppyDiskTotem
@@ -89,6 +90,20 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Components::Highlight
   outline: {fileID: 4845611633394545565}
+--- !u!114 &6274050057357208858
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3124036782999661196}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2d9ded4d07982524bbc3bc8a50f8edb0, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Missions::Missions.PersonalMissions.MissionOwnershipSelector
+  ShowTopMostFoldoutHeaderGroup: 1
+  mission: {fileID: 11400000, guid: f3d117ab9cc3df144a89898f1eb23f4d, type: 2}
 --- !u!65 &4304839754335802677
 BoxCollider:
   m_ObjectHideFlags: 0

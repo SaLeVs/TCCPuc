@@ -42,11 +42,7 @@ namespace Missions
         
         private bool ValidateMissionPool()
         {
-            if (_allMissionsAtContract.Count == 0)
-            {
-                Debug.LogError("MissionManager: None personal mission in contract.");
-                return false;
-            }
+            if (_allMissionsAtContract.Count == 0) return false;
 
             int missionsNeeded = _playersInGame.Count * individualMissionsPerPlayer;
 
@@ -117,17 +113,17 @@ namespace Missions
 
         private void AssignInteractableOwners()
         {
-            MissionOwnershipSelector[] missionObjects = FindObjectsByType<MissionOwnershipSelector>(FindObjectsSortMode.None);
+            MissionOwnershipSelector[] selectors = FindObjectsByType<MissionOwnershipSelector>(FindObjectsSortMode.None);
 
             foreach (ulong clientId in _personalMissionsForPlayers.Keys)
             {
                 foreach (MissionSO mission in _personalMissionsForPlayers[clientId])
                 {
-                    foreach (MissionOwnershipSelector selector in missionObjects)
+                    foreach (MissionOwnershipSelector selector in selectors)
                     {
                         if (selector.Mission == mission)
                         {
-                            selector.AssignOwner(clientId);
+                            selector.AssignOwner(clientId); ;
                         }
                     }
                 }

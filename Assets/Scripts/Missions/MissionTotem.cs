@@ -37,6 +37,7 @@ namespace Missions.PersonalMissions
 
             _isComplete.Value = true;
             NotifyMissionCompletedRpc();
+            NotifyOwnerMissionCompletedRpc(RpcTarget.Single(clientId, RpcTargetUse.Temp));
             return true;
         }
 
@@ -45,6 +46,17 @@ namespace Missions.PersonalMissions
         {
             SpawnVisualInTotem();
             Debug.Log("MissionTotem: Mission completed!");
+        }
+        
+        [Rpc(SendTo.SpecifiedInParams)]
+        private void NotifyOwnerMissionCompletedRpc(RpcParams rpcParams = default)
+        {
+            NetworkObject playerNetObj = NetworkManager.Singleton.SpawnManager.GetPlayerNetworkObject(NetworkManager.Singleton.LocalClientId);
+
+            if (playerNetObj.TryGetComponent(out PlayerMissionHolder missionHolder))
+            {
+                missionHolder.CompletePersonalMission(ownershipSelector.Mission);
+            }
         }
 
         private void SpawnVisualInTotem()

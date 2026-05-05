@@ -101,7 +101,12 @@ namespace Missions
         private void SendPersonalMissionRpc(int missionID, RpcParams rpcParams = default)
         {
             MissionSO mission = currentContract.GetMissionByID(missionID);
-            Debug.Log($"MissionManager: Mission received: {mission.missionName} - {mission.instructions}");
+            NetworkObject playerNetObj = NetworkManager.Singleton.SpawnManager.GetPlayerNetworkObject(NetworkManager.Singleton.LocalClientId);
+
+            if (playerNetObj.TryGetComponent(out PlayerMissionHolder missionHolder))
+            {
+                missionHolder.ReceivePersonalMission(mission);
+            }
         }
 
         public void OnRoomsSpawned()

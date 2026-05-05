@@ -18,13 +18,33 @@ namespace Missions
         private readonly List<MissionSO> _allMissionsAtContract = new List<MissionSO>();
         private IReadOnlyList<ulong> _playersInGame;
         
-
+        private int _completedPersonalMissions;
+        private int _totalPersonalMissions;
+        
+        
         public override void OnNetworkSpawn()
         {
             if (IsServer)
             {
+                MissionCompleter.OnMissionCompleted += MissionCompleter_OnMissionCompleted;
                 DistributeMissionsForPlayers();
             }
+        }
+        
+        private void MissionCompleter_OnMissionCompleted(MissionSO mission)
+        {
+            _completedPersonalMissions++;
+            Debug.Log("MissionManager: All missions completed");
+
+            if (_completedPersonalMissions >= _totalPersonalMissions)
+            {
+                RevealMainMission();
+            }
+        }
+        
+        private void RevealMainMission()
+        {
+            Debug.Log("MissionManager: Reveal main mission");
         }
 
         private void DistributeMissionsForPlayers()
@@ -72,6 +92,7 @@ namespace Missions
             {
                 List<MissionSO> missionsAssigned = AssignMissionsToPlayer();
                 _personalMissionsForPlayers[clientId] = missionsAssigned;
+                _totalPersonalMissions += missionsAssigned.Count;
                 SendMissionsToPlayer(clientId, missionsAssigned);
             }
         }
@@ -135,5 +156,14 @@ namespace Missions
             }
         }
 
+        
+        public override void OnNetworkDespawn()
+        {
+            if (IsServer)
+            {
+                MissionCompleter.OnMissionCompleted -= MissionCompleter_OnMissionCompleted;
+            }
+        }
+        
     }
 }

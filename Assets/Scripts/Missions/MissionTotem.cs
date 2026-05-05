@@ -10,10 +10,11 @@ namespace Missions.PersonalMissions
         [SerializeField] private ItemDataSO requiredItem;
         [SerializeField] private Transform visualSpawnPoint;
         [SerializeField] private MissionOwnershipSelector ownershipSelector;
-
-
+        [SerializeField] private MissionCompleter missionCompleter;
+        
         private NetworkVariable<bool> _isComplete = new NetworkVariable<bool>();
         public bool IsComplete => _isComplete.Value;
+        
         
         public bool CanInteract(GameObject interactor)
         {
@@ -36,6 +37,7 @@ namespace Missions.PersonalMissions
             if (itemId != requiredItem.itemId) return false;
 
             _isComplete.Value = true;
+            missionCompleter.Complete();
             NotifyMissionCompletedRpc();
             NotifyOwnerMissionCompletedRpc(RpcTarget.Single(clientId, RpcTargetUse.Temp));
             return true;

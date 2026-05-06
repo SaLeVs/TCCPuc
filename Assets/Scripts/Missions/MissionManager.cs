@@ -44,7 +44,19 @@ namespace Missions
         
         private void RevealMainMission()
         {
-            Debug.Log("MissionManager: Reveal main mission");
+            Debug.Log($"MissionManager: Reveal main mission {currentContract.mainMission.missionName}");
+            RevealMainMissionRpc();
+        }
+
+        [Rpc(SendTo.ClientsAndHost)]
+        private void RevealMainMissionRpc()
+        {
+            NetworkObject playerNetObj = NetworkManager.Singleton.SpawnManager.GetPlayerNetworkObject(NetworkManager.Singleton.LocalClientId);
+
+            if (playerNetObj.TryGetComponent(out PlayerMissionHolder missionHolder))
+            {
+                missionHolder.ReceiveMainMission(currentContract.mainMission);
+            }
         }
 
         private void DistributeMissionsForPlayers()

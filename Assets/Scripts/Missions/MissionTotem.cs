@@ -35,6 +35,7 @@ namespace Missions.PersonalMissions
             if (_totemGroup.IsComplete) return false;
             if (!interactor.TryGetComponent(out NetworkObject networkObject)) return false;
 
+            Debug.Log($"Is mission Owner: {_ownershipSelector.IsMissionOwner(networkObject.OwnerClientId)}");
             return _ownershipSelector.IsMissionOwner(networkObject.OwnerClientId);
         }
 
@@ -42,10 +43,28 @@ namespace Missions.PersonalMissions
 
         public bool TryDeposit(ulong clientId, int itemId)
         {
-            if (_totemGroup.IsComplete) return false;
-            if (_ownershipSelector == null) return false;
-            if (!_ownershipSelector.IsMissionOwner(clientId)) return false;
-            if (itemId != expectedItem.itemId) return false;
+            if (_totemGroup.IsComplete)
+            {
+                Debug.Log($"Is totemCompleted: {_totemGroup.IsComplete}");
+                return false;
+            }
+            
+            if (_ownershipSelector == null)
+            {
+                Debug.Log($"Is ownership selector null: {_ownershipSelector}");
+                return false;
+            }
+            
+            if (!_ownershipSelector.IsMissionOwner(clientId))
+            {
+                Debug.Log($"Is mission owner: {_ownershipSelector.IsMissionOwner(clientId)}");
+                return false;
+            }
+            if (itemId != expectedItem.itemId)
+            {
+                Debug.Log($"Is item ID equal expected item Id: {itemId != expectedItem.itemId}");
+                return false;
+            }
 
             if (_currentPickable != null)
             {
@@ -62,6 +81,7 @@ namespace Missions.PersonalMissions
                 _currentPickable = netObj;
             }
 
+            Debug.Log("On totem deposited");
             OnTotemDeposited?.Invoke(clientId);
             return true;
         }

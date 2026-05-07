@@ -1,3 +1,4 @@
+using System;
 using Interfaces;
 using Unity.Netcode;
 using UnityEngine;
@@ -7,18 +8,22 @@ namespace Missions.PersonalMissions
 {
     public class MissionTotem : NetworkBehaviour, IInteractable
     {
-        [SerializeField] private ItemDataSO requiredItem;
-        [SerializeField] private Transform visualSpawnPoint;
+        public event Action<ulong> OnTotemDeposited;
+        
+        [SerializeField] private ItemDataSO expectedItem;
+        [SerializeField] private Transform spawnPoint;
         [SerializeField] private MissionOwnershipSelector ownershipSelector;
-        [SerializeField] private MissionCompleter missionCompleter;
-        
-        private NetworkVariable<bool> _isComplete = new NetworkVariable<bool>();
-        public bool IsComplete => _isComplete.Value;
-        
-        
+        [SerializeField] private MissionTotemGroup totemGroup;
+
+        private NetworkObject _currentPickable;
+        private int _currentItemId = -1;
+
+        public bool IsSlotCorrect => _currentItemId == expectedItem.itemId;
+        public bool IsOccupied => _currentItemId != -1;
+
         public bool CanInteract(GameObject interactor)
         {
-            if (_isComplete.Value) return false;
+            if (totemGroup.IsComplete) return false;
             if (!interactor.TryGetComponent(out NetworkObject networkObject)) return false;
 
             return ownershipSelector.IsMissionOwner(networkObject.OwnerClientId);
@@ -28,43 +33,27 @@ namespace Missions.PersonalMissions
 
         public bool TryDeposit(ulong clientId, int itemId)
         {
-            if (_isComplete.Value) return false;
+            if (totemGroup.IsComplete) return false;
             if (ownershipSelector == null) return false;
-            
-            bool isOwner = ownershipSelector.IsMissionOwner(clientId);
-            if (!isOwner) return false;
-            
-            if (itemId != requiredItem.itemId) return false;
+            if (!ownershipSelector.IsMissionOwner(clientId)) return false;
 
-            _isComplete.Value = true;
-            missionCompleter.Complete();
-            NotifyMissionCompletedRpc();
-            NotifyOwnerMissionCompletedRpc(RpcTarget.Single(clientId, RpcTargetUse.Temp));
-            return true;
-        }
-
-        [Rpc(SendTo.ClientsAndHost)]
-        private void NotifyMissionCompletedRpc()
-        {
-            SpawnVisualInTotem();
-            Debug.Log("MissionTotem: Mission completed!");
-        }
-        
-        [Rpc(SendTo.SpecifiedInParams)]
-        private void NotifyOwnerMissionCompletedRpc(RpcParams rpcParams = default)
-        {
-            NetworkObject playerNetObj = NetworkManager.Singleton.SpawnManager.GetPlayerNetworkObject(NetworkManager.Singleton.LocalClientId);
-
-            if (playerNetObj.TryGetComponent(out PlayerMissionHolder missionHolder))
+            if (_currentPickable != null)
             {
-                missionHolder.CompletePersonalMission(ownershipSelector.Mission);
+                _currentPickable.Despawn();
             }
-        }
 
-        private void SpawnVisualInTotem()
-        {
-            Instantiate(requiredItem.prefabVisual, visualSpawnPoint.position, visualSpawnPoint.rotation);
+            _currentItemId = itemId;
+
+            GameObject spawned = Instantiate(expectedItem.prefabPickable, spawnPoint.position, spawnPoint.rotation);
+            
+            if (spawned.TryGetComponent(out NetworkObject netObj))
+            {
+                netObj.Spawn();
+                _currentPickable = netObj;
+            }
+
+            OnTotemDeposited?.Invoke(clientId);
+            return true;
         }
     }
 }
-

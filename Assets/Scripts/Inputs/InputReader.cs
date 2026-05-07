@@ -19,6 +19,7 @@ namespace Inputs
         public event Action OnUseEvent;
         public event Action<bool> OnMapEvent;
         public event Action<int> OnSlotEvent;
+        public event Action OnPauseEvent;
         
         
         
@@ -147,7 +148,16 @@ namespace Inputs
                 OnSlotEvent?.Invoke(4);
             }
         }
-        
+
+        public void OnPause(InputAction.CallbackContext context)
+        {
+            if (context.performed)
+            {
+                OnPauseEvent?.Invoke();
+            }
+                
+        }
+
         private void OnDisable()
         {
             _playerActions.Game.Disable();

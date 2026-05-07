@@ -1,4 +1,5 @@
-﻿using Enums;
+﻿using System.Collections.Generic;
+using Enums;
 using UnityEngine;
 
 namespace ScriptableObjects
@@ -12,5 +13,14 @@ namespace ScriptableObjects
         public RoomType roomType;
 
         public bool isUniqueRoom;
+        public List<NetworkSpawnEntry> networkSpawnEntries;
+    }
+    
+    [System.Serializable]
+    public class NetworkSpawnEntry
+    {
+        public GameObject prefab;
+        public Vector3 localOffset;
+        public Vector3 localRotation;
     }
 }

@@ -10,6 +10,7 @@ namespace ScriptableObjects
         public Sprite icon;
         public GameObject prefabUsable;
         public GameObject prefabPickable;
+        public GameObject prefabVisual;
     }
 }
 

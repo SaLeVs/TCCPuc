@@ -45,6 +45,7 @@ namespace Missions.PersonalMissions
             if (_totemGroup.IsComplete) return false;
             if (_ownershipSelector == null) return false;
             if (!_ownershipSelector.IsMissionOwner(clientId)) return false;
+            if (itemId != expectedItem.itemId) return false;
 
             if (_currentPickable != null)
             {
@@ -54,7 +55,7 @@ namespace Missions.PersonalMissions
             _currentItemId = itemId;
 
             GameObject spawned = Instantiate(expectedItem.prefabPickable, spawnPoint.position, spawnPoint.rotation);
-            
+
             if (spawned.TryGetComponent(out NetworkObject netObj))
             {
                 netObj.Spawn();
@@ -65,7 +66,6 @@ namespace Missions.PersonalMissions
             return true;
         }
 
-        
         public void Uninitialize()
         {
             _ownershipSelector = null;

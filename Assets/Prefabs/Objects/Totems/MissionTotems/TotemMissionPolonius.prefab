@@ -120,12 +120,10 @@ GameObject:
   - component: {fileID: 4749551615159198112}
   - component: {fileID: 5834124400653978545}
   - component: {fileID: 3387447385039070318}
-  - component: {fileID: 1623748392853021727}
   - component: {fileID: 3436754371061624762}
-  - component: {fileID: 3155519227185964488}
   - component: {fileID: 2119509943739035687}
   m_Layer: 8
-  m_Name: TotemMissionOfelia
+  m_Name: TotemMissionPolonius
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -160,14 +158,14 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Unity.Netcode.Runtime::Unity.Netcode.NetworkObject
-  GlobalObjectIdHash: 2439846685
-  InScenePlacedSourceGlobalObjectIdHash: 0
+  GlobalObjectIdHash: 464641120
+  InScenePlacedSourceGlobalObjectIdHash: 1759212799
   DeferredDespawnTick: 0
   Ownership: 1
   AlwaysReplicateAsRoot: 0
   SynchronizeTransform: 1
   ActiveSceneSynchronization: 0
-  SceneMigrationSynchronization: 1
+  SceneMigrationSynchronization: 0
   SpawnWithObservers: 1
   DontDestroyWithOwner: 0
   AutoObjectParentSync: 1
@@ -186,20 +184,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Components::Highlight
   outline: {fileID: 5830105739340137921}
---- !u!114 &1623748392853021727
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 7196284807495355785}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 2d9ded4d07982524bbc3bc8a50f8edb0, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Missions::Missions.PersonalMissions.MissionOwnershipSelector
-  ShowTopMostFoldoutHeaderGroup: 1
-  mission: {fileID: 11400000, guid: f3d117ab9cc3df144a89898f1eb23f4d, type: 2}
 --- !u!114 &3436754371061624762
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -214,23 +198,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Missions::Missions.PersonalMissions.MissionTotem
   ShowTopMostFoldoutHeaderGroup: 1
   expectedItem: {fileID: 11400000, guid: 15c48c3f43a73c34bba16ad931240952, type: 2}
-  spawnPoint: {fileID: 0}
-  ownershipSelector: {fileID: 1623748392853021727}
-  totemGroup: {fileID: 0}
---- !u!114 &3155519227185964488
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 7196284807495355785}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 715eb92947344f54daa65d8ae1ea7837, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Missions::Missions.MissionCompleter
-  ShowTopMostFoldoutHeaderGroup: 1
-  mission: {fileID: 11400000, guid: f3d117ab9cc3df144a89898f1eb23f4d, type: 2}
+  spawnPoint: {fileID: 5871672297659161864}
 --- !u!65 &2119509943739035687
 BoxCollider:
   m_ObjectHideFlags: 0

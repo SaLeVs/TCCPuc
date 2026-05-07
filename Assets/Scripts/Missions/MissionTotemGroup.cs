@@ -7,22 +7,43 @@ namespace Missions
 {
     public class MissionTotemGroup : NetworkBehaviour
     {
-        [SerializeField] private List<MissionTotem> totems;
+        [SerializeField] private GameObject[] totemPrefabs;
+        [SerializeField] private Transform[] spawnPoints;
         [SerializeField] private MissionOwnershipSelector ownershipSelector;
         [SerializeField] private MissionCompleter missionCompleter;
 
         public bool IsComplete { get; private set; }
-
+        
+        private readonly List<MissionTotem> _spawnedTotems = new();
+        
         
         public override void OnNetworkSpawn()
         {
-            foreach (MissionTotem totem in totems)
-            {
-                totem.OnTotemDeposited += OnTotemDeposited;
-                totem.Initialize(this, ownershipSelector);
-            }
+            if (!IsServer) return;
+            
+            SpawnTotems();
         }
 
+        private void SpawnTotems()
+        {
+            for (int i = 0; i < spawnPoints.Length; i++)
+            {
+                GameObject spawned = Instantiate(totemPrefabs[i], spawnPoints[i].position, spawnPoints[i].rotation);
+
+                if (spawned.TryGetComponent(out MissionTotem totem))
+                {
+                    totem.Initialize(this, ownershipSelector);
+                    totem.OnTotemDeposited += OnTotemDeposited;
+
+                    _spawnedTotems.Add(totem);
+                }
+
+                if (spawned.TryGetComponent(out NetworkObject netObj))
+                {
+                    netObj.Spawn();
+                }
+            }
+        }
         
         private void OnTotemDeposited(ulong clientId)
         {
@@ -37,7 +58,7 @@ namespace Missions
 
         private bool CheckAllSlotsCorrect()
         {
-            foreach (MissionTotem totem in totems)
+            foreach (MissionTotem totem in _spawnedTotems)
             {
                 if (!totem.IsSlotCorrect)
                 {
@@ -68,11 +89,27 @@ namespace Missions
         
         public override void OnNetworkDespawn()
         {
-            foreach (MissionTotem totem in totems)
+            if (!IsServer) return;
+
+            foreach (MissionTotem totem in _spawnedTotems)
             {
+                if (totem == null) continue;
+
                 totem.OnTotemDeposited -= OnTotemDeposited;
                 totem.Uninitialize();
+
+                if (totem.TryGetComponent(out NetworkObject netObj))
+                {
+                    if (netObj.IsSpawned)
+                    {
+                        netObj.Despawn();
+                    }
+                }
+
+                Destroy(totem.gameObject);
             }
+
+            _spawnedTotems.Clear();
         }
         
     }

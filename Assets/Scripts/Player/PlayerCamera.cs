@@ -25,6 +25,7 @@ namespace Player
         private float _pitch;
         
         private bool _isDead;
+        private bool _isPaused;
         
         
         public override void OnNetworkSpawn()
@@ -33,14 +34,45 @@ namespace Player
             {
                 cinemachineCamera.Priority = ownerCameraPriority;
                 inputReader.OnCameraLookEvent += InputReader_OnCameraLookEvent;
+                inputReader.OnPauseEvent += ToggleMouse;
                 playerState.OnPlayerDead += PlayerState_OnPlayerDead;
+                
+                LockMouse();
             }
             
         }
 
 
         private void InputReader_OnCameraLookEvent(Vector2 cameraLookInput) => _lookInput = cameraLookInput;
+        
+        private void ToggleMouse()
+        {
+            _isPaused = !_isPaused;
+
+            if (_isPaused)
+            {
+                UnlockMouse();
+            }
+            else
+            {
+                LockMouse();
+            }
+        }
+        
         private void PlayerState_OnPlayerDead(bool isDead) => _isDead = isDead;
+
+        
+        private void LockMouse()
+        {
+            Cursor.lockState = CursorLockMode.Locked;
+            Cursor.visible = false;
+        }
+        
+        private void UnlockMouse()
+        {
+            Cursor.lockState = CursorLockMode.None;
+            Cursor.visible = true;
+        }
         
         private void LateUpdate()
         {
@@ -73,6 +105,7 @@ namespace Player
             if (IsOwner)
             {
                 inputReader.OnCameraLookEvent -= InputReader_OnCameraLookEvent;
+                inputReader.OnPauseEvent -= ToggleMouse;
                 playerState.OnPlayerDead -= PlayerState_OnPlayerDead;
                 cinemachineCamera.Priority = 0;
             }

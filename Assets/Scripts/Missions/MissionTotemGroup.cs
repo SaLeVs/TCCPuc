@@ -1,10 +1,9 @@
 ﻿using System.Collections.Generic;
-using Missions;
-using ScriptableObjects;
+using Missions.PersonalMissions;
 using Unity.Netcode;
 using UnityEngine;
 
-namespace Missions.PersonalMissions
+namespace Missions
 {
     public class MissionTotemGroup : NetworkBehaviour
     {
@@ -20,6 +19,7 @@ namespace Missions.PersonalMissions
             foreach (MissionTotem totem in totems)
             {
                 totem.OnTotemDeposited += OnTotemDeposited;
+                totem.Initialize(this, ownershipSelector);
             }
         }
 
@@ -71,7 +71,9 @@ namespace Missions.PersonalMissions
             foreach (MissionTotem totem in totems)
             {
                 totem.OnTotemDeposited -= OnTotemDeposited;
+                totem.Uninitialize();
             }
         }
+        
     }
 }

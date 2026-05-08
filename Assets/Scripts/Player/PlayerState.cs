@@ -12,6 +12,7 @@ namespace Player
         public event Action OnInteract;
         public event Action<int> OnHoldItem;
         public event Action<bool> OnPlayerDead;
+        public event Action<bool> OnPlayerLocked;
         
         [SerializeField] private PlayerMovement playerMovement;
         [SerializeField] private PlayerRun playerRun;
@@ -21,6 +22,9 @@ namespace Player
         [SerializeField] private PlayerDead playerDead;
 
         public bool IsDead => playerDead.IsDead;
+        
+        private bool _isInputLocked;
+        
         
         public override void OnNetworkSpawn()
         {
@@ -66,6 +70,14 @@ namespace Player
         private void PlayerDead_OnDeathEvent(bool isDead)
         {
             OnPlayerDead?.Invoke(isDead);
+        }
+
+        public void SetInputLocked(bool locked)
+        {
+            if (!IsOwner) return;
+    
+            _isInputLocked = locked;
+            OnPlayerLocked?.Invoke(locked);
         }
         
         

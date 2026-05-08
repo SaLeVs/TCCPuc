@@ -21,8 +21,6 @@ namespace Inputs
         public event Action<int> OnSlotEvent;
         public event Action OnPauseEvent;
         
-        
-        
 
         private void OnEnable()
         {

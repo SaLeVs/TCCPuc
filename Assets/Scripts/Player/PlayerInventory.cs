@@ -31,6 +31,7 @@ namespace Player
         private NetworkObject _currentSpawnedItem;
 
         private bool _isDead;
+        private bool _isLocked;
         
         
         public override void OnNetworkSpawn()
@@ -52,11 +53,11 @@ namespace Player
             {
                 inputReader.OnSlotEvent += InputReader_OnSlotEvent;
                 playerState.OnPlayerDead += PlayerState_OnPlayerDead;
+                playerState.OnPlayerLocked += PlayerState_OnPlayerLocked;
             }
             
         }
 
-        
 
         private void InputReader_OnSlotEvent(int slotSelected)
         {
@@ -81,6 +82,15 @@ namespace Player
             }
         }
         
+        private void PlayerState_OnPlayerLocked(bool isLocked)
+        {
+            _isLocked = isLocked;
+
+            if (_isLocked)
+            {
+                DeselectSlot();
+            }
+        }
         
         private void SelectSlot(int slotSelected)
         {

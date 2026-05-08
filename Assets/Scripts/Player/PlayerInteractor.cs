@@ -31,6 +31,7 @@ namespace Player
         private IHighlighted _currentHighlighted;
 
         private bool _isDead;
+        private bool _isLocked;
         
         
         public override void OnNetworkSpawn()
@@ -39,9 +40,10 @@ namespace Player
             {
                 inputReader.OnInteractEvent += InputReader_OnInteractEvent;
                 playerState.OnPlayerDead += PlayerState_OnPlayerDead;
+                playerState.OnPlayerLocked += PlayerState_OnPlayerLocked;
             }
         }
-
+        
         
         private void PlayerState_OnPlayerDead(bool isDead)
         {
@@ -49,13 +51,19 @@ namespace Player
     
             if (_isDead)
             {
-                _currentHighlighted?.Disable();
-                _currentHighlighted = null;
-                _currentInteractable = null;
-                _isPlayerHitInteractable = false;
+                ResetInteractable();
             }
         }
 
+        private void PlayerState_OnPlayerLocked(bool isLocked)
+        {
+            _isLocked =  isLocked;
+
+            if (_isLocked)
+            {
+                ResetInteractable();
+            }
+        }
 
         private void InputReader_OnInteractEvent()
         {
@@ -116,6 +124,14 @@ namespace Player
             _currentInteractable = null;
             return false;
         }
+
+        private void ResetInteractable()
+        {
+            _currentHighlighted?.Disable();
+            _currentHighlighted = null;
+            _currentInteractable = null;
+            _isPlayerHitInteractable = false;
+        }
         
         
         public override void OnNetworkDespawn()
@@ -124,6 +140,7 @@ namespace Player
             {
                 inputReader.OnInteractEvent -= InputReader_OnInteractEvent;
                 playerState.OnPlayerDead -= PlayerState_OnPlayerDead;
+                playerState.OnPlayerLocked -= PlayerState_OnPlayerLocked;
             }
         }
         

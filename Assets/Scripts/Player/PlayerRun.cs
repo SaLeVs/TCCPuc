@@ -64,7 +64,7 @@ namespace Player
         
         private void Update()
         {
-            if (IsOwner && !_isDead)
+            if (IsOwner && !_isDead && _isLocked)
             {
                 UpdateStamina(_isRunning); 
             }

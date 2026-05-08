@@ -1,10 +1,11 @@
 ﻿using System;
+using Interfaces;
 using Unity.Netcode;
 using UnityEngine;
 
 namespace Player
 {
-    public class PlayerState : NetworkBehaviour
+    public class PlayerState : NetworkBehaviour, IInputLockable
     {
         public event Action<Vector2> OnPlayerMovement;
         public event Action<bool> OnRunEvent;

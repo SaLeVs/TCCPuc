@@ -65,6 +65,23 @@ namespace Systems
         {
             OnReadyCountChanged?.Invoke(readyCount, totalCount);
         }
+        
+        public (int ready, int total) GetReadyCount()
+        {
+            int total = NetworkManager.Singleton.ConnectedClientsIds.Count;
+            int ready = 0;
+
+            foreach (ulong id in NetworkManager.Singleton.ConnectedClientsIds)
+            {
+                if (_playerReadyDictionary.ContainsKey(id) && _playerReadyDictionary[id])
+                {
+                    ready++;
+                }
+            }
+
+            return (ready, total);
+        }
+        
     }
 }
 

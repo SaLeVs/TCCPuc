@@ -81,7 +81,7 @@ namespace Player
         
         private void FixedUpdate()
         {
-            if (IsOwner && !_isDead)
+            if (IsOwner && !_isDead && !_isLocked)
             {
                 Move();
             }

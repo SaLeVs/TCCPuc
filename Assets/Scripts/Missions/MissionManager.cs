@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using Missions.PersonalMissions;
 using ScriptableObjects;
+using Systems;
 using Unity.Netcode;
 using UnityEngine;
 
@@ -27,9 +28,11 @@ namespace Missions
             if (IsServer)
             {
                 MissionCompleter.OnMissionCompleted += MissionCompleter_OnMissionCompleted;
-                DistributeMissionsForPlayers();
+                PlayerTracker.Instance.OnAllPlayersConnected += DistributeMissionsForPlayers;
+                
             }
         }
+        
         
         private void MissionCompleter_OnMissionCompleted(MissionSO mission)
         {
@@ -146,23 +149,56 @@ namespace Missions
         {
             if (!IsServer) return;
 
-            AssignInteractableOwners();
+            MissionTotemGroup[] groups = FindObjectsByType<MissionTotemGroup>(FindObjectsSortMode.None);
+            Debug.Log($"MissionManager: Found {groups.Length} totem groups");
+
+            int pendingGroups = groups.Length;
+
+            if (pendingGroups == 0)
+            {
+                AssignInteractableOwners();
+                return;
+            }
+
+            foreach (MissionTotemGroup group in groups)
+            {
+                group.OnTotemsSpawned += () =>
+                {
+                    pendingGroups--;
+                    if (pendingGroups <= 0)
+                    {
+                        AssignInteractableOwners();
+                    }
+                };
+                
+                group.RequestSpawnTotems();
+            }
         }
 
         private void AssignInteractableOwners()
         {
             MissionOwnershipSelector[] selectors = FindObjectsByType<MissionOwnershipSelector>(FindObjectsSortMode.None);
 
+            Debug.Log($"MissionManager: Found {selectors.Length} selectors");
+
             foreach (ulong clientId in _personalMissionsForPlayers.Keys)
             {
                 foreach (MissionSO mission in _personalMissionsForPlayers[clientId])
                 {
+                    bool found = false;
                     foreach (MissionOwnershipSelector selector in selectors)
                     {
-                        if (selector.Mission == mission)
+                        if (selector.Mission.missionID == mission.missionID)
                         {
-                            selector.AssignOwner(clientId); ;
+                            found = true;
+                            selector.AssignOwner(clientId);
+                            Debug.Log($"MissionManager: Assigned {clientId} to {mission.missionName}");
                         }
+                    }
+
+                    if (!found)
+                    {
+                        Debug.LogWarning($"MissionManager: No selector found for mission {mission.missionName}!");
                     }
                 }
             }
@@ -174,6 +210,11 @@ namespace Missions
             if (IsServer)
             {
                 MissionCompleter.OnMissionCompleted -= MissionCompleter_OnMissionCompleted;
+        
+                if (PlayerTracker.Instance != null)
+                {
+                    PlayerTracker.Instance.OnAllPlayersConnected -= DistributeMissionsForPlayers;
+                }
             }
         }
         

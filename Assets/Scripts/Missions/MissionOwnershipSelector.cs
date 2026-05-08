@@ -29,12 +29,14 @@ namespace Missions.PersonalMissions
         {
             if (IsServer)
             {
+                Debug.Log("Assigning owner to " + clientId);
                 _missionOwnerClientId.Value = clientId;
             }
         }
 
         public bool IsMissionOwner(ulong clientId)
         {
+            Debug.Log($"MissionOwnershipSelector: Checking owner — expected {_missionOwnerClientId.Value}, got {clientId}");
             return _missionOwnerClientId.Value == clientId;
         }
         

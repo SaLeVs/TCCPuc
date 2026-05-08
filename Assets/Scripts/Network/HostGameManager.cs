@@ -19,6 +19,8 @@ namespace Network
         
         public async Task<string> StartHostAsync()
         {
+            
+            
             try
             {
                 _allocation = await RelayService.Instance.CreateAllocationAsync(MAX_CONNECTIONS);

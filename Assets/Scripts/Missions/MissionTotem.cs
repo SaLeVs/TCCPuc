@@ -29,13 +29,11 @@ namespace Missions.PersonalMissions
             _ownershipSelector = ownershipSelector;
         }
         
-        
         public bool CanInteract(GameObject interactor)
         {
             if (_totemGroup.IsComplete) return false;
             if (!interactor.TryGetComponent(out NetworkObject networkObject)) return false;
-
-            Debug.Log($"Is mission Owner: {_ownershipSelector.IsMissionOwner(networkObject.OwnerClientId)}");
+            
             return _ownershipSelector.IsMissionOwner(networkObject.OwnerClientId);
         }
 
@@ -60,11 +58,6 @@ namespace Missions.PersonalMissions
                 Debug.Log($"Is mission owner: {_ownershipSelector.IsMissionOwner(clientId)}");
                 return false;
             }
-            if (itemId != expectedItem.itemId)
-            {
-                Debug.Log($"Is item ID equal expected item Id: {itemId != expectedItem.itemId}");
-                return false;
-            }
 
             if (_currentPickable != null)
             {
@@ -86,6 +79,7 @@ namespace Missions.PersonalMissions
             return true;
         }
 
+        
         public void Uninitialize()
         {
             _ownershipSelector = null;

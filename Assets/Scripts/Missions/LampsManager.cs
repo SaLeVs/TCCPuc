@@ -1,44 +1,49 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using Missions.PersonalMissions;
-using Systems;
 using Unity.Netcode;
 using UnityEngine;
 
 namespace Missions
 {
-    public class MissionTotemGroup : NetworkBehaviour
+    public class LampsManager : NetworkBehaviour
     {
-        public event Action OnTotemsSpawned;
-
-        [SerializeField] private GameObject[] totemPrefabs;
+        public event Action OnLampsSpawned;
+        
+        [SerializeField] private GameObject[] lampsPrefab;
         [SerializeField] private Transform[] spawnPoints;
         [SerializeField] private MissionOwnershipSelector ownershipSelector;
         [SerializeField] private MissionCompleter missionCompleter;
-
+        
         public bool IsComplete { get; private set; }
+        public MissionOwnershipSelector OwnershipSelector => ownershipSelector;
+
+        private readonly List<LampTotem> _spawnedLamps = new();
+        private readonly Dictionary<LampTotem, bool> _requiredStates = new();
         
-        private readonly List<MissionTotem> _spawnedTotems = new();
         
-        
-        public void RequestSpawnTotems()
+        public void RequestSpawnLamps()
         {
             if (!IsServer) return;
             
-            SpawnTotems();
+            SpawnLamps();
         }
 
-        private void SpawnTotems()
+        private void SpawnLamps()
         {
             for (int i = 0; i < spawnPoints.Length; i++)
             {
-                GameObject spawned = Instantiate(totemPrefabs[i], spawnPoints[i].position, spawnPoints[i].rotation);
+                GameObject spawned = Instantiate(lampsPrefab[i], spawnPoints[i].position, spawnPoints[i].rotation);
 
-                if (spawned.TryGetComponent(out MissionTotem totem))
+                if (spawned.TryGetComponent(out LampTotem lamp))
                 {
-                    totem.Initialize(this, ownershipSelector);
-                    totem.OnTotemDeposited += OnTotemDeposited;
-                    _spawnedTotems.Add(totem);
+                    lamp.Initialize(this, ownershipSelector);
+                    lamp.OnLampToggled += LampTotem_OnLampToggled;
+
+                    _spawnedLamps.Add(lamp);
+
+                    bool shouldBeOn = UnityEngine.Random.Range(0, 2) == 0;
+                    _requiredStates.Add(lamp, shouldBeOn);
                 }
 
                 if (spawned.TryGetComponent(out NetworkObject netObj))
@@ -47,26 +52,33 @@ namespace Missions
                 }
             }
             
-            OnTotemsSpawned?.Invoke();
+            OnLampsSpawned?.Invoke();
         }
 
-        private void OnTotemDeposited(ulong clientId)
+        private void LampTotem_OnLampToggled(ulong clientId, bool toggled)
         {
             if (!IsServer) return;
-            if (!CheckAllSlotsCorrect()) return;
+            if (IsComplete) return;
+            if (!CheckAllLampsCorrect()) return;
 
             IsComplete = true;
+
             missionCompleter.Complete();
+            
             NotifyMissionCompletedRpc();
             NotifyOwnerMissionCompletedRpc(RpcTarget.Single(clientId, RpcTargetUse.Temp));
         }
 
-        private bool CheckAllSlotsCorrect()
+        private bool CheckAllLampsCorrect()
         {
-            foreach (MissionTotem totem in _spawnedTotems)
+            foreach (LampTotem lamp in _spawnedLamps)
             {
-                if (!totem.IsSlotCorrect) return false;
+                bool requiredState = _requiredStates[lamp];
+
+                if (lamp.IsOn != requiredState)
+                    return false;
             }
+
             return true;
         }
 
@@ -89,23 +101,24 @@ namespace Missions
         {
             if (!IsServer) return;
 
-            foreach (MissionTotem totem in _spawnedTotems)
+            foreach (LampTotem lamp in _spawnedLamps)
             {
-                if (totem == null) continue;
+                if (lamp == null) continue;
                 
-                totem.OnTotemDeposited -= OnTotemDeposited;
-                totem.Uninitialize();
+                lamp.OnLampToggled -= LampTotem_OnLampToggled;
+                lamp.Uninitialize();
                 
-                if (totem.TryGetComponent(out NetworkObject netObj) && netObj.IsSpawned)
+                if (lamp.TryGetComponent(out NetworkObject netObj) && netObj.IsSpawned)
                 {
                     netObj.Despawn();
                 }
                 
-                Destroy(totem.gameObject);
+                Destroy(lamp.gameObject);
             }
 
-            _spawnedTotems.Clear();
+            _spawnedLamps.Clear();
+            _requiredStates.Clear();
         }
-        
     }
 }
+

@@ -8,9 +8,9 @@ namespace Missions
     {
         [SerializeField] private LampsManager lampsManager;
         [SerializeField] private TextMeshProUGUI countText;
-        [SerializeField] private Renderer statusLight;
-        [SerializeField] private Material correctMaterial;
-        [SerializeField] private Material incorrectMaterial;
+        [SerializeField] private Light statusLight;
+        [SerializeField] private Color correctMaterial;
+        [SerializeField] private Color incorrectMaterial;
 
         public override void OnNetworkSpawn()
         {
@@ -25,7 +25,7 @@ namespace Missions
 
         private void LampsManager_OnMissionCompleteChanged(bool isComplete)
         {
-            statusLight.material = isComplete ? correctMaterial : incorrectMaterial;
+            statusLight.color = isComplete ? correctMaterial : incorrectMaterial;
         }
 
         public override void OnNetworkDespawn()

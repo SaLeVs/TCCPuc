@@ -13,7 +13,7 @@ namespace Missions
         public event Action<int, int> OnCorrectLampsCountChanged;
         public event Action<bool> OnMissionCompleteChanged;
         
-        [SerializeField] private GameObject[] lampsPrefab;
+        [SerializeField] private GameObject lampPrefab;
         [SerializeField] private Transform[] spawnPoints;
         [SerializeField] private MissionOwnershipSelector ownershipSelector;
         [SerializeField] private MissionCompleter missionCompleter;
@@ -60,7 +60,7 @@ namespace Missions
         {
             for (int i = 0; i < spawnPoints.Length; i++)
             {
-                GameObject spawned = Instantiate(lampsPrefab[i], spawnPoints[i].position, spawnPoints[i].rotation);
+                GameObject spawned = Instantiate(lampPrefab, spawnPoints[i].position, spawnPoints[i].rotation);
 
                 if (spawned.TryGetComponent(out LampTotem lamp))
                 {

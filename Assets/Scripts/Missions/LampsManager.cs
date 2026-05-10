@@ -80,6 +80,8 @@ namespace Missions
             }
             
             _totalLampsCount.Value = _spawnedLamps.Count;
+            
+            OnCorrectLampsCountChanged?.Invoke(_correctLampsCount.Value, _totalLampsCount.Value);
             OnSpawnCompleted?.Invoke();
         }
 
@@ -89,6 +91,7 @@ namespace Missions
             if (IsComplete) return;
 
             int correct = 0;
+            
             foreach (LampTotem lamp in _spawnedLamps)
             {
                 if (lamp.IsOn == _requiredStates[lamp])

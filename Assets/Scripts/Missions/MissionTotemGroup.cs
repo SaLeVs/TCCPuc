@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using Interfaces;
 using Missions.PersonalMissions;
 using Systems;
 using Unity.Netcode;
@@ -7,9 +8,9 @@ using UnityEngine;
 
 namespace Missions
 {
-    public class MissionTotemGroup : NetworkBehaviour
+    public class MissionTotemGroup : NetworkBehaviour, IMissionSpawnable
     {
-        public event Action OnTotemsSpawned;
+        public event Action OnSpawnCompleted;
 
         [SerializeField] private GameObject[] totemPrefabs;
         [SerializeField] private Transform[] spawnPoints;
@@ -21,7 +22,7 @@ namespace Missions
         private readonly List<MissionTotem> _spawnedTotems = new();
         
         
-        public void RequestSpawnTotems()
+        public void RequestSpawn()
         {
             if (!IsServer) return;
             
@@ -47,7 +48,7 @@ namespace Missions
                 }
             }
             
-            OnTotemsSpawned?.Invoke();
+            OnSpawnCompleted?.Invoke();
         }
 
         private void OnTotemDeposited(ulong clientId)
@@ -106,6 +107,8 @@ namespace Missions
 
             _spawnedTotems.Clear();
         }
+
+        
         
     }
 }

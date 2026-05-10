@@ -1,34 +1,61 @@
 using System;
 using System.Collections.Generic;
+using Interfaces;
 using Missions.PersonalMissions;
 using Unity.Netcode;
 using UnityEngine;
 
 namespace Missions
 {
-    public class LampsManager : NetworkBehaviour
+    public class LampsManager : NetworkBehaviour, IMissionSpawnable
     {
-        public event Action OnLampsSpawned;
+        public event Action OnSpawnCompleted;
+        public event Action<int, int> OnCorrectLampsCountChanged;
+        public event Action<bool> OnMissionCompleteChanged;
         
         [SerializeField] private GameObject[] lampsPrefab;
         [SerializeField] private Transform[] spawnPoints;
         [SerializeField] private MissionOwnershipSelector ownershipSelector;
         [SerializeField] private MissionCompleter missionCompleter;
+        [SerializeField] private LampsFeedback lampsFeedback;
         
         public bool IsComplete { get; private set; }
         public MissionOwnershipSelector OwnershipSelector => ownershipSelector;
+
+        private NetworkVariable<int> _correctLampsCount = new NetworkVariable<int>(0);
+        private NetworkVariable<int> _totalLampsCount = new NetworkVariable<int>(0);
+        private NetworkVariable<bool> _isMissionComplete = new NetworkVariable<bool>(false);
 
         private readonly List<LampTotem> _spawnedLamps = new();
         private readonly Dictionary<LampTotem, bool> _requiredStates = new();
         
         
-        public void RequestSpawnLamps()
+        public override void OnNetworkSpawn()
+        {
+            _correctLampsCount.OnValueChanged += HandleCorrectCountChanged;
+            _isMissionComplete.OnValueChanged += HandleMissionCompleteChanged;
+            
+            OnCorrectLampsCountChanged?.Invoke(_correctLampsCount.Value, _totalLampsCount.Value);
+            OnMissionCompleteChanged?.Invoke(_isMissionComplete.Value);
+        }
+        
+        private void HandleCorrectCountChanged(int previousValue, int newValue)
+        {
+            OnCorrectLampsCountChanged?.Invoke(newValue, _totalLampsCount.Value);
+        }
+
+        private void HandleMissionCompleteChanged(bool previousValue, bool newValue)
+        {
+            OnMissionCompleteChanged?.Invoke(newValue);
+        }
+        
+        public void RequestSpawn()
         {
             if (!IsServer) return;
             
             SpawnLamps();
         }
-
+        
         private void SpawnLamps()
         {
             for (int i = 0; i < spawnPoints.Length; i++)
@@ -52,38 +79,38 @@ namespace Missions
                 }
             }
             
-            OnLampsSpawned?.Invoke();
+            _totalLampsCount.Value = _spawnedLamps.Count;
+            OnSpawnCompleted?.Invoke();
         }
 
         private void LampTotem_OnLampToggled(ulong clientId, bool toggled)
         {
             if (!IsServer) return;
             if (IsComplete) return;
-            if (!CheckAllLampsCorrect()) return;
+
+            int correct = 0;
+            foreach (LampTotem lamp in _spawnedLamps)
+            {
+                if (lamp.IsOn == _requiredStates[lamp])
+                {
+                    correct++;
+                }
+            }
+
+            _correctLampsCount.Value = correct;
+
+            if (correct < _spawnedLamps.Count) return;
 
             IsComplete = true;
-
+            _isMissionComplete.Value = true;
             missionCompleter.Complete();
             
             NotifyMissionCompletedRpc();
             NotifyOwnerMissionCompletedRpc(RpcTarget.Single(clientId, RpcTargetUse.Temp));
         }
 
-        private bool CheckAllLampsCorrect()
-        {
-            foreach (LampTotem lamp in _spawnedLamps)
-            {
-                bool requiredState = _requiredStates[lamp];
-
-                if (lamp.IsOn != requiredState)
-                    return false;
-            }
-
-            return true;
-        }
-
         [Rpc(SendTo.ClientsAndHost)]
-        private void NotifyMissionCompletedRpc() => Debug.Log("MissionTotemGroup: Mission completed");
+        private void NotifyMissionCompletedRpc() => Debug.Log("LampManager: Mission Complete!");
 
         [Rpc(SendTo.SpecifiedInParams)]
         private void NotifyOwnerMissionCompletedRpc(RpcParams rpcParams = default)
@@ -99,26 +126,30 @@ namespace Missions
         
         public override void OnNetworkDespawn()
         {
+            _correctLampsCount.OnValueChanged -= HandleCorrectCountChanged;
+            _isMissionComplete.OnValueChanged -= HandleMissionCompleteChanged;
+
             if (!IsServer) return;
 
             foreach (LampTotem lamp in _spawnedLamps)
             {
                 if (lamp == null) continue;
-                
+
                 lamp.OnLampToggled -= LampTotem_OnLampToggled;
                 lamp.Uninitialize();
-                
+
                 if (lamp.TryGetComponent(out NetworkObject netObj) && netObj.IsSpawned)
                 {
                     netObj.Despawn();
                 }
-                
+
                 Destroy(lamp.gameObject);
             }
 
             _spawnedLamps.Clear();
             _requiredStates.Clear();
         }
+        
     }
 }
 

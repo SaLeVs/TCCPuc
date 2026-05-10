@@ -1,4 +1,6 @@
 using System.Collections.Generic;
+using System.Linq;
+using Interfaces;
 using Missions.PersonalMissions;
 using ScriptableObjects;
 using Systems;
@@ -147,31 +149,26 @@ namespace Missions
 
         public void OnRoomsSpawned()
         {
-            if (!IsServer) return;
+            IMissionSpawnable[] spawnables = FindObjectsByType<MonoBehaviour>(FindObjectsSortMode.None).OfType<IMissionSpawnable>().ToArray();
 
-            MissionTotemGroup[] groups = FindObjectsByType<MissionTotemGroup>(FindObjectsSortMode.None);
-            Debug.Log($"MissionManager: Found {groups.Length} totem groups");
+            int pending = spawnables.Length;
 
-            int pendingGroups = groups.Length;
-
-            if (pendingGroups == 0)
+            if (pending == 0)
             {
                 AssignInteractableOwners();
                 return;
             }
 
-            foreach (MissionTotemGroup group in groups)
+            foreach (IMissionSpawnable spawnable in spawnables)
             {
-                group.OnTotemsSpawned += () =>
+                spawnable.OnSpawnCompleted += () =>
                 {
-                    pendingGroups--;
-                    if (pendingGroups <= 0)
-                    {
+                    pending--;
+                    if (pending <= 0)
                         AssignInteractableOwners();
-                    }
                 };
-                
-                group.RequestSpawnTotems();
+
+                spawnable.RequestSpawn();
             }
         }
 

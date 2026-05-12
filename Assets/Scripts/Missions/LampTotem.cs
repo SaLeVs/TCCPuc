@@ -12,18 +12,31 @@ namespace Missions
         
         [SerializeField] private Light lampLight;
         
-        public bool IsOn { get; private set; }
+        private NetworkVariable<bool> _isOn = new NetworkVariable<bool>(
+            false,
+            NetworkVariableReadPermission.Everyone,
+            NetworkVariableWritePermission.Server
+        );
+
+        public bool IsOn => _isOn.Value;
         
         private MissionOwnershipSelector _ownershipSelector;
         private LampsManager _lampsManager;
         
         
-        public void Initialize(LampsManager lampsManager, MissionOwnershipSelector ownershipSelector)
+        public override void OnNetworkSpawn()
+        {
+            _isOn.OnValueChanged += HandleLampStateChanged;
+            lampLight.enabled = _isOn.Value; 
+        }
+
+        public void Initialize(LampsManager lampsManager, MissionOwnershipSelector ownershipSelector, bool initialState)
         {
             _lampsManager = lampsManager;
             _ownershipSelector = ownershipSelector;
+            _isOn.Value = initialState;
         }
-        
+
         public bool CanInteract(GameObject interactor)
         {
             if (interactor.TryGetComponent(out NetworkObject networkObject))
@@ -37,21 +50,31 @@ namespace Missions
         public bool Interact(GameObject playerInteractor)
         {
             ToggleLamp(playerInteractor);
-
             return true;
         }
 
         private void ToggleLamp(GameObject playerInteractor)
         {
-            IsOn = !IsOn;
-            lampLight.enabled = IsOn;
+            if (!IsServer) return;
+
+            _isOn.Value = !_isOn.Value;
 
             if (playerInteractor.TryGetComponent(out NetworkObject networkObject))
             {
-                OnLampToggled?.Invoke(networkObject.OwnerClientId, IsOn);
+                OnLampToggled?.Invoke(networkObject.OwnerClientId, _isOn.Value);
             }
         }
-        
+
+        private void HandleLampStateChanged(bool previousValue, bool newValue)
+        {
+            lampLight.enabled = newValue;
+        }
+
+        public override void OnNetworkDespawn()
+        {
+            _isOn.OnValueChanged -= HandleLampStateChanged;
+        }
+
         
         public void Uninitialize()
         {

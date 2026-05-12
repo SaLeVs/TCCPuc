@@ -67,13 +67,13 @@ namespace Missions
 
                 if (spawned.TryGetComponent(out LampTotem lamp))
                 {
-                    lamp.Initialize(this, ownershipSelector);
                     lamp.OnLampToggled += LampTotem_OnLampToggled;
 
                     _spawnedLamps.Add(lamp);
 
                     bool shouldBeOn = UnityEngine.Random.Range(0, 2) == 0;
                     _requiredStates.Add(lamp, shouldBeOn);
+                    lamp.Initialize(this, ownershipSelector, shouldBeOn); 
                 }
 
                 if (spawned.TryGetComponent(out NetworkObject netObj))

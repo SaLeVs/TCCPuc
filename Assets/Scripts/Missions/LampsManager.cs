@@ -4,6 +4,7 @@ using Interfaces;
 using Missions.PersonalMissions;
 using Unity.Netcode;
 using UnityEngine;
+using Random = UnityEngine.Random;
 
 namespace Missions
 {
@@ -21,6 +22,8 @@ namespace Missions
         
         public bool IsComplete { get; private set; }
         public MissionOwnershipSelector OwnershipSelector => ownershipSelector;
+        public int CorrectLampsCount => _correctLampsCount.Value;
+        public int TotalLampsCount => _totalLampsCount.Value;
 
         private NetworkVariable<int> _correctLampsCount = new NetworkVariable<int>(0);
         private NetworkVariable<int> _totalLampsCount = new NetworkVariable<int>(0);
@@ -80,36 +83,54 @@ namespace Missions
             }
             
             _totalLampsCount.Value = _spawnedLamps.Count;
-            
-            OnCorrectLampsCountChanged?.Invoke(_correctLampsCount.Value, _totalLampsCount.Value);
+
+            EnsureAtLeastOneWrong();
+            RecalculateCorrectLampsCount();
+
             OnSpawnCompleted?.Invoke();
         }
-
-        private void LampTotem_OnLampToggled(ulong clientId, bool toggled)
+        
+        private void EnsureAtLeastOneWrong()
         {
-            if (!IsServer) return;
-            if (IsComplete) return;
-
-            int correct = 0;
-            
             foreach (LampTotem lamp in _spawnedLamps)
             {
-                if (lamp.IsOn == _requiredStates[lamp])
-                {
-                    correct++;
-                }
+                if (lamp.IsOn != _requiredStates[lamp]) return; 
             }
+            
+            int randomIndex = Random.Range(0, _spawnedLamps.Count);
+            LampTotem lampToForce = _spawnedLamps[randomIndex];
 
-            _correctLampsCount.Value = correct;
+            bool currentRequired = _requiredStates[lampToForce];
+            _requiredStates[lampToForce] = !currentRequired; 
+        }
+        
+        private void LampTotem_OnLampToggled(ulong clientId, bool toggled)
+        {
+            if (!IsServer || IsComplete) return;
 
-            if (correct < _spawnedLamps.Count) return;
+            RecalculateCorrectLampsCount();
+
+            if (_correctLampsCount.Value < _spawnedLamps.Count) return;
 
             IsComplete = true;
             _isMissionComplete.Value = true;
             missionCompleter.Complete();
-            
+
             NotifyMissionCompletedRpc();
             NotifyOwnerMissionCompletedRpc(RpcTarget.Single(clientId, RpcTargetUse.Temp));
+        }
+        
+        private void RecalculateCorrectLampsCount()
+        {
+            int correct = 0;
+
+            foreach (LampTotem lamp in _spawnedLamps)
+            {
+                if (lamp.IsOn == _requiredStates[lamp])
+                    correct++;
+            }
+
+            _correctLampsCount.Value = correct;
         }
 
         [Rpc(SendTo.ClientsAndHost)]
@@ -125,7 +146,7 @@ namespace Missions
                 missionHolder.CompletePersonalMission(ownershipSelector.Mission);
             }
         }
-
+        
         
         public override void OnNetworkDespawn()
         {

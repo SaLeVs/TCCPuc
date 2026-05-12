@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using Enums;
 using Unity.Netcode;
 using UnityEngine;
 
@@ -7,8 +8,11 @@ namespace Components
 {
     public class VisionSensor : NetworkBehaviour
     {
+        public event Action<GameObject, RecordableTarget> OnTargetEnterServer;
+        public event Action<GameObject, RecordableTarget> OnTargetExitServer;
         public event Action<GameObject> OnTargetEnter;
         public event Action<GameObject> OnTargetExit;
+
         
         [Header("Vision References")] 
         [SerializeField] private Transform orientation;

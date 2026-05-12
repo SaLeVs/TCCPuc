@@ -31,7 +31,6 @@ namespace Missions
             {
                 MissionCompleter.OnMissionCompleted += MissionCompleter_OnMissionCompleted;
                 PlayerTracker.Instance.OnAllPlayersConnected += DistributeMissionsForPlayers;
-                
             }
         }
         
@@ -50,6 +49,21 @@ namespace Missions
         private void RevealMainMission()
         {
             Debug.Log($"MissionManager: Reveal main mission {currentContract.mainMission.missionName}");
+            
+            if (IsServer)
+            {
+                GameObject mainMission = Instantiate(currentContract.mainMissionPrefab);
+                
+                if (mainMission.TryGetComponent(out NetworkObject missionNetworkObject))
+                {
+                    missionNetworkObject.Spawn();
+                }
+                if (mainMission.TryGetComponent(out MainMission missionScript))
+                {
+                    missionScript.StartMission();
+                }
+            }
+
             RevealMainMissionRpc();
         }
 

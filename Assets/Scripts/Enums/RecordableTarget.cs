@@ -7,6 +7,7 @@
         PlayerDead,
         Monster,
         MainStage,
-        MissionObject
+        MissionObject,
+        None
     }
 }

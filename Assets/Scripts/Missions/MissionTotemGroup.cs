@@ -1,12 +1,17 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+using Interfaces;
 using Missions.PersonalMissions;
+using Systems;
 using Unity.Netcode;
 using UnityEngine;
 
 namespace Missions
 {
-    public class MissionTotemGroup : NetworkBehaviour
+    public class MissionTotemGroup : NetworkBehaviour, IMissionSpawnable
     {
+        public event Action OnSpawnCompleted;
+
         [SerializeField] private GameObject[] totemPrefabs;
         [SerializeField] private Transform[] spawnPoints;
         [SerializeField] private MissionOwnershipSelector ownershipSelector;
@@ -17,7 +22,7 @@ namespace Missions
         private readonly List<MissionTotem> _spawnedTotems = new();
         
         
-        public override void OnNetworkSpawn()
+        public void RequestSpawn()
         {
             if (!IsServer) return;
             
@@ -34,7 +39,6 @@ namespace Missions
                 {
                     totem.Initialize(this, ownershipSelector);
                     totem.OnTotemDeposited += OnTotemDeposited;
-
                     _spawnedTotems.Add(totem);
                 }
 
@@ -43,8 +47,10 @@ namespace Missions
                     netObj.Spawn();
                 }
             }
+            
+            OnSpawnCompleted?.Invoke();
         }
-        
+
         private void OnTotemDeposited(ulong clientId)
         {
             if (!IsServer) return;
@@ -60,20 +66,13 @@ namespace Missions
         {
             foreach (MissionTotem totem in _spawnedTotems)
             {
-                if (!totem.IsSlotCorrect)
-                {
-                    return false;
-                }
+                if (!totem.IsSlotCorrect) return false;
             }
-
             return true;
         }
 
         [Rpc(SendTo.ClientsAndHost)]
-        private void NotifyMissionCompletedRpc()
-        {
-            Debug.Log("MissionTotemGroup: Mission completed");
-        }
+        private void NotifyMissionCompletedRpc() => Debug.Log("MissionTotemGroup: Mission completed");
 
         [Rpc(SendTo.SpecifiedInParams)]
         private void NotifyOwnerMissionCompletedRpc(RpcParams rpcParams = default)
@@ -82,7 +81,7 @@ namespace Missions
 
             if (playerNetObj.TryGetComponent(out PlayerMissionHolder missionHolder))
             {
-                missionHolder.CompletePersonalMission(ownershipSelector.Mission); 
+                missionHolder.CompletePersonalMission(ownershipSelector.Mission);
             }
         }
 
@@ -94,23 +93,22 @@ namespace Missions
             foreach (MissionTotem totem in _spawnedTotems)
             {
                 if (totem == null) continue;
-
+                
                 totem.OnTotemDeposited -= OnTotemDeposited;
                 totem.Uninitialize();
-
-                if (totem.TryGetComponent(out NetworkObject netObj))
+                
+                if (totem.TryGetComponent(out NetworkObject netObj) && netObj.IsSpawned)
                 {
-                    if (netObj.IsSpawned)
-                    {
-                        netObj.Despawn();
-                    }
+                    netObj.Despawn();
                 }
-
+                
                 Destroy(totem.gameObject);
             }
 
             _spawnedTotems.Clear();
         }
+
+        
         
     }
 }

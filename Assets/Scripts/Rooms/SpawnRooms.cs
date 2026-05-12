@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using Missions;
 using ScriptableObjects;
+using Systems;
 using Unity.AI.Navigation;
 using Unity.Netcode;
 using UnityEngine;
@@ -11,10 +12,8 @@ namespace Rooms
     public class SpawnRooms : NetworkBehaviour
     { 
         [SerializeField] private MissionManager missionManager;
-        
         [SerializeField] private Transform[] spawnPoints;
         [SerializeField] private NavMeshSurface navMeshSurface;
-        
         
         private ContractsSO _currentContract;
         private List<RoomDataSO> _roomsToSpawn = new List<RoomDataSO>();
@@ -24,14 +23,16 @@ namespace Rooms
         
         public override void OnNetworkSpawn()
         {
-            if (!IsServer) return;
-
-            _currentContract = missionManager.CurrentContract;
-            _totalSpawnPoints = spawnPoints.Length;
-
-            GenerateRooms();
+            if (IsServer)
+            {
+                _currentContract = missionManager.CurrentContract;
+                _totalSpawnPoints = spawnPoints.Length;
+            
+                PlayerTracker.Instance.OnAllPlayersConnected += GenerateRooms;
+            }
         }
 
+        
         private void GenerateRooms()
         {
             if (!BuildRoomList()) return;
@@ -149,6 +150,19 @@ namespace Rooms
         private void RebuildNavMeshRpc()
         {
             navMeshSurface.BuildNavMesh();
+        }
+
+        
+        public override void OnNetworkDespawn()
+        {
+            if (IsServer)
+            {
+                if (PlayerTracker.Instance != null)
+                {
+                    PlayerTracker.Instance.OnAllPlayersConnected -= GenerateRooms;
+                }
+            }
+            
         }
         
     }

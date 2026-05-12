@@ -258,6 +258,7 @@ namespace Network
             string joinCode = await HostSingleton.instance.gameManager.StartHostAsync();
             PlayerTracker.Instance.SetExpectedPlayerCount(_joinedLobby.Players.Count);
             
+            
             await LobbyService.Instance.UpdateLobbyAsync(_joinedLobby.Id,
                 new UpdateLobbyOptions
                 {

@@ -8,7 +8,9 @@ namespace ScriptableObjects
     {
         public string contractName;
     
+        public GameObject mainMissionPrefab;
         public MissionSO mainMission;
+        
         public List<MissionSO> personalMissions;
         
         public List<RoomDataSO> baseRooms;

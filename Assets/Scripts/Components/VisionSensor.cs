@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using Enums;
 using Unity.Netcode;
 using UnityEngine;
 
@@ -7,8 +8,11 @@ namespace Components
 {
     public class VisionSensor : NetworkBehaviour
     {
+        public event Action<GameObject, RecordableTarget> OnTargetEnterServer;
+        public event Action<GameObject, RecordableTarget> OnTargetExitServer;
         public event Action<GameObject> OnTargetEnter;
         public event Action<GameObject> OnTargetExit;
+
         
         [Header("Vision References")] 
         [SerializeField] private Transform orientation;
@@ -79,54 +83,58 @@ namespace Components
             {
                 previousDetectedObjects.Add(detectedObject);
             }
-            
+
             detectedObjects.Clear();
-            
-            _collidersCount = 
-                Physics.OverlapSphereNonAlloc(orientation.position, distance, _collidersDetected, targetLayers, QueryTriggerInteraction.Collide);
-            
-            
+
+            _collidersCount = Physics.OverlapSphereNonAlloc(
+                orientation.position, distance, _collidersDetected, targetLayers, QueryTriggerInteraction.Collide);
 
             for (int i = 0; i < _collidersCount; i++)
             {
                 GameObject objectDetected = _collidersDetected[i].gameObject;
 
-                if (!IsObjectInVision(objectDetected))
-                {
-                    continue;
-                }
+                if (!IsObjectInVision(objectDetected)) continue;
                 
+                if (!objectDetected.TryGetComponent(out RecordableIdentifier identifier)) continue;
+                if (identifier.targetType == RecordableTarget.None) continue;
+
                 detectedObjects.Add(objectDetected);
 
                 if (!previousDetectedObjects.Contains(objectDetected))
                 {
-                    TargetEnter(objectDetected);
+                    TargetEnter(objectDetected, identifier.targetType);
                 }
-                
             }
-            
-            foreach (var detectedObject in previousDetectedObjects)
+
+            foreach (GameObject detectedObject in previousDetectedObjects)
             {
                 if (!detectedObjects.Contains(detectedObject))
                 {
-                    TargetExit(detectedObject);
+                    if (detectedObject.TryGetComponent(out RecordableIdentifier identifier))
+                    {
+                        TargetExit(detectedObject, identifier.targetType);
+                    }
                 }
             }
         }
 
-        private void TargetEnter(GameObject target)
+        private void TargetEnter(GameObject target, RecordableTarget targetType)
         {
             if (!IsServer) return;
+
+            OnTargetEnterServer?.Invoke(target, targetType);
 
             if (target.TryGetComponent(out NetworkObject netObj))
             {
                 SendTargetEnterClientRpc(netObj.NetworkObjectId);
             }
         }
-        
-        private void TargetExit(GameObject target)
+
+        private void TargetExit(GameObject target, RecordableTarget targetType)
         {
             if (!IsServer) return;
+
+            OnTargetExitServer?.Invoke(target, targetType);
 
             if (target.TryGetComponent(out NetworkObject netObj))
             {

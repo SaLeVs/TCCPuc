@@ -32,6 +32,7 @@ namespace Player
         private ISpeedModifier[] _speedModifiers;
         
         private bool _isDead;
+        private bool _isLocked;
         
         
         private void Awake()
@@ -44,15 +45,17 @@ namespace Player
             _speedModifiers = GetComponents<ISpeedModifier>();
         }
         
+        
         public override void OnNetworkSpawn()
         {
             if (IsOwner)
             {
                 inputReader.OnMoveEvent += InputReader_OnMoveEvent;
                 playerState.OnPlayerDead += PlayerState_OnPlayerDead;
+                playerState.OnPlayerLocked += PlayerState_OnPlayerLocked;
             }
-            
         }
+
         
         private void InputReader_OnMoveEvent(Vector2 movementInput) => _movementInput = movementInput;
         
@@ -66,9 +69,19 @@ namespace Player
             }
         }
         
+        private void PlayerState_OnPlayerLocked(bool isLocked)
+        {
+            _isLocked = isLocked;
+            
+            if(_isLocked)
+            {
+                _movementInput = Vector2.zero;
+            }
+        }
+        
         private void FixedUpdate()
         {
-            if (IsOwner && !_isDead)
+            if (IsOwner && !_isDead && !_isLocked)
             {
                 Move();
             }
@@ -132,6 +145,7 @@ namespace Player
             {
                 inputReader.OnMoveEvent -= InputReader_OnMoveEvent;
                 playerState.OnPlayerDead -= PlayerState_OnPlayerDead;
+                playerState.OnPlayerLocked -= PlayerState_OnPlayerLocked;
             }
         }
         

@@ -1,4 +1,3 @@
-using System.Collections;
 using System.Collections.Generic;
 using Unity.Netcode;
 using UnityEngine;
@@ -12,7 +11,6 @@ namespace Systems
         
         private readonly List<SpawnPoint> _availableSpawns = new List<SpawnPoint>();
         
-        
         public override void OnNetworkSpawn()
         {
             if (!IsServer) return;
@@ -20,7 +18,6 @@ namespace Systems
             InitializeSpawnPool();
             NetworkManager.SceneManager.OnSceneEvent += NetworkManager_OnSceneEvent;
         }
-        
         
         private void InitializeSpawnPool()
         {
@@ -42,7 +39,7 @@ namespace Systems
 
             if (_availableSpawns.Count == 0)
             {
-                Debug.LogWarning($"No spawns remaining for client: {clientId}!");
+                Debug.LogWarning($"SpawnManager: No spawns remaining for client: {clientId}");
                 return;
             }
 
@@ -54,44 +51,28 @@ namespace Systems
         
         private void SpawnPlayer(ulong clientId, SpawnPoint spawnPoint)
         {
-            GameObject player = Instantiate(playerPrefab, 
-                spawnPoint.SpawnTransform.position, 
-                spawnPoint.SpawnTransform.rotation);
-            
-            if(player.TryGetComponent(out NetworkObject networkObject))
+            GameObject player = Instantiate(playerPrefab, spawnPoint.SpawnTransform.position, spawnPoint.SpawnTransform.rotation);
+
+            if (player.TryGetComponent(out NetworkObject networkObject))
             {
                 networkObject.SpawnAsPlayerObject(clientId, destroyWithScene: true);
-                spawnPoint.ReadyTotem.AssignToPlayer(clientId); 
-                StartCoroutine(ActivateTotemNextFrame(spawnPoint.ReadyTotem));
             }
-            
-        }
-     
-        private IEnumerator ActivateTotemNextFrame(ReadyTotem totem)
-        {
-            yield return null; // Wait one frame to ensure the player has fully spawned and ownership is established
-            totem.Activate();
         }
         
-        // Fisher-Yates shuffle
         private void ShuffleSpawns()
         {
             for (int i = _availableSpawns.Count - 1; i > 0; i--)
             {
                 int j = Random.Range(0, i + 1);
-                (_availableSpawns[i], _availableSpawns[j]) = (_availableSpawns[j], _availableSpawns[i]); 
+                (_availableSpawns[i], _availableSpawns[j]) = (_availableSpawns[j], _availableSpawns[i]);
             }
-        }   
-        
-        
+        }
+
         public override void OnNetworkDespawn()
         {
             if (!IsServer) return;
             
             NetworkManager.SceneManager.OnSceneEvent -= NetworkManager_OnSceneEvent;
         }
-    
     }
 }
-
-

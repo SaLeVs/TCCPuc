@@ -1,6 +1,9 @@
 using System.Collections.Generic;
+using System.Linq;
+using Interfaces;
 using Missions.PersonalMissions;
 using ScriptableObjects;
+using Systems;
 using Unity.Netcode;
 using UnityEngine;
 
@@ -27,9 +30,10 @@ namespace Missions
             if (IsServer)
             {
                 MissionCompleter.OnMissionCompleted += MissionCompleter_OnMissionCompleted;
-                DistributeMissionsForPlayers();
+                PlayerTracker.Instance.OnAllPlayersConnected += DistributeMissionsForPlayers;
             }
         }
+        
         
         private void MissionCompleter_OnMissionCompleted(MissionSO mission)
         {
@@ -45,6 +49,21 @@ namespace Missions
         private void RevealMainMission()
         {
             Debug.Log($"MissionManager: Reveal main mission {currentContract.mainMission.missionName}");
+            
+            if (IsServer)
+            {
+                GameObject mainMission = Instantiate(currentContract.mainMissionPrefab);
+                
+                if (mainMission.TryGetComponent(out NetworkObject missionNetworkObject))
+                {
+                    missionNetworkObject.Spawn();
+                }
+                if (mainMission.TryGetComponent(out MainMission missionScript))
+                {
+                    missionScript.StartMission();
+                }
+            }
+
             RevealMainMissionRpc();
         }
 
@@ -144,25 +163,53 @@ namespace Missions
 
         public void OnRoomsSpawned()
         {
-            if (!IsServer) return;
+            IMissionSpawnable[] spawnables = FindObjectsByType<MonoBehaviour>(FindObjectsSortMode.None).OfType<IMissionSpawnable>().ToArray();
 
-            AssignInteractableOwners();
+            int pending = spawnables.Length;
+
+            if (pending == 0)
+            {
+                AssignInteractableOwners();
+                return;
+            }
+
+            foreach (IMissionSpawnable spawnable in spawnables)
+            {
+                spawnable.OnSpawnCompleted += () =>
+                {
+                    pending--;
+                    if (pending <= 0)
+                        AssignInteractableOwners();
+                };
+
+                spawnable.RequestSpawn();
+            }
         }
 
         private void AssignInteractableOwners()
         {
             MissionOwnershipSelector[] selectors = FindObjectsByType<MissionOwnershipSelector>(FindObjectsSortMode.None);
 
+            Debug.Log($"MissionManager: Found {selectors.Length} selectors");
+
             foreach (ulong clientId in _personalMissionsForPlayers.Keys)
             {
                 foreach (MissionSO mission in _personalMissionsForPlayers[clientId])
                 {
+                    bool found = false;
                     foreach (MissionOwnershipSelector selector in selectors)
                     {
-                        if (selector.Mission == mission)
+                        if (selector.Mission.missionID == mission.missionID)
                         {
-                            selector.AssignOwner(clientId); ;
+                            found = true;
+                            selector.AssignOwner(clientId);
+                            Debug.Log($"MissionManager: Assigned {clientId} to {mission.missionName}");
                         }
+                    }
+
+                    if (!found)
+                    {
+                        Debug.LogWarning($"MissionManager: No selector found for mission {mission.missionName}!");
                     }
                 }
             }
@@ -174,6 +221,11 @@ namespace Missions
             if (IsServer)
             {
                 MissionCompleter.OnMissionCompleted -= MissionCompleter_OnMissionCompleted;
+        
+                if (PlayerTracker.Instance != null)
+                {
+                    PlayerTracker.Instance.OnAllPlayersConnected -= DistributeMissionsForPlayers;
+                }
             }
         }
         

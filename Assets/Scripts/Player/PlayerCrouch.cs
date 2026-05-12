@@ -36,6 +36,7 @@ namespace Player
         private bool _lastCrouchState;
 
         private bool _isDead;
+        private bool _isLocked;
 
 
         public override void OnNetworkSpawn()
@@ -44,27 +45,33 @@ namespace Player
             {
                 inputReader.OnCrouchEvent += InputReader_OnCrouchEvent;
                 playerState.OnPlayerDead += PlayerState_OnPlayerDead;
+                playerState.OnPlayerLocked += PlayerState_OnPlayerLocked;
                 
                 _standColliderCenter = capsuleCollider.center;
                 _standHeight = capsuleCollider.height;
             }
-
         }
         
+
         private void PlayerState_OnPlayerDead(bool isDead)
         {
             _isDead = isDead;
             
             if (_isDead)
             {
-                _isCrouching = false;
-                _crouchState = false;
-                _lastCrouchState = false;
-                StandCollider();
-                OnCrouchEvent?.Invoke(false);
+                ResetCrouchState();
             }
         }
-        
+
+        private void PlayerState_OnPlayerLocked(bool isLocked)
+        {
+            _isLocked = isLocked;
+
+            if (_isLocked)
+            {
+                ResetCrouchState();
+            }
+        }
 
         private void InputReader_OnCrouchEvent(bool isCrouching)
         {
@@ -73,7 +80,7 @@ namespace Player
 
         private void Update()
         {
-            if (IsOwner && !_isDead)
+            if (IsOwner && !_isDead && !_isLocked)
             {
                 UpdateCrouch();
             }
@@ -140,6 +147,15 @@ namespace Player
 
             return baseSpeed;
 
+        }
+        
+        private void ResetCrouchState()
+        {
+            _isCrouching = false;
+            _crouchState = false;
+            _lastCrouchState = false;
+            StandCollider();
+            OnCrouchEvent?.Invoke(false);
         }
 
         private void OnDrawGizmos()

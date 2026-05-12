@@ -18,6 +18,7 @@ GameObject:
   - component: {fileID: 5988213072746127775}
   - component: {fileID: 3757600163404236341}
   - component: {fileID: 8840795157782606983}
+  - component: {fileID: 6796257646358809532}
   - component: {fileID: 9158156660860726962}
   - component: {fileID: 7437886285449800429}
   m_Layer: 9
@@ -56,7 +57,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Unity.Netcode.Runtime::Unity.Netcode.NetworkObject
-  GlobalObjectIdHash: 3148608675
+  GlobalObjectIdHash: 3265427313
   InScenePlacedSourceGlobalObjectIdHash: 3265427313
   DeferredDespawnTick: 0
   Ownership: 1
@@ -263,6 +264,19 @@ MonoBehaviour:
   AnimatorParametersExpanded: 0
   animator: {fileID: 3390758818505724829}
   transitionDuration: 0.1
+--- !u!114 &6796257646358809532
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2397166377357422809}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4dd8e00f9e7042cfa31b55f7719b6016, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Components::Components.RecordableIdentifier
+  targetType: 3
 --- !u!195 &9158156660860726962
 NavMeshAgent:
   m_ObjectHideFlags: 0

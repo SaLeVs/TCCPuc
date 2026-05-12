@@ -23,6 +23,7 @@ namespace Player
         private bool _isExhausted;
         private bool _isRunning;
         private bool _isDead;
+        private bool _isLocked;
         
         
         public override void OnNetworkSpawn()
@@ -33,10 +34,11 @@ namespace Player
             {
                 inputReader.OnRunEvent += InputReader_OnRunEvent;
                 playerState.OnPlayerDead += PlayerState_OnPlayerDead;
+                playerState.OnPlayerLocked += PlayerState_OnPlayerLocked;
             }
             
         }
-        
+
 
         private void InputReader_OnRunEvent(bool isRunning) => _isRunning = isRunning;
         
@@ -50,10 +52,19 @@ namespace Player
             }
         }
         
+        private void PlayerState_OnPlayerLocked(bool isLocked)
+        {
+            _isLocked = isLocked;
+
+            if (_isLocked)
+            {
+                OnRunEvent?.Invoke(false);
+            }
+        }
         
         private void Update()
         {
-            if (IsOwner && !_isDead)
+            if (IsOwner && !_isDead && _isLocked)
             {
                 UpdateStamina(_isRunning); 
             }
@@ -103,6 +114,7 @@ namespace Player
             {
                 inputReader.OnRunEvent -= InputReader_OnRunEvent;
                 playerState.OnPlayerDead -= PlayerState_OnPlayerDead;
+                playerState.OnPlayerLocked -= PlayerState_OnPlayerLocked;
             }
         }
         

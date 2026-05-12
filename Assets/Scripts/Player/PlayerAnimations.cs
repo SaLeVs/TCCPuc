@@ -31,6 +31,8 @@ namespace Player
         
         private float _targetUpperLayerWeight;
         private float _currentUpperLayerWeight;
+
+        private bool _isLocked;
         
         
         public override void OnNetworkSpawn()
@@ -45,8 +47,8 @@ namespace Player
                 playerState.OnHoldItem += PlayerState_OnHoldItem;
                 
                 playerState.OnPlayerDead += PlayerState_OnPlayerDead;
+                playerState.OnPlayerLocked += PlayerState_OnPlayerLocked;
             }
-            
         }
 
 
@@ -62,7 +64,6 @@ namespace Player
                 
                 animator.SetLayerWeight(UPPER_LAYER_INDEX, 1);
             }
-            
         }
         
         private void PlayerState_OnPlayerMovement(Vector2 playerMovement)
@@ -101,6 +102,11 @@ namespace Player
             animator.SetTrigger(_deadHash);
         }
         
+        private void PlayerState_OnPlayerLocked(bool locked)
+        {
+            // Set player animation for locked
+        }
+        
         
         public override void OnNetworkDespawn()
         {
@@ -114,6 +120,7 @@ namespace Player
                 playerState.OnHoldItem -= PlayerState_OnHoldItem;
                 
                 playerState.OnPlayerDead -= PlayerState_OnPlayerDead;
+                playerState.OnPlayerLocked -= PlayerState_OnPlayerLocked;
             }
             
         }

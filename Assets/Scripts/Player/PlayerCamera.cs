@@ -25,6 +25,7 @@ namespace Player
         private float _pitch;
         
         private bool _isDead;
+        private bool _isLocked;
         private bool _isPaused;
         
         
@@ -36,12 +37,12 @@ namespace Player
                 inputReader.OnCameraLookEvent += InputReader_OnCameraLookEvent;
                 inputReader.OnPauseEvent += ToggleMouse;
                 playerState.OnPlayerDead += PlayerState_OnPlayerDead;
+                playerState.OnPlayerLocked += PlayerState_OnPlayerLocked;
                 
                 LockMouse();
             }
             
         }
-
 
         private void InputReader_OnCameraLookEvent(Vector2 cameraLookInput) => _lookInput = cameraLookInput;
         
@@ -60,8 +61,30 @@ namespace Player
         }
         
         private void PlayerState_OnPlayerDead(bool isDead) => _isDead = isDead;
-
         
+        private void PlayerState_OnPlayerLocked(bool locked)
+        {
+            _isLocked = locked;
+
+            if (locked)
+            {
+                UnlockMouse();
+                cinemachineCamera.Priority = 0;
+            }
+            else
+            {
+                if (_isPaused)
+                {
+                    UnlockMouse();
+                }
+                else
+                {
+                    LockMouse();
+                }
+                cinemachineCamera.Priority = ownerCameraPriority;
+            }
+        }
+
         private void LockMouse()
         {
             Cursor.lockState = CursorLockMode.Locked;
@@ -76,11 +99,10 @@ namespace Player
         
         private void LateUpdate()
         {
-            if (IsOwner && !_isDead)
+            if (IsOwner && !_isDead && !_isLocked)
             {   
                 CameraMovement();
             }
-            
         }
         
         private void CameraMovement()
@@ -95,7 +117,6 @@ namespace Player
             orientation.rotation = Quaternion.Euler(0f, _yaw, 0f);
             transform.rotation = Quaternion.Euler(0f, _yaw, 0f);
             cameraRoot.localRotation = Quaternion.Euler(_pitch, 0f, 0f);
-            
         }
         
         
@@ -107,6 +128,8 @@ namespace Player
                 inputReader.OnCameraLookEvent -= InputReader_OnCameraLookEvent;
                 inputReader.OnPauseEvent -= ToggleMouse;
                 playerState.OnPlayerDead -= PlayerState_OnPlayerDead;
+                playerState.OnPlayerLocked -= PlayerState_OnPlayerLocked;
+                
                 cinemachineCamera.Priority = 0;
             }
             

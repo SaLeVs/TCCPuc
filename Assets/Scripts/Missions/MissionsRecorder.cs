@@ -1,29 +1,32 @@
+using System;
 using System.Collections.Generic;
 using Enums;
-using Missions;
-using Unity.Netcode;
 using UnityEngine;
 
 namespace Missions
 {
+    [Serializable]
+    public struct RecordableTargetConfig
+    {
+        public RecordableTarget targetType;
+        public float maxDistanceToOtherTargets;
+    }
+
     public class MissionsRecorder : MainMission
     {
-        [SerializeField] private float maxDistance = 3f;
-        [SerializeField] private RecordableTarget[] requiredTargets;
+        [SerializeField] private RecordableTargetConfig[] requiredTargets;
 
         private Dictionary<RecordableTarget, HashSet<ulong>> _playersWatching = new();
+        private Dictionary<RecordableTarget, GameObject> _targetObjects = new();
         private HashSet<RecordableTarget> _recordedTargets = new();
-
-        private bool _monsterRecorded;
-        private bool _stageRecorded;
 
         public override void StartMission()
         {
             if (!IsServer) return;
-            
-            foreach (RecordableTarget target in requiredTargets)
+
+            foreach (RecordableTargetConfig config in requiredTargets)
             {
-                _playersWatching[target] = new HashSet<ulong>();
+                _playersWatching[config.targetType] = new HashSet<ulong>();
             }
 
             Debug.Log("MissionsRecorder: Mission started!");
@@ -34,17 +37,21 @@ namespace Missions
             if (!IsServer) return;
 
             _playersWatching.Clear();
+            _targetObjects.Clear();
             _recordedTargets.Clear();
+            Debug.Log("MissionsRecorder: Mission aborted!");
         }
 
-        public void ReportTargetEnter(ulong clientId, RecordableTarget targetType, float distance)
+        public void ReportTargetEnter(ulong clientId, GameObject target, RecordableTarget targetType)
         {
             if (!IsServer) return;
-            if (distance > maxDistance) return;
             if (!_playersWatching.ContainsKey(targetType)) return;
 
+            _targetObjects[targetType] = target;
             _playersWatching[targetType].Add(clientId);
+            
             CheckMissionComplete();
+            Debug.Log($"MissionsRecorder: target entered {targetType} by client {clientId}");
         }
 
         public void ReportTargetExit(ulong clientId, RecordableTarget targetType)
@@ -53,23 +60,44 @@ namespace Missions
             if (!_playersWatching.ContainsKey(targetType)) return;
 
             _playersWatching[targetType].Remove(clientId);
+
+            if (_playersWatching[targetType].Count == 0)
+            {
+                _targetObjects.Remove(targetType);
+            }
+            
         }
 
         private void CheckMissionComplete()
         {
-            foreach (RecordableTarget target in requiredTargets)
+            if (_recordedTargets.Count >= requiredTargets.Length) return;
+
+            foreach (RecordableTargetConfig config in requiredTargets)
             {
-                if (_playersWatching[target].Count > 0)
+                if (_playersWatching[config.targetType].Count == 0) return;
+                if (!_targetObjects.TryGetValue(config.targetType, out GameObject thisObj)) return;
+
+                foreach (RecordableTargetConfig other in requiredTargets)
                 {
-                    _recordedTargets.Add(target);
+                    if (other.targetType == config.targetType) continue;
+                    if (!_targetObjects.TryGetValue(other.targetType, out GameObject otherObj)) return;
+
+                    float dist = Vector3.Distance(thisObj.transform.position, otherObj.transform.position);
+
+                    if (dist > config.maxDistanceToOtherTargets)
+                    {
+                        Debug.Log($"MissionsRecorder: {config.targetType} too far from {other.targetType}: {dist}");
+                        return;
+                    }
                 }
+
+                _recordedTargets.Add(config.targetType);
             }
-            
+
             if (_recordedTargets.Count >= requiredTargets.Length)
             {
-                Debug.Log("MissionsRecorder: All targets recorded — Mission Complete!");
+                Debug.Log("MissionsRecorder: All targets recorded and close enough, mission Complete!");
             }
         }
     }
 }
-

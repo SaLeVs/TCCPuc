@@ -25,8 +25,7 @@ namespace Objects.Camera
             MissionsRecorder recorder = FindAnyObjectByType<MissionsRecorder>();
             if (recorder == null) return;
 
-            float distance = Vector3.Distance(transform.position, target.transform.position);
-            recorder.ReportTargetEnter(OwnerClientId, targetType, distance);
+            recorder.ReportTargetEnter(OwnerClientId, target, targetType);
         }
 
         private void VisionSensor_OnTargetExitServer(GameObject target, RecordableTarget targetType)

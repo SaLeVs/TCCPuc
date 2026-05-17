@@ -7,5 +7,7 @@ namespace Components
     {
         public RecordableTarget targetType;
         public float audienceGainPerSecond = 10f;
+        public float minimumViewTime = 2f;
+        public bool canBeReviewedForDecay = false;
     }
 }

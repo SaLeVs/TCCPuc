@@ -19,7 +19,6 @@ namespace Audience
         [SerializeField] private float idleThresholdBeforeDecay = 30f;
         [SerializeField] private float decayRatePerSecond = 3f;
         [SerializeField] private float globalGainMultiplier = 1f;
-        
         [SerializeField] private float maxGainPerSecond = 100f;
         
         private NetworkVariable<float> _audience = new NetworkVariable<float>(0f,
@@ -35,6 +34,7 @@ namespace Audience
         private float _maxAudience;
         private float _pendingGainThisFrame;
         private bool _receivedGainThisFrame;
+        private bool _receivedPresenceThisFrame;
         private float _idleTimer;
         
         
@@ -45,7 +45,6 @@ namespace Audience
                 Destroy(gameObject);
                 return;
             }
-            
             Instance = this;
         }
 
@@ -84,7 +83,13 @@ namespace Audience
 
                 _idleTimer = 0f;
                 _receivedGainThisFrame = false;
+                _receivedPresenceThisFrame = false;
                 _pendingGainThisFrame = 0f;
+            }
+            else if (_receivedPresenceThisFrame)
+            {
+                _idleTimer = 0f;
+                _receivedPresenceThisFrame = false;
             }
             else
             {
@@ -103,6 +108,14 @@ namespace Audience
             {
                 _pendingGainThisFrame  += gainPerSecond * Time.deltaTime;
                 _receivedGainThisFrame  = true;
+            }
+        }
+        
+        public void SubmitPresence()
+        {
+            if (IsServer)
+            {
+                _receivedPresenceThisFrame = true;
             }
         }
         

@@ -429,6 +429,7 @@ GameObject:
   - component: {fileID: 411051831112395948}
   - component: {fileID: 9208966139642712754}
   - component: {fileID: 1740412110358022840}
+  - component: {fileID: 3916989616377195318}
   - component: {fileID: 1861191804149879818}
   - component: {fileID: 3158690138509095668}
   - component: {fileID: 2207057075489463036}
@@ -824,6 +825,25 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Components::Components.RecordableIdentifier
   targetType: 1
+  audienceGainPerSecond: 50
+  minimumViewTime: 0.5
+  canBeReviewedForDecay: 0
+--- !u!114 &3916989616377195318
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6252520807053122715}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 01b5340c6033b7b46ac3488dc94b897d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Audience::Audience.AudienceContributor
+  ShowTopMostFoldoutHeaderGroup: 1
+  visionSensor: {fileID: 1861191804149879818}
+  diminishFactor: 0.4
+  minimumGainMultiplier: 0.05
 --- !u!114 &1861191804149879818
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -845,7 +865,7 @@ MonoBehaviour:
   scanFrequency: 5
   targetLayers:
     serializedVersion: 2
-    m_Bits: 8704
+    m_Bits: 8960
   occlusionLayers:
     serializedVersion: 2
     m_Bits: 128

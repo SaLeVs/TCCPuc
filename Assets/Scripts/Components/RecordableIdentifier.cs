@@ -6,8 +6,9 @@ namespace Components
     public class RecordableIdentifier : MonoBehaviour
     {
         public RecordableTarget targetType;
-        public float audienceGainPerSecond = 10f;
+        public float audienceGain = 50f;
         public float minimumViewTime = 2f;
-        public bool canBeReviewedForDecay = false;
+        public float reviewCooldown = 60f;
+        public bool canBeReviewed;
     }
 }

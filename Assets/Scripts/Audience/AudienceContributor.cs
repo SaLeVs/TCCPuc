@@ -10,17 +10,15 @@ namespace Audience
     public class AudienceContributor : NetworkBehaviour
     {
         [SerializeField] private VisionSensor visionSensor;
-        [SerializeField] private float diminishFactor = 0.4f;
-        [SerializeField, Range(0f, 1f)] private float minimumGainMultiplier = 0.05f;
         
         public bool IsWatchingSomething => _activeObjects.Count > 0;
-        public bool HasBeenSeen(GameObject target) => _seenObjects.Contains(target.GetInstanceID());
+        public bool HasBeenSeen(GameObject target) => _seenObjects.ContainsKey(target.GetInstanceID());
         public int UniqueObjectsSeen => _seenObjects.Count;
         
         private Dictionary<GameObject, float> _activeObjects = new Dictionary<GameObject, float>();
         private Dictionary<int, float> _pendingViewTime = new Dictionary<int, float>();
         
-        private HashSet<int> _seenObjects = new HashSet<int>();
+        private Dictionary<int, float> _seenObjects = new Dictionary<int, float>();
         private HashSet<GameObject> _presenceObjects = new HashSet<GameObject>();
 
 
@@ -46,19 +44,25 @@ namespace Audience
         private void HandleTargetEnter(GameObject target, RecordableTarget targetType)
         {
             if (!target.TryGetComponent(out RecordableIdentifier identifier)) return;
-            
+
             int id = target.GetInstanceID();
-            
-            if (_seenObjects.Contains(id))
+
+            if (_seenObjects.TryGetValue(id, out float seenAt))
             {
-                if (identifier.canBeReviewedForDecay)
+                if (identifier.canBeReviewed && Time.time - seenAt >= identifier.reviewCooldown)
+                {
+                    _seenObjects.Remove(id);
+                    _activeObjects[target] = 0f;
+                    Debug.Log($"AudienceContributor: {target.name} review cooldown expired, tracking again.");
+                }
+                else
                 {
                     _presenceObjects.Add(target);
                     Debug.Log($"AudienceContributor: {target.name} re-entered view for decay prevention.");
                 }
                 return;
             }
-            
+
             if (!_activeObjects.ContainsKey(target))
             {
                 float resumedTime = 0f;
@@ -117,19 +121,21 @@ namespace Audience
                     continue;
                 }
 
+                if (!target.TryGetComponent(out RecordableIdentifier identifier)) continue;
+
                 _activeObjects[target] += deltaTime;
                 float secondsInView = _activeObjects[target];
+                
+                if (secondsInView < identifier.minimumViewTime) continue;
 
-                float baseGain = 0f;
+                int id = target.GetInstanceID();
+                
+                AudienceManager.Instance.SubmitGain(identifier.audienceGain);
+                
+                _seenObjects[id] = Time.time;
+                _activeObjects.Remove(target);
 
-                if (target.TryGetComponent(out RecordableIdentifier identifier))
-                {
-                    baseGain = identifier.audienceGainPerSecond;
-                }
-
-                float multiplier = Mathf.Max(minimumGainMultiplier, 1f / (1f + diminishFactor * secondsInView));
-
-                AudienceManager.Instance.SubmitGain(baseGain * multiplier);
+                Debug.Log($"AudienceContributor: {target.name} confirmed — awarded {identifier.audienceGain} audience.");
             }
         }
         

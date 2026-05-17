@@ -77,7 +77,7 @@ namespace Audience
 
             if (_receivedGainThisFrame)
             {
-                float audienceGain = Mathf.Min(_pendingGainThisFrame * globalGainMultiplier, maxGainPerSecond * deltaTime);
+                float audienceGain = _pendingGainThisFrame * globalGainMultiplier;
 
                 AddAudience(audienceGain);
 
@@ -102,11 +102,11 @@ namespace Audience
             }
         }
         
-        public void SubmitGain(float gainPerSecond)
+        public void SubmitGain(float gain)
         {
             if (IsServer)
             {
-                _pendingGainThisFrame  += gainPerSecond * Time.deltaTime;
+                _pendingGainThisFrame  += gain;
                 _receivedGainThisFrame  = true;
             }
         }

@@ -4875,9 +4875,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Components::Components.RecordableIdentifier
   targetType: 5
-  audienceGainPerSecond: 5
+  audienceGain: 500
   minimumViewTime: 0.5
-  canBeReviewedForDecay: 1
+  reviewCooldown: 10
+  canBeReviewed: 0
 --- !u!65 &836829361
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -10834,9 +10835,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Components::Components.RecordableIdentifier
   targetType: 5
-  audienceGainPerSecond: 100
-  minimumViewTime: 2
-  canBeReviewedForDecay: 0
+  audienceGain: 300
+  minimumViewTime: 1
+  reviewCooldown: 10
+  canBeReviewed: 1
 --- !u!65 &1318101669
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -11523,9 +11525,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Components::Components.RecordableIdentifier
   targetType: 5
-  audienceGainPerSecond: 20
-  minimumViewTime: 1
-  canBeReviewedForDecay: 0
+  audienceGain: 300
+  minimumViewTime: 2
+  reviewCooldown: 60
+  canBeReviewed: 0
 --- !u!1 &1626571400
 GameObject:
   m_ObjectHideFlags: 0

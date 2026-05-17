@@ -107,15 +107,13 @@ namespace Audience
         
         private void TickActiveObjects(float deltaTime)
         {
-            List<GameObject> toRemove = null;
+            List<GameObject> keys = new List<GameObject>(_activeObjects.Keys);
 
-            foreach (KeyValuePair<GameObject, float> keyValuePair in _activeObjects)
+            foreach (GameObject target in keys)
             {
-                GameObject target = keyValuePair.Key;
-
                 if (target == null)
                 {
-                    (toRemove ??= new List<GameObject>()).Add(target);
+                    _activeObjects.Remove(target);
                     continue;
                 }
 
@@ -123,23 +121,15 @@ namespace Audience
                 float secondsInView = _activeObjects[target];
 
                 float baseGain = 0f;
-                
+
                 if (target.TryGetComponent(out RecordableIdentifier identifier))
                 {
                     baseGain = identifier.audienceGainPerSecond;
                 }
-                
+
                 float multiplier = Mathf.Max(minimumGainMultiplier, 1f / (1f + diminishFactor * secondsInView));
 
                 AudienceManager.Instance.SubmitGain(baseGain * multiplier);
-            }
-
-            if (toRemove != null)
-            {
-                foreach (GameObject deadObject in toRemove)
-                {
-                    _activeObjects.Remove(deadObject);
-                }
             }
         }
         

@@ -57,11 +57,11 @@ namespace Audience
             }
 
             _maxAudience = missionManager.CurrentContract.maxAudience;
-            _audience.OnValueChanged += HandleAudienceValueChanged;
+            _audience.OnValueChanged += AudienceManager_OnAudienceChanged;
         }
         
         
-        private void HandleAudienceValueChanged(float previous, float current) => OnAudienceChanged?.Invoke(current);
+        private void AudienceManager_OnAudienceChanged(float previous, float current) => OnAudienceChanged?.Invoke(current);
         
         private void Update()
         {
@@ -153,7 +153,7 @@ namespace Audience
         
         public override void OnNetworkDespawn()
         {
-            _audience.OnValueChanged -= HandleAudienceValueChanged;
+            _audience.OnValueChanged -= AudienceManager_OnAudienceChanged;
         }
         
     }

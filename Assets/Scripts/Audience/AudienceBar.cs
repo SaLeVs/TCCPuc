@@ -19,32 +19,34 @@ namespace Audience
         
         private void Start()
         {
-            if (AudienceManager.Instance == null)
+            StartCoroutine(WaitForAudienceManager());
+        }
+
+        private IEnumerator WaitForAudienceManager()
+        {
+            while (AudienceManager.Instance == null)
             {
-                Debug.LogWarning("AudienceBar: AudienceManager not found. Bar disabled.");
-                gameObject.SetActive(false);
-                return;
+                yield return null;
             }
 
             _initialized = true;
             fillImage.fillAmount = AudienceManager.Instance.NormalizedAudience;
- 
+
             RefreshLabels(AudienceManager.Instance.CurrentAudience, AudienceManager.Instance.MaxAudience);
- 
+
             AudienceManager.Instance.OnAudienceChanged += AudienceManager_OnAudienceChanged;
         }
         
-        
-        private void AudienceManager_OnAudienceChanged(float newValue)
+        private void AudienceManager_OnAudienceChanged(float newAudience)
         {
-            RefreshLabels(newValue, AudienceManager.Instance.MaxAudience);
+            RefreshLabels(newAudience, AudienceManager.Instance.MaxAudience);
             AnimateFill(AudienceManager.Instance.NormalizedAudience);
         }
         
-        private void RefreshLabels(float current, float max)
+        private void RefreshLabels(float currentAudience, float maxAudience)
         {
             percentageText.text = $"{AudienceManager.Instance.NormalizedAudience * 100f:F0}%";
-            audienceText.text = $"{current:F0} / {max:F0}";
+            audienceText.text = $"{currentAudience:F0} / {maxAudience:F0}";
         }
         
         private void AnimateFill(float targetFill)

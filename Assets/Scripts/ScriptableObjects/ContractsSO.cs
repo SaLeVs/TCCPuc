@@ -16,6 +16,7 @@ namespace ScriptableObjects
         public List<RoomDataSO> baseRooms;
         public List<RoomDataSO> lootRooms;
         
+        public float maxAudience;
         
         public List<RoomDataSO> GetAllRequiredRooms()
         {

@@ -10,5 +10,9 @@ namespace Components
         public float minimumViewTime = 2f;
         public float reviewCooldown = 60f;
         public bool canBeReviewed;
+
+        // Metodo para aleatorizar se pode ou nao contar view
+        // Metodo para aleatorizar quanto ganha de audiencia
+        // metodo para 
     }
 }

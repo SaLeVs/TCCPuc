@@ -17,13 +17,13 @@ namespace Missions
         [SerializeField] private List<PipeSpawnConfig> pipeConfigs;
         [SerializeField] private MissionOwnershipSelector ownershipSelector;
         [SerializeField] private MissionCompleter missionCompleter;
+        [SerializeField] private List<Vector3> pipesPossibleRotations;
         
         public bool IsComplete { get; private set; }
         
-        private readonly List<MissionPipe> _spawnedPipes = new();
-        
-        private const int MAX_PIPES_ROTATIONS = 4;
+        private readonly List<PipeTotem> _spawnedPipes = new();
     
+        
         public void RequestSpawn()
         {
             if (!IsServer) return;
@@ -40,27 +40,34 @@ namespace Missions
                 GameObject pipePrefab = config.pipeType == PipeType.Straight ? pipeTotemStraight : pipeTotemJoint;
                 GameObject spawnedPipe = Instantiate(pipePrefab, config.spawnPoint.position, config.spawnPoint.rotation);
 
-                if (spawnedPipe.TryGetComponent(out MissionPipe pipe))
-                {
-                    pipe.Initialize(this, ownershipSelector, randomSteps[i]);
-                    _spawnedPipes.Add(pipe);
-                }
-
                 if (spawnedPipe.TryGetComponent(out NetworkObject networkObject))
                 {
                     networkObject.Spawn();
+                }
+
+                if (spawnedPipe.TryGetComponent(out PipeTotem pipe))
+                {
+                    pipe.Initialize(this, ownershipSelector, pipesPossibleRotations, config.correctRotations, randomSteps[i]);
+                    
+                    _spawnedPipes.Add(pipe);
                 }
             }
 
             OnSpawnCompleted?.Invoke();
         }
         
+        
         private List<int> GenerateRandomSteps(int pipeCount)
         {
             int wrongCount = Mathf.CeilToInt(pipeCount / 2f);
-            
+
             List<int> indices = new();
-            for (int i = 0; i < pipeCount; i++) indices.Add(i);
+
+            for (int i = 0; i < pipeCount; i++)
+            {
+                indices.Add(i);
+            }
+
             Shuffle(indices);
 
             int[] steps = new int[pipeCount];
@@ -68,25 +75,59 @@ namespace Missions
             for (int i = 0; i < pipeCount; i++)
             {
                 int configIndex = indices[i];
-                PipeType pipeType = pipeConfigs[configIndex].pipeType;
 
-                steps[configIndex] = i < wrongCount ? GetWrongStep(pipeType) : UnityEngine.Random.Range(0, MAX_PIPES_ROTATIONS);
+                PipeSpawnConfig config = pipeConfigs[configIndex];
+
+                bool shouldStartWrong = i < wrongCount;
+
+                steps[configIndex] = shouldStartWrong ? GetWrongStep(config, pipesPossibleRotations) : GetCorrectStep(config, pipesPossibleRotations);
             }
 
             return new List<int>(steps);
         }
         
-        private int GetWrongStep(PipeType pipeType)
+        private int GetWrongStep(PipeSpawnConfig config, List<Vector3> rotations)
         {
-            switch (pipeType)
+            List<int> validWrongSteps = new();
+
+            for (int i = 0; i < rotations.Count; i++)
             {
-                case PipeType.Straight:
-                    return 1;
-                case PipeType.Joint:
-                    return 1;
-                default:
-                    return 1;
+                if (!config.correctRotations.Contains(rotations[i]))
+                {
+                    validWrongSteps.Add(i);
+                }
             }
+
+            if (validWrongSteps.Count == 0)
+            {
+                Debug.LogWarning("No wrong rotations available.");
+                return 0;
+            }
+
+            return validWrongSteps[
+                UnityEngine.Random.Range(0, validWrongSteps.Count)
+            ];
+        }
+        
+        private int GetCorrectStep(PipeSpawnConfig config, List<Vector3> rotations)
+        {
+            List<int> validSteps = new();
+
+            for (int i = 0; i < rotations.Count; i++)
+            {
+                if (config.correctRotations.Contains(rotations[i]))
+                {
+                    validSteps.Add(i);
+                }
+            }
+
+            if (validSteps.Count == 0)
+            {
+                Debug.LogWarning("No correct rotations configured.");
+                return 0;
+            }
+
+            return validSteps[UnityEngine.Random.Range(0, validSteps.Count)];
         }
 
         private void Shuffle(List<int> list)
@@ -112,12 +153,9 @@ namespace Missions
         
         private bool CheckAllPipesCorrect()
         {
-            foreach (MissionPipe pipe in _spawnedPipes)
+            foreach (PipeTotem pipe in _spawnedPipes)
             {
-                if (!pipe.IsCorrect)
-                {
-                    return false;
-                }
+                if (!pipe.IsCorrect) return false;
             }
 
             return true;
@@ -142,7 +180,7 @@ namespace Missions
         {
             if (!IsServer) return;
 
-            foreach (MissionPipe pipe in _spawnedPipes)
+            foreach (PipeTotem pipe in _spawnedPipes)
             {
                 if (pipe == null) continue;
 

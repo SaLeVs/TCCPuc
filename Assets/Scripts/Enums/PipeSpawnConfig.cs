@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using UnityEngine;
 
 namespace Enums
@@ -8,5 +9,6 @@ namespace Enums
     {
         public PipeType pipeType;
         public Transform spawnPoint;
+        public List<Vector3> correctRotations;
     }
 }

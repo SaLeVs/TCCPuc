@@ -39,18 +39,18 @@ namespace Missions
             {
                 PipeSpawnConfig config = pipeConfigs[i];
                 GameObject pipePrefab = config.pipeType == PipeType.Straight ? pipeTotemStraight : pipeTotemJoint;
+                
                 GameObject spawnedPipe = Instantiate(pipePrefab, config.spawnPoint.position, config.spawnPoint.rotation);
-
-                if (spawnedPipe.TryGetComponent(out NetworkObject networkObject))
-                {
-                    networkObject.Spawn();
-                }
 
                 if (spawnedPipe.TryGetComponent(out PipeTotem pipe))
                 {
                     pipe.Initialize(this, ownershipSelector, possibleAngles, config.correctSteps, randomSteps[i]);
-                    
                     _spawnedPipes.Add(pipe);
+                }
+
+                if (spawnedPipe.TryGetComponent(out NetworkObject networkObject))
+                {
+                    networkObject.Spawn();
                 }
             }
 
@@ -137,9 +137,6 @@ namespace Missions
             foreach (PipeTotem pipe in _spawnedPipes)
             {
                 bool isCorrect = pipe.IsCorrect;
-
-                Debug.Log($"Pipe: {pipe.gameObject.name} | " + $"Step: {pipe.CurrentStep} | " + $"Correct: {isCorrect}");
-
                 if (!isCorrect)
                 {
                     allCorrect = false;

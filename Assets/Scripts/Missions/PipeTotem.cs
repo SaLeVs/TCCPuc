@@ -11,11 +11,11 @@ namespace Missions
     {
         [SerializeField] private PipeType pipeType;
         [SerializeField] private Vector3 rotationAxis = Vector3.up;
-        
+
         public bool IsCorrect => IsRotationCorrect();
         public int CurrentStep => _currentRotationStep.Value;
 
-        private NetworkVariable<int> _currentRotationStep = new();
+        private readonly NetworkVariable<int> _currentRotationStep = new();
 
         private MissionPipesManager _pipesManager;
         private MissionOwnershipSelector _ownershipSelector;
@@ -24,9 +24,12 @@ namespace Missions
         private HashSet<int> _correctSteps = new();
 
         private Quaternion _baseRotation;
-        
 
-        public void Initialize(MissionPipesManager manager, MissionOwnershipSelector selector, List<float> possibleAngles, List<int> correctSteps,
+        public void Initialize(
+            MissionPipesManager manager,
+            MissionOwnershipSelector selector,
+            List<float> possibleAngles,
+            List<int> correctSteps,
             int initialStepIndex)
         {
             _pipesManager = manager;
@@ -37,17 +40,14 @@ namespace Missions
 
             _baseRotation = transform.localRotation;
 
-            if (_possibleAngles.Count == 0)
-            {
-                Debug.LogError("PipeTotem: No possible angles configured.");
-                return;
-            }
+            _currentRotationStep.Value =
+                Mathf.Clamp(initialStepIndex, 0, _possibleAngles.Count - 1);
+        }
 
-            if (!IsServer) return;
-
-            _currentRotationStep.Value = Mathf.Clamp(initialStepIndex, 0, _possibleAngles.Count - 1);
-            
+        public override void OnNetworkSpawn()
+        {
             _currentRotationStep.OnValueChanged += PipeTotem_OnRotationChanged;
+
             ApplyRotation(_currentRotationStep.Value);
         }
 
@@ -86,11 +86,11 @@ namespace Missions
         private void RotatePipe(ulong clientId)
         {
             if (!IsServer) return;
-            
-            if (_possibleAngles.Count == 0) return;
             if (_pipesManager.IsComplete) return;
 
-            _currentRotationStep.Value = (_currentRotationStep.Value + 1) % _possibleAngles.Count;
+            _currentRotationStep.Value =
+                (_currentRotationStep.Value + 1) % _possibleAngles.Count;
+
             _pipesManager.OnPipeRotated(clientId);
         }
 
@@ -101,24 +101,33 @@ namespace Missions
 
         private void ApplyRotation(int step)
         {
+            if (_possibleAngles.Count == 0) return;
+
             int safeStep = Mathf.Clamp(step, 0, _possibleAngles.Count - 1);
+
             float angle = _possibleAngles[safeStep];
 
             Quaternion rotationOffset = Quaternion.AngleAxis(angle, rotationAxis);
             transform.localRotation = _baseRotation * rotationOffset;
         }
-        
+
         private bool IsRotationCorrect()
         {
             return _correctSteps.Contains(_currentRotationStep.Value);
         }
-        
+
         public void Uninitialize()
         {
             _pipesManager = null;
             _ownershipSelector = null;
+
             _possibleAngles.Clear();
-            
+            _correctSteps.Clear();
+        }
+
+        
+        public override void OnNetworkDespawn()
+        {
             _currentRotationStep.OnValueChanged -= PipeTotem_OnRotationChanged;
         }
         

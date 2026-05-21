@@ -14,10 +14,11 @@ namespace Missions
         
         [SerializeField] private GameObject pipeTotemStraight;
         [SerializeField] private GameObject pipeTotemJoint;
-        [SerializeField] private List<PipeSpawnConfig> pipeConfigs;
         [SerializeField] private MissionOwnershipSelector ownershipSelector;
         [SerializeField] private MissionCompleter missionCompleter;
-        [SerializeField] private List<Vector3> pipesPossibleRotations;
+        
+        [SerializeField] private List<PipeSpawnConfig> pipeConfigs;
+        [SerializeField] private List<float> possibleAngles;
         
         public bool IsComplete { get; private set; }
         
@@ -47,7 +48,7 @@ namespace Missions
 
                 if (spawnedPipe.TryGetComponent(out PipeTotem pipe))
                 {
-                    pipe.Initialize(this, ownershipSelector, pipesPossibleRotations, config.correctRotations, randomSteps[i]);
+                    pipe.Initialize(this, ownershipSelector, possibleAngles, config.correctSteps, randomSteps[i]);
                     
                     _spawnedPipes.Add(pipe);
                 }
@@ -80,54 +81,32 @@ namespace Missions
 
                 bool shouldStartWrong = i < wrongCount;
 
-                steps[configIndex] = shouldStartWrong ? GetWrongStep(config, pipesPossibleRotations) : GetCorrectStep(config, pipesPossibleRotations);
+                steps[configIndex] = shouldStartWrong ? GetWrongStep(config, possibleAngles) : GetCorrectStep(config);
             }
 
             return new List<int>(steps);
         }
         
-        private int GetWrongStep(PipeSpawnConfig config, List<Vector3> rotations)
+        private int GetCorrectStep(PipeSpawnConfig config)
         {
-            List<int> validWrongSteps = new();
-
-            for (int i = 0; i < rotations.Count; i++)
-            {
-                if (!config.correctRotations.Contains(rotations[i]))
-                {
-                    validWrongSteps.Add(i);
-                }
-            }
-
-            if (validWrongSteps.Count == 0)
-            {
-                Debug.LogWarning("No wrong rotations available.");
-                return 0;
-            }
-
-            return validWrongSteps[
-                UnityEngine.Random.Range(0, validWrongSteps.Count)
-            ];
+            if (config.correctSteps == null || config.correctSteps.Count == 0) return 0;
+            return config.correctSteps[UnityEngine.Random.Range(0, config.correctSteps.Count)];
         }
-        
-        private int GetCorrectStep(PipeSpawnConfig config, List<Vector3> rotations)
-        {
-            List<int> validSteps = new();
 
-            for (int i = 0; i < rotations.Count; i++)
+        private int GetWrongStep(PipeSpawnConfig config, List<float> angles)
+        {
+            List<int> wrongSteps = new();
+
+            for (int i = 0; i < angles.Count; i++)
             {
-                if (config.correctRotations.Contains(rotations[i]))
+                if (!config.correctSteps.Contains(i))
                 {
-                    validSteps.Add(i);
+                    wrongSteps.Add(i);
                 }
             }
 
-            if (validSteps.Count == 0)
-            {
-                Debug.LogWarning("No correct rotations configured.");
-                return 0;
-            }
-
-            return validSteps[UnityEngine.Random.Range(0, validSteps.Count)];
+            if (wrongSteps.Count == 0) return 0;
+            return wrongSteps[UnityEngine.Random.Range(0, wrongSteps.Count)];
         }
 
         private void Shuffle(List<int> list)
@@ -153,12 +132,21 @@ namespace Missions
         
         private bool CheckAllPipesCorrect()
         {
+            bool allCorrect = true;
+
             foreach (PipeTotem pipe in _spawnedPipes)
             {
-                if (!pipe.IsCorrect) return false;
+                bool isCorrect = pipe.IsCorrect;
+
+                Debug.Log($"Pipe: {pipe.gameObject.name} | " + $"Step: {pipe.CurrentStep} | " + $"Correct: {isCorrect}");
+
+                if (!isCorrect)
+                {
+                    allCorrect = false;
+                }
             }
 
-            return true;
+            return allCorrect;
         }
         
         [Rpc(SendTo.ClientsAndHost)]

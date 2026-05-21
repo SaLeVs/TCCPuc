@@ -11,8 +11,8 @@ GameObject:
   - component: {fileID: 7016337870328114944}
   - component: {fileID: 3349733153054833474}
   - component: {fileID: 7192092173502863590}
-  - component: {fileID: 4191113620178342345}
-  - component: {fileID: 629034443676556797}
+  - component: {fileID: 8683270340243543553}
+  - component: {fileID: 2265502086755853966}
   m_Layer: 0
   m_Name: PipesManager
   m_TagString: Untagged
@@ -48,7 +48,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Unity.Netcode.Runtime::Unity.Netcode.NetworkObject
-  GlobalObjectIdHash: 2849980230
+  GlobalObjectIdHash: 1549914369
   InScenePlacedSourceGlobalObjectIdHash: 0
   DeferredDespawnTick: 0
   Ownership: 1
@@ -76,65 +76,49 @@ MonoBehaviour:
   ShowTopMostFoldoutHeaderGroup: 1
   pipeTotemStraight: {fileID: 8722450943533077695, guid: ca50996b656eb1a419a9b0e5d4d3d0b2, type: 3}
   pipeTotemJoint: {fileID: 4234447682429228620, guid: fb0127534cdf4e84ebdd4bf47722190a, type: 3}
+  ownershipSelector: {fileID: 8683270340243543553}
+  missionCompleter: {fileID: 2265502086755853966}
   pipeConfigs:
   - pipeType: 0
     spawnPoint: {fileID: 618544468952922443}
-    correctRotations:
-    - {x: 90, y: 0, z: 0}
-    - {x: 270, y: 0, z: 0}
+    correctSteps: 0200000006000000
   - pipeType: 0
     spawnPoint: {fileID: 4373984307753788762}
-    correctRotations:
-    - {x: 90, y: 0, z: 0}
-    - {x: 270, y: 0, z: 0}
+    correctSteps: 0200000006000000
   - pipeType: 0
     spawnPoint: {fileID: 7266625898805589}
-    correctRotations:
-    - {x: 90, y: 0, z: 0}
-    - {x: 270, y: 0, z: 0}
+    correctSteps: 0200000006000000
   - pipeType: 0
     spawnPoint: {fileID: 2946271711249347343}
-    correctRotations:
-    - {x: 90, y: 0, z: 0}
-    - {x: 270, y: 0, z: 0}
+    correctSteps: 0200000006000000
   - pipeType: 0
     spawnPoint: {fileID: 5978755168509454081}
-    correctRotations:
-    - {x: 90, y: 0, z: 0}
-    - {x: 270, y: 0, z: 0}
+    correctSteps: 0200000006000000
   - pipeType: 1
     spawnPoint: {fileID: 5154342556501933337}
-    correctRotations:
-    - {x: 270, y: 0, z: 0}
+    correctSteps: 06000000
   - pipeType: 0
     spawnPoint: {fileID: 4627157261241146567}
-    correctRotations:
-    - {x: 90, y: 0, z: 0}
-    - {x: 270, y: 0, z: 0}
+    correctSteps: 0200000006000000
   - pipeType: 1
     spawnPoint: {fileID: 967435048774393040}
-    correctRotations:
-    - {x: 270, y: 0, z: 0}
+    correctSteps: 06000000
   - pipeType: 0
     spawnPoint: {fileID: 7559168586025627120}
-    correctRotations:
-    - {x: 90, y: 0, z: 0}
-    - {x: 270, y: 0, z: 0}
+    correctSteps: 0200000006000000
   - pipeType: 0
     spawnPoint: {fileID: 3453630467051049469}
-    correctRotations:
-    - {x: 90, y: 0, z: 0}
-    - {x: 270, y: 0, z: 0}
-  ownershipSelector: {fileID: 4191113620178342345}
-  missionCompleter: {fileID: 629034443676556797}
-  pipesPossibleRotations:
-  - {x: 45, y: 0, z: 0}
-  - {x: 90, y: 0, z: 0}
-  - {x: 135, y: 0, z: 0}
-  - {x: 180, y: 0, z: 0}
-  - {x: 225, y: 0, z: 0}
-  - {x: 270, y: 0, z: 0}
---- !u!114 &4191113620178342345
+    correctSteps: 0200000006000000
+  possibleAngles:
+  - 0
+  - 45
+  - 90
+  - 135
+  - 180
+  - 225
+  - 270
+  - 315
+--- !u!114 &8683270340243543553
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -148,7 +132,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Missions::Missions.PersonalMissions.MissionOwnershipSelector
   ShowTopMostFoldoutHeaderGroup: 1
   mission: {fileID: 11400000, guid: cbb907c5d4252e64aac430c861cc13df, type: 2}
---- !u!114 &629034443676556797
+--- !u!114 &2265502086755853966
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}

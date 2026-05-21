@@ -9,6 +9,6 @@ namespace Enums
     {
         public PipeType pipeType;
         public Transform spawnPoint;
-        public List<Vector3> correctRotations;
+        public List<int> correctSteps;
     }
 }

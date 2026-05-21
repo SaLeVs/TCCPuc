@@ -12,7 +12,7 @@ GameObject:
   - component: {fileID: 1883540202374929609}
   - component: {fileID: 4316497121219823749}
   - component: {fileID: 702912328464072827}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: GFX
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -121,8 +121,8 @@ GameObject:
   - component: {fileID: 2740563536437574965}
   - component: {fileID: 6932059101689125241}
   - component: {fileID: 3484409616541510242}
-  - component: {fileID: 4901935626364909081}
-  m_Layer: 0
+  - component: {fileID: 4885322833436050313}
+  m_Layer: 8
   m_Name: PipeTotemStraight
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -184,7 +184,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Missions::Missions.MissionPipe
   ShowTopMostFoldoutHeaderGroup: 1
   pipeType: 0
-  rotationPerStep: 90
+  rotationAxis: {x: 1, y: 0, z: 0}
 --- !u!114 &3484409616541510242
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -198,8 +198,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Components::Highlight
   outline: {fileID: 702912328464072827}
---- !u!136 &4901935626364909081
-CapsuleCollider:
+--- !u!65 &4885322833436050313
+BoxCollider:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
@@ -216,8 +216,6 @@ CapsuleCollider:
   m_IsTrigger: 0
   m_ProvidesContacts: 0
   m_Enabled: 1
-  serializedVersion: 2
-  m_Radius: 0.5000001
-  m_Height: 2
-  m_Direction: 1
-  m_Center: {x: 0.000000059604645, y: 0, z: -0.00000008940697}
+  serializedVersion: 3
+  m_Size: {x: 1, y: 2.0532541, z: 1}
+  m_Center: {x: 0, y: -0.014900148, z: 0}

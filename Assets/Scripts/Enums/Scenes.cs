@@ -7,7 +7,7 @@ namespace Enums
         Netbootstrap,
         MainMenu,
         Lobby,
-        Gameplay
+        Game
         
     }
 }

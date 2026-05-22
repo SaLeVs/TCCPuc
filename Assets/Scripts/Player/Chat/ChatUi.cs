@@ -1,7 +1,9 @@
 using System;
 using System.Collections.Generic;
+using Enums;
 using TMPro;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 namespace Player.Chat
 {
@@ -18,6 +20,8 @@ namespace Player.Chat
         
         private void Awake()
         {
+            if (SceneManager.GetActiveScene().name != nameof(Scenes.Game)) return;
+
             for (int i = 0; i < activeMessagesCount; i++)
             {
                 GameObject instance = Instantiate(chatMessagePrefab, chatMessageHolder);
@@ -33,8 +37,10 @@ namespace Player.Chat
         
         private void OnEnable()
         {
-            Debug.Log("Chat: Add the listener");
+            if (SceneManager.GetActiveScene().name != nameof(Scenes.Game)) return;
+            
             chatManager.OnMessageSent += ChatManager_OnMessageSent;
+            Debug.Log("Chat: Add the listener");
         }
         
         
@@ -51,8 +57,11 @@ namespace Player.Chat
         
         private void OnDisable()
         {
-            Debug.Log("Chat: Remove the listener");
+            
+            if (SceneManager.GetActiveScene().name != nameof(Scenes.Game)) return;
+            
             chatManager.OnMessageSent -= ChatManager_OnMessageSent;
+            Debug.Log("Chat: Remove the listener");
         }
         
     }

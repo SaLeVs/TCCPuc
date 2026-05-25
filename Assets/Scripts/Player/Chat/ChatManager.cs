@@ -22,11 +22,13 @@ namespace Player.Chat
         [SerializeField] private float minDelay = 0.5f;
         [SerializeField] private float maxDelay = 2.5f;
 
+        
         private void OnEnable()
         {
             if (SceneManager.GetActiveScene().name == nameof(Scenes.Game))
             {
-                visionSensor.OnTargetEnter += VisionSensor_OnTargetSeen;
+                visionSensor.OnTargetEnterStatic += VisionSensor_OnTargetSeen;
+                visionSensor.OnTargetEnter += VisionSensor_OnNetworkTargetSeen;
                 chatUi.SetActive(true);
                 Debug.Log("ChatManager: Vision sensor enabled");
             }
@@ -34,28 +36,32 @@ namespace Player.Chat
             {
                 chatUi.SetActive(false);
             }
-            
         }
 
-        private void VisionSensor_OnTargetSeen(GameObject target)
+        private void VisionSensor_OnNetworkTargetSeen(GameObject target)
         {
-            if (!target.TryGetComponent(out RecordableIdentifier identifier))
-            {
-                Debug.Log($"ChatManager: Target {target.name} does not have a RecordableIdentifier, skipping chat message.");
-                return;
-            }
+            if (!target.TryGetComponent(out RecordableIdentifier identifier)) return;
+            
+            TriggerMessage(identifier.targetType);
+        }
 
-            if (!messageDatabase.TryGetData(identifier.targetType, out TargetChatData entry))
+        private void VisionSensor_OnTargetSeen(RecordableTarget target)
+        {
+            TriggerMessage(target);
+        }
+
+        private void TriggerMessage(RecordableTarget target)
+        {
+            if (!messageDatabase.TryGetData(target, out TargetChatData entry))
             {
-                Debug.Log($"ChatManager: No chat data for {identifier.targetType}, skipping chat message.");
+                Debug.Log($"ChatManager: No chat data for {target}, skipping.");
                 return;
             }
 
             string message = entry.GetWeightedRandom();
             string viewer = nameDatabase.GetNext();
-            float  delay = UnityEngine.Random.Range(minDelay, maxDelay);
-            
-            Debug.Log($"ChatManager: Sending message '{message}' to '{viewer}' with delay {delay}");
+            float delay = UnityEngine.Random.Range(minDelay, maxDelay);
+
             StartCoroutine(SendDelayed(viewer, message, delay));
         }
 
@@ -66,18 +72,20 @@ namespace Player.Chat
             Debug.Log($"ChatManager: Message '{message}' sent to '{viewer}'");
         }
         
+        
         private void OnDisable()
         {
             StopAllCoroutines();
-            
+
             if (SceneManager.GetActiveScene().name == nameof(Scenes.Game))
             {
-                visionSensor.OnTargetEnter -= VisionSensor_OnTargetSeen;
-                Debug.Log("ChatManager: Vision sensor disabled");
+                visionSensor.OnTargetEnterStatic -= VisionSensor_OnTargetSeen;
+                visionSensor.OnTargetEnter -= VisionSensor_OnNetworkTargetSeen;
             }
-            
+
             chatUi.SetActive(false);
         }
+        
     }
 }
 

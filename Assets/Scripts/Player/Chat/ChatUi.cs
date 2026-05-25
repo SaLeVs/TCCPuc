@@ -15,6 +15,7 @@ namespace Player.Chat
         [SerializeField] private int activeMessagesCount = 5;
         
         private List<TextMeshProUGUI> _pool = new();
+        private List<GameObject> _poolRoots = new();
         private int _currentIndex = 0;
         
         
@@ -29,8 +30,8 @@ namespace Player.Chat
 
                 if (instance.GetComponentInChildren<TextMeshProUGUI>() is TextMeshProUGUI childText)
                 {
-                    Debug.Log("Chat: Add to pool");
                     _pool.Add(childText);
+                    _poolRoots.Add(instance);
                 }
             }
         }
@@ -46,11 +47,11 @@ namespace Player.Chat
         
         private void ChatManager_OnMessageSent(string viewer, string message)
         {
-            TextMeshProUGUI slot = _pool[_currentIndex];
+            _pool[_currentIndex].text = $"<b>{viewer}:</b> {message}";
+            
+            _poolRoots[_currentIndex].transform.SetAsLastSibling();
+            _poolRoots[_currentIndex].SetActive(true);
 
-            slot.text = $"<b>{viewer}:</b> {message}";
-            slot.gameObject.SetActive(true);
-            Debug.Log("Chat: Show message");
             _currentIndex = (_currentIndex + 1) % activeMessagesCount;
         }
         

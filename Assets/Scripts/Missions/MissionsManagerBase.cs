@@ -9,7 +9,7 @@ namespace Missions
         [SerializeField] private MissionOwnershipSelector ownershipSelector;
         
         public MissionOwnershipSelector OwnershipSelector => ownershipSelector;
-        public abstract bool IsComplete { get; }
+        public abstract bool IsComplete { get; protected set; }
     }
 }
 

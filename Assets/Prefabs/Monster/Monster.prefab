@@ -176,7 +176,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Monster::MonsterWander
   ShowTopMostFoldoutHeaderGroup: 1
-  walkSpeed: 3
+  walkSpeed: 0.01
   wanderRadius: 20
   minWanderIntervalForEachPoint: 0.5
   maxWanderIntervalForEachPoint: 2.5
@@ -222,7 +222,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Monster::Monster.MonsterChase
   ShowTopMostFoldoutHeaderGroup: 1
-  chaseSpeed: 5
+  chaseSpeed: 0.01
   monsterTargets: []
 --- !u!114 &3757600163404236341
 MonoBehaviour:
@@ -277,9 +277,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Components::Components.RecordableIdentifier
   targetType: 3
-  audienceGainPerSecond: 10
+  audienceGain: 50
   minimumViewTime: 3
-  canBeReviewedForDecay: 1
+  reviewCooldown: 60
+  canBeReviewed: 0
 --- !u!195 &9158156660860726962
 NavMeshAgent:
   m_ObjectHideFlags: 0
@@ -290,7 +291,7 @@ NavMeshAgent:
   m_Enabled: 1
   m_AgentTypeID: 0
   m_Radius: 0.5
-  m_Speed: 3.5
+  m_Speed: 0.01
   m_Acceleration: 8
   avoidancePriority: 50
   m_AngularSpeed: 120

@@ -24,6 +24,10 @@ namespace Missions
         private int _completedPersonalMissions;
         private int _totalPersonalMissions;
         
+        private bool _missionsDistributed;
+        private bool _roomsSpawned;
+        private bool _ownersAssigned;
+        
         
         public override void OnNetworkSpawn()
         {
@@ -82,13 +86,16 @@ namespace Missions
         {
             _allMissionsAtContract.Clear();
             _allMissionsAtContract.AddRange(currentContract.personalMissions);
-            
+
             _playersInGame = NetworkManager.Singleton.ConnectedClientsIds;
-            
+
             if (!ValidateMissionPool()) return;
-            
+
             ShuffleMissions();
             AssignMissionsToAllPlayers();
+
+            _missionsDistributed = true;
+            TryAssignInteractableOwners();
         }
         
         private bool ValidateMissionPool()
@@ -163,29 +170,27 @@ namespace Missions
 
         public void OnRoomsSpawned()
         {
+            _roomsSpawned = true;
+
             IMissionSpawnable[] spawnables = FindObjectsByType<MonoBehaviour>(FindObjectsSortMode.None).OfType<IMissionSpawnable>().ToArray();
-
-            int pending = spawnables.Length;
-
-            if (pending == 0)
-            {
-                AssignInteractableOwners();
-                return;
-            }
 
             foreach (IMissionSpawnable spawnable in spawnables)
             {
-                spawnable.OnSpawnCompleted += () =>
-                {
-                    pending--;
-                    if (pending <= 0)
-                        AssignInteractableOwners();
-                };
-
                 spawnable.RequestSpawn();
             }
+
+            TryAssignInteractableOwners();
         }
 
+        private void TryAssignInteractableOwners()
+        {
+            if (_ownersAssigned) return;
+            if (!_missionsDistributed || !_roomsSpawned) return;
+
+            AssignInteractableOwners();
+            _ownersAssigned = true;
+        }
+        
         private void AssignInteractableOwners()
         {
             MissionOwnershipSelector[] selectors = FindObjectsByType<MissionOwnershipSelector>(FindObjectsSortMode.None);

@@ -6,57 +6,76 @@ using UnityEngine;
 
 namespace Missions
 {
-    public class LampTotem : NetworkBehaviour, IInteractable
+    public class LampTotem : TotemsMissionsBase, IInteractable
     {
         public event Action<ulong, bool> OnLampToggled;
         
         [SerializeField] private Light lampLight;
         
-        private NetworkVariable<bool> _isOn = new NetworkVariable<bool>(
+        
+        public bool IsOn => _isOn.Value;
+        
+        private readonly NetworkVariable<bool> _isOn = new NetworkVariable<bool>(
             false,
             NetworkVariableReadPermission.Everyone,
             NetworkVariableWritePermission.Server
         );
-
-        public bool IsOn => _isOn.Value;
-        
-        private MissionOwnershipSelector _ownershipSelector;
-        private LampsManager _lampsManager;
-        
         
         public override void OnNetworkSpawn()
         {
-            _isOn.OnValueChanged += HandleLampStateChanged;
+            _isOn.OnValueChanged += LampTotem_OnLampStateChanged;
             lampLight.enabled = _isOn.Value; 
         }
 
-        public void Initialize(LampsManager lampsManager, MissionOwnershipSelector ownershipSelector, bool initialState)
+        public void Initialize(LampsManager lampManager, bool initialState)
         {
-            _lampsManager = lampsManager;
-            _ownershipSelector = ownershipSelector;
+            InitializeBase(lampManager);
+            
+            if (!IsServer) return;
+            
             _isOn.Value = initialState;
         }
 
         public bool CanInteract(GameObject interactor)
-        {
-            if (interactor.TryGetComponent(out NetworkObject networkObject))
+        { 
+            if(interactor.TryGetComponent(out NetworkObject networkObject))
             {
-                return _ownershipSelector.IsMissionOwner(networkObject.OwnerClientId);
+                return CheckOwnership(networkObject.OwnerClientId);
             }
-
+            
             return false;
         }
 
         public bool Interact(GameObject playerInteractor)
         {
+            if (!CanInteract(playerInteractor)) return false;
+
+            if (!IsServer)
+            {
+                if (playerInteractor.TryGetComponent(out NetworkObject networkObject))
+                {
+                    ToggleLampServerRpc(networkObject);
+                }
+                return true;
+            }
+
             ToggleLamp(playerInteractor);
             return true;
         }
 
+        [Rpc(SendTo.Server)]
+        private void ToggleLampServerRpc(NetworkObjectReference playerRef)
+        {
+            if (playerRef.TryGet(out NetworkObject playerNetObj))
+            {
+                ToggleLamp(playerNetObj.gameObject);
+            }
+        }
+        
         private void ToggleLamp(GameObject playerInteractor)
         {
-            if (!IsServer) return;
-
+            if (!IsServer || Manager.IsComplete) return;
+            
             _isOn.Value = !_isOn.Value;
 
             if (playerInteractor.TryGetComponent(out NetworkObject networkObject))
@@ -65,22 +84,9 @@ namespace Missions
             }
         }
 
-        private void HandleLampStateChanged(bool previousValue, bool newValue)
-        {
-            lampLight.enabled = newValue;
-        }
+        private void LampTotem_OnLampStateChanged(bool previousValue, bool newValue) => lampLight.enabled = newValue;
 
-        public override void OnNetworkDespawn()
-        {
-            _isOn.OnValueChanged -= HandleLampStateChanged;
-        }
-
-        
-        public void Uninitialize()
-        {
-            _ownershipSelector = null;
-            _lampsManager = null;
-        }
+        public override void OnNetworkDespawn() => _isOn.OnValueChanged -= LampTotem_OnLampStateChanged;
         
     }
 }

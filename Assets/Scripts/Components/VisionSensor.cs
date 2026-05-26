@@ -10,9 +10,11 @@ namespace Components
     {
         public event Action<GameObject, RecordableTarget> OnTargetEnterServer;
         public event Action<GameObject, RecordableTarget> OnTargetExitServer;
+        public event Action<RecordableTarget> OnTargetEnterStatic;
+        public event Action<RecordableTarget> OnTargetExitStatic;
         public event Action<GameObject> OnTargetEnter;
         public event Action<GameObject> OnTargetExit;
-
+        
         
         [Header("Vision References")] 
         [SerializeField] private Transform orientation;
@@ -126,7 +128,11 @@ namespace Components
 
             if (target.TryGetComponent(out NetworkObject netObj))
             {
-                SendTargetEnterClientRpc(netObj.NetworkObjectId);
+                SendNetworkTargetEnterRpc(netObj.NetworkObjectId);
+            }
+            else
+            {
+                SendStaticTargetEnterRpc((int)targetType);
             }
         }
 
@@ -138,55 +144,63 @@ namespace Components
 
             if (target.TryGetComponent(out NetworkObject netObj))
             {
-                SendTargetExitClientRpc(netObj.NetworkObjectId);
+                SendNetworkTargetExitRpc(netObj.NetworkObjectId);
+            }
+            else
+            {
+                SendStaticTargetExitRpc((int)targetType);
             }
         }
         
-        [Rpc(SendTo.ClientsAndHost)]
-        private void SendTargetEnterClientRpc(ulong id)
+        [Rpc(SendTo.Owner)]
+        private void SendNetworkTargetEnterRpc(ulong id)
         {
-            if (NetworkManager.Singleton.SpawnManager.SpawnedObjects.TryGetValue(id, out NetworkObject netObj))
+            if (NetworkManager.Singleton.SpawnManager.SpawnedObjects.TryGetValue(id, out NetworkObject networkObject))
             {
-                GameObject detectedObject = netObj.gameObject;
-                OnTargetEnter?.Invoke(detectedObject);
+                OnTargetEnter?.Invoke(networkObject.gameObject);
             }
         }
-        
-        
-        [Rpc(SendTo.ClientsAndHost)]
-        private void SendTargetExitClientRpc(ulong id)
+
+        [Rpc(SendTo.Owner)]
+        private void SendNetworkTargetExitRpc(ulong id)
         {
             if (NetworkManager.Singleton.SpawnManager.SpawnedObjects.TryGetValue(id, out NetworkObject netObj))
             {
-                GameObject detectedObject = netObj.gameObject;
-                OnTargetExit?.Invoke(detectedObject);
+                OnTargetExit?.Invoke(netObj.gameObject);
             }
+        }
+
+        [Rpc(SendTo.Owner)]
+        private void SendStaticTargetEnterRpc(int targetType)
+        {
+            OnTargetEnterStatic?.Invoke((RecordableTarget)targetType);
+        }
+
+        [Rpc(SendTo.Owner)]
+        private void SendStaticTargetExitRpc(int targetType)
+        {
+            OnTargetExitStatic?.Invoke((RecordableTarget)targetType);
         }
         
         private bool IsObjectInVision(GameObject objectForTest)
         {
-            if (!objectForTest.TryGetComponent(out Collider collider))
-                return false;
+            if (!objectForTest.TryGetComponent(out Collider collider)) return false;
 
             _destination = collider.bounds.center;
             Vector3 localPos = orientation.InverseTransformPoint(_destination);
 
-            if (localPos.z < 0f || localPos.z > distance)
-                return false;
+            if (localPos.z < 0f || localPos.z > distance) return false;
 
             float halfWidth = Mathf.Tan(angle * Mathf.Deg2Rad) * localPos.z;
-            if (Mathf.Abs(localPos.x) > halfWidth)
-                return false;
             
-            if (localPos.y < -height / 2f || localPos.y > height / 2f)
-                return false;
+            if (Mathf.Abs(localPos.x) > halfWidth) return false;
+            
+            if (localPos.y < -height / 2f || localPos.y > height / 2f) return false;
 
-            if (Physics.Linecast(orientation.position, _destination, occlusionLayers))
-                return false;
+            if (Physics.Linecast(orientation.position, _destination, occlusionLayers)) return false;
 
             return true;
         }
-        
         
         private Mesh CreateMesh()
         {
@@ -309,5 +323,6 @@ namespace Components
             detectedObjects?.Clear();
             previousDetectedObjects?.Clear();
         }
+        
     }
 }

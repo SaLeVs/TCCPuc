@@ -36,7 +36,12 @@ namespace Missions.PersonalMissions
 
         public bool IsMissionOwner(ulong clientId)
         {
-            Debug.Log($"MissionOwnershipSelector: Checking owner — expected {_missionOwnerClientId.Value}, got {clientId}");
+            if (_missionOwnerClientId.Value == ulong.MaxValue)
+            {
+                Debug.LogWarning("Mission owner not assigned yet.");
+                return false;
+            }
+
             return _missionOwnerClientId.Value == clientId;
         }
         

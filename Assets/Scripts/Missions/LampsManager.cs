@@ -8,7 +8,7 @@ using Random = UnityEngine.Random;
 
 namespace Missions
 {
-    public class LampsManager : NetworkBehaviour, IMissionSpawnable
+    public class LampsManager : MissionsManagerBase, IMissionSpawnable
     {
         public event Action OnSpawnCompleted;
         public event Action<int, int> OnCorrectLampsCountChanged;
@@ -16,12 +16,10 @@ namespace Missions
         
         [SerializeField] private GameObject lampPrefab;
         [SerializeField] private Transform[] spawnPoints;
-        [SerializeField] private MissionOwnershipSelector ownershipSelector;
         [SerializeField] private MissionCompleter missionCompleter;
         [SerializeField] private LampsFeedback lampsFeedback;
         
-        public bool IsComplete { get; private set; }
-        public MissionOwnershipSelector OwnershipSelector => ownershipSelector;
+        public override bool IsComplete { get; protected set; }
         public int CorrectLampsCount => _correctLampsCount.Value;
         public int TotalLampsCount => _totalLampsCount.Value;
 
@@ -65,28 +63,25 @@ namespace Missions
             {
                 GameObject spawned = Instantiate(lampPrefab, spawnPoints[i].position, spawnPoints[i].rotation);
 
-                if (spawned.TryGetComponent(out LampTotem lamp))
-                {
-                    lamp.OnLampToggled += LampTotem_OnLampToggled;
-
-                    _spawnedLamps.Add(lamp);
-
-                    bool shouldBeOn = UnityEngine.Random.Range(0, 2) == 0;
-                    _requiredStates.Add(lamp, shouldBeOn);
-                    lamp.Initialize(this, ownershipSelector, shouldBeOn); 
-                }
-
                 if (spawned.TryGetComponent(out NetworkObject netObj))
                 {
                     netObj.Spawn();
                 }
+                
+                if (spawned.TryGetComponent(out LampTotem lamp))
+                {
+                    lamp.OnLampToggled += LampTotem_OnLampToggled;
+                    _spawnedLamps.Add(lamp);
+
+                    bool shouldBeOn = Random.Range(0, 2) == 0;
+                    _requiredStates.Add(lamp, shouldBeOn);
+                    lamp.Initialize(this, shouldBeOn);
+                }
             }
             
             _totalLampsCount.Value = _spawnedLamps.Count;
-
             EnsureAtLeastOneWrong();
             RecalculateCorrectLampsCount();
-
             OnSpawnCompleted?.Invoke();
         }
         
@@ -94,14 +89,13 @@ namespace Missions
         {
             foreach (LampTotem lamp in _spawnedLamps)
             {
-                if (lamp.IsOn != _requiredStates[lamp]) return; 
+                if (lamp.IsOn != _requiredStates[lamp]) return;
             }
             
             int randomIndex = Random.Range(0, _spawnedLamps.Count);
             LampTotem lampToForce = _spawnedLamps[randomIndex];
-
-            bool currentRequired = _requiredStates[lampToForce];
-            _requiredStates[lampToForce] = !currentRequired; 
+            
+            _requiredStates[lampToForce] = !_requiredStates[lampToForce];
         }
         
         private void LampTotem_OnLampToggled(ulong clientId, bool toggled)
@@ -115,7 +109,6 @@ namespace Missions
             IsComplete = true;
             _isMissionComplete.Value = true;
             missionCompleter.Complete();
-
             NotifyMissionCompletedRpc();
             NotifyOwnerMissionCompletedRpc(RpcTarget.Single(clientId, RpcTargetUse.Temp));
         }
@@ -123,13 +116,15 @@ namespace Missions
         private void RecalculateCorrectLampsCount()
         {
             int correct = 0;
-
+            
             foreach (LampTotem lamp in _spawnedLamps)
             {
                 if (lamp.IsOn == _requiredStates[lamp])
+                {
                     correct++;
+                }
             }
-
+            
             _correctLampsCount.Value = correct;
         }
 
@@ -143,7 +138,7 @@ namespace Missions
 
             if (playerNetObj.TryGetComponent(out PlayerMissionHolder missionHolder))
             {
-                missionHolder.CompletePersonalMission(ownershipSelector.Mission);
+                missionHolder.CompletePersonalMission(OwnershipSelector.Mission);
             }
         }
         
@@ -160,11 +155,10 @@ namespace Missions
                 if (lamp == null) continue;
 
                 lamp.OnLampToggled -= LampTotem_OnLampToggled;
-                lamp.Uninitialize();
 
-                if (lamp.TryGetComponent(out NetworkObject netObj) && netObj.IsSpawned)
+                if (lamp.TryGetComponent(out NetworkObject networkObject) && networkObject.IsSpawned)
                 {
-                    netObj.Despawn();
+                    networkObject.Despawn();
                 }
 
                 Destroy(lamp.gameObject);

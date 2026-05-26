@@ -194,21 +194,25 @@ namespace Missions
         private void AssignInteractableOwners()
         {
             MissionOwnershipSelector[] selectors = FindObjectsByType<MissionOwnershipSelector>(FindObjectsSortMode.None);
-
-            Debug.Log($"MissionManager: Found {selectors.Length} selectors");
+            HashSet<MissionOwnershipSelector> alreadyAssigned = new HashSet<MissionOwnershipSelector>();
 
             foreach (ulong clientId in _personalMissionsForPlayers.Keys)
             {
                 foreach (MissionSO mission in _personalMissionsForPlayers[clientId])
                 {
                     bool found = false;
+                    
                     foreach (MissionOwnershipSelector selector in selectors)
                     {
+                        if (alreadyAssigned.Contains(selector)) continue;
+
                         if (selector.Mission.missionID == mission.missionID)
                         {
                             found = true;
                             selector.AssignOwner(clientId);
+                            alreadyAssigned.Add(selector);
                             Debug.Log($"MissionManager: Assigned {clientId} to {mission.missionName}");
+                            break; 
                         }
                     }
 

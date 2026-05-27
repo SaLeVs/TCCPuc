@@ -1,13 +1,12 @@
 ﻿using System.Collections.Generic;
 using Enums;
 using Interfaces;
-using Missions.PersonalMissions;
 using Unity.Netcode;
 using UnityEngine;
 
 namespace Missions
 {
-    public class PipeTotem : NetworkBehaviour, IInteractable
+    public class PipeTotem : TotemsMissionsBase, IInteractable
     {
         [SerializeField] private PipeType pipeType;
         [SerializeField] private Vector3 rotationAxis = Vector3.up;
@@ -16,47 +15,38 @@ namespace Missions
         public int CurrentStep => _currentRotationStep.Value;
 
         private readonly NetworkVariable<int> _currentRotationStep = new();
-
-        private MissionPipesManager _pipesManager;
-        private MissionOwnershipSelector _ownershipSelector;
-
-        private List<float> _possibleAngles = new();
-        private HashSet<int> _correctSteps = new();
-
+        private readonly NetworkList<int> _correctSteps = new();
+        
         private Quaternion _baseRotation;
 
-        public void Initialize(
-            MissionPipesManager manager,
-            MissionOwnershipSelector selector,
-            List<float> possibleAngles,
-            List<int> correctSteps,
-            int initialStepIndex)
+        private List<float> PossibleAngles => (Manager as MissionPipesManager)?.PossiblePipesAngles;
+        
+        public void Initialize(MissionPipesManager manager, List<float> possibleAngles, List<int> correctSteps, int initialStepIndex)
         {
-            _pipesManager = manager;
-            _ownershipSelector = selector;
-
-            _possibleAngles = possibleAngles;
-            _correctSteps = new HashSet<int>(correctSteps);
-
+            InitializeBase(manager);
             _baseRotation = transform.localRotation;
 
-            _currentRotationStep.Value =
-                Mathf.Clamp(initialStepIndex, 0, _possibleAngles.Count - 1);
+            if (!IsServer) return;
+
+            foreach (int step in correctSteps)
+            {
+                _correctSteps.Add(step);
+            }
+
+            int count = manager.PossiblePipesAngles?.Count ?? 1;
+            _currentRotationStep.Value = Mathf.Clamp(initialStepIndex, 0, count - 1);
         }
 
         public override void OnNetworkSpawn()
         {
             _currentRotationStep.OnValueChanged += PipeTotem_OnRotationChanged;
-
             ApplyRotation(_currentRotationStep.Value);
         }
 
         public bool CanInteract(GameObject interactor)
         {
-            if (_pipesManager.IsComplete) return false;
             if (!interactor.TryGetComponent(out NetworkObject networkObject)) return false;
-
-            return _ownershipSelector.IsMissionOwner(networkObject.OwnerClientId);
+            return CheckOwnership(networkObject.OwnerClientId);
         }
 
         public bool Interact(GameObject playerInteractor)
@@ -86,12 +76,14 @@ namespace Missions
         private void RotatePipe(ulong clientId)
         {
             if (!IsServer) return;
-            if (_pipesManager.IsComplete) return;
+            if (Manager.IsComplete) return;
 
-            _currentRotationStep.Value =
-                (_currentRotationStep.Value + 1) % _possibleAngles.Count;
+            var angles = PossibleAngles;
+            if (angles == null || angles.Count == 0) return;
 
-            _pipesManager.OnPipeRotated(clientId);
+            _currentRotationStep.Value = (_currentRotationStep.Value + 1) % angles.Count;
+
+            ((MissionPipesManager)Manager).OnPipeRotated(clientId);
         }
 
         private void PipeTotem_OnRotationChanged(int previousValue, int newValue)
@@ -101,14 +93,12 @@ namespace Missions
 
         private void ApplyRotation(int step)
         {
-            if (_possibleAngles.Count == 0) return;
+            List<float> angles = PossibleAngles;
+            if (angles == null || angles.Count == 0) return;
 
-            int safeStep = Mathf.Clamp(step, 0, _possibleAngles.Count - 1);
-
-            float angle = _possibleAngles[safeStep];
-
-            Quaternion rotationOffset = Quaternion.AngleAxis(angle, rotationAxis);
-            transform.localRotation = _baseRotation * rotationOffset;
+            int safeStep = Mathf.Clamp(step, 0, angles.Count - 1);
+            float angle = angles[safeStep];
+            transform.localRotation = _baseRotation * Quaternion.AngleAxis(angle, rotationAxis);
         }
 
         private bool IsRotationCorrect()
@@ -118,10 +108,6 @@ namespace Missions
 
         public void Uninitialize()
         {
-            _pipesManager = null;
-            _ownershipSelector = null;
-
-            _possibleAngles.Clear();
             _correctSteps.Clear();
         }
 

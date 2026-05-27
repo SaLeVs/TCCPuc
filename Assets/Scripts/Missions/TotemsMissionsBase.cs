@@ -35,7 +35,13 @@ namespace Missions
 
         protected bool CheckOwnership(ulong clientId)
         {
-            if (Manager == null || Manager.IsComplete) return false;
+            if (Manager == null)
+            {
+                Debug.LogWarning($"{name}: Manager is null! _managerRef synced?");
+                return false;
+            }
+            
+            if (Manager.IsComplete) return false;
 
             MissionOwnershipSelector selector = OwnershipSelector;
             

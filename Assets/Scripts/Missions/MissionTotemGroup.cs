@@ -62,14 +62,15 @@ namespace Missions
 
                 GameObject spawned = Instantiate(config.prefab, config.spawnPoint.position, config.spawnPoint.rotation);
 
-                if (spawned.TryGetComponent(out IMissionOwnerAware missionOwnerAware))
-                {
-                    missionOwnerAware.SetMissionOwner(OwnerClientId);
-                }
-
                 if (spawned.TryGetComponent(out NetworkObject netObj))
                 {
                     netObj.Spawn();
+
+                    if (spawned.TryGetComponent(out IMissionOwnerAware ownerAware))
+                    {
+                        ownerAware.SetOwnershipSelector(this);
+                    }
+
                     _spawnedPickables.Add(netObj);
                 }
             }
@@ -128,8 +129,14 @@ namespace Missions
                 
                 Destroy(totem.gameObject);
             }
-
             _spawnedTotems.Clear();
+
+            foreach (NetworkObject netObj in _spawnedPickables) 
+            {
+                if (netObj != null && netObj.IsSpawned)
+                    netObj.Despawn();
+            }
+            _spawnedPickables.Clear();
         }
 
         

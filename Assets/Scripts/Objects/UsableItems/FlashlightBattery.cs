@@ -1,6 +1,7 @@
 using Inputs;
 using Interfaces;
 using Player;
+using ScriptableObjects;
 using Unity.Netcode;
 using UnityEngine;
 
@@ -9,6 +10,7 @@ namespace Objects.UsableItems
     public class FlashlightBattery : NetworkBehaviour, IUsable
     {
         [SerializeField] private InputReader inputReader;
+        [SerializeField] private ItemDataSO itemData;
         [SerializeField] private int batteryPercentRecharge = 50;
 
         private GameObject _playerInteractor;
@@ -53,7 +55,7 @@ namespace Objects.UsableItems
                     
                     if (playerInteractor.TryGetComponent(out PlayerInventory inventory))
                     {
-                        inventory.TryRemoveItemServer();
+                        inventory.TryRemoveItemServer(itemData.itemId);
                     }
                 }
             }

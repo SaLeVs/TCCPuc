@@ -40,6 +40,10 @@ PrefabInstance:
       propertyPath: itemData
       value: 
       objectReference: {fileID: 11400000, guid: 0b22e71d362a610408a36b20d6c546f5, type: 2}
+    - target: {fileID: 2759342152120301046, guid: 6605369d5c2dc6243987565fa9cc18f4, type: 3}
+      propertyPath: _ownershipFilter
+      value: 
+      objectReference: {fileID: 4270547471392291589}
     - target: {fileID: 3677611971376692807, guid: 6605369d5c2dc6243987565fa9cc18f4, type: 3}
       propertyPath: 'm_Materials.Array.data[0]'
       value: 
@@ -50,7 +54,7 @@ PrefabInstance:
       objectReference: {fileID: -3333487545596849340, guid: ddcd36b370e519c41a4e04d94f6eb6e3, type: 3}
     - target: {fileID: 6957830180743672895, guid: 6605369d5c2dc6243987565fa9cc18f4, type: 3}
       propertyPath: m_Name
-      value: MaskPoloniusPickable
+      value: BoxCirclePickable
       objectReference: {fileID: 0}
     - target: {fileID: 7434392896826482812, guid: 6605369d5c2dc6243987565fa9cc18f4, type: 3}
       propertyPath: m_LocalScale.x
@@ -107,5 +111,26 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 6957830180743672895, guid: 6605369d5c2dc6243987565fa9cc18f4, type: 3}
+      insertIndex: 4
+      addedObject: {fileID: 4270547471392291589}
   m_SourcePrefab: {fileID: 100100000, guid: 6605369d5c2dc6243987565fa9cc18f4, type: 3}
+--- !u!1 &5125433734384119432 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 6957830180743672895, guid: 6605369d5c2dc6243987565fa9cc18f4, type: 3}
+  m_PrefabInstance: {fileID: 2859257431055342263}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &4270547471392291589
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5125433734384119432}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 095082dce018e1a49ac5f1830d5aa52b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Missions::Missions.MissionOwnershipFilter
+  ShowTopMostFoldoutHeaderGroup: 1

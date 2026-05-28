@@ -1,4 +1,5 @@
 using Interfaces;
+using Missions;
 using Player;
 using ScriptableObjects;
 using Unity.Netcode;
@@ -9,23 +10,21 @@ namespace Objects.PickupItems
     public class ItemPickable : NetworkBehaviour, IInteractable, IMissionOwnerAware
     {
         [SerializeField] private ItemDataSO itemData;
-        
-        private ulong _ownerClientId = ulong.MaxValue;
+        [SerializeField] private MissionOwnershipFilter _ownershipFilter;
 
-        
-        public void SetMissionOwner(ulong ownerClientId)
+        public void SetOwnershipSelector(MissionsManagerBase manager)
         {
-            _ownerClientId  = ownerClientId;
+            _ownershipFilter?.SetManager(manager);
         }
 
-        
         public bool CanInteract(GameObject interactor)
         {
-            if (_ownerClientId == ulong.MaxValue) return true;
+            if (_ownershipFilter == null) return true;
             if (!interactor.TryGetComponent(out NetworkObject networkObject)) return false;
 
-            return _ownerClientId == networkObject.OwnerClientId;
+            return _ownershipFilter.CanClientInteract(networkObject.OwnerClientId);
         }
+        
 
         public bool Interact(GameObject playerInteractor)
         {
@@ -82,6 +81,7 @@ namespace Objects.PickupItems
         {
             gameObject.SetActive(false);
         }
+
 
         
     }

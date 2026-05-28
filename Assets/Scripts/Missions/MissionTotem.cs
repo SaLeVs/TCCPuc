@@ -27,8 +27,9 @@ namespace Missions.PersonalMissions
         
         public bool CanInteract(GameObject interactor)
         {
+            if (_currentPickable != null) return false;
             if (!interactor.TryGetComponent(out NetworkObject networkObject)) return false;
-            
+
             return CheckOwnership(networkObject.OwnerClientId);
         }
 
@@ -37,11 +38,7 @@ namespace Missions.PersonalMissions
         public bool TryDeposit(ulong clientId, int itemId)
         {
             if (!CheckOwnership(clientId)) return false;
-
-            if (_currentPickable != null)
-            {
-                _currentPickable.Despawn();
-            }
+            if (_currentPickable != null) return false;
 
             _currentItemId = itemId;
 
@@ -51,9 +48,13 @@ namespace Missions.PersonalMissions
             {
                 netObj.Spawn();
                 _currentPickable = netObj;
+                
+                if (spawned.TryGetComponent(out IMissionOwnerAware ownerAware))
+                {
+                    ownerAware.SetOwnershipSelector(Manager);
+                }
             }
 
-            Debug.Log("On totem deposited");
             OnTotemDeposited?.Invoke(clientId);
             return true;
         }

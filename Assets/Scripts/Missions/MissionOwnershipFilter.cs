@@ -31,7 +31,7 @@ namespace Missions
 
         public bool CanClientInteract(ulong clientId)
         {
-            if (Manager == null) return true;
+            if (Manager == null) return false;
             if (Manager.IsComplete) return false;
 
             MissionOwnershipSelector selector = Manager.OwnershipSelector;

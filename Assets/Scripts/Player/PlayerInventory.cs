@@ -178,6 +178,7 @@ namespace Player
                 _slots[i] = -1;
                 DestroyItemRpc();
                 Debug.Log($"Removed item {itemId} from slot {i}");
+                DeselectSlotClientRpc();
                 return;
             }
         }
@@ -266,6 +267,12 @@ namespace Player
                 _slots[index] = newItemId;
                 
             }
+        }
+        
+        [Rpc(SendTo.Owner)]
+        private void DeselectSlotClientRpc()
+        {
+            DeselectSlot();
         }
 
         public bool HasInventorySpace()

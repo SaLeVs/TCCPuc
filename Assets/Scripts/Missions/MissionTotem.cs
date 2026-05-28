@@ -12,6 +12,7 @@ namespace Missions.PersonalMissions
         
         [SerializeField] private ItemDataSO expectedItem;
         [SerializeField] private Transform spawnPoint;
+        [SerializeField] private ItemListSO itemDatabase;
         
         
         public bool IsSlotCorrect => _currentItemId == expectedItem.itemId;
@@ -42,7 +43,8 @@ namespace Missions.PersonalMissions
 
             _currentItemId = itemId;
 
-            GameObject spawned = Instantiate(expectedItem.prefabPickable, spawnPoint.position, spawnPoint.rotation);
+            ItemDataSO item = itemDatabase.GetItem(itemId);
+            GameObject spawned = Instantiate(item.prefabPickable, spawnPoint.position, spawnPoint.rotation);
 
             if (spawned.TryGetComponent(out NetworkObject netObj))
             {

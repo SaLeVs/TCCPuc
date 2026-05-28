@@ -211,6 +211,10 @@ namespace Missions
                             found = true;
                             selector.AssignOwner(clientId);
                             alreadyAssigned.Add(selector);
+                            Debug.Log(
+                                $"Assigning selector {selector.NetworkObjectId} " +
+                                $"Mission {selector.Mission.missionName}"
+                            );
                             Debug.Log($"MissionManager: Assigned {clientId} to {mission.missionName}");
                             break; 
                         }

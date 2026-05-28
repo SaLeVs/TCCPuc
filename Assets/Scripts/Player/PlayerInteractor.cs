@@ -97,6 +97,13 @@ namespace Player
 
         private bool CheckRaycast()
         {
+            if (_currentInteractable != null && (_currentInteractable as MonoBehaviour) == null)
+            {
+                _currentInteractable = null;
+                _currentHighlighted?.Disable();
+                _currentHighlighted = null;
+            }
+            
             _currentRay = new Ray(playerView.position, playerView.forward);
 
             if (Physics.Raycast(_currentRay, out RaycastHit hit, interactDistance, layerMask))

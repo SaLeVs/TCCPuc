@@ -10,80 +10,87 @@ namespace Objects.PickupItems
     public class ItemPickable : NetworkBehaviour, IInteractable, IMissionOwnerAware
     {
         [SerializeField] private ItemDataSO itemData;
-        [SerializeField] private MissionOwnershipFilter _ownershipFilter;
+        [SerializeField] private MissionOwnershipFilter ownershipFilter;
 
         public void SetOwnershipSelector(MissionsManagerBase manager)
         {
-            _ownershipFilter?.SetManager(manager);
+            ownershipFilter?.SetManager(manager);
         }
 
         public bool CanInteract(GameObject interactor)
         {
-            if (_ownershipFilter == null) return true;
             if (!interactor.TryGetComponent(out NetworkObject networkObject)) return false;
+            if (ownershipFilter == null) return true;
 
-            return _ownershipFilter.CanClientInteract(networkObject.OwnerClientId);
+            return ownershipFilter.CanClientInteract(networkObject.OwnerClientId);
         }
-        
 
         public bool Interact(GameObject playerInteractor)
         {
-            if(CanInteract(playerInteractor))
-            {
-                NetworkObject networkObject = playerInteractor.GetComponent<NetworkObject>();
-            
-                if (!IsServer)
-                {
-                    InteractServerRpc(networkObject);
-                    return true;
-                }
+            if (!playerInteractor.TryGetComponent(out NetworkObject networkObject)) return false;
 
-                AddItemToInventory(playerInteractor);
+            if (!IsServer)
+            {
+                InteractServerRpc(networkObject);
                 return true;
             }
-            
-            return false;
-            
+
+            TryInteract(networkObject);
+            return true;
         }
 
         [Rpc(SendTo.Server)]
         private void InteractServerRpc(NetworkObjectReference playerRef)
         {
-            if (playerRef.TryGet(out NetworkObject playerNetworkObject))
-            {
-                AddItemToInventory(playerNetworkObject.gameObject);
-            }
+            if (!playerRef.TryGet(out NetworkObject playerNetworkObject)) return;
+
+            TryInteract(playerNetworkObject);
         }
-        
+
+        private void TryInteract(NetworkObject playerNetworkObject)
+        {
+            if (ownershipFilter != null && !ownershipFilter.CanClientInteract(playerNetworkObject.OwnerClientId))
+            {
+                Debug.Log($"Interaction denied. ClientId: {playerNetworkObject.OwnerClientId}");
+                return;
+            }
+
+            AddItemToInventory(playerNetworkObject.gameObject);
+        }
+
         private void AddItemToInventory(GameObject playerInteractor)
         {
-            if (playerInteractor.TryGetComponent(out PlayerInventory playerInventory))
-            {
-                if (playerInventory.HasInventorySpace())
-                {
-                    playerInventory.TryAddItemServer(itemData.itemId);
-                    DisableItemClientRpc();
-                    return;
-                }
+            if (!playerInteractor.TryGetComponent(out PlayerInventory playerInventory))
+                return;
 
-                if (playerInventory.CurrentSelectedSlot > 0)
-                {
-                    playerInventory.ReplaceSelectedItemServer(itemData.itemId, transform.position, transform.rotation);
-                    DisableItemClientRpc();
-                }
-                
+            if (playerInventory.HasInventorySpace())
+            {
+                playerInventory.TryAddItemServer(itemData.itemId);
+                RemoveItem();
+                return;
+            }
+
+            if (playerInventory.CurrentSelectedSlot > 0)
+            {
+                playerInventory.ReplaceSelectedItemServer(
+                    itemData.itemId,
+                    transform.position,
+                    transform.rotation
+                );
+
+                RemoveItem();
             }
         }
-        
-        
-        [Rpc(SendTo.ClientsAndHost)]
-        private void DisableItemClientRpc()
+
+        private void RemoveItem()
         {
-            gameObject.SetActive(false);
+            if (!IsServer)
+                return;
+
+            if (NetworkObject != null && NetworkObject.IsSpawned)
+            {
+                NetworkObject.Despawn();
+            }
         }
-
-
-        
     }
 }
-

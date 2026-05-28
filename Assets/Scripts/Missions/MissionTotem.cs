@@ -28,7 +28,7 @@ namespace Missions.PersonalMissions
         
         public bool CanInteract(GameObject interactor)
         {
-            if (_currentPickable != null) return false;
+            if (HasItemInSlot()) return false;
             if (!interactor.TryGetComponent(out NetworkObject networkObject)) return false;
 
             return CheckOwnership(networkObject.OwnerClientId);
@@ -39,18 +39,21 @@ namespace Missions.PersonalMissions
         public bool TryDeposit(ulong clientId, int itemId)
         {
             if (!CheckOwnership(clientId)) return false;
-            if (_currentPickable != null) return false;
+            if (HasItemInSlot()) return false;
 
             _currentItemId = itemId;
 
             ItemDataSO item = itemDatabase.GetItem(itemId);
+
+            if (item == null) return false;
+
             GameObject spawned = Instantiate(item.prefabPickable, spawnPoint.position, spawnPoint.rotation);
 
             if (spawned.TryGetComponent(out NetworkObject netObj))
             {
                 netObj.Spawn();
                 _currentPickable = netObj;
-                
+
                 if (spawned.TryGetComponent(out IMissionOwnerAware ownerAware))
                 {
                     ownerAware.SetOwnershipSelector(Manager);
@@ -59,6 +62,25 @@ namespace Missions.PersonalMissions
 
             OnTotemDeposited?.Invoke(clientId);
             return true;
+        }
+        
+        private bool HasItemInSlot()
+        {
+            if (_currentPickable == null) return false;
+
+            if (!_currentPickable || !_currentPickable.IsSpawned)
+            {
+                ClearSlot();
+                return false;
+            }
+
+            return true;
+        }
+        
+        private void ClearSlot()
+        {
+            _currentPickable = null;
+            _currentItemId = -1;
         }
         
     }

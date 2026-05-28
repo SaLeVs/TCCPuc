@@ -6,16 +6,27 @@ using UnityEngine;
 
 namespace Objects.PickupItems
 {
-    public class ItemPickable : NetworkBehaviour, IInteractable
+    public class ItemPickable : NetworkBehaviour, IInteractable, IMissionOwnerAware
     {
         [SerializeField] private ItemDataSO itemData;
         
+        private ulong _ownerClientId = ulong.MaxValue;
 
+        
+        public void SetMissionOwner(ulong ownerClientId)
+        {
+            _ownerClientId  = ownerClientId;
+        }
+
+        
         public bool CanInteract(GameObject interactor)
         {
-            return true;
+            if (_ownerClientId == ulong.MaxValue) return true;
+            if (!interactor.TryGetComponent(out NetworkObject networkObject)) return false;
+
+            return _ownerClientId == networkObject.OwnerClientId;
         }
-        
+
         public bool Interact(GameObject playerInteractor)
         {
             if(CanInteract(playerInteractor))
@@ -71,6 +82,7 @@ namespace Objects.PickupItems
         {
             gameObject.SetActive(false);
         }
+
         
     }
 }

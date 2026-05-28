@@ -11,14 +11,15 @@ namespace Missions
     public class MissionTotemGroup : MissionsManagerBase, IMissionSpawnable
     {
         public event Action OnSpawnCompleted;
-
-        [SerializeField] private GameObject[] totemPrefabs;
-        [SerializeField] private Transform[] spawnPoints;
+        
         [SerializeField] private MissionCompleter missionCompleter;
+        [SerializeField] private List<SpawnConfig> totemConfigs;
+        [SerializeField] private List<SpawnConfig> pickableConfigs;
 
         public override bool IsComplete { get; protected set; }
         
         private readonly List<MissionTotem> _spawnedTotems = new();
+        private readonly List<NetworkObject> _spawnedPickables = new();
         
         
         public void RequestSpawn()
@@ -26,13 +27,16 @@ namespace Missions
             if (!IsServer) return;
             
             SpawnTotems();
+            SpawnPickables(); 
         }
 
         private void SpawnTotems()
         {
-            for (int i = 0; i < spawnPoints.Length; i++)
+            foreach (SpawnConfig config in totemConfigs)
             {
-                GameObject spawned = Instantiate(totemPrefabs[i], spawnPoints[i].position, spawnPoints[i].rotation);
+                if (config.prefab == null || config.spawnPoint == null) continue;
+
+                GameObject spawned = Instantiate(config.prefab, config.spawnPoint.position, config.spawnPoint.rotation);
 
                 if (spawned.TryGetComponent(out NetworkObject netObj))
                 {
@@ -42,15 +46,36 @@ namespace Missions
                 if (spawned.TryGetComponent(out MissionTotem totem))
                 {
                     totem.Initialize(this);
-                    totem.OnTotemDeposited += OnTotemDeposited;
+                    totem.OnTotemDeposited += MissionTotem_OnTotemDeposited;
                     _spawnedTotems.Add(totem);
                 }
             }
-            
+
             OnSpawnCompleted?.Invoke();
         }
 
-        private void OnTotemDeposited(ulong clientId)
+        private void SpawnPickables()
+        {
+            foreach (SpawnConfig config in pickableConfigs)
+            {
+                if (config.prefab == null || config.spawnPoint == null) continue;
+
+                GameObject spawned = Instantiate(config.prefab, config.spawnPoint.position, config.spawnPoint.rotation);
+
+                if (spawned.TryGetComponent(out IMissionOwnerAware missionOwnerAware))
+                {
+                    missionOwnerAware.SetMissionOwner(OwnerClientId);
+                }
+
+                if (spawned.TryGetComponent(out NetworkObject netObj))
+                {
+                    netObj.Spawn();
+                    _spawnedPickables.Add(netObj);
+                }
+            }
+        }
+
+        private void MissionTotem_OnTotemDeposited(ulong clientId)
         {
             if (!IsServer || IsComplete) return;
             if (!CheckAllSlotsCorrect()) return;
@@ -94,7 +119,7 @@ namespace Missions
             {
                 if (totem == null) continue;
                 
-                totem.OnTotemDeposited -= OnTotemDeposited;
+                totem.OnTotemDeposited -= MissionTotem_OnTotemDeposited;
                 
                 if (totem.TryGetComponent(out NetworkObject netObj) && netObj.IsSpawned)
                 {

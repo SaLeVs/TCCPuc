@@ -8,7 +8,6 @@ namespace Missions
 {
     public class PipeTotem : TotemsMissionsBase, IInteractable
     {
-        [SerializeField] private PipeType pipeType;
         [SerializeField] private Vector3 rotationAxis = Vector3.up;
 
         public bool IsCorrect => IsRotationCorrect();

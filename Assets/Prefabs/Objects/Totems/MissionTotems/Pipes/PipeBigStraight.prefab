@@ -30,7 +30,7 @@ Transform:
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
+  m_ConstrainProportionsScale: 1
   m_Children: []
   m_Father: {fileID: 8531284260419564128}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -41,7 +41,7 @@ MeshFilter:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 8389295844190651269}
-  m_Mesh: {fileID: 10206, guid: 0000000000000000e000000000000000, type: 0}
+  m_Mesh: {fileID: -4106772534309459914, guid: 3af5509b27d2fc3479cc8850e9a907ad, type: 3}
 --- !u!23 &4316497121219823749
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -67,7 +67,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: 31321ba15b8f8eb4c954353edc038b1d, type: 2}
+  - {fileID: 2100000, guid: 5e79f94def828534b818e1b317da5cc9, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -122,9 +122,9 @@ GameObject:
   - component: {fileID: 423615969304500500}
   - component: {fileID: 6932059101689125241}
   - component: {fileID: 3484409616541510242}
-  - component: {fileID: 4885322833436050313}
+  - component: {fileID: 6415375796319665864}
   m_Layer: 8
-  m_Name: PipeTotemStraight
+  m_Name: PipeBigStraight
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -140,7 +140,7 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 0.25, y: 0.25, z: 0.25}
+  m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 1
   m_Children:
   - {fileID: 5752264872065463481}
@@ -230,7 +230,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Missions::Missions.MissionPipe
   ShowTopMostFoldoutHeaderGroup: 1
-  pipeType: 0
   rotationAxis: {x: 1, y: 0, z: 0}
 --- !u!114 &3484409616541510242
 MonoBehaviour:
@@ -245,7 +244,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Components::Highlight
   outline: {fileID: 702912328464072827}
---- !u!65 &4885322833436050313
+--- !u!65 &6415375796319665864
 BoxCollider:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -264,5 +263,5 @@ BoxCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
-  m_Size: {x: 1, y: 2.0532541, z: 1}
-  m_Center: {x: 0, y: -0.014900148, z: 0}
+  m_Size: {x: 0.11826717, y: 0.30000055, z: 0.118267134}
+  m_Center: {x: -0.00000035762787, y: 0, z: 0.0000000018626451}

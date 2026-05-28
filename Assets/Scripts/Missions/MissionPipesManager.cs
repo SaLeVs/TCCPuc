@@ -11,8 +11,6 @@ namespace Missions
     {
         public event Action OnSpawnCompleted;
         
-        [SerializeField] private GameObject pipeTotemStraight;
-        [SerializeField] private GameObject pipeTotemJoint;
         [SerializeField] private MissionCompleter missionCompleter;
         
         [SerializeField] private List<PipeSpawnConfig> pipeConfigs;
@@ -37,9 +35,7 @@ namespace Missions
             for (int i = 0; i < pipeConfigs.Count; i++)
             {
                 PipeSpawnConfig config = pipeConfigs[i];
-                GameObject pipePrefab = config.pipeType == PipeType.Straight ? pipeTotemStraight : pipeTotemJoint;
-                
-                GameObject spawnedPipe = Instantiate(pipePrefab, config.spawnPoint.position, config.spawnPoint.rotation);
+                GameObject spawnedPipe = Instantiate(config.prefab, config.spawnPoint.position, config.spawnPoint.rotation);
 
                 if (spawnedPipe.TryGetComponent(out NetworkObject networkObject))
                 {

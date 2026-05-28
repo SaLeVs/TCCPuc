@@ -6,7 +6,7 @@ using ScriptableObjects;
 
 namespace Missions.PersonalMissions
 {
-    public class MissionTotem : NetworkBehaviour, IInteractable
+    public class MissionTotem : TotemsMissionsBase, IInteractable
     {
         public event Action<ulong> OnTotemDeposited;
         
@@ -16,48 +16,27 @@ namespace Missions.PersonalMissions
         
         public bool IsSlotCorrect => _currentItemId == expectedItem.itemId;
         
-        private MissionOwnershipSelector _ownershipSelector;
-        private MissionTotemGroup _totemGroup;
-        
         private NetworkObject _currentPickable;
         private int _currentItemId = -1;
         
 
-        public void Initialize(MissionTotemGroup totemGroup, MissionOwnershipSelector ownershipSelector)
+        public void Initialize(MissionTotemGroup totemGroup)
         {
-            _totemGroup = totemGroup;
-            _ownershipSelector = ownershipSelector;
+            InitializeBase(totemGroup);
         }
         
         public bool CanInteract(GameObject interactor)
         {
-            if (_totemGroup.IsComplete) return false;
             if (!interactor.TryGetComponent(out NetworkObject networkObject)) return false;
             
-            return _ownershipSelector.IsMissionOwner(networkObject.OwnerClientId);
+            return CheckOwnership(networkObject.OwnerClientId);
         }
 
         public bool Interact(GameObject playerInteractor) => false;
 
         public bool TryDeposit(ulong clientId, int itemId)
         {
-            if (_totemGroup.IsComplete)
-            {
-                Debug.Log($"Is totemCompleted: {_totemGroup.IsComplete}");
-                return false;
-            }
-            
-            if (_ownershipSelector == null)
-            {
-                Debug.Log($"Is ownership selector null: {_ownershipSelector}");
-                return false;
-            }
-            
-            if (!_ownershipSelector.IsMissionOwner(clientId))
-            {
-                Debug.Log($"Is mission owner: {_ownershipSelector.IsMissionOwner(clientId)}");
-                return false;
-            }
+            if (!CheckOwnership(clientId)) return false;
 
             if (_currentPickable != null)
             {
@@ -77,13 +56,6 @@ namespace Missions.PersonalMissions
             Debug.Log("On totem deposited");
             OnTotemDeposited?.Invoke(clientId);
             return true;
-        }
-
-        
-        public void Uninitialize()
-        {
-            _ownershipSelector = null;
-            _totemGroup = null;
         }
         
     }

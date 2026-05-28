@@ -8,16 +8,15 @@ using UnityEngine;
 
 namespace Missions
 {
-    public class MissionTotemGroup : NetworkBehaviour, IMissionSpawnable
+    public class MissionTotemGroup : MissionsManagerBase, IMissionSpawnable
     {
         public event Action OnSpawnCompleted;
 
         [SerializeField] private GameObject[] totemPrefabs;
         [SerializeField] private Transform[] spawnPoints;
-        [SerializeField] private MissionOwnershipSelector ownershipSelector;
         [SerializeField] private MissionCompleter missionCompleter;
 
-        public bool IsComplete { get; private set; }
+        public override bool IsComplete { get; protected set; }
         
         private readonly List<MissionTotem> _spawnedTotems = new();
         
@@ -35,16 +34,16 @@ namespace Missions
             {
                 GameObject spawned = Instantiate(totemPrefabs[i], spawnPoints[i].position, spawnPoints[i].rotation);
 
-                if (spawned.TryGetComponent(out MissionTotem totem))
-                {
-                    totem.Initialize(this, ownershipSelector);
-                    totem.OnTotemDeposited += OnTotemDeposited;
-                    _spawnedTotems.Add(totem);
-                }
-
                 if (spawned.TryGetComponent(out NetworkObject netObj))
                 {
                     netObj.Spawn();
+                }
+
+                if (spawned.TryGetComponent(out MissionTotem totem))
+                {
+                    totem.Initialize(this);
+                    totem.OnTotemDeposited += OnTotemDeposited;
+                    _spawnedTotems.Add(totem);
                 }
             }
             
@@ -53,7 +52,7 @@ namespace Missions
 
         private void OnTotemDeposited(ulong clientId)
         {
-            if (!IsServer) return;
+            if (!IsServer || IsComplete) return;
             if (!CheckAllSlotsCorrect()) return;
 
             IsComplete = true;
@@ -68,6 +67,7 @@ namespace Missions
             {
                 if (!totem.IsSlotCorrect) return false;
             }
+            
             return true;
         }
 
@@ -81,7 +81,7 @@ namespace Missions
 
             if (playerNetObj.TryGetComponent(out PlayerMissionHolder missionHolder))
             {
-                missionHolder.CompletePersonalMission(ownershipSelector.Mission);
+                missionHolder.CompletePersonalMission(OwnershipSelector.Mission);
             }
         }
 
@@ -95,7 +95,6 @@ namespace Missions
                 if (totem == null) continue;
                 
                 totem.OnTotemDeposited -= OnTotemDeposited;
-                totem.Uninitialize();
                 
                 if (totem.TryGetComponent(out NetworkObject netObj) && netObj.IsSpawned)
                 {

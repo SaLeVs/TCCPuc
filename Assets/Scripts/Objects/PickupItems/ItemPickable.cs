@@ -10,23 +10,32 @@ namespace Objects.PickupItems
     public class ItemPickable : NetworkBehaviour, IInteractable, IMissionOwnerAware
     {
         [SerializeField] private ItemDataSO itemData;
-        [SerializeField] private MissionOwnershipFilter ownershipFilter;
+        
+        
+        private MissionOwnershipFilter _ownershipFilter;
 
+        private void Awake()
+        {
+            _ownershipFilter = GetComponent<MissionOwnershipFilter>();
+        }
+
+        
         public void SetOwnershipSelector(MissionsManagerBase manager)
         {
-            ownershipFilter?.SetManager(manager);
+            _ownershipFilter?.SetManager(manager);
         }
 
         public bool CanInteract(GameObject interactor)
         {
             if (!interactor.TryGetComponent(out NetworkObject networkObject)) return false;
-            if (ownershipFilter == null) return true;
+            if (_ownershipFilter == null) return true;
 
-            return ownershipFilter.CanClientInteract(networkObject.OwnerClientId);
+            return _ownershipFilter.CanClientInteract(networkObject.OwnerClientId);
         }
 
         public bool Interact(GameObject playerInteractor)
         {
+            if (!CanInteract(playerInteractor)) return false;
             if (!playerInteractor.TryGetComponent(out NetworkObject networkObject)) return false;
 
             if (!IsServer)
@@ -49,7 +58,7 @@ namespace Objects.PickupItems
 
         private void TryInteract(NetworkObject playerNetworkObject)
         {
-            if (ownershipFilter != null && !ownershipFilter.CanClientInteract(playerNetworkObject.OwnerClientId))
+            if (_ownershipFilter != null && !_ownershipFilter.CanClientInteract(playerNetworkObject.OwnerClientId))
             {
                 Debug.Log($"Interaction denied. ClientId: {playerNetworkObject.OwnerClientId}");
                 return;
@@ -60,8 +69,7 @@ namespace Objects.PickupItems
 
         private void AddItemToInventory(GameObject playerInteractor)
         {
-            if (!playerInteractor.TryGetComponent(out PlayerInventory playerInventory))
-                return;
+            if (!playerInteractor.TryGetComponent(out PlayerInventory playerInventory)) return;
 
             if (playerInventory.HasInventorySpace())
             {
@@ -72,12 +80,7 @@ namespace Objects.PickupItems
 
             if (playerInventory.CurrentSelectedSlot > 0)
             {
-                playerInventory.ReplaceSelectedItemServer(
-                    itemData.itemId,
-                    transform.position,
-                    transform.rotation
-                );
-
+                playerInventory.ReplaceSelectedItemServer(itemData.itemId, transform.position, transform.rotation);
                 RemoveItem();
             }
         }

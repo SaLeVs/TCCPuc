@@ -57,7 +57,6 @@ namespace Systems
                 if (_completedTotems >= totemCount)
                 {
                     OnAllDisksPlaced?.Invoke();
-                    Debug.Log("All Disks Placed");
                 }
             }
         }

@@ -20,7 +20,6 @@ namespace Missions.PersonalMissions
         
         public override void OnNetworkSpawn()
         {
-            Debug.Log($"Selector Spawned. Current Owner: {_missionOwnerClientId.Value}");
             _missionOwnerClientId.OnValueChanged += MissionManager_OnOwnerChanged;
             
             if (_missionOwnerClientId.Value != ulong.MaxValue)
@@ -31,10 +30,6 @@ namespace Missions.PersonalMissions
 
         private void MissionManager_OnOwnerChanged(ulong previousValue, ulong newValue)
         {
-            Debug.Log(
-                $"Owner changed on {name}. Previous: {previousValue} New: {newValue}"
-            );
-            
             OnMissionOwnerAssigned?.Invoke(newValue);
         }
         
@@ -42,24 +37,12 @@ namespace Missions.PersonalMissions
         {
             if (!IsServer) return;
 
-            Debug.Log(
-                $"Assigning owner {clientId} to selector {name}"
-            );
-
             _missionOwnerClientId.Value = clientId;
-
-            Debug.Log(
-                $"Current owner after assign: {_missionOwnerClientId.Value}"
-            );
         }
 
         public bool IsMissionOwner(ulong clientId)
         {
-            if (_missionOwnerClientId.Value == ulong.MaxValue)
-            {
-                Debug.LogWarning("Mission owner not assigned yet.");
-                return false;
-            }
+            if (_missionOwnerClientId.Value == ulong.MaxValue) return false;
 
             return _missionOwnerClientId.Value == clientId;
         }

@@ -24,19 +24,10 @@ namespace Missions
             }
         }
 
-        public override void OnNetworkSpawn()
-        {
-            _managerRef.OnValueChanged += OnManagerChanged;
-        }
-
-        private void OnManagerChanged(NetworkObjectReference previousValue, NetworkObjectReference nextValue)
-        {
-            Debug.Log("MissionOwnershipFilter: Manager changed");
-        }
-
         public void SetManager(MissionsManagerBase manager)
         {
             if (!IsServer || manager == null || manager.NetworkObject == null) return;
+
             _managerRef.Value = manager.NetworkObject;
         }
 
@@ -44,28 +35,14 @@ namespace Missions
         {
             MissionsManagerBase manager = Manager;
 
-            Debug.Log($"CanClientInteract({clientId})");
-            Debug.Log($"Manager = {manager}");
-
             if (manager == null) return false;
 
             MissionOwnershipSelector selector = manager.OwnershipSelector;
 
-            Debug.Log($"Selector = {selector}");
-
             if (selector == null) return false;
-
-            Debug.Log($"Owner Assigned = {selector.IsMissionOwnerAssigned}");
-            Debug.Log($"Owner Client = {selector.OwnerClientIdSelector}");
-            Debug.Log(
-                $"Reading selector {selector.NetworkObjectId}"
-            );
+            
             return selector.IsMissionOwner(clientId);
         }
-
-        public override void OnNetworkDespawn()
-        {
-            _managerRef.OnValueChanged -= OnManagerChanged;
-        }
+        
     }
 }

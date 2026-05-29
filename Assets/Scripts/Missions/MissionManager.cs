@@ -195,7 +195,7 @@ namespace Missions
         {
             MissionOwnershipSelector[] selectors = FindObjectsByType<MissionOwnershipSelector>(FindObjectsSortMode.None);
             HashSet<MissionOwnershipSelector> alreadyAssigned = new HashSet<MissionOwnershipSelector>();
-
+            
             foreach (ulong clientId in _personalMissionsForPlayers.Keys)
             {
                 foreach (MissionSO mission in _personalMissionsForPlayers[clientId])
@@ -211,11 +211,6 @@ namespace Missions
                             found = true;
                             selector.AssignOwner(clientId);
                             alreadyAssigned.Add(selector);
-                            Debug.Log(
-                                $"Assigning selector {selector.NetworkObjectId} " +
-                                $"Mission {selector.Mission.missionName}"
-                            );
-                            Debug.Log($"MissionManager: Assigned {clientId} to {mission.missionName}");
                             break; 
                         }
                     }

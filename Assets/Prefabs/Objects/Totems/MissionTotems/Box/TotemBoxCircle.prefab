@@ -119,8 +119,8 @@ GameObject:
   m_Component:
   - component: {fileID: 4749551615159198112}
   - component: {fileID: 5834124400653978545}
-  - component: {fileID: 3387447385039070318}
   - component: {fileID: 3436754371061624762}
+  - component: {fileID: 3387447385039070318}
   - component: {fileID: 2119509943739035687}
   m_Layer: 8
   m_Name: TotemBoxCircle
@@ -171,19 +171,6 @@ MonoBehaviour:
   AutoObjectParentSync: 1
   SyncOwnerTransformWhenParented: 1
   AllowOwnerToParent: 0
---- !u!114 &3387447385039070318
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 7196284807495355785}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 2a3dc5ad84c923546b6745c8a52386a9, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Components::Highlight
-  outline: {fileID: 5830105739340137921}
 --- !u!114 &3436754371061624762
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -200,6 +187,19 @@ MonoBehaviour:
   expectedItem: {fileID: 11400000, guid: 0b22e71d362a610408a36b20d6c546f5, type: 2}
   spawnPoint: {fileID: 5871672297659161864}
   itemDatabase: {fileID: 11400000, guid: 445d4ee483405c346880c081245fee23, type: 2}
+--- !u!114 &3387447385039070318
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7196284807495355785}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2a3dc5ad84c923546b6745c8a52386a9, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Components::Highlight
+  outline: {fileID: 5830105739340137921}
 --- !u!65 &2119509943739035687
 BoxCollider:
   m_ObjectHideFlags: 0

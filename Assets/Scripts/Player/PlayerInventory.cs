@@ -121,7 +121,6 @@ namespace Player
             OnSelectedSlotChanged?.Invoke(_currentSlotSelected);
 
             DestroyItemRpc();
-            Debug.Log("Slot deselected");
         }
         
 
@@ -159,7 +158,6 @@ namespace Player
                     if (_slots[i] == -1)
                     {
                         _slots[i] = itemId;
-                        Debug.Log($"Item {itemId} added to slot {i}");
                         return;
                     }
                 }
@@ -177,7 +175,6 @@ namespace Player
 
                 _slots[i] = -1;
                 DestroyItemRpc();
-                Debug.Log($"Removed item {itemId} from slot {i}");
                 DeselectSlotClientRpc();
                 return;
             }

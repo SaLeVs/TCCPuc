@@ -39,8 +39,7 @@ namespace Objects.UsableItems
 
         public bool CanUse(GameObject playerInteractor)
         {
-            if (playerInteractor.TryGetComponent(out PlayerState playerState) && playerState.IsDead)
-                return false;
+            if (playerInteractor.TryGetComponent(out PlayerState playerState) && playerState.IsDead) return false;
 
             return _interactor?.CurrentInteractable is MissionTotem;
         }
@@ -66,7 +65,10 @@ namespace Objects.UsableItems
             if (playerNetObj == null) return;
 
             if (playerNetObj.TryGetComponent(out PlayerInventory inventory))
+            {
                 inventory.TryRemoveItemServer(itemData.itemId);
+            }
+            
         }
 
         public override void OnNetworkDespawn()

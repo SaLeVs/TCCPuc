@@ -102,7 +102,7 @@ namespace Player
             if (IsOwner && !_isDead && !_isLocked)
             {   
                 CameraMovement();
-            }
+            } 
         }
         
         private void CameraMovement()

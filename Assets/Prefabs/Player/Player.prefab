@@ -1202,9 +1202,9 @@ MonoBehaviour:
   cameraRoot: {fileID: 5036788259409135564}
   deathCameraBone: {fileID: 3677769704661506380}
   cameraMoveSpeed: 10
-  standingOffset: {x: 0, y: 1.3, z: 0.3}
-  crouchOffset: {x: 0.2, y: 1, z: 0.3}
-  runOffset: {x: 0, y: 1.3, z: 0.4}
+  standingOffset: {x: 0, y: 1, z: 0.3}
+  crouchOffset: {x: 0.2, y: 0.8, z: 0.45}
+  runOffset: {x: 0, y: 1, z: 0.45}
   deadOffset: {x: -0.3, y: -0.5, z: 0.3}
 --- !u!114 &6388113009287079804
 MonoBehaviour:
@@ -1236,7 +1236,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Player::Player.PlayerInventory
   ShowTopMostFoldoutHeaderGroup: 1
   playerState: {fileID: 315419889962386199}
-  maxInventorySize: 4
+  maxInventorySize: 3
   itemDatabase: {fileID: 11400000, guid: 445d4ee483405c346880c081245fee23, type: 2}
   inputReader: {fileID: 11400000, guid: b8967103b22990e4685e914ae00843a6, type: 2}
   playerHand: {fileID: 4093876868507253223}
@@ -1391,7 +1391,7 @@ MonoBehaviour:
   distance: 15
   angle: 60
   height: 1.41
-  meshColor: {r: 0.9811321, g: 0.06016379, b: 0.06016379, a: 0.6392157}
+  meshColor: {r: 0.9811321, g: 0.06016379, b: 0.06016379, a: 0.83137256}
   scanFrequency: 5
   targetLayers:
     serializedVersion: 2
@@ -1917,66 +1917,6 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
-    - target: {fileID: 656873482887053206, guid: 09b94f63d8b779e49a39a9810a44fb5d, type: 3}
-      propertyPath: m_Pivot.y
-      value: 0.5
-      objectReference: {fileID: 0}
-    - target: {fileID: 656873482887053206, guid: 09b94f63d8b779e49a39a9810a44fb5d, type: 3}
-      propertyPath: m_AnchorMax.x
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 656873482887053206, guid: 09b94f63d8b779e49a39a9810a44fb5d, type: 3}
-      propertyPath: m_AnchorMin.x
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 656873482887053206, guid: 09b94f63d8b779e49a39a9810a44fb5d, type: 3}
-      propertyPath: m_AnchorMin.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 656873482887053206, guid: 09b94f63d8b779e49a39a9810a44fb5d, type: 3}
-      propertyPath: m_SizeDelta.x
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 656873482887053206, guid: 09b94f63d8b779e49a39a9810a44fb5d, type: 3}
-      propertyPath: m_SizeDelta.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 656873482887053206, guid: 09b94f63d8b779e49a39a9810a44fb5d, type: 3}
-      propertyPath: m_AnchoredPosition.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 3427218839895980653, guid: 09b94f63d8b779e49a39a9810a44fb5d, type: 3}
-      propertyPath: m_AnchoredPosition.x
-      value: -49.699997
-      objectReference: {fileID: 0}
-    - target: {fileID: 3427218839895980653, guid: 09b94f63d8b779e49a39a9810a44fb5d, type: 3}
-      propertyPath: m_AnchoredPosition.y
-      value: 4.600006
-      objectReference: {fileID: 0}
-    - target: {fileID: 3955643907551209374, guid: 09b94f63d8b779e49a39a9810a44fb5d, type: 3}
-      propertyPath: m_Pivot.y
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 3955643907551209374, guid: 09b94f63d8b779e49a39a9810a44fb5d, type: 3}
-      propertyPath: m_AnchorMax.y
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 3955643907551209374, guid: 09b94f63d8b779e49a39a9810a44fb5d, type: 3}
-      propertyPath: m_AnchorMin.y
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 3955643907551209374, guid: 09b94f63d8b779e49a39a9810a44fb5d, type: 3}
-      propertyPath: m_AnchoredPosition.x
-      value: -133
-      objectReference: {fileID: 0}
-    - target: {fileID: 3955643907551209374, guid: 09b94f63d8b779e49a39a9810a44fb5d, type: 3}
-      propertyPath: m_AnchoredPosition.y
-      value: 46
-      objectReference: {fileID: 0}
-    - target: {fileID: 4963269489231586945, guid: 09b94f63d8b779e49a39a9810a44fb5d, type: 3}
-      propertyPath: m_FillAmount
-      value: 1
-      objectReference: {fileID: 0}
     - target: {fileID: 8969675631036260488, guid: 09b94f63d8b779e49a39a9810a44fb5d, type: 3}
       propertyPath: m_Name
       value: AudienceBar
@@ -1999,10 +1939,6 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 3401048168953547627}
     m_Modifications:
-    - target: {fileID: 1673502044717599477, guid: b5b44c029960a0147a0e278cda26d512, type: 3}
-      propertyPath: m_Name
-      value: EdgeCamera_topLeft
-      objectReference: {fileID: 0}
     - target: {fileID: 3108393904847620383, guid: b5b44c029960a0147a0e278cda26d512, type: 3}
       propertyPath: m_Pivot.x
       value: 0.5
@@ -2083,21 +2019,9 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
-    - target: {fileID: 5120641734298398245, guid: b5b44c029960a0147a0e278cda26d512, type: 3}
-      propertyPath: m_Name
-      value: EdgeCamera_topRight
-      objectReference: {fileID: 0}
-    - target: {fileID: 5198479899156406592, guid: b5b44c029960a0147a0e278cda26d512, type: 3}
-      propertyPath: m_Name
-      value: EdgeCamera_bottomLeft
-      objectReference: {fileID: 0}
     - target: {fileID: 6209700164015394949, guid: b5b44c029960a0147a0e278cda26d512, type: 3}
       propertyPath: m_Name
       value: CameraFilter
-      objectReference: {fileID: 0}
-    - target: {fileID: 7265960958651711289, guid: b5b44c029960a0147a0e278cda26d512, type: 3}
-      propertyPath: m_Name
-      value: EdgeCamera_bottomRight
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -2117,14 +2041,6 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 3401048168953547627}
     m_Modifications:
-    - target: {fileID: 4211349809325926403, guid: 69d3eb0e15e37624a88d642f46096351, type: 3}
-      propertyPath: m_SizeDelta.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 4211349809325926403, guid: 69d3eb0e15e37624a88d642f46096351, type: 3}
-      propertyPath: m_AnchoredPosition.y
-      value: 0
-      objectReference: {fileID: 0}
     - target: {fileID: 4272831150490677557, guid: 69d3eb0e15e37624a88d642f46096351, type: 3}
       propertyPath: m_Pivot.x
       value: 1

@@ -15,6 +15,14 @@ namespace Components
         private bool _isDead;
     
     
+        public override void OnNetworkSpawn()
+        {
+            if (IsServer)
+            {
+                currentHealth.Value = MaxHealth;
+            }
+        }
+        
         public void TakeDamage(float damage)
         {
             if (IsServer)

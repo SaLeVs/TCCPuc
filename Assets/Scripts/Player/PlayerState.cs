@@ -1,5 +1,6 @@
 ﻿using System;
 using Interfaces;
+using Unity.Cinemachine;
 using Unity.Netcode;
 using UnityEngine;
 
@@ -21,8 +22,10 @@ namespace Player
         [SerializeField] private PlayerInventory playerInventory;
         [SerializeField] private PlayerInteractor playerInteractor;
         [SerializeField] private PlayerDead playerDead;
+        [SerializeField] private PlayerCamera playerCamera;
 
         public bool IsDead => playerDead.IsDead;
+        public CinemachineCamera PlayerCinemachineCamera => playerCamera.playerCinemachineCamera;
         
         private bool _isInputLocked;
         
@@ -80,6 +83,8 @@ namespace Player
             _isInputLocked = locked;
             OnPlayerLocked?.Invoke(locked);
         }
+        
+        public void SetSpectatorMode(bool isSpectating) => playerCamera.SetSpectatorMode(isSpectating);
         
         
         public override void OnNetworkDespawn()

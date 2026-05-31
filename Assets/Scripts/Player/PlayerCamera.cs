@@ -19,6 +19,8 @@ namespace Player
         [SerializeField] private float lowerClamp = 70f;
         [SerializeField] private float sensitivity = 20f;
         
+        public CinemachineCamera playerCinemachineCamera => cinemachineCamera;
+        
         private Vector2 _lookInput;
 
         private float _yaw;
@@ -45,6 +47,13 @@ namespace Player
         }
 
         private void InputReader_OnCameraLookEvent(Vector2 cameraLookInput) => _lookInput = cameraLookInput;
+        
+        
+
+        public void SetSpectatorMode(bool isSpectating)
+        {
+            cinemachineCamera.Priority = isSpectating ? 0 : ownerCameraPriority;
+        }
         
         private void ToggleMouse()
         {

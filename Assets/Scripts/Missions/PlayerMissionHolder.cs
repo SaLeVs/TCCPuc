@@ -47,6 +47,13 @@ namespace Missions
             Debug.Log($"PlayerMissionHolder: Main mission revealed: {mission.missionName}");
         }
 
+        [Rpc(SendTo.Owner)]
+        public void ClearPersonalMissionsRpc()
+        {
+            _personalMissions.Clear();
+            Debug.Log("PlayerMissionHolder: Missions cleared after transfer.");
+        }
+        
         public bool HasPersonalMission(MissionSO mission)
         {
             return _personalMissions.Contains(mission);

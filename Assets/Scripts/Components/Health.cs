@@ -15,20 +15,38 @@ namespace Components
         private bool _isDead;
     
     
-        public override void OnNetworkSpawn()
-        {
-            if (!IsServer) return;
-        
-            currentHealth.Value = MaxHealth;
-        }
-
         public void TakeDamage(float damage)
         {
+            if (IsServer)
+            {
+                ModifyHealth(damage);
+            }
+            else
+            {
+                TakeDamageServerRpc(damage);
+            }
+        }
+
+        [Rpc(SendTo.Server)]
+        private void TakeDamageServerRpc(float damage)
+        {
             ModifyHealth(damage);
-            Debug.Log($"TakeDamage on {gameObject.name}, damage: {damage}");
         }
 
         public void RestoreHealth(float heal)
+        {
+            if (IsServer)
+            {
+                ModifyHealth(-heal);
+            }
+            else
+            {
+                RestoreHealthServerRpc(heal);
+            }
+        }
+
+        [Rpc(SendTo.Server)]
+        private void RestoreHealthServerRpc(float heal)
         {
             ModifyHealth(-heal);
         }
@@ -36,15 +54,16 @@ namespace Components
         private void ModifyHealth(float value)
         {
             if (_isDead) return;
-        
+
             float newHealth = currentHealth.Value - value;
             currentHealth.Value = Mathf.Clamp(newHealth, 0f, MaxHealth);
-            Debug.Log($"ModifyHealth on {gameObject.name}, new health: {newHealth}");
-            
+
+            Debug.Log($"ModifyHealth on {gameObject.name}, new health: {currentHealth.Value}");
+
             if (currentHealth.Value <= 0f)
             {
+                _isDead = true;
                 OnDie?.Invoke(this);
-                _isDead = true; 
             }
         }
         

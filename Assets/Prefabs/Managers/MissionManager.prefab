@@ -11,6 +11,7 @@ GameObject:
   - component: {fileID: 3932893514854282169}
   - component: {fileID: 7061155326047262378}
   - component: {fileID: 333990896457299877}
+  - component: {fileID: 5927488642681951805}
   m_Layer: 0
   m_Name: MissionManager
   m_TagString: Untagged
@@ -45,8 +46,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Unity.Netcode.Runtime::Unity.Netcode.NetworkObject
-  GlobalObjectIdHash: 2600945040
-  InScenePlacedSourceGlobalObjectIdHash: 0
+  GlobalObjectIdHash: 3657077333
+  InScenePlacedSourceGlobalObjectIdHash: 1278830735
   DeferredDespawnTick: 0
   Ownership: 1
   AlwaysReplicateAsRoot: 0
@@ -73,3 +74,17 @@ MonoBehaviour:
   ShowTopMostFoldoutHeaderGroup: 1
   currentContract: {fileID: 11400000, guid: 3643b0583766e0c4db6fb8dc5f54fd43, type: 2}
   individualMissionsPerPlayer: 1
+--- !u!114 &5927488642681951805
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1041449049748482503}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ac6f1c231c93bfe47991919fd7642ba2, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Missions::Missions.MissionTransferManager
+  ShowTopMostFoldoutHeaderGroup: 1
+  missionManager: {fileID: 333990896457299877}

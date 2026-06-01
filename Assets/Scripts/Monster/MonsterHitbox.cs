@@ -20,15 +20,12 @@ namespace Monster
 
         public void EnableHitbox()
         {
-            if (!IsServer) return;
 
             hitboxCollider.enabled = true;
         }
 
         public void DisableHitbox()
         {
-            if (!IsServer) return;
-
             hitboxCollider.enabled = false;
         }
 
@@ -39,17 +36,15 @@ namespace Monster
 
         private void OnTriggerEnter(Collider other)
         {
-            if (!IsServer) return;
+            NetworkObject networkObject = other.GetComponentInParent<NetworkObject>();
 
-            if (!other.TryGetComponent(out NetworkObject netObj)) return;
-
-            if (_hitTargets.Contains(netObj)) return;
+            if (_hitTargets.Contains(networkObject)) return;
 
             if (other.TryGetComponent(out Health health))
             {
-                _hitTargets.Add(netObj);
+                _hitTargets.Add(networkObject);
                 health.TakeDamage(_damage);
-                Debug.Log("Hitbox hit " + netObj.name);
+                Debug.Log("Hitbox hit " + networkObject.name);
             }
         }
     }

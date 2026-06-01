@@ -24,16 +24,12 @@ namespace Monster
 
         public override void OnNetworkSpawn()
         {
-            if (!IsServer) return;
-
             hitbox.Initialize(damageAmountPerAttack);
             hitbox.DisableHitbox();
         }
 
         public void StartAttack()
         {
-            if (!IsServer) return;
-            
             _timer = 0f;
             _isAttacking = true;
             
@@ -45,7 +41,6 @@ namespace Monster
 
         private void Update()
         {
-            if (!IsServer) return;
             if (!_isAttacking) return;
 
             _timer += Time.deltaTime;
@@ -58,8 +53,6 @@ namespace Monster
 
         private void EndAttack()
         {
-            if (!IsServer) return;
-            
             OnAttackEndedAnimation?.Invoke();
             _isAttacking = false;
             hitbox.DisableHitbox();

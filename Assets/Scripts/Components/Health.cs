@@ -25,6 +25,8 @@ namespace Components
         
         public void TakeDamage(float damage)
         {
+            Debug.Log($"TakeDamage on {gameObject.name}");
+            
             if (IsServer)
             {
                 ModifyHealth(damage);
@@ -38,6 +40,7 @@ namespace Components
         [Rpc(SendTo.Server)]
         private void TakeDamageServerRpc(float damage)
         {
+            Debug.Log($"TakeDamage on {gameObject.name}");
             ModifyHealth(damage);
         }
 

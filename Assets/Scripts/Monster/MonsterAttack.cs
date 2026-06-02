@@ -36,7 +36,6 @@ namespace Monster
             OnAttackStartedAnimation?.Invoke();
             hitbox.ResetHits();
             hitbox.EnableHitbox();
-            
         }
 
         private void Update()

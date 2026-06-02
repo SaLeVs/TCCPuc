@@ -10,9 +10,30 @@ namespace Monster
         [SerializeField] private Collider hitboxCollider;
 
         private float _damage;
-        private HashSet<NetworkObject> _hitTargets = new();
+        private readonly HashSet<NetworkObject> _hitTargets = new();
 
-        
+        private readonly NetworkVariable<bool> _hitboxActive = new(
+            false,
+            NetworkVariableReadPermission.Everyone,
+            NetworkVariableWritePermission.Server
+        );
+
+        public override void OnNetworkSpawn()
+        {
+            _hitboxActive.OnValueChanged += OnHitboxActiveChanged;
+            hitboxCollider.enabled = _hitboxActive.Value;
+        }
+
+        private void OnHitboxActiveChanged(bool previous, bool current)
+        {
+            hitboxCollider.enabled = current;
+            
+            if (current)
+            {
+                _hitTargets.Clear();
+            }
+        }
+
         public void Initialize(float damage)
         {
             _damage = damage;
@@ -20,13 +41,14 @@ namespace Monster
 
         public void EnableHitbox()
         {
-
-            hitboxCollider.enabled = true;
+            if (!IsServer) return;
+            _hitboxActive.Value = true;
         }
 
         public void DisableHitbox()
         {
-            hitboxCollider.enabled = false;
+            if (!IsServer) return;
+            _hitboxActive.Value = false;
         }
 
         public void ResetHits()
@@ -36,16 +58,19 @@ namespace Monster
 
         private void OnTriggerEnter(Collider other)
         {
-            NetworkObject networkObject = other.GetComponentInParent<NetworkObject>();
+            NetworkObject netObj = other.GetComponentInParent<NetworkObject>();
+            if (netObj == null || _hitTargets.Contains(netObj)) return;
 
-            if (_hitTargets.Contains(networkObject)) return;
+            Health health = other.GetComponentInParent<Health>();
+            if (health == null) return;
 
-            if (other.TryGetComponent(out Health health))
-            {
-                _hitTargets.Add(networkObject);
-                health.TakeDamage(_damage);
-                Debug.Log("Hitbox hit " + networkObject.name);
-            }
+            _hitTargets.Add(netObj);
+            health.TakeDamage(_damage);
+        }
+
+        public override void OnNetworkDespawn()
+        {
+            _hitboxActive.OnValueChanged -= OnHitboxActiveChanged;
         }
     }
 }

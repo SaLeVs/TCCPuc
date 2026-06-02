@@ -8,6 +8,7 @@ namespace Components
     public class Health : NetworkBehaviour, IDamageable
     {
         public event Action<Health> OnDie;
+        public event Action<float> OnHealthChanged;
         
         [field: SerializeField] public float MaxHealth {get; private set;}
         
@@ -68,7 +69,8 @@ namespace Components
 
             float newHealth = currentHealth.Value - value;
             currentHealth.Value = Mathf.Clamp(newHealth, 0f, MaxHealth);
-
+            OnHealthChanged?.Invoke(currentHealth.Value);
+            
             Debug.Log($"ModifyHealth on {gameObject.name}, new health: {currentHealth.Value}");
 
             if (currentHealth.Value <= 0f)

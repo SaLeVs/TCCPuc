@@ -41,8 +41,6 @@ namespace UI
                 health.OnHealthChanged -= Health_OnHealthChanged;
             }
         }
-        
-        
     }
 }
 

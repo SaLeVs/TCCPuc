@@ -1406,7 +1406,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Unity.Netcode.Runtime::Unity.Netcode.NetworkObject
-  GlobalObjectIdHash: 282796449
+  GlobalObjectIdHash: 3919488120
   InScenePlacedSourceGlobalObjectIdHash: 0
   DeferredDespawnTick: 0
   Ownership: 1
@@ -3240,10 +3240,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 1914751107683769131}
     m_Modifications:
-    - target: {fileID: 1380037037398586304, guid: 1069dc0e69dc59442adc7038a69a4e2f, type: 3}
-      propertyPath: m_FillAmount
-      value: 1
-      objectReference: {fileID: 0}
+    - target: {fileID: 2841700871562094389, guid: 1069dc0e69dc59442adc7038a69a4e2f, type: 3}
+      propertyPath: playerRun
+      value: 
+      objectReference: {fileID: 4084110916807435523}
     - target: {fileID: 3715975152739713266, guid: 1069dc0e69dc59442adc7038a69a4e2f, type: 3}
       propertyPath: m_Name
       value: StaminaBar
@@ -3331,44 +3331,10 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents:
-    - targetCorrespondingSourceObject: {fileID: 3715975152739713266, guid: 1069dc0e69dc59442adc7038a69a4e2f, type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 3577190578760170617}
+    m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 1069dc0e69dc59442adc7038a69a4e2f, type: 3}
 --- !u!224 &3510370554178582569 stripped
 RectTransform:
   m_CorrespondingSourceObject: {fileID: 4752832325824409567, guid: 1069dc0e69dc59442adc7038a69a4e2f, type: 3}
   m_PrefabInstance: {fileID: 8161125856267196406}
   m_PrefabAsset: {fileID: 0}
---- !u!1 &4815455263877584644 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: 3715975152739713266, guid: 1069dc0e69dc59442adc7038a69a4e2f, type: 3}
-  m_PrefabInstance: {fileID: 8161125856267196406}
-  m_PrefabAsset: {fileID: 0}
---- !u!114 &3577190578760170617
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 4815455263877584644}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 8db07c949d9f9be4d8cc454bf8ad9b9e, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Ui::StaminaBarUi
-  ShowTopMostFoldoutHeaderGroup: 1
-  playerRun: {fileID: 4084110916807435523}
-  staminaFill: {fileID: 7090008203916321846}
---- !u!114 &7090008203916321846 stripped
-MonoBehaviour:
-  m_CorrespondingSourceObject: {fileID: 1380037037398586304, guid: 1069dc0e69dc59442adc7038a69a4e2f, type: 3}
-  m_PrefabInstance: {fileID: 8161125856267196406}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: fe87c0e1cc204ed48ad3b37840f39efc, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image

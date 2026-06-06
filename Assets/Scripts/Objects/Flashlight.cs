@@ -16,6 +16,8 @@ namespace Objects
         [SerializeField] private int batteryPercentMax = 100;
         [SerializeField] private int batteryPercentDecreasePerSecond = 10;
 
+        public int BatteryPercentMax => batteryPercentMax;
+        
         private NetworkVariable<float> _currentBattery = new NetworkVariable<float>();
         private NetworkVariable<bool> _isFlashlightOn = new NetworkVariable<bool>();
 

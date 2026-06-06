@@ -1,6 +1,7 @@
 ﻿using Inputs;
 using Interfaces;
 using Player;
+using ScriptableObjects;
 using Systems;
 using Unity.Netcode;
 using UnityEngine;
@@ -10,6 +11,7 @@ namespace Objects.UsableItems
     public class FloppyDisk : NetworkBehaviour, IUsable
     {
         [SerializeField] private InputReader inputReader;
+        [SerializeField] private ItemDataSO itemData;
 
         private GameObject _playerInteractor;
         private PlayerInteractor _interactor;
@@ -69,7 +71,7 @@ namespace Objects.UsableItems
 
             if (playerNetObj.TryGetComponent(out PlayerInventory inventory))
             {
-                inventory.TryRemoveItemServer();
+                inventory.TryRemoveItemServer(itemData.itemId);
             }
         }
 

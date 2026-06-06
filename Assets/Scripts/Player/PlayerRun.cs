@@ -9,6 +9,7 @@ namespace Player
     public class PlayerRun : NetworkBehaviour, ISpeedModifier
     {
         public event Action<bool> OnRunEvent;
+        public event Action<float> OnStaminaChanged;
         
         [SerializeField] private PlayerState playerState;
         [SerializeField] private InputReader inputReader;
@@ -18,6 +19,8 @@ namespace Player
         [SerializeField] private float staminaDrainPerSecond;
         [SerializeField] private float staminaGainPerSecond;
         [SerializeField] private float staminaCooldownThreshold = 5f;
+        
+        public float MaxStamina => staminaMax;
         
         private float _stamina;
         private bool _isExhausted;
@@ -64,7 +67,7 @@ namespace Player
         
         private void Update()
         {
-            if (IsOwner && !_isDead && _isLocked)
+            if (IsOwner && !_isDead && !_isLocked)
             {
                 UpdateStamina(_isRunning); 
             }
@@ -78,7 +81,8 @@ namespace Player
             if (canRun)
             {
                 _stamina -= staminaDrainPerSecond * Time.deltaTime;
-
+                OnStaminaChanged?.Invoke(_stamina);
+                
                 if (_stamina <= 0f)
                 {
                     _stamina = 0f;
@@ -89,6 +93,7 @@ namespace Player
             {
                 _stamina += staminaGainPerSecond * Time.deltaTime;
                 _stamina = Mathf.Min(_stamina, staminaMax);
+                OnStaminaChanged?.Invoke(_stamina);
 
                 if (_isExhausted && _stamina >= staminaCooldownThreshold)
                 {

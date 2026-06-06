@@ -2,25 +2,22 @@ using System;
 using System.Collections.Generic;
 using Enums;
 using Interfaces;
-using Missions.PersonalMissions;
 using Unity.Netcode;
 using UnityEngine;
 
 namespace Missions
 {
-    public class MissionPipesManager : NetworkBehaviour, IMissionSpawnable
+    public class MissionPipesManager : MissionsManagerBase, IMissionSpawnable
     {
         public event Action OnSpawnCompleted;
         
-        [SerializeField] private GameObject pipeTotemStraight;
-        [SerializeField] private GameObject pipeTotemJoint;
-        [SerializeField] private MissionOwnershipSelector ownershipSelector;
         [SerializeField] private MissionCompleter missionCompleter;
         
         [SerializeField] private List<PipeSpawnConfig> pipeConfigs;
         [SerializeField] private List<float> possibleAngles;
         
-        public bool IsComplete { get; private set; }
+        public override bool IsComplete { get; protected set; }
+        public List<float> PossiblePipesAngles => possibleAngles;
         
         private readonly List<PipeTotem> _spawnedPipes = new();
     
@@ -38,19 +35,17 @@ namespace Missions
             for (int i = 0; i < pipeConfigs.Count; i++)
             {
                 PipeSpawnConfig config = pipeConfigs[i];
-                GameObject pipePrefab = config.pipeType == PipeType.Straight ? pipeTotemStraight : pipeTotemJoint;
-                
-                GameObject spawnedPipe = Instantiate(pipePrefab, config.spawnPoint.position, config.spawnPoint.rotation);
-
-                if (spawnedPipe.TryGetComponent(out PipeTotem pipe))
-                {
-                    pipe.Initialize(this, ownershipSelector, possibleAngles, config.correctSteps, randomSteps[i]);
-                    _spawnedPipes.Add(pipe);
-                }
+                GameObject spawnedPipe = Instantiate(config.prefab, config.spawnPoint.position, config.spawnPoint.rotation);
 
                 if (spawnedPipe.TryGetComponent(out NetworkObject networkObject))
                 {
                     networkObject.Spawn();
+                }
+
+                if (spawnedPipe.TryGetComponent(out PipeTotem pipe))
+                {
+                    pipe.Initialize(this, possibleAngles, config.correctSteps, randomSteps[i]);
+                    _spawnedPipes.Add(pipe);
                 }
             }
 
@@ -120,8 +115,7 @@ namespace Missions
         
         public void OnPipeRotated(ulong clientId)
         {
-            if (!IsServer) return;
-            if (IsComplete) return;
+            if (!IsServer || IsComplete) return;
             if (!CheckAllPipesCorrect()) return;
 
             IsComplete = true;
@@ -132,18 +126,11 @@ namespace Missions
         
         private bool CheckAllPipesCorrect()
         {
-            bool allCorrect = true;
-
             foreach (PipeTotem pipe in _spawnedPipes)
             {
-                bool isCorrect = pipe.IsCorrect;
-                if (!isCorrect)
-                {
-                    allCorrect = false;
-                }
+                if (!pipe.IsCorrect) return false;
             }
-
-            return allCorrect;
+            return true;
         }
         
         [Rpc(SendTo.ClientsAndHost)]
@@ -156,7 +143,7 @@ namespace Missions
 
             if (playerNetworkObject.TryGetComponent(out PlayerMissionHolder missionHolder))
             {
-                missionHolder.CompletePersonalMission(ownershipSelector.Mission);
+                missionHolder.CompletePersonalMission(OwnershipSelector.Mission);
             }
         }
         
@@ -171,9 +158,9 @@ namespace Missions
 
                 pipe.Uninitialize();
 
-                if (pipe.TryGetComponent(out NetworkObject networkObject) && networkObject.IsSpawned)
+                if (pipe.TryGetComponent(out NetworkObject netObj) && netObj.IsSpawned)
                 {
-                    networkObject.Despawn();
+                    netObj.Despawn();
                 }
 
                 Destroy(pipe.gameObject);

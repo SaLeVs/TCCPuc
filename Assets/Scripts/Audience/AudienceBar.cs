@@ -1,12 +1,15 @@
 using System.Collections;
+using Enums;
 using TMPro;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
 namespace Audience
 {
     public class AudienceBar : MonoBehaviour
     {
+        [SerializeField] private GameObject audienceBarUi;
         [SerializeField] private Image fillImage;
         [SerializeField] private float fillLerpSpeed = 6f;
         
@@ -19,7 +22,15 @@ namespace Audience
         
         private void Start()
         {
-            StartCoroutine(WaitForAudienceManager());
+            if (SceneManager.GetActiveScene().name == nameof(Scenes.Game))
+            {
+                audienceBarUi.SetActive(true);
+                StartCoroutine(WaitForAudienceManager());
+            }
+            else
+            {
+                audienceBarUi.SetActive(false);
+            }
         }
 
         private IEnumerator WaitForAudienceManager()
@@ -72,9 +83,14 @@ namespace Audience
         }
         
         
-        private void OnDestroy()
+        private void OnDisable()
         {
             if (!_initialized || AudienceManager.Instance == null) return;
+            
+            if (_fillRoutine != null)
+            {
+                StopCoroutine(_fillRoutine);
+            }
             
             AudienceManager.Instance.OnAudienceChanged -= AudienceManager_OnAudienceChanged;
         }

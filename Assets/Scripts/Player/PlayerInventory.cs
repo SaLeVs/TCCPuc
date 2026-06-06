@@ -121,7 +121,6 @@ namespace Player
             OnSelectedSlotChanged?.Invoke(_currentSlotSelected);
 
             DestroyItemRpc();
-            Debug.Log("Slot deselected");
         }
         
 
@@ -159,7 +158,6 @@ namespace Player
                     if (_slots[i] == -1)
                     {
                         _slots[i] = itemId;
-                        Debug.Log($"Item {itemId} added to slot {i}");
                         return;
                     }
                 }
@@ -167,27 +165,19 @@ namespace Player
             
         }
 
-        public void TryRemoveItemServer()
+        public void TryRemoveItemServer(int itemId)
         {
-            if (IsServer)
+            if (!IsServer) return;
+
+            for (int i = 0; i < _slots.Count; i++)
             {
-                if (_currentSlotSelected <= 0) return;
+                if (_slots[i] != itemId) continue;
 
-                int index = _currentSlotSelected - 1;
-
-                if (index < 0 || index >= _slots.Count) return;
-
-                _slots[index] = -1;
-
-                Debug.Log($"Removed item from slot {index}");
-
-                _currentSlotSelected = -1;
-                _currentItemId = -1;
-
+                _slots[i] = -1;
                 DestroyItemRpc();
-                OnSelectedSlotChanged?.Invoke(_currentSlotSelected);
+                DeselectSlotClientRpc();
+                return;
             }
-            
         }
     
         [Rpc(SendTo.Server)]
@@ -274,6 +264,12 @@ namespace Player
                 _slots[index] = newItemId;
                 
             }
+        }
+        
+        [Rpc(SendTo.Owner)]
+        private void DeselectSlotClientRpc()
+        {
+            DeselectSlot();
         }
 
         public bool HasInventorySpace()

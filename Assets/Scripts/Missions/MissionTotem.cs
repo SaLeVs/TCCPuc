@@ -6,84 +6,81 @@ using ScriptableObjects;
 
 namespace Missions.PersonalMissions
 {
-    public class MissionTotem : NetworkBehaviour, IInteractable
+    public class MissionTotem : TotemsMissionsBase, IInteractable
     {
         public event Action<ulong> OnTotemDeposited;
         
         [SerializeField] private ItemDataSO expectedItem;
         [SerializeField] private Transform spawnPoint;
+        [SerializeField] private ItemListSO itemDatabase;
         
         
         public bool IsSlotCorrect => _currentItemId == expectedItem.itemId;
-        
-        private MissionOwnershipSelector _ownershipSelector;
-        private MissionTotemGroup _totemGroup;
         
         private NetworkObject _currentPickable;
         private int _currentItemId = -1;
         
 
-        public void Initialize(MissionTotemGroup totemGroup, MissionOwnershipSelector ownershipSelector)
+        public void Initialize(MissionTotemGroup totemGroup)
         {
-            _totemGroup = totemGroup;
-            _ownershipSelector = ownershipSelector;
+            InitializeBase(totemGroup);
         }
         
         public bool CanInteract(GameObject interactor)
         {
-            if (_totemGroup.IsComplete) return false;
+            if (HasItemInSlot()) return false;
             if (!interactor.TryGetComponent(out NetworkObject networkObject)) return false;
-            
-            return _ownershipSelector.IsMissionOwner(networkObject.OwnerClientId);
+
+            return CheckOwnership(networkObject.OwnerClientId);
         }
 
         public bool Interact(GameObject playerInteractor) => false;
 
         public bool TryDeposit(ulong clientId, int itemId)
         {
-            if (_totemGroup.IsComplete)
-            {
-                Debug.Log($"Is totemCompleted: {_totemGroup.IsComplete}");
-                return false;
-            }
-            
-            if (_ownershipSelector == null)
-            {
-                Debug.Log($"Is ownership selector null: {_ownershipSelector}");
-                return false;
-            }
-            
-            if (!_ownershipSelector.IsMissionOwner(clientId))
-            {
-                Debug.Log($"Is mission owner: {_ownershipSelector.IsMissionOwner(clientId)}");
-                return false;
-            }
-
-            if (_currentPickable != null)
-            {
-                _currentPickable.Despawn();
-            }
+            if (!CheckOwnership(clientId)) return false;
+            if (HasItemInSlot()) return false;
 
             _currentItemId = itemId;
 
-            GameObject spawned = Instantiate(expectedItem.prefabPickable, spawnPoint.position, spawnPoint.rotation);
+            ItemDataSO item = itemDatabase.GetItem(itemId);
+
+            if (item == null) return false;
+
+            GameObject spawned = Instantiate(item.prefabPickable, spawnPoint.position, spawnPoint.rotation);
 
             if (spawned.TryGetComponent(out NetworkObject netObj))
             {
                 netObj.Spawn();
                 _currentPickable = netObj;
+
+                if (spawned.TryGetComponent(out IMissionOwnerAware ownerAware))
+                {
+                    ownerAware.SetOwnershipSelector(Manager);
+                }
             }
 
-            Debug.Log("On totem deposited");
             OnTotemDeposited?.Invoke(clientId);
             return true;
         }
-
         
-        public void Uninitialize()
+        private bool HasItemInSlot()
         {
-            _ownershipSelector = null;
-            _totemGroup = null;
+            if (_currentPickable == null) return false;
+
+            if (!_currentPickable || !_currentPickable.IsSpawned)
+            {
+                ClearSlot();
+                return false;
+            }
+
+            return true;
+        }
+        
+        private void ClearSlot()
+        {
+            _currentPickable = null;
+            _currentItemId = -1;
         }
         
     }

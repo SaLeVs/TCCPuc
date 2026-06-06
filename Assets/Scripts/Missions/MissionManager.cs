@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Interfaces;
 using Missions.PersonalMissions;
+using Player;
 using ScriptableObjects;
 using Systems;
 using Unity.Netcode;
@@ -39,14 +40,125 @@ namespace Missions
         }
         
         
+        public void HandlePlayerDeath(ulong deadClientId)
+        {
+            if (!IsServer) return;
+
+            if (!_personalMissionsForPlayers.TryGetValue(deadClientId, out List<MissionSO> deadMissions) || deadMissions.Count == 0)
+            {
+                Debug.Log($"MissionManager: Player {deadClientId} died with no pending missions.");
+                return;
+            }
+
+            List<ulong> alivePlayers = GetAlivePlayers(deadClientId);
+
+            if (alivePlayers.Count == 0)
+            {
+                Debug.LogWarning("MissionManager: No alive players to receive transferred missions.");
+                return;
+            }
+
+            int total = deadMissions.Count;
+            
+            Dictionary<ulong, List<MissionSO>> transferMap = new();
+
+            for (int i = 0; i < deadMissions.Count; i++)
+            {
+                ulong targetId = alivePlayers[i % alivePlayers.Count];
+
+                if (!_personalMissionsForPlayers.ContainsKey(targetId))
+                {
+                    _personalMissionsForPlayers[targetId] = new List<MissionSO>();
+                }
+
+                _personalMissionsForPlayers[targetId].Add(deadMissions[i]);
+                SendPersonalMissionRpc(deadMissions[i].missionID, RpcTarget.Single(targetId, RpcTargetUse.Temp));
+
+                if (!transferMap.ContainsKey(targetId))
+                {
+                    transferMap[targetId] = new List<MissionSO>();
+                }
+                
+                transferMap[targetId].Add(deadMissions[i]);
+            }
+            
+            foreach (var (targetId, missions) in transferMap)
+            {
+                ReassignInteractableOwners(missions, targetId);
+            }
+
+            if (NetworkManager.Singleton.ConnectedClients.TryGetValue(deadClientId, out NetworkClient deadClient)
+                && deadClient.PlayerObject != null
+                && deadClient.PlayerObject.TryGetComponent(out PlayerMissionHolder deadHolder))
+            {
+                deadHolder.ClearPersonalMissionsRpc();
+            }
+
+            deadMissions.Clear();
+            Debug.Log($"MissionManager: Transferred {total} missions from player {deadClientId} to {alivePlayers.Count} player(s).");
+        }
+        
+        private void ReassignInteractableOwners(List<MissionSO> missions, ulong newOwnerId)
+        {
+            MissionOwnershipSelector[] selectors = FindObjectsByType<MissionOwnershipSelector>(FindObjectsSortMode.None);
+
+            foreach (MissionSO mission in missions)
+            {
+                bool found = false;
+
+                foreach (MissionOwnershipSelector selector in selectors)
+                {
+                    if (selector.Mission.missionID == mission.missionID)
+                    {
+                        selector.AssignOwner(newOwnerId);
+                        found = true;
+                        break;
+                    }
+                }
+
+                if (!found)
+                {
+                    Debug.LogWarning($"MissionManager: No selector found for transferred mission {mission.missionName}!");
+                }
+            }
+        }
+        
         private void MissionCompleter_OnMissionCompleted(MissionSO mission)
         {
             _completedPersonalMissions++;
-            Debug.Log("MissionManager: All missions completed");
+            RemoveMissionFromTracker(mission);
+            Debug.Log("MissionManager: Mission completed");
 
             if (_completedPersonalMissions >= _totalPersonalMissions)
             {
                 RevealMainMission();
+            }
+        }
+        
+        private List<ulong> GetAlivePlayers(ulong excludeId)
+        {
+            List<ulong> playersAlive = new List<ulong>();
+
+            foreach (ulong clientId in NetworkManager.Singleton.ConnectedClientsIds)
+            {
+                if (clientId == excludeId) continue;
+                if (!NetworkManager.Singleton.ConnectedClients.TryGetValue(clientId, out var client)) continue;
+                if (client.PlayerObject == null) continue;
+                
+                if (client.PlayerObject.TryGetComponent(out PlayerDead playerDead) && !playerDead.IsDead)
+                {
+                    playersAlive.Add(clientId);
+                }
+            }
+
+            return playersAlive;
+        }
+        
+        private void RemoveMissionFromTracker(MissionSO mission)
+        {
+            foreach (var missions in _personalMissionsForPlayers.Values)
+            {
+                if (missions.Remove(mission)) break;
             }
         }
         
@@ -194,21 +306,24 @@ namespace Missions
         private void AssignInteractableOwners()
         {
             MissionOwnershipSelector[] selectors = FindObjectsByType<MissionOwnershipSelector>(FindObjectsSortMode.None);
-
-            Debug.Log($"MissionManager: Found {selectors.Length} selectors");
-
+            HashSet<MissionOwnershipSelector> alreadyAssigned = new HashSet<MissionOwnershipSelector>();
+            
             foreach (ulong clientId in _personalMissionsForPlayers.Keys)
             {
                 foreach (MissionSO mission in _personalMissionsForPlayers[clientId])
                 {
                     bool found = false;
+                    
                     foreach (MissionOwnershipSelector selector in selectors)
                     {
+                        if (alreadyAssigned.Contains(selector)) continue;
+
                         if (selector.Mission.missionID == mission.missionID)
                         {
                             found = true;
                             selector.AssignOwner(clientId);
-                            Debug.Log($"MissionManager: Assigned {clientId} to {mission.missionName}");
+                            alreadyAssigned.Add(selector);
+                            break; 
                         }
                     }
 
@@ -219,6 +334,7 @@ namespace Missions
                 }
             }
         }
+        
 
         
         public override void OnNetworkDespawn()

@@ -11,19 +11,22 @@ namespace UI
         [SerializeField] private Image playerImage;
         [SerializeField] private TMP_Text playerNameText;
         [SerializeField] private TMP_Text playerInfoText;
-        [SerializeField] private GameObject playerReadyCheck;
-        [SerializeField] private Image readyIndicator;
-        
-        [SerializeField] private Color readyColor = Color.green;
-        [SerializeField] private Color notReadyColor = Color.red;
-        
+        [SerializeField] private TMP_Text readyText;
+        [SerializeField] private TMP_Text playerHost;
         [SerializeField] private Sprite defaultAvatar;
-        [SerializeField] private Sprite playerAvatar;
+        
+        [SerializeField] private int avatarSlotIndex = 0;
+        [SerializeField] private Sprite[] playerAvatar;
+        
 
         
         private Unity.Services.Lobbies.Models.Player _player;
-        private const string HOST_TAG = "[HOST]";
-        private const string PLAYER_INFO_PLACEHOLDER = "All infos about player, just placeholder for test font";
+        private const string HOST_TAG = "HOST";
+        
+        private const string PLAYER_INFO_PLACEHOLDER = 
+            "This professional has the right to record poor-quality scenes, " +
+            "use questionable materials, and attempt to exploit the theater for the benefit of the audience and its regulation.";
+        
         private const string PLAYER_NULL_INFO = "WAITING...";
         
         
@@ -31,17 +34,16 @@ namespace UI
         {
             _player = player;
  
-            SetPlayerName(player, isHost);
+            SetPlayerName(player);
             SetPlayerInfo(player, isHost);
             SetReadyStatus(player);
             SetIconImage(player);
         }
         
-        private void SetPlayerName(Unity.Services.Lobbies.Models.Player player, bool isHost)
+        private void SetPlayerName(Unity.Services.Lobbies.Models.Player player)
         {
             string name = GetPlayerData(player, "PlayerName", $"Player {player.Id[..4]}");
-            string hostTag = isHost ? HOST_TAG : null;
-            playerNameText.text = name + hostTag;
+            playerNameText.text = name;
         }
  
         private void SetPlayerInfo(Unity.Services.Lobbies.Models.Player player, bool isHost)
@@ -49,22 +51,22 @@ namespace UI
             if (playerInfoText == null) return;
             
             playerInfoText.text = PLAYER_INFO_PLACEHOLDER;
+            playerHost.text = isHost ? HOST_TAG : "CLIENT";
+            
         }
  
         private void SetReadyStatus(Unity.Services.Lobbies.Models.Player player)
         {
             bool isReady = GetPlayerData(player, "Ready", "0") == "1";
- 
-            if (playerReadyCheck != null)
-                playerReadyCheck.SetActive(isReady);
- 
-            if (readyIndicator != null)
-                readyIndicator.color = isReady ? readyColor : notReadyColor;
+            
+            string playerName = GetPlayerData(player, "PlayerName", $"Player {player.Id[..4]}");
+            readyText.text = isReady ? $"{playerName}" : "";
         }
 
         private void SetIconImage(Unity.Services.Lobbies.Models.Player player)
         {
-            playerImage.sprite = playerAvatar;
+            int index = Mathf.Clamp(avatarSlotIndex, 0, playerAvatar.Length - 1);
+            playerImage.sprite = playerAvatar[index];
         }
         
         public void SetEmpty()
@@ -76,12 +78,8 @@ namespace UI
  
             if (playerImage != null)
                 playerImage.sprite = defaultAvatar;
- 
-            if (playerReadyCheck != null)
-                playerReadyCheck.SetActive(false);
- 
-            if (readyIndicator != null)
-                readyIndicator.color = notReadyColor;
+            
+            readyText.text = "";
         }
  
         private static string GetPlayerData(Unity.Services.Lobbies.Models.Player player, string key, string fallback)

@@ -34,7 +34,7 @@ namespace Network
 
         private void Start()
         {
-            _playerName = $"User {UnityEngine.Random.Range(0, 100)}";
+            _playerName = $"Player {UnityEngine.Random.Range(0, 100)}";
         }
 
         private void Update()

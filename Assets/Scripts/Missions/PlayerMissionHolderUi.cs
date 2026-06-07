@@ -3,25 +3,24 @@ using Missions;
 using ScriptableObjects;
 using UnityEngine;
 
-namespace UI
+namespace Missions
 {
     public class PlayerMissionHolderUi : MonoBehaviour
     {
-        [SerializeField] private PlayerMissionHolder missionHolder;
         [SerializeField] private MissioninstructionsUI missionInstructionsPrefab;
         [SerializeField] private Transform content;
 
+        private PlayerMissionHolder _missionHolder;
         private readonly Dictionary<MissionSO, MissioninstructionsUI> _spawnedMissions = new();
 
-    
-        private void Start()
+        public void Initialize(PlayerMissionHolder holder)
         {
-            missionHolder.OnPersonalMissionReceived += SpawnMissionItem;
-            missionHolder.OnPersonalMissionCompleted += RemoveMissionItem;
-            missionHolder.OnMainMissionReceived += SpawnMissionItem;
+            _missionHolder = holder;
+            _missionHolder.OnPersonalMissionReceived += SpawnMissionItem;
+            _missionHolder.OnPersonalMissionCompleted += RemoveMissionItem;
+            _missionHolder.OnMainMissionReceived += SpawnMissionItem;
         }
 
-    
         private void SpawnMissionItem(MissionSO mission)
         {
             if (_spawnedMissions.ContainsKey(mission)) return;
@@ -34,17 +33,15 @@ namespace UI
         private void RemoveMissionItem(MissionSO mission)
         {
             if (!_spawnedMissions.Remove(mission, out MissioninstructionsUI missionUi)) return;
-
             Destroy(missionUi.gameObject);
         }
-    
-    
+
         private void OnDestroy()
         {
-            missionHolder.OnPersonalMissionReceived -= SpawnMissionItem;
-            missionHolder.OnPersonalMissionCompleted -= RemoveMissionItem;
-            missionHolder.OnMainMissionReceived -= SpawnMissionItem;
+            if (_missionHolder == null) return;
+            _missionHolder.OnPersonalMissionReceived -= SpawnMissionItem;
+            _missionHolder.OnPersonalMissionCompleted -= RemoveMissionItem;
+            _missionHolder.OnMainMissionReceived -= SpawnMissionItem;
         }
-    
     }
 }

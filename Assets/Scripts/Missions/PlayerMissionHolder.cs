@@ -8,6 +8,8 @@ namespace Missions
 {
     public class PlayerMissionHolder : NetworkBehaviour
     {
+        [SerializeField] private PlayerMissionHolderUi _playerMissionHolderUi;
+        
         public event Action<MissionSO> OnPersonalMissionReceived;
         public event Action<MissionSO> OnPersonalMissionCompleted;
         public event Action<MissionSO> OnMainMissionReceived;
@@ -18,6 +20,13 @@ namespace Missions
         public IReadOnlyList<MissionSO> PersonalMissions => _personalMissions;
         public MissionSO MainMission => _mainMission;
 
+        
+        public override void OnNetworkSpawn()
+        {
+            if (!IsOwner) return;
+                
+            _playerMissionHolderUi.Initialize(this);
+        }
         
         public void ReceivePersonalMission(MissionSO mission)
         {

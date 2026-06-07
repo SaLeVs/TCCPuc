@@ -22,26 +22,34 @@ namespace Components
             {
                 currentHealth.Value = MaxHealth;
             }
+            
+            currentHealth.OnValueChanged += CurrentHealth_OnValueChanged;
         }
-        
+
+        private void CurrentHealth_OnValueChanged(float previousValue, float newValue)
+        {
+            OnHealthChanged?.Invoke(currentHealth.Value);
+        }
+
         public void TakeDamage(float damage)
         {
-            Debug.Log($"TakeDamage on {gameObject.name}");
-            
             if (IsServer)
             {
                 ModifyHealth(damage);
+                Debug.Log($"TakeDamage, {IsServer} on {gameObject.name}");
             }
             else
             {
                 TakeDamageServerRpc(damage);
+                Debug.Log($"TakeDamage, {IsServer} on {gameObject.name}");
             }
         }
 
         [Rpc(SendTo.Server)]
         private void TakeDamageServerRpc(float damage)
         {
-            Debug.Log($"TakeDamage on {gameObject.name}");
+            if (IsServer) return;
+            
             ModifyHealth(damage);
         }
 
@@ -69,7 +77,6 @@ namespace Components
 
             float newHealth = currentHealth.Value - value;
             currentHealth.Value = Mathf.Clamp(newHealth, 0f, MaxHealth);
-            OnHealthChanged?.Invoke(currentHealth.Value);
             
             Debug.Log($"ModifyHealth on {gameObject.name}, new health: {currentHealth.Value}");
 
@@ -78,6 +85,12 @@ namespace Components
                 _isDead = true;
                 OnDie?.Invoke(this);
             }
+        }
+
+        
+        public override void OnNetworkDespawn()
+        {
+            currentHealth.OnValueChanged -= CurrentHealth_OnValueChanged;
         }
         
     } 

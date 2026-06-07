@@ -80,12 +80,7 @@ namespace Components
         private void ScanTargets()
         {
             previousDetectedObjects.Clear();
-
-            foreach (GameObject detectedObject in detectedObjects)
-            {
-                previousDetectedObjects.Add(detectedObject);
-            }
-
+            foreach (GameObject obj in detectedObjects) previousDetectedObjects.Add(obj);
             detectedObjects.Clear();
 
             _collidersCount = Physics.OverlapSphereNonAlloc(
@@ -93,29 +88,30 @@ namespace Components
 
             for (int i = 0; i < _collidersCount; i++)
             {
-                GameObject objectDetected = _collidersDetected[i].gameObject;
+                if (_collidersDetected[i] == null)
+                {
+                    _collidersDetected[i] = null;
+                    continue;
+                }
 
+                GameObject objectDetected = _collidersDetected[i].gameObject;
                 if (!IsObjectInVision(objectDetected)) continue;
-                
                 if (!objectDetected.TryGetComponent(out RecordableIdentifier identifier)) continue;
                 if (identifier.targetType == RecordableTarget.None) continue;
 
                 detectedObjects.Add(objectDetected);
 
                 if (!previousDetectedObjects.Contains(objectDetected))
-                {
                     TargetEnter(objectDetected, identifier.targetType);
-                }
             }
 
             foreach (GameObject detectedObject in previousDetectedObjects)
             {
+                if (detectedObject == null) continue;
                 if (!detectedObjects.Contains(detectedObject))
                 {
                     if (detectedObject.TryGetComponent(out RecordableIdentifier identifier))
-                    {
                         TargetExit(detectedObject, identifier.targetType);
-                    }
                 }
             }
         }
@@ -293,19 +289,22 @@ namespace Components
                 Gizmos.color = meshColor;
                 Gizmos.DrawMesh(_mesh, orientation.position, orientation.rotation);
             }
-            
+
             Gizmos.DrawWireSphere(orientation.position, distance);
-            
+
             for (int i = 0; i < _collidersCount; ++i)
             {
+                if (_collidersDetected[i] == null) continue;
+
                 Gizmos.DrawSphere(_collidersDetected[i].transform.position, 0.2f);
             }
-            
-            
-            Gizmos.color = Color.darkGreen;
+
+            Gizmos.color = Color.green;
 
             foreach (GameObject obj in detectedObjects)
             {
+                if (obj == null) continue;
+
                 Gizmos.DrawSphere(obj.transform.position, 0.2f);
             }
         }

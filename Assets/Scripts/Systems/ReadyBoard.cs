@@ -35,14 +35,18 @@ namespace Systems
 
         private void SpawnIcons()
         {
-            foreach (var icon in _icons) Destroy(icon.gameObject);
+            foreach (ReadyIconUI icon in _icons)
+            {
+                Destroy(icon.gameObject);
+            }
+            
             _icons.Clear();
 
             int total = PlayerTracker.Instance.ConnectedPlayerCount;
 
             for (int i = 0; i < total; i++)
             {
-                var icon = Instantiate(readyIconPrefab, iconsContainer);
+                ReadyIconUI icon = Instantiate(readyIconPrefab, iconsContainer);
                 icon.SetReady(false);
                 _icons.Add(icon);
             }

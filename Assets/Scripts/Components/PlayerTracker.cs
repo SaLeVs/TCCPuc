@@ -35,8 +35,6 @@ namespace Systems
         
         public override void OnNetworkSpawn()
         {
-            if (!IsServer) return;
-
             NetworkManager.Singleton.SceneManager.OnLoadEventCompleted += OnLoadEventCompleted;
             NetworkManager.Singleton.OnClientConnectedCallback += OnClientConnected;
             NetworkManager.Singleton.OnClientDisconnectCallback += OnClientDisconnected;

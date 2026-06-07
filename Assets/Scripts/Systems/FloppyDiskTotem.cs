@@ -7,63 +7,76 @@ namespace Systems
 {
     public class FloppyDiskTotem : NetworkBehaviour, IInteractable
     {
-        public event Action<FloppyDiskTotem> OnDiskPlaced;
+        public event Action OnAllDisksPlaced;
 
-        [SerializeField] private Transform diskSpawnPoint;
+        [SerializeField] private Transform[] diskSpawnPoints;
+        [SerializeField] private GameObject diskVisualPrefab;
 
-        private GameObject _diskObjectPrefab;
-        private FloppyDiskManager _floppyDiskManager;
+        private readonly NetworkVariable<int> _disksPlaced = new NetworkVariable<int>(
+            0,
+            NetworkVariableReadPermission.Everyone,
+            NetworkVariableWritePermission.Server);
 
-        private NetworkVariable<bool> _hasDisksInTotem = new NetworkVariable<bool>();
+        private readonly NetworkVariable<int> _requiredDisks = new NetworkVariable<int>(
+            0,
+            NetworkVariableReadPermission.Everyone,
+            NetworkVariableWritePermission.Server);
 
-        public bool IsComplete => _hasDisksInTotem.Value;
+        public bool IsComplete => _requiredDisks.Value > 0 && _disksPlaced.Value >= _requiredDisks.Value;
 
         
-        public void Initialize(GameObject diskObjectPrefab, FloppyDiskManager manager)
+        public override void OnNetworkSpawn()
         {
             if (IsServer)
             {
-                _diskObjectPrefab = diskObjectPrefab;
-                _floppyDiskManager = manager;
+                _requiredDisks.Value = PlayerTracker.Instance.ConnectedPlayerCount;
             }
         }
 
-        public override void OnNetworkSpawn()
-        {
-            _hasDisksInTotem.OnValueChanged += HasDisk_OnValueChanged;
-        }
-
-        private void HasDisk_OnValueChanged(bool previous, bool current)
-        {
-            if (current)
-            {
-                SpawnDiskVisualRpc();
-            }
-        }
-
-        public void PlaceDiskServer()
-        {
-            if (!IsServer) return;
-            if (IsComplete) return;
-
-            _hasDisksInTotem.Value = true;
-            Debug.Log($"Place Disk Server: {_hasDisksInTotem.Value}");
-            _floppyDiskManager.NotifyDiskPlaced(this);
-        }
-        
-
-        [Rpc(SendTo.ClientsAndHost)]
-        private void SpawnDiskVisualRpc()
-        { 
-            Instantiate(_diskObjectPrefab, diskSpawnPoint.position, diskSpawnPoint.rotation);
-        }
-
-        public bool Interact(GameObject playerInteractor) => false;
         public bool CanInteract(GameObject interactor) => !IsComplete;
 
-        public override void OnNetworkDespawn()
+        public bool Interact(GameObject playerInteractor)
         {
-            _hasDisksInTotem.OnValueChanged -= HasDisk_OnValueChanged;
+            if (!playerInteractor.TryGetComponent(out NetworkObject netObj)) return false;
+            if (!netObj.IsOwner) return false;
+
+            PlaceDiskRpc();
+            return true;
         }
+
+        [Rpc(SendTo.Server)]
+        private void PlaceDiskRpc(RpcParams rpcParams = default)
+        {
+            if (IsComplete) return;
+
+            ulong senderId = rpcParams.Receive.SenderClientId;
+
+            if (!NetworkManager.Singleton.ConnectedClients.TryGetValue(senderId, out NetworkClient client)) return;
+            if (!client.PlayerObject.TryGetComponent(out PlayerDiskHolder diskHolder)) return;
+            if (!diskHolder.HasDisk) return;
+
+            diskHolder.TryConsumeDisk();
+
+            int slotIndex = _disksPlaced.Value;
+            _disksPlaced.Value++;
+
+            SpawnDiskVisualRpc(slotIndex);
+            Debug.Log($"Placed disk {slotIndex}");
+
+            if (IsComplete)
+            {
+                Debug.Log("FloppyDiskTotem: All disks placed!");
+                OnAllDisksPlaced?.Invoke();
+            }
+        }
+
+        [Rpc(SendTo.ClientsAndHost)]
+        private void SpawnDiskVisualRpc(int slotIndex)
+        {
+            if (slotIndex >= diskSpawnPoints.Length) return;
+
+            Instantiate(diskVisualPrefab, diskSpawnPoints[slotIndex].position, diskSpawnPoints[slotIndex].rotation);
+        }
+        
     }
 }

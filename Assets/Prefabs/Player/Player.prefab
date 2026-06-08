@@ -493,7 +493,7 @@ MonoBehaviour:
   UseQuaternionSynchronization: 0
   UseQuaternionCompression: 0
   UseHalfFloatPrecision: 0
-  InLocalSpace: 0
+  InLocalSpace: 1
   SwitchTransformSpaceWhenParented: 0
   Interpolate: 1
   SlerpPosition: 0
@@ -939,6 +939,7 @@ MonoBehaviour:
   playerState: {fileID: 315419889962386199}
   gameplayCanvas: {fileID: 3205022582486267336}
   spectatorCanvas: {fileID: 8685048979318010635}
+  timeToEnterInSpectator: 15
 --- !u!114 &1730382070466504818
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2138,7 +2139,7 @@ MonoBehaviour:
   standingOffset: {x: 0, y: 1, z: 0.35}
   crouchOffset: {x: 0, y: 0.7, z: 0.45}
   runOffset: {x: 0, y: 0.9, z: 0.45}
-  deadOffset: {x: -0.3, y: -0.5, z: 0.3}
+  deadOffset: {x: -0.3, y: 0.5, z: 0.3}
 --- !u!114 &6388113009287079804
 MonoBehaviour:
   m_ObjectHideFlags: 0

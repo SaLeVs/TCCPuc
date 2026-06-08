@@ -9,16 +9,21 @@ namespace Missions
     {
         [SerializeField] private MissioninstructionsUI missionInstructionsPrefab;
         [SerializeField] private Transform content;
+        [SerializeField] private MissionMessageUi messagePrefab;
 
         private PlayerMissionHolder _missionHolder;
         private readonly Dictionary<MissionSO, MissioninstructionsUI> _spawnedMissions = new();
-
+        private MissionMessageUi _currentMessage;
+        
+        
         public void Initialize(PlayerMissionHolder holder)
         {
             _missionHolder = holder;
             _missionHolder.OnPersonalMissionReceived += SpawnMissionItem;
             _missionHolder.OnPersonalMissionCompleted += RemoveMissionItem;
             _missionHolder.OnMainMissionReceived += SpawnMissionItem;
+            _missionHolder.OnMainMissionCompleted += RemoveMissionItem;
+            _missionHolder.OnMessageReceived += ShowMessage;
         }
 
         private void SpawnMissionItem(MissionSO mission)
@@ -36,12 +41,27 @@ namespace Missions
             Destroy(missionUi.gameObject);
         }
 
+        private void ShowMessage(string message)
+        {
+            if (_currentMessage != null)
+            {
+                Destroy(_currentMessage.gameObject);
+            }
+
+            _currentMessage = Instantiate(messagePrefab, content);
+            _currentMessage.Setup(message);
+        }
+
+        
         private void OnDestroy()
         {
             if (_missionHolder == null) return;
             _missionHolder.OnPersonalMissionReceived -= SpawnMissionItem;
             _missionHolder.OnPersonalMissionCompleted -= RemoveMissionItem;
             _missionHolder.OnMainMissionReceived -= SpawnMissionItem;
+            _missionHolder.OnMessageReceived -= ShowMessage;
+            _missionHolder.OnMainMissionCompleted -= RemoveMissionItem;
         }
+        
     }
 }

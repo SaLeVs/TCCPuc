@@ -13,6 +13,8 @@ namespace Missions
         public event Action<MissionSO> OnPersonalMissionReceived;
         public event Action<MissionSO> OnPersonalMissionCompleted;
         public event Action<MissionSO> OnMainMissionReceived;
+        public event Action<MissionSO> OnMainMissionCompleted;
+        public event Action<string> OnMessageReceived;  
 
         private readonly List<MissionSO> _personalMissions = new List<MissionSO>();
         private MissionSO _mainMission;
@@ -56,6 +58,23 @@ namespace Missions
             Debug.Log($"PlayerMissionHolder: Main mission revealed: {mission.missionName}");
         }
 
+        public void CompleteMainMission()
+        {
+            if (!IsOwner) return;
+            if (_mainMission == null) return;
+            
+            MissionSO completed = _mainMission;
+            _mainMission = null;
+            OnMainMissionCompleted?.Invoke(completed);
+            Debug.Log($"PlayerMissionHolder: Main mission completed {completed.missionName}");
+        }
+        
+        [Rpc(SendTo.Owner)]
+        public void SendMessageRpc(string message)
+        {
+            OnMessageReceived?.Invoke(message);
+        }
+        
         [Rpc(SendTo.Owner)]
         public void ClearPersonalMissionsRpc()
         {

@@ -12,6 +12,7 @@ namespace Audience
         public event Action<float> OnAudienceChanged;
         public event Action<float> OnAudienceGained;
         public event Action<float> OnAudienceLost;
+        public event Action OnAudienceThresholdReached;
         
         [SerializeField] private MissionManager missionManager;
         
@@ -20,6 +21,7 @@ namespace Audience
         [SerializeField] private float decayRatePerSecond = 3f;
         [SerializeField] private float globalGainMultiplier = 1f;
         [SerializeField] private float maxGainPerSecond = 100f;
+        [SerializeField, Range(0f, 1f)] private float escapeThreshold = 0.75f;
         
         private NetworkVariable<float> _audience = new NetworkVariable<float>(0f,
             NetworkVariableReadPermission.Everyone,
@@ -36,6 +38,7 @@ namespace Audience
         private bool _receivedGainThisFrame;
         private bool _receivedPresenceThisFrame;
         private float _idleTimer;
+        private bool  _thresholdReached;
         
         
         private void Awake()
@@ -130,6 +133,13 @@ namespace Audience
             if (audienceAmount > 0f)
             {
                 NotifyGainClientRpc(audienceAmount);
+            }
+            
+            if (!_thresholdReached && NormalizedAudience >= escapeThreshold)
+            {
+                _thresholdReached = true;
+                OnAudienceThresholdReached?.Invoke();
+                Debug.Log($"AudienceManager: {escapeThreshold * 100}% Hit audience target");
             }
         }
 

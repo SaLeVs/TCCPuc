@@ -19,6 +19,9 @@ namespace Missions
         private Dictionary<RecordableTarget, HashSet<ulong>> _playersWatching = new();
         private Dictionary<RecordableTarget, GameObject> _targetObjects = new();
         private HashSet<RecordableTarget> _recordedTargets = new();
+        
+        private MissionManager _missionManager;
+        
 
         public override void StartMission()
         {
@@ -28,7 +31,9 @@ namespace Missions
             {
                 _playersWatching[config.targetType] = new HashSet<ulong>();
             }
-
+            
+            _missionManager = FindFirstObjectByType<MissionManager>();
+            
             Debug.Log("MissionsRecorder: Mission started!");
         }
 
@@ -96,6 +101,7 @@ namespace Missions
 
             if (_recordedTargets.Count >= requiredTargets.Length)
             {
+                _missionManager.CompleteMainMission();
                 Debug.Log("MissionsRecorder: All targets recorded and close enough, mission Complete!");
             }
         }

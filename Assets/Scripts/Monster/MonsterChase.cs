@@ -13,13 +13,17 @@ namespace Monster
         public event Action OnStoppedChasingAnimation;
         
         [SerializeField] private float chaseSpeed = 8f;
+        [SerializeField] private float targetReevaluationInterval = 1f;
         
         public List<Transform> monsterTargets;
         public float DistanceFromTarget => _currentDistanceFromTarget;
+        public bool HasTarget => _currentTarget != null;
         
         private NavMeshAgent _agent;
+        private List<Transform> _monsterTargets;
         private Transform _currentTarget;
-        private float _currentDistanceFromTarget;
+        private float _currentDistanceFromTarget = float.MaxValue;
+        private float _reevaluationTimer;
         
         
         public void Initialize(List<Transform> monsterTargetsList, NavMeshAgent agent, MonsterBrain monsterBrain)
@@ -54,60 +58,91 @@ namespace Monster
         
         private void MonsterBrain_OnPlayerExitInVision(Transform player)
         {
-            if (_currentTarget == player)
+            if (_currentTarget != player) return;
+            
+            Transform nextTarget = GetBestAvailableTarget(excludeTarget: player);
+
+            if (nextTarget != null)
+            {
+                SetTarget(nextTarget);
+            }
+            else
             {
                 ClearTarget();
-                
-                if (monsterTargets.Count > 0)
-                {
-                    List<Transform> currentListOfPlayers = monsterTargets.Where(monsterTarget => monsterTarget).ToList();
-                    
-                    if (currentListOfPlayers.Count > 0)
-                    {
-                        Transform nextTargetInList =
-                            currentListOfPlayers.OrderBy(playerTarget => Vector3.Distance(_agent.transform.position, playerTarget.position)).First();
-                        
-                        SetTarget(nextTargetInList);
-                    }
-                }
             }
         }
+        
+        private Transform GetBestAvailableTarget(Transform excludeTarget = null)
+        {
+            if (_monsterTargets == null || _monsterTargets.Count == 0) return null;
 
+            return _monsterTargets.Where(t => t != null && t != excludeTarget)
+                .OrderBy(t => Vector3.Distance(_agent.transform.position, t.position))
+                .FirstOrDefault();
+        }
+
+        private void ReevaluateTarget()
+        {
+            Transform bestTarget = GetBestAvailableTarget();
+
+            if (bestTarget != null && bestTarget != _currentTarget)
+                SetTarget(bestTarget);
+        }
+        
         private void SetTarget(Transform target)
         {
             if (!target || !_agent) return;
-            
+
             _currentTarget = target;
             _agent.isStopped = false;
             _agent.speed = chaseSpeed;
         }
-        
+
         private void ClearTarget()
         {
             _currentTarget = null;
-            _currentDistanceFromTarget = 0;
-            
-            if (_agent)
+            _currentDistanceFromTarget = float.MaxValue;
+
+            if (_agent != null)
             {
                 _agent.isStopped = true;
                 _agent.ResetPath();
             }
         }
-        
+
         public void StartChase()
         {
             if (_agent == null) return;
-            
+
             _agent.isStopped = false;
             _agent.speed = chaseSpeed;
             OnStartedChasingAnimation?.Invoke();
         }
         
-        public void ChaseUpdate()
+        
+        public void ChaseUpdate(float deltaTime)
         {
-            if (!_agent) return;
-            if (!_currentTarget) return;
+            if (_agent == null) return;
             
+            if (_currentTarget != null && !_currentTarget)
+            {
+                _currentTarget = null;
+                Transform fallback = GetBestAvailableTarget();
+
+                if (fallback != null) SetTarget(fallback);
+                else { ClearTarget(); return; }
+            }
+
+            if (_currentTarget == null) return;
+            
+            _reevaluationTimer += deltaTime;
+            
+            if (_reevaluationTimer >= targetReevaluationInterval)
+            {
+                _reevaluationTimer = 0f;
+                ReevaluateTarget();
+            }
+
             _agent.SetDestination(_currentTarget.position);
         }
         

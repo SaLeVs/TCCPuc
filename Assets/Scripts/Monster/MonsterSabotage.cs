@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
+using Interfaces;
 using Monster.MonsterSabotages;
 using Unity.Netcode;
 using UnityEngine;
@@ -14,6 +14,8 @@ namespace Monster
         public event Action OnSabotageStartedAnimation;
         public event Action OnSabotageEndedAnimation;
         
+        [SerializeField] private MonoBehaviour audienceProviderSource; 
+        [SerializeField] private float sabotageUnlockThreshold = 0.5f;
         [SerializeField] private float minSabotageCooldown = 15f;     
         [SerializeField] private float maxSabotageCooldown = 30f;
         [SerializeField] private float minSabotageStateDuration = 5f; 
@@ -24,25 +26,37 @@ namespace Monster
         public float MaxSabotageCooldown => maxSabotageCooldown;
         public float MinSabotageStateDuration => minSabotageStateDuration;
         public float MaxSabotageStateDuration => maxSabotageStateDuration;
+        public bool CanSabotage => _sabotageUnlocked;
         
         
         private List<ISabotageable> _sabotageTargets;
         private SabotageType _currentSabotageType;
-        
+        private bool _sabotageUnlocked;
+        private IAudienceProvider _audienceProvider;
         
         public void Initialize()
         {
+            _audienceProvider = audienceProviderSource as IAudienceProvider;
+
             _sabotageTargets = new List<ISabotageable>();
-    
+            
             foreach (GameObject obj in allSabotageObjects)
             {
                 if (obj.TryGetComponent(out ISabotageable sabotageable))
-                {
                     _sabotageTargets.Add(sabotageable);
-                }
             }
+
+            _sabotageUnlocked = _audienceProvider.NormalizedAudience > sabotageUnlockThreshold;
+
+            _audienceProvider.OnAudienceChanged += AudienceManager_OnAudienceChanged;;
         }
 
+
+        private void AudienceManager_OnAudienceChanged(float audience)
+        {
+            _sabotageUnlocked = _audienceProvider.NormalizedAudience > sabotageUnlockThreshold;
+        }
+        
         public void ChooseSabotageType()
         {
             SabotageType[] allTypes = (SabotageType[])Enum.GetValues(typeof(SabotageType));
@@ -121,5 +135,13 @@ namespace Monster
         {
             OnSabotageEndedAnimation?.Invoke();
         }
+
+        
+        public void Uninitialize()
+        {
+            if (_audienceProvider != null)
+                _audienceProvider.OnAudienceChanged -= AudienceManager_OnAudienceChanged;
+        }
+        
     }
 }

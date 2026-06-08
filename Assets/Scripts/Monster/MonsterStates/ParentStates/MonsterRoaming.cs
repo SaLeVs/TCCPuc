@@ -43,6 +43,9 @@ namespace Monster.MonsterStates.ParentStates
 
         protected override void OnUpdate(float deltaTime)
         {
+            if (!_monsterBrain.MonsterSabotage.CanSabotage) return;
+            
+            Debug.Log($"Sabotage: Monster can sabotage {_monsterBrain.MonsterSabotage.CanSabotage}");
             _timer += deltaTime;
 
             if (ActiveChild == wanderState && _timer >= _currentCooldown)
@@ -50,12 +53,14 @@ namespace Monster.MonsterStates.ParentStates
                 _timer = 0f;
                 _currentSabotageDuration = Random.Range(_minSabotageStateDuration, _maxSabotageStateDuration);
                 StateMachine.Sequencer.RequestTransition(wanderState, sabotageState);
+                Debug.Log($"Sabotage: Transitioning to sabotage state. Cooldown: {_currentCooldown}, Sabotage Duration: {_currentSabotageDuration}");
             }
             else if (ActiveChild == sabotageState && _timer >= _currentSabotageDuration)
             {
                 _timer = 0f;
                 _currentCooldown = Random.Range(_minSabotageCooldown, _maxSabotageCooldown);
                 StateMachine.Sequencer.RequestTransition(sabotageState, wanderState);
+                Debug.Log($"Sabotage: Transitioning to wander state. Cooldown: {_currentCooldown}");
             }
         }
 

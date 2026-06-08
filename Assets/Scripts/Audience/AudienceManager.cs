@@ -1,11 +1,12 @@
 using System;
+using Interfaces;
 using Missions;
 using Unity.Netcode;
 using UnityEngine;
 
 namespace Audience
 {
-    public class AudienceManager : NetworkBehaviour
+    public class AudienceManager : NetworkBehaviour, IAudienceProvider
     {
         public static AudienceManager Instance { get; private set; }
         

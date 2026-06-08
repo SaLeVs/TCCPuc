@@ -32,6 +32,11 @@ namespace Monster.MonsterStates.HuntStates
             }
         }
 
+        protected override void OnExit()
+        {
+            _monsterBrain.MonsterAttack.CancelAttack();
+        }
+
         // protected override State GetTransitionState() { } 
     }
 }

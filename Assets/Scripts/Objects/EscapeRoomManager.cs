@@ -1,13 +1,17 @@
-﻿using Unity.Netcode;
+﻿using Missions;
+using Systems;
+using Unity.Netcode;
 using UnityEngine;
 
-namespace Systems
+namespace Objects
 {
     public class EscapeRoomManager : NetworkBehaviour
     {
         [SerializeField] private FloppyDiskTotem floppyDiskTotem;
         [SerializeField] private Animator leftDoorAnimator;
         [SerializeField] private Animator rightDoorAnimator;
+        [SerializeField] private MissionManager missionManager; // +
+        [SerializeField] private string messageForDoorsOpen; 
 
         private static readonly int OpenHash = Animator.StringToHash("Open");
 
@@ -22,6 +26,7 @@ namespace Systems
         
         private void HandleAllDisksPlaced()
         {
+            missionManager.SendMessageToAllPlayers(messageForDoorsOpen);
             OpenDoorsRpc();
         }
 

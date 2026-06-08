@@ -16,6 +16,7 @@ namespace Player
         public event Action<bool> OnPlayerDead;
         public event Action<bool> OnPlayerLocked;
         public event Action OnPlayerWon;
+        public event Action OnVictoryTriggered;
         
         [SerializeField] private PlayerMovement playerMovement;
         [SerializeField] private PlayerRun playerRun;
@@ -105,7 +106,15 @@ namespace Player
         [Rpc(SendTo.Owner)]
         public void WinRpc()
         {
+            SetSpectatorMode(true);
             OnPlayerWon?.Invoke();
+        }
+        
+        public void TriggerVictoryLocally()
+        {
+            SetSpectatorMode(false);
+            SetInputLocked(true);
+            OnVictoryTriggered?.Invoke();
         }
         
         

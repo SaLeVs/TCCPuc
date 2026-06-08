@@ -49,7 +49,6 @@ namespace Player
 
         private void InputReader_OnCameraLookEvent(Vector2 cameraLookInput) => _lookInput = cameraLookInput;
         
-        
 
         public void SetSpectatorMode(bool isSpectating)
         {

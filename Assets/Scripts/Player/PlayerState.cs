@@ -15,6 +15,7 @@ namespace Player
         public event Action<int> OnHoldItem;
         public event Action<bool> OnPlayerDead;
         public event Action<bool> OnPlayerLocked;
+        public event Action OnPlayerWon;
         
         [SerializeField] private PlayerMovement playerMovement;
         [SerializeField] private PlayerRun playerRun;
@@ -85,6 +86,27 @@ namespace Player
         }
         
         public void SetSpectatorMode(bool isSpectating) => playerCamera.SetSpectatorMode(isSpectating);
+        
+        
+        [Rpc(SendTo.ClientsAndHost)]
+        public void HidePlayerRpc()
+        {
+            foreach (var playerRenderer in GetComponentsInChildren<Renderer>())
+            {
+                playerRenderer.enabled = false;
+            }
+
+            foreach (var playerColliders in GetComponentsInChildren<Collider>())
+            {
+                playerColliders.enabled = false;
+            }
+        }
+        
+        [Rpc(SendTo.Owner)]
+        public void WinRpc()
+        {
+            OnPlayerWon?.Invoke();
+        }
         
         
         public override void OnNetworkDespawn()

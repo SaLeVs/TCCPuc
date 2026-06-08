@@ -29,6 +29,7 @@ namespace Player
             
             gameplayCanvas.SetActive(true);
             playerState.OnPlayerDead += PlayerState_OnDeathChanged;
+            playerState.OnPlayerWon += PlayerState_OnPlayerWon;
         }
 
         
@@ -48,6 +49,20 @@ namespace Player
                 SetTarget(0);
             }
             
+        }
+        
+        private void PlayerState_OnPlayerWon()
+        {
+            gameplayCanvas.SetActive(false);
+            spectatorCanvas.SetActive(true);
+            playerState.SetSpectatorMode(true);
+
+            RefreshAliveList();
+            
+            if (_alivePlayerIds.Count > 0)
+            {
+                SetTarget(0);
+            }
         }
 
         private void RefreshAliveList()
@@ -136,6 +151,7 @@ namespace Player
             }
 
             playerState.OnPlayerDead -= PlayerState_OnDeathChanged;
+            playerState.OnPlayerWon -= PlayerState_OnPlayerWon;
         }
     }
 }

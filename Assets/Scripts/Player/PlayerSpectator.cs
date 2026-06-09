@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using Unity.Cinemachine;
 using Unity.Netcode;
@@ -13,12 +14,14 @@ namespace Player
         [SerializeField] private PlayerState playerState;
         [SerializeField] private GameObject gameplayCanvas;
         [SerializeField] private GameObject spectatorCanvas;
+        [SerializeField] private float timeToEnterInSpectator;
 
         private readonly List<ulong> _alivePlayerIds = new();
         private int _currentIndex;
         private CinemachineCamera _currentTargetVCam;
 
         private const int SPECTATOR_PRIORITY = 20;
+        private Coroutine _spectatorCoroutine;
 
         
         public override void OnNetworkSpawn()
@@ -29,13 +32,26 @@ namespace Player
             
             gameplayCanvas.SetActive(true);
             playerState.OnPlayerDead += PlayerState_OnDeathChanged;
+            playerState.OnPlayerWon += PlayerState_OnPlayerWon;
         }
 
         
         private void PlayerState_OnDeathChanged(bool isDead)
         {
             if (!isDead) return;
-
+            
+            if (_spectatorCoroutine != null)
+            {
+                StopCoroutine(_spectatorCoroutine);
+            }
+            
+            _spectatorCoroutine = StartCoroutine(StartSpectatorMode());
+        }
+        
+        private IEnumerator StartSpectatorMode()
+        {
+            yield return new WaitForSeconds(timeToEnterInSpectator);
+            
             gameplayCanvas.SetActive(false);
             spectatorCanvas.SetActive(true);
 
@@ -47,7 +63,23 @@ namespace Player
             {
                 SetTarget(0);
             }
+
+            _spectatorCoroutine = null;
+        }
+        
+        
+        private void PlayerState_OnPlayerWon()
+        {
+            gameplayCanvas.SetActive(false);
+            spectatorCanvas.SetActive(true);
+            playerState.SetSpectatorMode(true);
+
+            RefreshAliveList();
             
+            if (_alivePlayerIds.Count > 0)
+            {
+                SetTarget(0);
+            }
         }
 
         private void RefreshAliveList()
@@ -136,6 +168,7 @@ namespace Player
             }
 
             playerState.OnPlayerDead -= PlayerState_OnDeathChanged;
+            playerState.OnPlayerWon -= PlayerState_OnPlayerWon;
         }
     }
 }

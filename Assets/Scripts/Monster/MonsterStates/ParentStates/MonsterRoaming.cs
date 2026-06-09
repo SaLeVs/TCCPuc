@@ -43,6 +43,8 @@ namespace Monster.MonsterStates.ParentStates
 
         protected override void OnUpdate(float deltaTime)
         {
+            if (!_monsterBrain.MonsterSabotage.CanSabotage) return;
+            
             _timer += deltaTime;
 
             if (ActiveChild == wanderState && _timer >= _currentCooldown)

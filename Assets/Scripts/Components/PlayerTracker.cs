@@ -12,6 +12,7 @@ namespace Systems
 
         public event Action<ulong> OnPlayerConnected;
         public event Action<ulong> OnPlayerDisconnected;
+        public event Action<int> OnPlayerCountChanged;
         public event Action OnAllPlayersConnected;
         
         public bool AreAllPlayersConnected => expectedPlayerCount > 0 && _connectedPlayers.Count >= expectedPlayerCount;
@@ -21,6 +22,7 @@ namespace Systems
         private readonly List<ulong> _connectedPlayers = new List<ulong>();
         private int expectedPlayerCount;
 
+        
         private void Awake()
         {
             if (Instance != null)
@@ -28,6 +30,7 @@ namespace Systems
                 Destroy(gameObject);
                 return;
             }
+            
             Instance = this;
             DontDestroyOnLoad(gameObject);
         }
@@ -35,8 +38,6 @@ namespace Systems
         
         public override void OnNetworkSpawn()
         {
-            if (!IsServer) return;
-
             NetworkManager.Singleton.SceneManager.OnLoadEventCompleted += OnLoadEventCompleted;
             NetworkManager.Singleton.OnClientConnectedCallback += OnClientConnected;
             NetworkManager.Singleton.OnClientDisconnectCallback += OnClientDisconnected;
@@ -67,6 +68,7 @@ namespace Systems
         {
             _connectedPlayers.Remove(clientId);
             OnPlayerDisconnected?.Invoke(clientId);
+            OnPlayerCountChanged?.Invoke(_connectedPlayers.Count);
             Debug.Log($"PlayerTracker: Player disconnected: {clientId} — total: {_connectedPlayers.Count}");
         }
 
@@ -76,6 +78,7 @@ namespace Systems
 
             _connectedPlayers.Add(clientId);
             OnPlayerConnected?.Invoke(clientId);
+            OnPlayerCountChanged?.Invoke(_connectedPlayers.Count);
             Debug.Log($"PlayerTracker: New player connected: {clientId} — total: {_connectedPlayers.Count}");
 
             if (AreAllPlayersConnected)

@@ -104,7 +104,13 @@ namespace Player
         
         private void PlayerState_OnPlayerLocked(bool locked)
         {
-            // Set player animation for locked
+            if (!locked) return;
+            
+            _targetMoveX = 0f;
+            _targetMoveY = 0f;
+            animator.SetBool(_isRunningHash, false);
+            animator.SetBool(_isCrouchingHash, false);
+            animator.SetBool(_heldItemHash, false);
         }
         
         

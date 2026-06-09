@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Interfaces;
@@ -7,11 +8,14 @@ using ScriptableObjects;
 using Systems;
 using Unity.Netcode;
 using UnityEngine;
+using Random = UnityEngine.Random;
 
 namespace Missions
 {
     public class MissionManager : NetworkBehaviour
     {
+        public event Action OnMainMissionCompleted;
+        
         [SerializeField] private ContractsSO currentContract;
         [SerializeField] private int individualMissionsPerPlayer;
         
@@ -335,7 +339,36 @@ namespace Missions
             }
         }
         
+        public void CompleteMainMission()
+        {
+            if (!IsServer) return;
 
+            OnMainMissionCompleted?.Invoke();
+            Debug.Log("MissionManager: Main mission completed!");
+            CompleteMainMissionRpc();
+        }
+        
+        [Rpc(SendTo.ClientsAndHost)]
+        private void CompleteMainMissionRpc()
+        {
+            NetworkObject playerNetObj = NetworkManager.Singleton.SpawnManager.GetPlayerNetworkObject(NetworkManager.Singleton.LocalClientId);
+
+            if (playerNetObj.TryGetComponent(out PlayerMissionHolder missionHolder))
+            {
+                missionHolder.CompleteMainMission();
+            }
+        }
+        
+        public void SendMessageToAllPlayers(string message)
+        {
+            foreach (ulong clientId in NetworkManager.Singleton.ConnectedClientsIds)
+            {
+                if (!NetworkManager.Singleton.ConnectedClients.TryGetValue(clientId, out NetworkClient client)) continue;
+                if (client.PlayerObject == null) continue;
+                if (!client.PlayerObject.TryGetComponent(out PlayerMissionHolder holder)) continue;
+                holder.SendMessageRpc(message);
+            }
+        }
         
         public override void OnNetworkDespawn()
         {

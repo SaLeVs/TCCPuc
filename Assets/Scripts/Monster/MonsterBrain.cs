@@ -24,13 +24,12 @@ namespace Monster
         [SerializeField] private MonsterAttack monsterAttack;
         [SerializeField] private MonsterAnimator monsterAnimator;
         
+        
         public MonsterWander MonsterWander => monsterWander;
         public MonsterSabotage MonsterSabotage => monsterSabotage;
         public MonsterChase MonsterChase => monsterChase;
         public MonsterAttack MonsterAttack => monsterAttack;
         public MonsterAnimator MonsterAnimator => monsterAnimator;
-        
-        
         public readonly List<Transform> _playersInVision = new();
         
         private StateMachine _stateMachine;
@@ -48,10 +47,10 @@ namespace Monster
         
         public override void OnNetworkSpawn()
         {
-            MonsterSabotage.Initialize();
             MonsterWander.Initialize(navMeshAgent);
             MonsterChase.Initialize(_playersInVision, navMeshAgent, this);
             MonsterAnimator.Initialize(this);
+            MonsterSabotage.Initialize();
             
             if (!IsServer) return;
             
@@ -97,6 +96,7 @@ namespace Monster
         {
             MonsterChase.Uninitialize(_playersInVision, navMeshAgent, this);
             MonsterAnimator.Uninitialize(this);
+            MonsterSabotage.Uninitialize();
             
             if (!IsServer) return;
             

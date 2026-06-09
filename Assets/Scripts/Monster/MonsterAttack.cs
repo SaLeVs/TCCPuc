@@ -57,6 +57,12 @@ namespace Monster
             hitbox.DisableHitbox();
         }
         
+        public void CancelAttack()
+        {
+            _isAttacking = false;
+            hitbox.DisableHitbox();
+        }
+        
     } 
 }
 

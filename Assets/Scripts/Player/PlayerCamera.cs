@@ -13,6 +13,7 @@ namespace Player
         [SerializeField] private Transform cameraRoot;
         [SerializeField] private InputReader inputReader;
         [SerializeField] private Transform orientation;
+        [SerializeField] private Renderer[] occlusionRenderers;
         
         [SerializeField] private int ownerCameraPriority = 10;
         [SerializeField] private float upperClamp = -40f;
@@ -42,12 +43,11 @@ namespace Player
                 playerState.OnPlayerLocked += PlayerState_OnPlayerLocked;
                 
                 LockMouse();
-            }
-            
+                HideOcclusionRenderers();
+            } 
         }
 
         private void InputReader_OnCameraLookEvent(Vector2 cameraLookInput) => _lookInput = cameraLookInput;
-        
         
 
         public void SetSpectatorMode(bool isSpectating)
@@ -104,6 +104,14 @@ namespace Player
         {
             Cursor.lockState = CursorLockMode.None;
             Cursor.visible = true;
+        }
+        
+        private void HideOcclusionRenderers()
+        {
+            foreach (Renderer currentRenderer in occlusionRenderers)
+            {
+                currentRenderer.enabled = false;
+            }
         }
         
         private void LateUpdate()

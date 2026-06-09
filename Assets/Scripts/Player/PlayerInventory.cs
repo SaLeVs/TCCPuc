@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using Components;
 using Inputs;
 using ScriptableObjects;
@@ -286,6 +287,26 @@ namespace Player
             
             return _slots[slotIndex];
         }
+        
+        public List<int> CollectAndClearAllItems()
+        {
+            if (!IsServer) return new List<int>();
+
+            List<int> collected = new List<int>();
+
+            for (int i = 0; i < _slots.Count; i++)
+            {
+                if (_slots[i] == -1) continue;
+
+                collected.Add(_slots[i]);
+                _slots[i] = -1;
+            }
+
+            DestroyItemRpc();
+            DeselectSlotClientRpc();
+            return collected;
+        }
+        
 
         public override void OnNetworkDespawn()
         {

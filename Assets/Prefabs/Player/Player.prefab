@@ -939,7 +939,7 @@ MonoBehaviour:
   playerState: {fileID: 315419889962386199}
   gameplayCanvas: {fileID: 3205022582486267336}
   spectatorCanvas: {fileID: 8685048979318010635}
-  timeToEnterInSpectator: 15
+  timeToEnterInSpectator: 4
 --- !u!114 &1730382070466504818
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1148,6 +1148,37 @@ MonoBehaviour:
   m_FillOrigin: 0
   m_UseSpriteMesh: 0
   m_PixelsPerUnitMultiplier: 1
+--- !u!1 &4179081283737559490
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 3036463995372508531}
+  m_Layer: 11
+  m_Name: DeadParent
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &3036463995372508531
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4179081283737559490}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0.12158556, y: -0.000000014901165, z: -0.0000000093132275, w: 0.992581}
+  m_LocalPosition: {x: -0.00121, y: 0.0018, z: 0.00286}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 8214403075322047269}
+  m_LocalEulerAnglesHint: {x: -13.967, y: 0, z: 0}
 --- !u!1 &4384026803267088795
 GameObject:
   m_ObjectHideFlags: 0
@@ -2134,12 +2165,12 @@ MonoBehaviour:
   playerState: {fileID: 315419889962386199}
   cinemachineCamera: {fileID: 6800444975667494322}
   cameraRoot: {fileID: 5036788259409135564}
-  deathCameraBone: {fileID: 8214403075322047269}
+  deathCameraBone: {fileID: 3036463995372508531}
   cameraMoveSpeed: 10
   standingOffset: {x: 0, y: 1, z: 0.35}
   crouchOffset: {x: 0, y: 0.7, z: 0.45}
   runOffset: {x: 0, y: 0.9, z: 0.45}
-  deadOffset: {x: -0.3, y: 0.5, z: 0.3}
+  deadOffset: {x: 0, y: 0, z: 0}
 --- !u!114 &6388113009287079804
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -3293,7 +3324,7 @@ PrefabInstance:
       objectReference: {fileID: 9100000, guid: fa31e0d372d39fd4bbbef3ce97856df5, type: 2}
     - target: {fileID: 5866666021909216657, guid: 37c386933ed65d64bb4a2438c8acbfbf, type: 3}
       propertyPath: m_ApplyRootMotion
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 6386480451222621022, guid: 37c386933ed65d64bb4a2438c8acbfbf, type: 3}
       propertyPath: m_Layer
@@ -3374,6 +3405,9 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects:
+    - targetCorrespondingSourceObject: {fileID: 7208261743932278219, guid: 37c386933ed65d64bb4a2438c8acbfbf, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 3036463995372508531}
     - targetCorrespondingSourceObject: {fileID: 2434337355144988064, guid: 37c386933ed65d64bb4a2438c8acbfbf, type: 3}
       insertIndex: -1
       addedObject: {fileID: 857414110485153744}

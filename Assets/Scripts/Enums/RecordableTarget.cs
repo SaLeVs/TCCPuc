@@ -8,6 +8,8 @@
         Monster,
         MainStage,
         MissionObject,
+        ScenaryObject,
+        Lights,
         None
     }
 }

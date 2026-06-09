@@ -18,6 +18,7 @@ namespace Objects
             if (!_escapedPlayers.Add(netObj.OwnerClientId)) return;
 
             playerState.HidePlayerRpc();
+            playerState.HasEscapedServerSide = true;
 
             if (AllAlivePlayersEscaped())
             {

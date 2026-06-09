@@ -17,6 +17,7 @@ namespace Player
         public event Action<bool> OnPlayerLocked;
         public event Action OnPlayerWon;
         public event Action OnVictoryTriggered;
+        public event Action OnGameOverTriggered;
         
         [SerializeField] private PlayerMovement playerMovement;
         [SerializeField] private PlayerRun playerRun;
@@ -28,6 +29,7 @@ namespace Player
 
         public bool IsDead => playerDead.IsDead;
         public CinemachineCamera PlayerCinemachineCamera => playerCamera.playerCinemachineCamera;
+        public bool HasEscapedServerSide { get; set; }
         
         private bool _isInputLocked;
         
@@ -76,7 +78,12 @@ namespace Player
         private void PlayerDead_OnDeathEvent(bool isDead)
         {
             OnPlayerDead?.Invoke(isDead);
+            if (isDead)
+            {
+                NotifyDeathServerRpc();
+            }
         }
+
 
         public void SetInputLocked(bool locked)
         {
@@ -117,6 +124,43 @@ namespace Player
             OnVictoryTriggered?.Invoke();
         }
         
+        [Rpc(SendTo.Server)]
+        private void NotifyDeathServerRpc()
+        {
+            if (AllPlayersDead())
+            {
+                BroadcastGameOverRpc();
+            }
+        }
+        
+        private bool AllPlayersDead()
+        {
+            foreach (ulong clientId in NetworkManager.Singleton.ConnectedClientsIds)
+            {
+                NetworkObject playerObj = NetworkManager.Singleton.SpawnManager.GetPlayerNetworkObject(clientId);
+                if (playerObj == null) continue;
+                if (!playerObj.TryGetComponent(out PlayerState ps)) continue;
+                if (ps.IsDead || ps.HasEscapedServerSide) continue;
+                return false;
+            }
+            return true;
+        }
+
+        [Rpc(SendTo.ClientsAndHost)]
+        private void BroadcastGameOverRpc()
+        {
+            NetworkObject localPlayerObj = NetworkManager.Singleton.LocalClient?.PlayerObject;
+            if (localPlayerObj != null && localPlayerObj.TryGetComponent(out PlayerState ps))
+            {
+                ps.TriggerGameOverLocally();
+            }
+        }
+
+        public void TriggerGameOverLocally()
+        {
+            SetInputLocked(true);
+            OnGameOverTriggered?.Invoke();
+        }
         
         public override void OnNetworkDespawn()
         {

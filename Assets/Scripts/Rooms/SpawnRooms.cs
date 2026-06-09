@@ -37,7 +37,7 @@ namespace Rooms
         {
             if (!BuildRoomList()) return;
 
-            ShuffleRooms();
+            // ShuffleRooms();
             SpawnAllRooms();
             missionManager.OnRoomsSpawned();
             RebuildNavMeshRpc();

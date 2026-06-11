@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using System;
+using UnityEngine;
 
 namespace Monster.MonsterSabotages
 {
@@ -8,6 +9,11 @@ namespace Monster.MonsterSabotages
         
         public SabotageType SabotageType => SabotageType.Light;
         public bool IsSabotaged { get; private set; }
+
+        private void Awake()
+        {
+            lightComponent = GetComponent<Light>();
+        }
 
         public void Sabotage()
         {

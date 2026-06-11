@@ -618,6 +618,7 @@ GameObject:
   - component: {fileID: 6099973377180731374}
   - component: {fileID: 2726476768854348716}
   - component: {fileID: 1191428513505158627}
+  - component: {fileID: 7325049830703420475}
   m_Layer: 0
   m_Name: Point Light (4)
   m_TagString: Untagged
@@ -734,6 +735,19 @@ MonoBehaviour:
   m_ShadowLayerMask: 1
   m_RenderingLayers: 1
   m_ShadowRenderingLayers: 1
+--- !u!114 &7325049830703420475
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3776251921271551038}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0137e7f0f3ac410086a12e2a109055b5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Monster::Monster.MonsterSabotages.LightSabotage
+  lightComponent: {fileID: 2726476768854348716}
 --- !u!1 &4034205391111054238
 GameObject:
   m_ObjectHideFlags: 0
@@ -745,6 +759,7 @@ GameObject:
   - component: {fileID: 7304216024613355784}
   - component: {fileID: 3557978760711524469}
   - component: {fileID: 9043409032093284832}
+  - component: {fileID: 7014042578122312100}
   m_Layer: 0
   m_Name: Point Light (2)
   m_TagString: Untagged
@@ -861,6 +876,19 @@ MonoBehaviour:
   m_ShadowLayerMask: 1
   m_RenderingLayers: 1
   m_ShadowRenderingLayers: 1
+--- !u!114 &7014042578122312100
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4034205391111054238}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0137e7f0f3ac410086a12e2a109055b5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Monster::Monster.MonsterSabotages.LightSabotage
+  lightComponent: {fileID: 3557978760711524469}
 --- !u!1 &4336321361088644526
 GameObject:
   m_ObjectHideFlags: 0
@@ -1031,6 +1059,7 @@ GameObject:
   - component: {fileID: 6022879929438775014}
   - component: {fileID: 1627823664560218196}
   - component: {fileID: 7851935609078777531}
+  - component: {fileID: 215446617743312015}
   m_Layer: 0
   m_Name: Point Light (5)
   m_TagString: Untagged
@@ -1147,6 +1176,19 @@ MonoBehaviour:
   m_ShadowLayerMask: 1
   m_RenderingLayers: 1
   m_ShadowRenderingLayers: 1
+--- !u!114 &215446617743312015
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6645822548681654015}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0137e7f0f3ac410086a12e2a109055b5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Monster::Monster.MonsterSabotages.LightSabotage
+  lightComponent: {fileID: 1627823664560218196}
 --- !u!1 &6934095081243206603
 GameObject:
   m_ObjectHideFlags: 0
@@ -1209,7 +1251,6 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1318570603925765000}
-  - component: {fileID: -1917918890388148676}
   m_Layer: 0
   m_Name: MissionRoomSound
   m_TagString: Untagged
@@ -1283,31 +1324,6 @@ Transform:
   - {fileID: 3916500735371314776}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &-1917918890388148676
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 7006415423784170987}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Unity.Netcode.Runtime::Unity.Netcode.NetworkObject
-  GlobalObjectIdHash: 0
-  InScenePlacedSourceGlobalObjectIdHash: 0
-  DeferredDespawnTick: 0
-  Ownership: 1
-  AlwaysReplicateAsRoot: 0
-  SynchronizeTransform: 1
-  ActiveSceneSynchronization: 0
-  SceneMigrationSynchronization: 1
-  SpawnWithObservers: 1
-  DontDestroyWithOwner: 0
-  AutoObjectParentSync: 1
-  SyncOwnerTransformWhenParented: 1
-  AllowOwnerToParent: 0
 --- !u!1 &7152691702726992155
 GameObject:
   m_ObjectHideFlags: 0
@@ -1413,6 +1429,7 @@ GameObject:
   - component: {fileID: 6835864456587895435}
   - component: {fileID: 6682610477013721552}
   - component: {fileID: 1597944787185304997}
+  - component: {fileID: 4308565193391335558}
   m_Layer: 0
   m_Name: Point Light (3)
   m_TagString: Untagged
@@ -1529,6 +1546,19 @@ MonoBehaviour:
   m_ShadowLayerMask: 1
   m_RenderingLayers: 1
   m_ShadowRenderingLayers: 1
+--- !u!114 &4308565193391335558
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7308302862990979050}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0137e7f0f3ac410086a12e2a109055b5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Monster::Monster.MonsterSabotages.LightSabotage
+  lightComponent: {fileID: 6682610477013721552}
 --- !u!1 &7731534219733669475
 GameObject:
   m_ObjectHideFlags: 0

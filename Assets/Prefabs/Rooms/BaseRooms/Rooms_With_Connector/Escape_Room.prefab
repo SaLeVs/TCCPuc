@@ -11,6 +11,7 @@ GameObject:
   - component: {fileID: 2746967281417611876}
   - component: {fileID: 4020458768622685097}
   - component: {fileID: 4475796356964004863}
+  - component: {fileID: 8406184123009696439}
   m_Layer: 0
   m_Name: Point Light (2)
   m_TagString: Untagged
@@ -127,6 +128,19 @@ MonoBehaviour:
   m_ShadowLayerMask: 1
   m_RenderingLayers: 1
   m_ShadowRenderingLayers: 1
+--- !u!114 &8406184123009696439
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 31989606386662887}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0137e7f0f3ac410086a12e2a109055b5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Monster::Monster.MonsterSabotages.LightSabotage
+  lightComponent: {fileID: 1073738391566525226}
 --- !u!1 &51023909274079804
 GameObject:
   m_ObjectHideFlags: 0
@@ -236,6 +250,7 @@ GameObject:
   - component: {fileID: 7865442047509519460}
   - component: {fileID: 2800444725348652068}
   - component: {fileID: 4268561233598470188}
+  - component: {fileID: 1862878822277246941}
   m_Layer: 0
   m_Name: Spot Light (2)
   m_TagString: Untagged
@@ -275,7 +290,7 @@ Light:
   m_InnerSpotAngle: 58.707367
   m_CookieSize2D: {x: 0.5, y: 0.5}
   m_Shadows:
-    m_Type: 2
+    m_Type: 1
     m_Resolution: -1
     m_CustomResolution: -1
     m_Strength: 1
@@ -336,7 +351,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Unity.RenderPipelines.Universal.Runtime::UnityEngine.Rendering.Universal.UniversalAdditionalLightData
   m_UsePipelineSettings: 1
-  m_AdditionalLightsShadowResolutionTier: 2
+  m_AdditionalLightsShadowResolutionTier: 0
   m_CustomShadowLayers: 0
   m_LightCookieSize: {x: 1, y: 1}
   m_LightCookieOffset: {x: 0, y: 0}
@@ -352,6 +367,19 @@ MonoBehaviour:
   m_ShadowLayerMask: 1
   m_RenderingLayers: 1
   m_ShadowRenderingLayers: 1
+--- !u!114 &1862878822277246941
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 487903379097442468}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0137e7f0f3ac410086a12e2a109055b5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Monster::Monster.MonsterSabotages.LightSabotage
+  lightComponent: {fileID: 1073738391566525226}
 --- !u!1 &527929361145884052
 GameObject:
   m_ObjectHideFlags: 0
@@ -961,6 +989,7 @@ GameObject:
   - component: {fileID: 7636130022174934353}
   - component: {fileID: 1983575203733881236}
   - component: {fileID: 4997994728633425934}
+  - component: {fileID: 4118904361648605023}
   m_Layer: 0
   m_Name: Spot Light (1)
   m_TagString: Untagged
@@ -1077,6 +1106,19 @@ MonoBehaviour:
   m_ShadowLayerMask: 1
   m_RenderingLayers: 1
   m_ShadowRenderingLayers: 1
+--- !u!114 &4118904361648605023
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3108829610665986725}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0137e7f0f3ac410086a12e2a109055b5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Monster::Monster.MonsterSabotages.LightSabotage
+  lightComponent: {fileID: 1073738391566525226}
 --- !u!1 &3155519721255074104
 GameObject:
   m_ObjectHideFlags: 0
@@ -1194,6 +1236,7 @@ GameObject:
   - component: {fileID: 2309376861062108052}
   - component: {fileID: 1073738391566525226}
   - component: {fileID: 5912500470462691730}
+  - component: {fileID: 5654635470069243439}
   m_Layer: 0
   m_Name: Point Light
   m_TagString: Untagged
@@ -1233,7 +1276,7 @@ Light:
   m_InnerSpotAngle: 21.80208
   m_CookieSize2D: {x: 0.5, y: 0.5}
   m_Shadows:
-    m_Type: 2
+    m_Type: 1
     m_Resolution: -1
     m_CustomResolution: -1
     m_Strength: 1
@@ -1294,7 +1337,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Unity.RenderPipelines.Universal.Runtime::UnityEngine.Rendering.Universal.UniversalAdditionalLightData
   m_UsePipelineSettings: 1
-  m_AdditionalLightsShadowResolutionTier: 2
+  m_AdditionalLightsShadowResolutionTier: 0
   m_CustomShadowLayers: 0
   m_LightCookieSize: {x: 1, y: 1}
   m_LightCookieOffset: {x: 0, y: 0}
@@ -1310,6 +1353,19 @@ MonoBehaviour:
   m_ShadowLayerMask: 1
   m_RenderingLayers: 1
   m_ShadowRenderingLayers: 1
+--- !u!114 &5654635470069243439
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5420286380555312037}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0137e7f0f3ac410086a12e2a109055b5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Monster::Monster.MonsterSabotages.LightSabotage
+  lightComponent: {fileID: 1073738391566525226}
 --- !u!1 &5424490930982525020
 GameObject:
   m_ObjectHideFlags: 0
@@ -9471,7 +9527,7 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 5913591991336735193, guid: e18c40fee9994284aa20e1f133a670dc, type: 3}
       propertyPath: GlobalObjectIdHash
-      value: 3618139108
+      value: 2493496859
       objectReference: {fileID: 0}
     - target: {fileID: 7488412834662529684, guid: e18c40fee9994284aa20e1f133a670dc, type: 3}
       propertyPath: m_Name
@@ -15784,7 +15840,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6580205095549562039, guid: f5aa658b2de88574fa4bc2bf172174c3, type: 3}
       propertyPath: GlobalObjectIdHash
-      value: 2379941666
+      value: 2669161194
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -20767,7 +20823,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7325841281373632768, guid: 3529278e88694164eac1e51bf818cb74, type: 3}
       propertyPath: GlobalObjectIdHash
-      value: 3741083655
+      value: 3360174059
       objectReference: {fileID: 0}
     - target: {fileID: 8146842110556645886, guid: 3529278e88694164eac1e51bf818cb74, type: 3}
       propertyPath: floppyDiskTotem
@@ -23700,7 +23756,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4643193282052188554, guid: 92699837405165044800b3273bc179e3, type: 3}
       propertyPath: GlobalObjectIdHash
-      value: 1572025692
+      value: 1476699795
       objectReference: {fileID: 0}
     - target: {fileID: 6799456495184478714, guid: 92699837405165044800b3273bc179e3, type: 3}
       propertyPath: m_Mesh

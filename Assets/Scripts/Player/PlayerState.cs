@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using Interfaces;
 using Unity.Cinemachine;
 using Unity.Netcode;
@@ -47,19 +48,38 @@ namespace Player
                 
                 playerDead.OnDeathEvent += PlayerDead_OnDeathEvent;
             }
-        }
-        
-        private void Start()
-        {
-            Debug.Log($"POS: START - {transform.position}");
-        }
-        
-        private void FixedUpdate()
-        {
-            Debug.Log($"POS: FIXED UPDATE - {transform.position}");
-        }
-        
 
+            if (TryGetComponent(out NetworkObject networkObject))
+            {
+                Debug.Log(
+                    $"Owner={networkObject.OwnerClientId} " +
+                    $"Spawnado em {transform.position}"
+                );
+
+                StartCoroutine(DebugPosition());
+            }
+        }
+        
+        private IEnumerator DebugPosition()
+        {
+            yield return null;
+                
+            if (TryGetComponent(out NetworkObject networkObject))
+            {
+                Debug.Log(
+                    $"[CLIENT {networkObject.OwnerClientId}] " +
+                    $"Frame seguinte: {transform.position}"
+                );
+            }
+            
+            yield return new WaitForSeconds(1f);
+
+            Debug.Log(
+                $"[CLIENT {networkObject.OwnerClientId}] " +
+                $"Frame seguinte: {transform.position}"
+            );
+        }
+        
         private void PlayerMovement_OnPlayerMovement(Vector2 playerVelocity)
         {
             OnPlayerMovement?.Invoke(playerVelocity);

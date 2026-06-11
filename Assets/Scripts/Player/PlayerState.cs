@@ -48,7 +48,17 @@ namespace Player
                 playerDead.OnDeathEvent += PlayerDead_OnDeathEvent;
             }
         }
-
+        
+        private void Start()
+        {
+            Debug.Log($"POS: START - {transform.position}");
+        }
+        
+        private void FixedUpdate()
+        {
+            Debug.Log($"POS: FIXED UPDATE - {transform.position}");
+        }
+        
 
         private void PlayerMovement_OnPlayerMovement(Vector2 playerVelocity)
         {

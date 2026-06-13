@@ -37,6 +37,8 @@ namespace Player
         
         public override void OnNetworkSpawn()
         {
+            Physics.SyncTransforms();
+            
             if (IsOwner)
             {
                 playerMovement.OnPlayerMovement += PlayerMovement_OnPlayerMovement;

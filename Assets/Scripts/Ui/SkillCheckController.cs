@@ -8,7 +8,10 @@ namespace UI
         [SerializeField] private CircularPointer pointer;
         [SerializeField] private SkillCheckGenerator generator;
         [SerializeField] private float successDistance = 15f;
+        [SerializeField] private float requiredCorrectChecks;
 
+        private float currentCorrectChecks;
+        
         private void Start()
         {
             generator.GenerateNewSlot();
@@ -24,12 +27,6 @@ namespace UI
 
         public void Check()
         {
-            if (pointer == null || generator == null || generator.CurrentSlot == null)
-            {
-                Debug.LogWarning("Pointer, generator, or current slot is missing.");
-                return;
-            }
-
             Vector2 pointerPos = pointer.PointerRect.anchoredPosition;
             Vector2 slotPos = generator.CurrentSlot.Rect.anchoredPosition;
 
@@ -39,7 +36,13 @@ namespace UI
             if (success)
             {
                 Debug.Log($"Correct! in slot {generator.CurrentSlot.gameObject.name}");
+                currentCorrectChecks++;
                 generator.GenerateNewSlot();
+
+                if (currentCorrectChecks >= requiredCorrectChecks)
+                {
+                    Debug.Log($"Finish puzzle");
+                }
             }
             else
             {

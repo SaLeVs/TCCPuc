@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using Enums;
 using UnityEngine;
 
 namespace UI
@@ -9,25 +10,33 @@ namespace UI
 
         public SkillCheckSlot CurrentSlot { get; private set; }
 
+        private void Awake()
+        {
+            foreach (SkillCheckSlot slot in slots)
+            {
+                slot.SetState(SkillCheckSlotState.Available);
+            }
+        }
+
         public void GenerateNewSlot()
         {
-            if (slots == null || slots.Count == 0)
+            if (CurrentSlot != null)
             {
-                Debug.LogWarning("No slots assigned in SkillCheckGenerator.");
+                CurrentSlot.SetState(SkillCheckSlotState.Used);
+            }
+
+            List<SkillCheckSlot> availableSlots = slots.FindAll(slot => slot.IsAvailable);
+
+            if (availableSlots.Count == 0)
+            {
                 CurrentSlot = null;
+                Debug.Log("No slots remaining.");
                 return;
             }
 
-            foreach (SkillCheckSlot slot in slots)
-            {
-                if (slot != null)
-                    slot.SetActive(false);
-            }
+            CurrentSlot = availableSlots[Random.Range(0, availableSlots.Count)];
 
-            CurrentSlot = slots[Random.Range(0, slots.Count)];
-
-            if (CurrentSlot != null)
-                CurrentSlot.SetActive(true);
+            CurrentSlot.SetState(SkillCheckSlotState.Active);
         }
     }
 

@@ -1,3 +1,4 @@
+using Enums;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -6,24 +7,37 @@ namespace UI
     public class SkillCheckSlot : MonoBehaviour
     {
         [SerializeField] private Image image;
+        [SerializeField] private RectTransform rectTransform; 
+        [SerializeField] private Color availableColor = Color.red;
         [SerializeField] private Color activeColor = Color.green;
-        [SerializeField] private Color inactiveColor = Color.red;
-
-        private RectTransform rectTransform;
+        [SerializeField] private Color usedColor = Color.gray;
 
         public RectTransform Rect => rectTransform;
-        public bool IsActive { get; private set; }
+        public SkillCheckSlotState State { get; private set; }
 
-        private void Awake()
+        
+        
+        public void SetState(SkillCheckSlotState state)
         {
-            rectTransform = transform as RectTransform;
+            State = state;
+
+            switch (state)
+            {
+                case SkillCheckSlotState.Available:
+                    image.color = availableColor;
+                    break;
+
+                case SkillCheckSlotState.Active:
+                    image.color = activeColor;
+                    break;
+
+                case SkillCheckSlotState.Used:
+                    image.color = usedColor;
+                    break;
+            }
         }
 
-        public void SetActive(bool active)
-        {
-            IsActive = active;
-            image.color = active ? activeColor : inactiveColor;
-        }
+        public bool IsAvailable => State == SkillCheckSlotState.Available;
         
     }
 }

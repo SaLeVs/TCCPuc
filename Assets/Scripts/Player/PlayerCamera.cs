@@ -8,6 +8,8 @@ namespace Player
 {
     public class PlayerCamera : NetworkBehaviour
     {
+        public event Action<bool> OnPauseToggled;
+        
         [SerializeField] private PlayerState playerState;
         [SerializeField] private CinemachineCamera cinemachineCamera;
         [SerializeField] private Transform cameraRoot;
@@ -67,6 +69,8 @@ namespace Player
             {
                 LockMouse();
             }
+            
+            OnPauseToggled?.Invoke(_isPaused);
         }
         
         private void PlayerState_OnPlayerDead(bool isDead) => _isDead = isDead;

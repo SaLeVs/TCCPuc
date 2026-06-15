@@ -8,6 +8,7 @@ namespace Monster
     {
         public event Action OnAttackStartedAnimation;
         public event Action OnAttackEndedAnimation;
+        public static Action<Vector3> OnMonsterAttackSound;
         
         [SerializeField] private float distanceToAttack;
         [SerializeField] private float damageAmountPerAttack;
@@ -33,6 +34,7 @@ namespace Monster
             _timer = 0f;
             _isAttacking = true;
             
+            OnMonsterAttackSound?.Invoke(transform.position);
             OnAttackStartedAnimation?.Invoke();
             hitbox.ResetHits();
             hitbox.EnableHitbox();

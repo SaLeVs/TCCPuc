@@ -9,6 +9,7 @@ namespace Components
     {
         public event Action<Health> OnDie;
         public event Action<float> OnHealthChanged;
+        public static Action<Vector3> OnDamageSound;
         
         [field: SerializeField] public float MaxHealth {get; private set;}
         
@@ -75,8 +76,15 @@ namespace Components
         {
             if (_isDead) return;
 
+            float previousHealth = currentHealth.Value;
+            
             float newHealth = currentHealth.Value - value;
             currentHealth.Value = Mathf.Clamp(newHealth, 0f, MaxHealth);
+            
+            if (value > 0f && currentHealth.Value < previousHealth)
+            {
+                DamageClientRpc();
+            }
             
             Debug.Log($"ModifyHealth on {gameObject.name}, new health: {currentHealth.Value}");
 
@@ -87,6 +95,11 @@ namespace Components
             }
         }
 
+        [Rpc(SendTo.ClientsAndHost)]
+        private void DamageClientRpc()
+        {
+            OnDamageSound?.Invoke(new Vector3(transform.position.x, transform.position.y + 0.6f, transform.position.z));
+        }
         
         public override void OnNetworkDespawn()
         {

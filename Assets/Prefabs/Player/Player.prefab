@@ -2449,7 +2449,7 @@ Transform:
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 1
+  m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 847016756603283365}
   - {fileID: 5036788259409135564}
@@ -2584,6 +2584,8 @@ MonoBehaviour:
   orientation: {fileID: 847016756603283365}
   moveSpeed: 3
   blendMovementTime: 8.9
+  minFootstepInterval: 0.25
+  maxFootstepInterval: 0.6
 --- !u!114 &4084110916807435523
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -4228,7 +4230,7 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 4872851973958549206, guid: 3bc24c2d5845869428982f72dbf96afd, type: 3}
       propertyPath: m_SizeDelta.y
-      value: 3
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 5714232411238863896, guid: 3bc24c2d5845869428982f72dbf96afd, type: 3}
       propertyPath: m_Name
@@ -4739,7 +4741,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7928477944169878567, guid: 69d3eb0e15e37624a88d642f46096351, type: 3}
       propertyPath: m_SizeDelta.y
-      value: 3
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 9024786202233854397, guid: 69d3eb0e15e37624a88d642f46096351, type: 3}
       propertyPath: visionSensor

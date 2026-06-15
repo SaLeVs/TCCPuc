@@ -13,6 +13,7 @@ namespace Monster
     {
         public event Action OnSabotageStartedAnimation;
         public event Action OnSabotageEndedAnimation;
+        public static Action<Vector3> OnSabotageSound;
         
         [SerializeField] private MonoBehaviour audienceProviderSource; 
         [SerializeField] private float sabotageUnlockThreshold = 0.5f;
@@ -101,6 +102,7 @@ namespace Monster
                 SabotageClientRpc(index);
             }
             
+            OnSabotageSound?.Invoke(transform.position);
             OnSabotageStartedAnimation?.Invoke();
         }
 

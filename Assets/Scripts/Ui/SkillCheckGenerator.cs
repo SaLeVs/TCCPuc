@@ -10,8 +10,12 @@ namespace UI
 
         public SkillCheckSlot CurrentSlot { get; private set; }
 
-        private void Awake()
+        private void Awake() => Reset();
+        
+        
+        public void Reset()
         {
+            CurrentSlot = null;
             foreach (SkillCheckSlot slot in slots)
             {
                 slot.SetState(SkillCheckSlotState.Available);
@@ -21,21 +25,18 @@ namespace UI
         public void GenerateNewSlot()
         {
             if (CurrentSlot != null)
-            {
                 CurrentSlot.SetState(SkillCheckSlotState.Used);
-            }
 
-            List<SkillCheckSlot> availableSlots = slots.FindAll(slot => slot.IsAvailable);
+            List<SkillCheckSlot> available = slots.FindAll(s => s.IsAvailable);
 
-            if (availableSlots.Count == 0)
+            if (available.Count == 0)
             {
                 CurrentSlot = null;
-                Debug.Log("No slots remaining.");
+                Debug.Log("SkillCheck: No slots available");
                 return;
             }
 
-            CurrentSlot = availableSlots[Random.Range(0, availableSlots.Count)];
-
+            CurrentSlot = available[Random.Range(0, available.Count)];
             CurrentSlot.SetState(SkillCheckSlotState.Active);
         }
     }

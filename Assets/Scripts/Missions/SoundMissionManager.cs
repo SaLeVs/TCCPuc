@@ -8,15 +8,17 @@ namespace Missions
 {
     public class SoundMissionManager : MissionsManagerBase, IMissionSpawnable, IInteractable
     {
-        public static event Action OnLocalPlayerInteracted;
+        public static event Action<SoundMissionManager> OnLocalPlayerInteracted;
 
+        [SerializeField] private List<SpawnConfig> soundObjectConfigs;
+        [SerializeField] private MissionCompleter  missionCompleter;
+        
         public override bool IsComplete { get; protected set; }
         public event Action OnSpawnCompleted;
 
-        [SerializeField] private List<SpawnConfig> soundObjectConfigs;
-
         private readonly List<NetworkObject> _spawnedObjects = new();
 
+        
         public void RequestSpawn()
         {
             if (!IsServer) return;
@@ -67,7 +69,29 @@ namespace Missions
         [Rpc(SendTo.SpecifiedInParams)]
         private void OpenUiRpc(RpcParams rpcParams = default)
         {
-            OnLocalPlayerInteracted?.Invoke();
+            OnLocalPlayerInteracted?.Invoke(this);
+        }
+        
+        [Rpc(SendTo.Server)]
+        public void NotifyPuzzleCompletedRpc(RpcParams rpcParams = default)
+        {
+            if (IsComplete) return;
+            if (OwnershipSelector == null || !OwnershipSelector.IsMissionOwner(rpcParams.Receive.SenderClientId)) return;
+
+            IsComplete = true;
+            missionCompleter.Complete();
+            NotifyOwnerMissionCompletedRpc(RpcTarget.Single(rpcParams.Receive.SenderClientId, RpcTargetUse.Temp));
+        }
+
+        [Rpc(SendTo.SpecifiedInParams)]
+        private void NotifyOwnerMissionCompletedRpc(RpcParams rpcParams = default)
+        {
+            NetworkObject playerNetObj = NetworkManager.Singleton.SpawnManager.GetPlayerNetworkObject(NetworkManager.Singleton.LocalClientId);
+
+            if (playerNetObj != null && playerNetObj.TryGetComponent(out PlayerMissionHolder missionHolder))
+            {
+                missionHolder.CompletePersonalMission(OwnershipSelector.Mission);
+            }
         }
 
         public override void OnNetworkDespawn()

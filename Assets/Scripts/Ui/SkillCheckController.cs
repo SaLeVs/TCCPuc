@@ -8,47 +8,58 @@ namespace UI
         [SerializeField] private CircularPointer pointer;
         [SerializeField] private SkillCheckGenerator generator;
         [SerializeField] private float successDistance = 15f;
-        [SerializeField] private float requiredCorrectChecks;
+        [SerializeField] private int requiredCorrectChecks = 3;
 
-        private float currentCorrectChecks;
+        public event Action OnPuzzleComplete;
+
+        private int  _currentCorrectChecks;
+        private bool _puzzleActive;
+
         
-        private void Start()
+        public void StartPuzzle()
         {
+            ResetPuzzle();
+            _puzzleActive = true;
             generator.GenerateNewSlot();
         }
 
-        private void Update()
+        public void ResetPuzzle()
         {
-            if (Input.GetMouseButtonDown(0))
-            {
-                Check();
-            }
+            _puzzleActive = false;
+            _currentCorrectChecks = 0;
+            generator.Reset();
         }
-
+        
+        
         public void Check()
         {
+            if (!_puzzleActive || generator.CurrentSlot == null) return;
+
             Vector2 pointerPos = pointer.PointerRect.anchoredPosition;
             Vector2 slotPos = generator.CurrentSlot.Rect.anchoredPosition;
-
-            float distance = Vector2.Distance(pointerPos, slotPos);
-            bool success = distance <= successDistance;
+            bool success = Vector2.Distance(pointerPos, slotPos) <= successDistance;
 
             if (success)
             {
-                Debug.Log($"Correct! in slot {generator.CurrentSlot.gameObject.name}");
-                currentCorrectChecks++;
-                generator.GenerateNewSlot();
+                Debug.Log($"SkillCheck: Correct, Slot: {generator.CurrentSlot.name}");
+                _currentCorrectChecks++;
 
-                if (currentCorrectChecks >= requiredCorrectChecks)
+                if (_currentCorrectChecks >= requiredCorrectChecks)
                 {
-                    Debug.Log($"Finish puzzle");
+                    _puzzleActive = false;
+                    Debug.Log("SkillCheck: Puzzle completed");
+                    OnPuzzleComplete?.Invoke();
+                    return;
                 }
+
+                generator.GenerateNewSlot();
             }
             else
             {
-                Debug.Log("Miss!");
+                Debug.Log("SkillCheck: Error");
             }
         }
+        
     } 
 }
 

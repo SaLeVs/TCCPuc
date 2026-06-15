@@ -11,6 +11,7 @@ GameObject:
   - component: {fileID: 1093671191840423521}
   - component: {fileID: 6583763824898764707}
   - component: {fileID: 7487229680247397330}
+  - component: {fileID: 2618137842866683396}
   m_Layer: 0
   m_Name: Point Light (8)
   m_TagString: Untagged
@@ -127,6 +128,19 @@ MonoBehaviour:
   m_ShadowLayerMask: 1
   m_RenderingLayers: 1
   m_ShadowRenderingLayers: 1
+--- !u!114 &2618137842866683396
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 516440083001640942}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0137e7f0f3ac410086a12e2a109055b5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Monster::Monster.MonsterSabotages.LightSabotage
+  lightComponent: {fileID: 6583763824898764707}
 --- !u!1 &634569307516064417
 GameObject:
   m_ObjectHideFlags: 0
@@ -138,6 +152,7 @@ GameObject:
   - component: {fileID: 1674867166746819886}
   - component: {fileID: 925181510686012879}
   - component: {fileID: 4971863951400521623}
+  - component: {fileID: 1576235367421724215}
   m_Layer: 0
   m_Name: Point Light (13)
   m_TagString: Untagged
@@ -254,6 +269,19 @@ MonoBehaviour:
   m_ShadowLayerMask: 1
   m_RenderingLayers: 1
   m_ShadowRenderingLayers: 1
+--- !u!114 &1576235367421724215
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 634569307516064417}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0137e7f0f3ac410086a12e2a109055b5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Monster::Monster.MonsterSabotages.LightSabotage
+  lightComponent: {fileID: 925181510686012879}
 --- !u!1 &712491659160710064
 GameObject:
   m_ObjectHideFlags: 0
@@ -514,6 +542,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 7185420764347115976}
+  - component: {fileID: 7198537172709491866}
   m_Layer: 7
   m_Name: Floor
   m_TagString: Untagged
@@ -616,6 +645,27 @@ Transform:
   - {fileID: 837487103064023335}
   m_Father: {fileID: 3391119960948896652}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!65 &7198537172709491866
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1564323636639486459}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 10.5053425, y: 0.53179365, z: 8.419682}
+  m_Center: {x: 10.247329, y: -0.23410317, z: -3.7098408}
 --- !u!1 &2923420678065665541
 GameObject:
   m_ObjectHideFlags: 0
@@ -627,6 +677,7 @@ GameObject:
   - component: {fileID: 405544590244834298}
   - component: {fileID: 4803398809084960010}
   - component: {fileID: 8173195620172456944}
+  - component: {fileID: 5842372658346833684}
   m_Layer: 0
   m_Name: Point Light (5)
   m_TagString: Untagged
@@ -743,6 +794,19 @@ MonoBehaviour:
   m_ShadowLayerMask: 1
   m_RenderingLayers: 1
   m_ShadowRenderingLayers: 1
+--- !u!114 &5842372658346833684
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2923420678065665541}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0137e7f0f3ac410086a12e2a109055b5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Monster::Monster.MonsterSabotages.LightSabotage
+  lightComponent: {fileID: 4803398809084960010}
 --- !u!1 &3110603287498897852
 GameObject:
   m_ObjectHideFlags: 0
@@ -754,6 +818,7 @@ GameObject:
   - component: {fileID: 6160694295295672437}
   - component: {fileID: 5994005121531047270}
   - component: {fileID: 3359485612223490963}
+  - component: {fileID: 8610592919870476977}
   m_Layer: 0
   m_Name: Point Light (12)
   m_TagString: Untagged
@@ -793,8 +858,8 @@ Light:
   m_InnerSpotAngle: 21.80208
   m_CookieSize2D: {x: 0.5, y: 0.5}
   m_Shadows:
-    m_Type: 2
-    m_Resolution: -1
+    m_Type: 1
+    m_Resolution: 128
     m_CustomResolution: -1
     m_Strength: 1
     m_Bias: 0.05
@@ -854,7 +919,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Unity.RenderPipelines.Universal.Runtime::UnityEngine.Rendering.Universal.UniversalAdditionalLightData
   m_UsePipelineSettings: 1
-  m_AdditionalLightsShadowResolutionTier: 2
+  m_AdditionalLightsShadowResolutionTier: 0
   m_CustomShadowLayers: 0
   m_LightCookieSize: {x: 1, y: 1}
   m_LightCookieOffset: {x: 0, y: 0}
@@ -870,6 +935,19 @@ MonoBehaviour:
   m_ShadowLayerMask: 1
   m_RenderingLayers: 1
   m_ShadowRenderingLayers: 1
+--- !u!114 &8610592919870476977
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3110603287498897852}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0137e7f0f3ac410086a12e2a109055b5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Monster::Monster.MonsterSabotages.LightSabotage
+  lightComponent: {fileID: 5994005121531047270}
 --- !u!1 &3217340135433230555
 GameObject:
   m_ObjectHideFlags: 0
@@ -881,6 +959,7 @@ GameObject:
   - component: {fileID: 4424319297730143163}
   - component: {fileID: 5506398277009309017}
   - component: {fileID: 227523917661137321}
+  - component: {fileID: 5826254354969334063}
   m_Layer: 0
   m_Name: Point Light (11)
   m_TagString: Untagged
@@ -920,7 +999,7 @@ Light:
   m_InnerSpotAngle: 21.80208
   m_CookieSize2D: {x: 0.5, y: 0.5}
   m_Shadows:
-    m_Type: 2
+    m_Type: 1
     m_Resolution: -1
     m_CustomResolution: -1
     m_Strength: 1
@@ -981,7 +1060,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Unity.RenderPipelines.Universal.Runtime::UnityEngine.Rendering.Universal.UniversalAdditionalLightData
   m_UsePipelineSettings: 1
-  m_AdditionalLightsShadowResolutionTier: 2
+  m_AdditionalLightsShadowResolutionTier: 0
   m_CustomShadowLayers: 0
   m_LightCookieSize: {x: 1, y: 1}
   m_LightCookieOffset: {x: 0, y: 0}
@@ -997,6 +1076,19 @@ MonoBehaviour:
   m_ShadowLayerMask: 1
   m_RenderingLayers: 1
   m_ShadowRenderingLayers: 1
+--- !u!114 &5826254354969334063
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3217340135433230555}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0137e7f0f3ac410086a12e2a109055b5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Monster::Monster.MonsterSabotages.LightSabotage
+  lightComponent: {fileID: 5506398277009309017}
 --- !u!1 &3976936052938487219
 GameObject:
   m_ObjectHideFlags: 0
@@ -1008,6 +1100,7 @@ GameObject:
   - component: {fileID: 5153019132406638165}
   - component: {fileID: 7723961053671804767}
   - component: {fileID: 8200701824518942654}
+  - component: {fileID: 4538298593014696282}
   m_Layer: 0
   m_Name: Point Light (1)
   m_TagString: Untagged
@@ -1047,7 +1140,7 @@ Light:
   m_InnerSpotAngle: 21.80208
   m_CookieSize2D: {x: 0.5, y: 0.5}
   m_Shadows:
-    m_Type: 2
+    m_Type: 1
     m_Resolution: -1
     m_CustomResolution: -1
     m_Strength: 1
@@ -1108,7 +1201,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Unity.RenderPipelines.Universal.Runtime::UnityEngine.Rendering.Universal.UniversalAdditionalLightData
   m_UsePipelineSettings: 1
-  m_AdditionalLightsShadowResolutionTier: 2
+  m_AdditionalLightsShadowResolutionTier: 0
   m_CustomShadowLayers: 0
   m_LightCookieSize: {x: 1, y: 1}
   m_LightCookieOffset: {x: 0, y: 0}
@@ -1124,6 +1217,19 @@ MonoBehaviour:
   m_ShadowLayerMask: 1
   m_RenderingLayers: 1
   m_ShadowRenderingLayers: 1
+--- !u!114 &4538298593014696282
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3976936052938487219}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0137e7f0f3ac410086a12e2a109055b5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Monster::Monster.MonsterSabotages.LightSabotage
+  lightComponent: {fileID: 7723961053671804767}
 --- !u!1 &3994560910017711201
 GameObject:
   m_ObjectHideFlags: 0
@@ -1135,6 +1241,7 @@ GameObject:
   - component: {fileID: 4087564650775753762}
   - component: {fileID: 6266099428973334976}
   - component: {fileID: 5252937216220584971}
+  - component: {fileID: 4382543777438404209}
   m_Layer: 0
   m_Name: Point Light (3)
   m_TagString: Untagged
@@ -1251,6 +1358,19 @@ MonoBehaviour:
   m_ShadowLayerMask: 1
   m_RenderingLayers: 1
   m_ShadowRenderingLayers: 1
+--- !u!114 &4382543777438404209
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3994560910017711201}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0137e7f0f3ac410086a12e2a109055b5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Monster::Monster.MonsterSabotages.LightSabotage
+  lightComponent: {fileID: 6266099428973334976}
 --- !u!1 &5372192147979695309
 GameObject:
   m_ObjectHideFlags: 0
@@ -1377,6 +1497,7 @@ GameObject:
   - component: {fileID: 4841046106094343885}
   - component: {fileID: 8886146111279037991}
   - component: {fileID: 347922132412089343}
+  - component: {fileID: 3043697210310318689}
   m_Layer: 0
   m_Name: Point Light (14)
   m_TagString: Untagged
@@ -1493,6 +1614,19 @@ MonoBehaviour:
   m_ShadowLayerMask: 1
   m_RenderingLayers: 1
   m_ShadowRenderingLayers: 1
+--- !u!114 &3043697210310318689
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5592394828478821766}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0137e7f0f3ac410086a12e2a109055b5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Monster::Monster.MonsterSabotages.LightSabotage
+  lightComponent: {fileID: 8886146111279037991}
 --- !u!1 &5663224193052775379
 GameObject:
   m_ObjectHideFlags: 0
@@ -1550,6 +1684,7 @@ GameObject:
   - component: {fileID: 1842635445501055388}
   - component: {fileID: 5672993159673870351}
   - component: {fileID: 4959749524338972253}
+  - component: {fileID: 659702554284572397}
   m_Layer: 0
   m_Name: Point Light
   m_TagString: Untagged
@@ -1666,6 +1801,19 @@ MonoBehaviour:
   m_ShadowLayerMask: 1
   m_RenderingLayers: 1
   m_ShadowRenderingLayers: 1
+--- !u!114 &659702554284572397
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5699675314934121275}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0137e7f0f3ac410086a12e2a109055b5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Monster::Monster.MonsterSabotages.LightSabotage
+  lightComponent: {fileID: 5672993159673870351}
 --- !u!1 &6063614004369457315
 GameObject:
   m_ObjectHideFlags: 0
@@ -1677,6 +1825,7 @@ GameObject:
   - component: {fileID: 412912870769188231}
   - component: {fileID: 2261935475504847491}
   - component: {fileID: 8649861989695196997}
+  - component: {fileID: 2782031699262880777}
   m_Layer: 0
   m_Name: Point Light (10)
   m_TagString: Untagged
@@ -1716,7 +1865,7 @@ Light:
   m_InnerSpotAngle: 21.80208
   m_CookieSize2D: {x: 0.5, y: 0.5}
   m_Shadows:
-    m_Type: 2
+    m_Type: 1
     m_Resolution: -1
     m_CustomResolution: -1
     m_Strength: 1
@@ -1777,7 +1926,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Unity.RenderPipelines.Universal.Runtime::UnityEngine.Rendering.Universal.UniversalAdditionalLightData
   m_UsePipelineSettings: 1
-  m_AdditionalLightsShadowResolutionTier: 2
+  m_AdditionalLightsShadowResolutionTier: 0
   m_CustomShadowLayers: 0
   m_LightCookieSize: {x: 1, y: 1}
   m_LightCookieOffset: {x: 0, y: 0}
@@ -1793,6 +1942,19 @@ MonoBehaviour:
   m_ShadowLayerMask: 1
   m_RenderingLayers: 1
   m_ShadowRenderingLayers: 1
+--- !u!114 &2782031699262880777
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6063614004369457315}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0137e7f0f3ac410086a12e2a109055b5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Monster::Monster.MonsterSabotages.LightSabotage
+  lightComponent: {fileID: 2261935475504847491}
 --- !u!1 &6073350031661652383
 GameObject:
   m_ObjectHideFlags: 0
@@ -1855,7 +2017,6 @@ Transform:
   - {fileID: 4331180351032045507}
   - {fileID: 4877649378760917973}
   - {fileID: 6730210792923941088}
-  - {fileID: 4459705887230065995}
   - {fileID: 135715612343398278}
   - {fileID: 4376758291370753329}
   - {fileID: 2591109933905059669}
@@ -1877,7 +2038,6 @@ Transform:
   - {fileID: 820405715646163197}
   - {fileID: 798302846696931761}
   - {fileID: 963679668131959661}
-  - {fileID: 409590813300476009}
   - {fileID: 5442151401488555730}
   - {fileID: 3545387678440948900}
   - {fileID: 7639733200041514434}
@@ -1901,6 +2061,7 @@ GameObject:
   - component: {fileID: 4877768126239767997}
   - component: {fileID: 5078160484504647898}
   - component: {fileID: 7397582420605936889}
+  - component: {fileID: 1155891230211776420}
   m_Layer: 0
   m_Name: Point Light (6)
   m_TagString: Untagged
@@ -1940,7 +2101,7 @@ Light:
   m_InnerSpotAngle: 103.02541
   m_CookieSize2D: {x: 0.5, y: 0.5}
   m_Shadows:
-    m_Type: 2
+    m_Type: 1
     m_Resolution: -1
     m_CustomResolution: -1
     m_Strength: 1
@@ -2001,7 +2162,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Unity.RenderPipelines.Universal.Runtime::UnityEngine.Rendering.Universal.UniversalAdditionalLightData
   m_UsePipelineSettings: 1
-  m_AdditionalLightsShadowResolutionTier: 2
+  m_AdditionalLightsShadowResolutionTier: 1
   m_CustomShadowLayers: 0
   m_LightCookieSize: {x: 1, y: 1}
   m_LightCookieOffset: {x: 0, y: 0}
@@ -2017,6 +2178,19 @@ MonoBehaviour:
   m_ShadowLayerMask: 1
   m_RenderingLayers: 1
   m_ShadowRenderingLayers: 1
+--- !u!114 &1155891230211776420
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6597241602842456872}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0137e7f0f3ac410086a12e2a109055b5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Monster::Monster.MonsterSabotages.LightSabotage
+  lightComponent: {fileID: 5078160484504647898}
 --- !u!1 &8302661144384000596
 GameObject:
   m_ObjectHideFlags: 0
@@ -2028,6 +2202,7 @@ GameObject:
   - component: {fileID: 7856710476261090920}
   - component: {fileID: 324083547113812589}
   - component: {fileID: 8593019567300518882}
+  - component: {fileID: 8798920467852189441}
   m_Layer: 0
   m_Name: Point Light (9)
   m_TagString: Untagged
@@ -2144,6 +2319,19 @@ MonoBehaviour:
   m_ShadowLayerMask: 1
   m_RenderingLayers: 1
   m_ShadowRenderingLayers: 1
+--- !u!114 &8798920467852189441
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8302661144384000596}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0137e7f0f3ac410086a12e2a109055b5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Monster::Monster.MonsterSabotages.LightSabotage
+  lightComponent: {fileID: 324083547113812589}
 --- !u!1 &8363574676851655019
 GameObject:
   m_ObjectHideFlags: 0
@@ -2155,6 +2343,7 @@ GameObject:
   - component: {fileID: 8054140890922106010}
   - component: {fileID: 5270503696811159078}
   - component: {fileID: 4946622130579743356}
+  - component: {fileID: 3225565968674468807}
   m_Layer: 0
   m_Name: Point Light (7)
   m_TagString: Untagged
@@ -2194,7 +2383,7 @@ Light:
   m_InnerSpotAngle: 103.02541
   m_CookieSize2D: {x: 0.5, y: 0.5}
   m_Shadows:
-    m_Type: 2
+    m_Type: 1
     m_Resolution: -1
     m_CustomResolution: -1
     m_Strength: 1
@@ -2255,7 +2444,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Unity.RenderPipelines.Universal.Runtime::UnityEngine.Rendering.Universal.UniversalAdditionalLightData
   m_UsePipelineSettings: 1
-  m_AdditionalLightsShadowResolutionTier: 2
+  m_AdditionalLightsShadowResolutionTier: 1
   m_CustomShadowLayers: 0
   m_LightCookieSize: {x: 1, y: 1}
   m_LightCookieOffset: {x: 0, y: 0}
@@ -2271,6 +2460,19 @@ MonoBehaviour:
   m_ShadowLayerMask: 1
   m_RenderingLayers: 1
   m_ShadowRenderingLayers: 1
+--- !u!114 &3225565968674468807
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8363574676851655019}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0137e7f0f3ac410086a12e2a109055b5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Monster::Monster.MonsterSabotages.LightSabotage
+  lightComponent: {fileID: 5270503696811159078}
 --- !u!1 &8476312925725251487
 GameObject:
   m_ObjectHideFlags: 0
@@ -2321,7 +2523,6 @@ Transform:
   - {fileID: 3390506289752776554}
   - {fileID: 7309358725298931450}
   - {fileID: 2232106272744141076}
-  - {fileID: 5802138252675725518}
   - {fileID: 4041625869676773988}
   - {fileID: 4253935849951228672}
   - {fileID: 5921813156751206342}
@@ -2331,6 +2532,7 @@ Transform:
   - {fileID: 5083097693297555258}
   - {fileID: 7016352785959405564}
   - {fileID: 4761999030421889884}
+  - {fileID: 8263361295055662510}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &9095646384301823245
@@ -2344,6 +2546,7 @@ GameObject:
   - component: {fileID: 8204038795063303380}
   - component: {fileID: 1729905231460941204}
   - component: {fileID: 2693337702049784602}
+  - component: {fileID: 7369963141242700606}
   m_Layer: 0
   m_Name: Point Light (2)
   m_TagString: Untagged
@@ -2383,8 +2586,8 @@ Light:
   m_InnerSpotAngle: 36.490067
   m_CookieSize2D: {x: 0.5, y: 0.5}
   m_Shadows:
-    m_Type: 2
-    m_Resolution: -1
+    m_Type: 1
+    m_Resolution: 128
     m_CustomResolution: -1
     m_Strength: 1
     m_Bias: 0.05
@@ -2444,7 +2647,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Unity.RenderPipelines.Universal.Runtime::UnityEngine.Rendering.Universal.UniversalAdditionalLightData
   m_UsePipelineSettings: 1
-  m_AdditionalLightsShadowResolutionTier: 2
+  m_AdditionalLightsShadowResolutionTier: 1
   m_CustomShadowLayers: 0
   m_LightCookieSize: {x: 1, y: 1}
   m_LightCookieOffset: {x: 0, y: 0}
@@ -2460,6 +2663,19 @@ MonoBehaviour:
   m_ShadowLayerMask: 1
   m_RenderingLayers: 1
   m_ShadowRenderingLayers: 1
+--- !u!114 &7369963141242700606
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 9095646384301823245}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0137e7f0f3ac410086a12e2a109055b5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Monster::Monster.MonsterSabotages.LightSabotage
+  lightComponent: {fileID: 1729905231460941204}
 --- !u!1 &9098717692760461831
 GameObject:
   m_ObjectHideFlags: 0
@@ -2471,6 +2687,7 @@ GameObject:
   - component: {fileID: 5568757482400575190}
   - component: {fileID: 3262518613083060321}
   - component: {fileID: 1240156633342286157}
+  - component: {fileID: 6800194684232399439}
   m_Layer: 0
   m_Name: Point Light (4)
   m_TagString: Untagged
@@ -2510,7 +2727,7 @@ Light:
   m_InnerSpotAngle: 84.15723
   m_CookieSize2D: {x: 0.5, y: 0.5}
   m_Shadows:
-    m_Type: 2
+    m_Type: 1
     m_Resolution: -1
     m_CustomResolution: -1
     m_Strength: 1
@@ -2571,7 +2788,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Unity.RenderPipelines.Universal.Runtime::UnityEngine.Rendering.Universal.UniversalAdditionalLightData
   m_UsePipelineSettings: 1
-  m_AdditionalLightsShadowResolutionTier: 2
+  m_AdditionalLightsShadowResolutionTier: 0
   m_CustomShadowLayers: 0
   m_LightCookieSize: {x: 1, y: 1}
   m_LightCookieOffset: {x: 0, y: 0}
@@ -2587,6 +2804,19 @@ MonoBehaviour:
   m_ShadowLayerMask: 1
   m_RenderingLayers: 1
   m_ShadowRenderingLayers: 1
+--- !u!114 &6800194684232399439
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 9098717692760461831}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0137e7f0f3ac410086a12e2a109055b5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Monster::Monster.MonsterSabotages.LightSabotage
+  lightComponent: {fileID: 3262518613083060321}
 --- !u!1001 &3662869368966852
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -2849,7 +3079,7 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: -8679921383154817045, guid: d10b74aab9b48d04c8d87362aa4abf53, type: 3}
       propertyPath: m_LocalPosition.x
-      value: 10.4679985
+      value: 10.493
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: d10b74aab9b48d04c8d87362aa4abf53, type: 3}
       propertyPath: m_LocalPosition.y
@@ -2857,7 +3087,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: d10b74aab9b48d04c8d87362aa4abf53, type: 3}
       propertyPath: m_LocalPosition.z
-      value: -7.475
+      value: -7.353
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: d10b74aab9b48d04c8d87362aa4abf53, type: 3}
       propertyPath: m_LocalRotation.w
@@ -2869,7 +3099,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: d10b74aab9b48d04c8d87362aa4abf53, type: 3}
       propertyPath: m_LocalRotation.y
-      value: -0
+      value: 0.00000004470348
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: d10b74aab9b48d04c8d87362aa4abf53, type: 3}
       propertyPath: m_LocalRotation.z
@@ -7201,6 +7431,92 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 289848307590988468, guid: 1311722716bb7bc46b972d7bd3c74a0e, type: 3}
   m_PrefabInstance: {fileID: 2270761220618035672}
   m_PrefabAsset: {fileID: 0}
+--- !u!1001 &2305181282023711854
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 3391119960948896652}
+    m_Modifications:
+    - target: {fileID: -7967749348437639947, guid: f96573525ffdabe46bde6b6650959fe9, type: 3}
+      propertyPath: m_Size.x
+      value: 0.9382241
+      objectReference: {fileID: 0}
+    - target: {fileID: -7967749348437639947, guid: f96573525ffdabe46bde6b6650959fe9, type: 3}
+      propertyPath: m_Size.y
+      value: 2.085194
+      objectReference: {fileID: 0}
+    - target: {fileID: -7967749348437639947, guid: f96573525ffdabe46bde6b6650959fe9, type: 3}
+      propertyPath: m_Size.z
+      value: 0.12249488
+      objectReference: {fileID: 0}
+    - target: {fileID: -7967749348437639947, guid: f96573525ffdabe46bde6b6650959fe9, type: 3}
+      propertyPath: m_Center.x
+      value: -0.4691105
+      objectReference: {fileID: 0}
+    - target: {fileID: -7967749348437639947, guid: f96573525ffdabe46bde6b6650959fe9, type: 3}
+      propertyPath: m_Center.y
+      value: 1.042597
+      objectReference: {fileID: 0}
+    - target: {fileID: -7967749348437639947, guid: f96573525ffdabe46bde6b6650959fe9, type: 3}
+      propertyPath: m_Center.z
+      value: 0.0024806655
+      objectReference: {fileID: 0}
+    - target: {fileID: 7357524805498065786, guid: f96573525ffdabe46bde6b6650959fe9, type: 3}
+      propertyPath: m_Name
+      value: SM_Double_Door_V3
+      objectReference: {fileID: 0}
+    - target: {fileID: 7877074443118709184, guid: f96573525ffdabe46bde6b6650959fe9, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 10.493
+      objectReference: {fileID: 0}
+    - target: {fileID: 7877074443118709184, guid: f96573525ffdabe46bde6b6650959fe9, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0.026
+      objectReference: {fileID: 0}
+    - target: {fileID: 7877074443118709184, guid: f96573525ffdabe46bde6b6650959fe9, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: -7.353
+      objectReference: {fileID: 0}
+    - target: {fileID: 7877074443118709184, guid: f96573525ffdabe46bde6b6650959fe9, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 0.25881913
+      objectReference: {fileID: 0}
+    - target: {fileID: 7877074443118709184, guid: f96573525ffdabe46bde6b6650959fe9, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7877074443118709184, guid: f96573525ffdabe46bde6b6650959fe9, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0.9659259
+      objectReference: {fileID: 0}
+    - target: {fileID: 7877074443118709184, guid: f96573525ffdabe46bde6b6650959fe9, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7877074443118709184, guid: f96573525ffdabe46bde6b6650959fe9, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7877074443118709184, guid: f96573525ffdabe46bde6b6650959fe9, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 150
+      objectReference: {fileID: 0}
+    - target: {fileID: 7877074443118709184, guid: f96573525ffdabe46bde6b6650959fe9, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: f96573525ffdabe46bde6b6650959fe9, type: 3}
+--- !u!4 &8263361295055662510 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 7877074443118709184, guid: f96573525ffdabe46bde6b6650959fe9, type: 3}
+  m_PrefabInstance: {fileID: 2305181282023711854}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1001 &2426991210500257752
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -10140,72 +10456,6 @@ PrefabInstance:
 Transform:
   m_CorrespondingSourceObject: {fileID: 4436942330475129209, guid: 46f5d0acdfcf0f441a3e8b27f5a8e247, type: 3}
   m_PrefabInstance: {fileID: 4087965277103706029}
-  m_PrefabAsset: {fileID: 0}
---- !u!1001 &4100396976369305909
-PrefabInstance:
-  m_ObjectHideFlags: 0
-  serializedVersion: 2
-  m_Modification:
-    serializedVersion: 3
-    m_TransformParent: {fileID: 3391119960948896652}
-    m_Modifications:
-    - target: {fileID: 7145255479354420033, guid: c26a0c9c6ef82d24bbc11c5c13cc6c75, type: 3}
-      propertyPath: m_Name
-      value: SM_Poster_5 (1)
-      objectReference: {fileID: 0}
-    - target: {fileID: 7521816962425762299, guid: c26a0c9c6ef82d24bbc11c5c13cc6c75, type: 3}
-      propertyPath: m_LocalPosition.x
-      value: 10.951
-      objectReference: {fileID: 0}
-    - target: {fileID: 7521816962425762299, guid: c26a0c9c6ef82d24bbc11c5c13cc6c75, type: 3}
-      propertyPath: m_LocalPosition.y
-      value: 1.226
-      objectReference: {fileID: 0}
-    - target: {fileID: 7521816962425762299, guid: c26a0c9c6ef82d24bbc11c5c13cc6c75, type: 3}
-      propertyPath: m_LocalPosition.z
-      value: 0.051
-      objectReference: {fileID: 0}
-    - target: {fileID: 7521816962425762299, guid: c26a0c9c6ef82d24bbc11c5c13cc6c75, type: 3}
-      propertyPath: m_LocalRotation.w
-      value: 0.7071066
-      objectReference: {fileID: 0}
-    - target: {fileID: 7521816962425762299, guid: c26a0c9c6ef82d24bbc11c5c13cc6c75, type: 3}
-      propertyPath: m_LocalRotation.x
-      value: -0
-      objectReference: {fileID: 0}
-    - target: {fileID: 7521816962425762299, guid: c26a0c9c6ef82d24bbc11c5c13cc6c75, type: 3}
-      propertyPath: m_LocalRotation.y
-      value: -0.70710707
-      objectReference: {fileID: 0}
-    - target: {fileID: 7521816962425762299, guid: c26a0c9c6ef82d24bbc11c5c13cc6c75, type: 3}
-      propertyPath: m_LocalRotation.z
-      value: -0
-      objectReference: {fileID: 0}
-    - target: {fileID: 7521816962425762299, guid: c26a0c9c6ef82d24bbc11c5c13cc6c75, type: 3}
-      propertyPath: m_LocalEulerAnglesHint.x
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 7521816962425762299, guid: c26a0c9c6ef82d24bbc11c5c13cc6c75, type: 3}
-      propertyPath: m_LocalEulerAnglesHint.y
-      value: -90
-      objectReference: {fileID: 0}
-    - target: {fileID: 7521816962425762299, guid: c26a0c9c6ef82d24bbc11c5c13cc6c75, type: 3}
-      propertyPath: m_LocalEulerAnglesHint.z
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 8658716124084095636, guid: c26a0c9c6ef82d24bbc11c5c13cc6c75, type: 3}
-      propertyPath: 'm_Materials.Array.data[0]'
-      value: 
-      objectReference: {fileID: 2100000, guid: 5c5e9d3ff0f21014396d95fdb12d245c, type: 2}
-    m_RemovedComponents: []
-    m_RemovedGameObjects: []
-    m_AddedGameObjects: []
-    m_AddedComponents: []
-  m_SourcePrefab: {fileID: 100100000, guid: c26a0c9c6ef82d24bbc11c5c13cc6c75, type: 3}
---- !u!4 &5802138252675725518 stripped
-Transform:
-  m_CorrespondingSourceObject: {fileID: 7521816962425762299, guid: c26a0c9c6ef82d24bbc11c5c13cc6c75, type: 3}
-  m_PrefabInstance: {fileID: 4100396976369305909}
   m_PrefabAsset: {fileID: 0}
 --- !u!1001 &4138841009094084996
 PrefabInstance:
@@ -17392,94 +17642,6 @@ PrefabInstance:
 Transform:
   m_CorrespondingSourceObject: {fileID: 605561258286837183, guid: c542ef29896ce4e449a0928dcc874f02, type: 3}
   m_PrefabInstance: {fileID: 8338527627572558008}
-  m_PrefabAsset: {fileID: 0}
---- !u!1001 &8384058511825050528
-PrefabInstance:
-  m_ObjectHideFlags: 0
-  serializedVersion: 2
-  m_Modification:
-    serializedVersion: 3
-    m_TransformParent: {fileID: 6149021363002347027}
-    m_Modifications:
-    - target: {fileID: 4825033635961551953, guid: fa6f1e35cc286344f80964eb9faa654a, type: 3}
-      propertyPath: m_Name
-      value: SM_Notice_Board (1)
-      objectReference: {fileID: 0}
-    - target: {fileID: 5313726578725545707, guid: fa6f1e35cc286344f80964eb9faa654a, type: 3}
-      propertyPath: m_LocalPosition.x
-      value: 10.189999
-      objectReference: {fileID: 0}
-    - target: {fileID: 5313726578725545707, guid: fa6f1e35cc286344f80964eb9faa654a, type: 3}
-      propertyPath: m_LocalPosition.y
-      value: 0.97
-      objectReference: {fileID: 0}
-    - target: {fileID: 5313726578725545707, guid: fa6f1e35cc286344f80964eb9faa654a, type: 3}
-      propertyPath: m_LocalPosition.z
-      value: 0.055000067
-      objectReference: {fileID: 0}
-    - target: {fileID: 5313726578725545707, guid: fa6f1e35cc286344f80964eb9faa654a, type: 3}
-      propertyPath: m_LocalRotation.w
-      value: 0.70710737
-      objectReference: {fileID: 0}
-    - target: {fileID: 5313726578725545707, guid: fa6f1e35cc286344f80964eb9faa654a, type: 3}
-      propertyPath: m_LocalRotation.x
-      value: -0
-      objectReference: {fileID: 0}
-    - target: {fileID: 5313726578725545707, guid: fa6f1e35cc286344f80964eb9faa654a, type: 3}
-      propertyPath: m_LocalRotation.y
-      value: -0.70710623
-      objectReference: {fileID: 0}
-    - target: {fileID: 5313726578725545707, guid: fa6f1e35cc286344f80964eb9faa654a, type: 3}
-      propertyPath: m_LocalRotation.z
-      value: -0
-      objectReference: {fileID: 0}
-    - target: {fileID: 5313726578725545707, guid: fa6f1e35cc286344f80964eb9faa654a, type: 3}
-      propertyPath: m_LocalEulerAnglesHint.x
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 5313726578725545707, guid: fa6f1e35cc286344f80964eb9faa654a, type: 3}
-      propertyPath: m_LocalEulerAnglesHint.y
-      value: -90
-      objectReference: {fileID: 0}
-    - target: {fileID: 5313726578725545707, guid: fa6f1e35cc286344f80964eb9faa654a, type: 3}
-      propertyPath: m_LocalEulerAnglesHint.z
-      value: 0
-      objectReference: {fileID: 0}
-    m_RemovedComponents: []
-    m_RemovedGameObjects: []
-    m_AddedGameObjects: []
-    m_AddedComponents:
-    - targetCorrespondingSourceObject: {fileID: 4825033635961551953, guid: fa6f1e35cc286344f80964eb9faa654a, type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 7919914070416527038}
-  m_SourcePrefab: {fileID: 100100000, guid: fa6f1e35cc286344f80964eb9faa654a, type: 3}
---- !u!1 &3940612619683014641 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: 4825033635961551953, guid: fa6f1e35cc286344f80964eb9faa654a, type: 3}
-  m_PrefabInstance: {fileID: 8384058511825050528}
-  m_PrefabAsset: {fileID: 0}
---- !u!114 &7919914070416527038
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 3940612619683014641}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 5fea29bb7c508c244a1f805a5fd3fc4d, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Components::Outline
-  outlineMode: 0
-  outlineColor: {r: 1, g: 0.13679248, b: 0.13679248, a: 1}
-  outlineWidth: 5
-  precomputeOutline: 0
-  bakeKeys: []
-  bakeValues: []
---- !u!4 &4459705887230065995 stripped
-Transform:
-  m_CorrespondingSourceObject: {fileID: 5313726578725545707, guid: fa6f1e35cc286344f80964eb9faa654a, type: 3}
-  m_PrefabInstance: {fileID: 8384058511825050528}
   m_PrefabAsset: {fileID: 0}
 --- !u!1001 &8453612559811126077
 PrefabInstance:

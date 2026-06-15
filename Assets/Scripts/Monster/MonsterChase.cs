@@ -11,6 +11,7 @@ namespace Monster
     {
         public event Action OnStartedChasingAnimation;
         public event Action OnStoppedChasingAnimation;
+        public static Action<Vector3> OnMonsterSeeTargetSound;
         
         [SerializeField] private float chaseSpeed = 8f;
         [SerializeField] private float targetReevaluationInterval = 1f;
@@ -92,12 +93,27 @@ namespace Monster
         private void SetTarget(Transform target)
         {
             if (!target || !_agent) return;
+            
+            bool wasWithoutTarget = _currentTarget == null;
 
+            _currentTarget = target;
+
+            if (wasWithoutTarget)
+            {
+                PlaySpottedSoundClientRpc();
+            }
+            
             _currentTarget = target;
             _agent.isStopped = false;
             _agent.speed = chaseSpeed;
         }
-
+        
+        [Rpc(SendTo.ClientsAndHost)]
+        private void PlaySpottedSoundClientRpc()
+        {
+            OnMonsterSeeTargetSound?.Invoke(transform.position);
+        }
+        
         private void ClearTarget()
         {
             _currentTarget = null;

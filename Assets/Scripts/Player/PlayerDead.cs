@@ -8,6 +8,8 @@ namespace Player
     public class PlayerDead : NetworkBehaviour
     {
         public event Action<bool> OnDeathEvent;
+        public static Action<Vector3> OnDeathSound;
+        
 
         [SerializeField] private Health playerHealth;
         [SerializeField] private LayerMask deadLayer;
@@ -41,6 +43,11 @@ namespace Player
         {
             ApplyLayerState(current);
             OnDeathEvent?.Invoke(current);
+            
+            if (current)
+            {
+                OnDeathSound?.Invoke(transform.position);
+            }
         }
         
         private void ApplyLayerState(bool dead)

@@ -26,11 +26,16 @@ namespace Player
         
         public override void OnNetworkSpawn()
         {
-            gameplayCanvas.SetActive(false);
-            
-            if (!IsOwner) return;
-            
+            if (!IsOwner)
+            {
+                gameplayCanvas.SetActive(false);
+                spectatorCanvas.SetActive(false);
+                return;
+            }
+
             gameplayCanvas.SetActive(true);
+            spectatorCanvas.SetActive(false);
+
             playerState.OnPlayerDead += PlayerState_OnDeathChanged;
             playerState.OnPlayerWon += PlayerState_OnPlayerWon;
         }

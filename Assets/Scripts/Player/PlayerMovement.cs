@@ -10,6 +10,7 @@ namespace Player
     public class PlayerMovement : NetworkBehaviour
     {
         public event Action<Vector2> OnPlayerMovement;
+        public static Action<Vector3> OnFootstepSound;
         
         [SerializeField] private PlayerState playerState;
         
@@ -19,6 +20,10 @@ namespace Player
 
         [SerializeField] private float moveSpeed;
         [SerializeField] private float blendMovementTime = 8.9f;
+        
+        [SerializeField] private float minFootstepInterval = 0.25f;
+        [SerializeField] private float maxFootstepInterval = 0.6f;
+        
         
         private float _targetSpeed;
         
@@ -33,6 +38,8 @@ namespace Player
         
         private bool _isDead;
         private bool _isLocked;
+        
+        private float _footstepTimer;
         
         
         private void Awake()
@@ -85,6 +92,8 @@ namespace Player
             {
                 Move();
             }
+            
+            HandleFootsteps();
         }
         
         
@@ -123,7 +132,28 @@ namespace Player
             rb.AddForce(new Vector3(_xVelocityDifference, 0f, _zVelocityDifference), ForceMode.VelocityChange); 
             
             OnPlayerMovement?.Invoke(_currentVelocity);
-            
+        }
+        
+        private void HandleFootsteps()
+        {
+            float currentSpeed = new Vector3(rb.linearVelocity.x, 0f, rb.linearVelocity.z).magnitude;
+
+            if (currentSpeed < 0.1f)
+            {
+                _footstepTimer = 0f;
+                return;
+            }
+
+            float speedPercent = Mathf.Clamp01(currentSpeed / moveSpeed);
+            float currentInterval = Mathf.Lerp(maxFootstepInterval, minFootstepInterval, speedPercent);
+
+            _footstepTimer += Time.fixedDeltaTime;
+
+            if (_footstepTimer >= currentInterval)
+            {
+                _footstepTimer = 0f;
+                OnFootstepSound?.Invoke(transform.position);
+            }
         }
         
         private float ApplySpeedModifiers(float baseSpeed)

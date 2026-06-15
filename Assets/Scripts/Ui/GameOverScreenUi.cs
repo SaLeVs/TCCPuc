@@ -1,4 +1,5 @@
-﻿using Player;
+﻿using System.Collections;
+using Player;
 using Unity.Netcode;
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -10,9 +11,12 @@ namespace Ui
         [SerializeField] private PlayerState playerState;
         [SerializeField] private GameObject gameOverPanel;
         [SerializeField] private string mainMenuSceneName = "MainMenu";
+        [SerializeField] private float gameOverDelay = 2f;
 
         private bool _isReturningToMenu;
+        private Coroutine _gameOverCoroutine;
 
+        
         private void Start()
         {
             playerState.OnGameOverTriggered += PlayerState_OnGameOverTriggered;
@@ -21,6 +25,18 @@ namespace Ui
 
         private void PlayerState_OnGameOverTriggered()
         {
+            if (_gameOverCoroutine != null)
+            {
+                StopCoroutine(_gameOverCoroutine);
+            }
+
+            _gameOverCoroutine = StartCoroutine(ShowGameOverAfterDelay());
+        }
+        
+        private IEnumerator ShowGameOverAfterDelay()
+        {
+            yield return new WaitForSeconds(gameOverDelay);
+
             gameOverPanel.SetActive(true);
             Cursor.lockState = CursorLockMode.None;
             Cursor.visible = true;
@@ -50,6 +66,7 @@ namespace Ui
         private void OnDestroy()
         {
             playerState.OnGameOverTriggered -= PlayerState_OnGameOverTriggered;
+            _gameOverCoroutine = null;
             
             if (NetworkManager.Singleton != null)
             {

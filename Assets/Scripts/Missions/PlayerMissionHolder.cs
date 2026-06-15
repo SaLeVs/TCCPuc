@@ -14,7 +14,9 @@ namespace Missions
         public event Action<MissionSO> OnPersonalMissionCompleted;
         public event Action<MissionSO> OnMainMissionReceived;
         public event Action<MissionSO> OnMainMissionCompleted;
-        public event Action<string> OnMessageReceived;  
+        public event Action<string> OnMessageReceived;
+        public static event Action<Vector3> OnMissionRecievedSound;
+        public static event Action<Vector3> OnMissionCompletedSound;
 
         private readonly List<MissionSO> _personalMissions = new List<MissionSO>();
         private MissionSO _mainMission;
@@ -36,6 +38,7 @@ namespace Missions
 
             _personalMissions.Add(mission);
             OnPersonalMissionReceived?.Invoke(mission);
+            OnMissionRecievedSound?.Invoke(transform.position);
             Debug.Log($"PlayerMissionHolder: Personal mission received {mission.missionName}");
         }
         
@@ -46,6 +49,7 @@ namespace Missions
 
             _personalMissions.Remove(mission);
             OnPersonalMissionCompleted?.Invoke(mission);
+            OnMissionCompletedSound?.Invoke(transform.position);
             Debug.Log($"PlayerMissionHolder: Personal mission completed {mission.missionName}");
         }
 
@@ -55,6 +59,7 @@ namespace Missions
 
             _mainMission = mission;
             OnMainMissionReceived?.Invoke(mission);
+            OnMissionRecievedSound?.Invoke(transform.position);
             Debug.Log($"PlayerMissionHolder: Main mission revealed: {mission.missionName}");
         }
 
@@ -66,6 +71,7 @@ namespace Missions
             MissionSO completed = _mainMission;
             _mainMission = null;
             OnMainMissionCompleted?.Invoke(completed);
+            OnMissionCompletedSound?.Invoke(transform.position);
             Debug.Log($"PlayerMissionHolder: Main mission completed {completed.missionName}");
         }
         

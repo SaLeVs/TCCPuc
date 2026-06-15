@@ -1,3 +1,4 @@
+using System;
 using Network;
 using TMPro;
 using UnityEngine;
@@ -11,8 +12,12 @@ namespace UI
         [SerializeField] private Lobby lobby;
         [SerializeField] private GameObject lobbyPanel;
         [SerializeField] private GameObject joinPanel;
-        
-        
+
+        private void Start()
+        {
+            Cursor.visible = true;
+            Cursor.lockState = CursorLockMode.None;
+        }
 
         public async void CreateLobby()
         {

@@ -21,8 +21,8 @@ namespace Player
         [SerializeField] private float moveSpeed;
         [SerializeField] private float blendMovementTime = 8.9f;
         
-        [SerializeField] private float minFootstepInterval = 0.25f;
-        [SerializeField] private float maxFootstepInterval = 0.6f;
+        [SerializeField] private float footstepDistance = 1.8f;
+        [SerializeField] private float minMoveSpeedToStep = 0.1f;
         
         
         private float _targetSpeed;
@@ -40,6 +40,8 @@ namespace Player
         private bool _isLocked;
         
         private float _footstepTimer;
+        private float _distanceSinceLastFootstep;
+        private Vector3 _lastFootstepPosition;        
         
         
         private void Awake()
@@ -136,22 +138,25 @@ namespace Player
         
         private void HandleFootsteps()
         {
+            Vector3 currentPosition = transform.position;
+            Vector3 flatDelta = currentPosition - _lastFootstepPosition;
+            flatDelta.y = 0f;
+
             float currentSpeed = new Vector3(rb.linearVelocity.x, 0f, rb.linearVelocity.z).magnitude;
 
-            if (currentSpeed < 0.1f)
+            if (currentSpeed < minMoveSpeedToStep)
             {
-                _footstepTimer = 0f;
+                _distanceSinceLastFootstep = 0f;
+                _lastFootstepPosition = currentPosition;
                 return;
             }
 
-            float speedPercent = Mathf.Clamp01(currentSpeed / moveSpeed);
-            float currentInterval = Mathf.Lerp(maxFootstepInterval, minFootstepInterval, speedPercent);
+            _distanceSinceLastFootstep += flatDelta.magnitude;
+            _lastFootstepPosition = currentPosition;
 
-            _footstepTimer += Time.fixedDeltaTime;
-
-            if (_footstepTimer >= currentInterval)
+            if (_distanceSinceLastFootstep >= footstepDistance)
             {
-                _footstepTimer = 0f;
+                _distanceSinceLastFootstep -= footstepDistance;
                 OnFootstepSound?.Invoke(transform.position);
             }
         }

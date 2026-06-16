@@ -50,7 +50,7 @@ public class SfxManager : MonoBehaviour
     
     private void PlayerMissionHolder_OnMissionCompletedSound(Vector3 position)
     {
-        PlaySound(audioClipRefsSO.missionReceived, Vector3.zero);
+        PlaySound(audioClipRefsSO.missionSuccess, Vector3.zero);
     }
     
     private void MonsterAttack_OnMonsterAttack(Vector3 position)

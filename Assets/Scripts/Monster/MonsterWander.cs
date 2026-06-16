@@ -23,8 +23,8 @@ namespace Monster
         [SerializeField] private float waypointReachedDistance;
         [SerializeField] private PatrolSector[] allSectors;
         
-        [SerializeField] private float minFootstepInterval = 0.3f;
-        [SerializeField] private float maxFootstepInterval = 0.7f;
+        [SerializeField] private float footstepDistance = 2.0f;
+        [SerializeField] private float minMoveSpeedToStep = 0.1f;
 
         private float _footstepTimer;
         
@@ -37,6 +37,9 @@ namespace Monster
         private float _currentWanderInterval;
 
         private bool _waitingAtPoint;
+        
+        private float _distanceSinceLastFootstep;
+        private Vector3 _lastFootstepPosition;
         
         
         public void Initialize(NavMeshAgent monsterAgent)
@@ -156,26 +159,31 @@ namespace Monster
         {
             if (_agent == null || _agent.isStopped)
             {
-                _footstepTimer = 0f;
+                _distanceSinceLastFootstep = 0f;
+                _lastFootstepPosition = transform.position;
                 return;
             }
+
+            Vector3 currentPosition = transform.position;
+
+            Vector3 flatDelta = currentPosition - _lastFootstepPosition;
+            flatDelta.y = 0f;
 
             float currentSpeed = _agent.velocity.magnitude;
 
-            if (currentSpeed < 0.1f)
+            if (currentSpeed < minMoveSpeedToStep)
             {
-                _footstepTimer = 0f;
+                _distanceSinceLastFootstep = 0f;
+                _lastFootstepPosition = currentPosition;
                 return;
             }
 
-            float speedPercent = Mathf.Clamp01(currentSpeed / walkSpeed);
-            float currentInterval = Mathf.Lerp(maxFootstepInterval, minFootstepInterval, speedPercent);
+            _distanceSinceLastFootstep += flatDelta.magnitude;
+            _lastFootstepPosition = currentPosition;
 
-            _footstepTimer += deltaTime;
-
-            if (_footstepTimer >= currentInterval)
+            if (_distanceSinceLastFootstep >= footstepDistance)
             {
-                _footstepTimer = 0f;
+                _distanceSinceLastFootstep -= footstepDistance;
 
                 OnMonsterFootstepSound?.Invoke(transform.position);
             }
@@ -185,8 +193,11 @@ namespace Monster
         {
             _agent.isStopped = true;
             _agent.ResetPath();
+
             _sectorTimer = 0f;
             _wanderTimer = 0f;
+
+            _distanceSinceLastFootstep = 0f;
         }
         
         private bool ReachedDestination()

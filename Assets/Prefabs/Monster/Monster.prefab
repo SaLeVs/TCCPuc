@@ -176,7 +176,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Monster::MonsterWander
   ShowTopMostFoldoutHeaderGroup: 1
-  walkSpeed: 2
+  walkSpeed: 1.5
   wanderRadius: 20
   minWanderIntervalForEachPoint: 0.5
   maxWanderIntervalForEachPoint: 2.5
@@ -200,8 +200,8 @@ MonoBehaviour:
   - {fileID: 0}
   - {fileID: 0}
   - {fileID: 0}
-  minFootstepInterval: 0.3
-  maxFootstepInterval: 0.7
+  footstepDistance: 2
+  minMoveSpeedToStep: 0.3
 --- !u!114 &8380299532564787982
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -342,7 +342,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Monster::Monster.MonsterChase
   ShowTopMostFoldoutHeaderGroup: 1
-  chaseSpeed: 5
+  chaseSpeed: 4
   targetReevaluationInterval: 1
   monsterTargets: []
 --- !u!114 &3757600163404236341

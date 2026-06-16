@@ -37,6 +37,11 @@ namespace UI
         {
             joinPanel.SetActive(!joinPanel.activeSelf);
         }
+
+        public void QuitGame()
+        {
+            Application.Quit();
+        }
         
     }
 }

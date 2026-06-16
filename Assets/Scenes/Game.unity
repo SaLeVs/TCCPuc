@@ -1140,11 +1140,11 @@ PrefabInstance:
       objectReference: {fileID: 330585546}
     - target: {fileID: 5084929442723416818, guid: a3c78379119143b468f06533a1542d13, type: 3}
       propertyPath: MaxDistance
-      value: 150
+      value: 500
       objectReference: {fileID: 0}
     - target: {fileID: 5084929442723416818, guid: a3c78379119143b468f06533a1542d13, type: 3}
       propertyPath: MinDistance
-      value: 115
+      value: 1
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -7064,6 +7064,7 @@ GameObject:
   - component: {fileID: 330585545}
   - component: {fileID: 330585547}
   - component: {fileID: 330585548}
+  - component: {fileID: 330585549}
   m_Layer: 0
   m_Name: Main Camera
   m_TagString: MainCamera
@@ -7213,6 +7214,14 @@ MonoBehaviour:
       m_PostInfinity: 2
       m_RotationOrder: 4
   CustomBlends: {fileID: 0}
+--- !u!81 &330585549
+AudioListener:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 330585543}
+  m_Enabled: 1
 --- !u!1001 &341111833
 PrefabInstance:
   m_ObjectHideFlags: 0

@@ -8,14 +8,13 @@ namespace Missions
 {
     public class SoundMissionManager : MissionsManagerBase, IMissionSpawnable, IInteractable
     {
-        public static event Action<SoundMissionManager> OnLocalPlayerInteracted;
+        public event Action<SoundMissionManager> OnLocalPlayerInteracted;
+        public event Action OnSpawnCompleted;
 
         [SerializeField] private List<SpawnConfig> soundObjectConfigs;
         [SerializeField] private MissionCompleter  missionCompleter;
         
         public override bool IsComplete { get; protected set; }
-        public event Action OnSpawnCompleted;
-
         private readonly List<NetworkObject> _spawnedObjects = new();
 
         
@@ -60,6 +59,7 @@ namespace Missions
 
         public bool Interact(GameObject playerInteractor)
         {
+            if (!CanInteract(playerInteractor)) return false; 
             if (!playerInteractor.TryGetComponent(out NetworkObject networkObject)) return false;
 
             OpenUiRpc(RpcTarget.Single(networkObject.OwnerClientId, RpcTargetUse.Temp));
@@ -69,7 +69,19 @@ namespace Missions
         [Rpc(SendTo.SpecifiedInParams)]
         private void OpenUiRpc(RpcParams rpcParams = default)
         {
-            OnLocalPlayerInteracted?.Invoke(this);
+            NetworkObject localPlayer = NetworkManager.Singleton.LocalClient.PlayerObject;
+            
+            if (localPlayer == null) return;
+            
+            SoundMissionUi ui = localPlayer.GetComponentInChildren<SoundMissionUi>(true);
+            
+            if (ui == null)
+            {
+                Debug.LogError($"SoundMissionUi não encontrada em {localPlayer.name}");
+                return;
+            }
+
+            ui.Open(this);
         }
         
         [Rpc(SendTo.Server)]
@@ -94,6 +106,7 @@ namespace Missions
             }
         }
 
+        
         public override void OnNetworkDespawn()
         {
             if (!IsServer) return;
@@ -101,9 +114,13 @@ namespace Missions
             foreach (NetworkObject netObj in _spawnedObjects)
             {
                 if (netObj != null && netObj.IsSpawned)
+                {
                     netObj.Despawn();
+                }
             }
+            
             _spawnedObjects.Clear();
         }
+        
     }
 }

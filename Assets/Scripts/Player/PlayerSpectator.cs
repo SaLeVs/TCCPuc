@@ -61,6 +61,8 @@ namespace Player
             spectatorCanvas.SetActive(true);
 
             playerState.SetSpectatorMode(true);
+            Cursor.visible = true;
+            Cursor.lockState = CursorLockMode.None;
 
             RefreshAliveList();
 

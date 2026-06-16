@@ -17,12 +17,7 @@ namespace UI
             currentAngle += rotationSpeed * Time.deltaTime;
             currentAngle %= 360f;
 
-            float rad = currentAngle * Mathf.Deg2Rad;
-
-            float x = Mathf.Cos(rad) * radius;
-            float y = Mathf.Sin(rad) * radius;
-
-            pointer.anchoredPosition = new Vector2(x, y);
+            pointer.localRotation = Quaternion.Euler(0f, 0f, currentAngle);
         }
         
     } 

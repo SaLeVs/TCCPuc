@@ -24,45 +24,21 @@ namespace Systems
 
         private bool _isReady;
         private bool _isInUse;
-        
-        private int _lastPlayerCount = -1;
 
-        
         public override void OnNetworkSpawn()
         {
             playersReady.OnReadyCountChanged += PlayersReady_OnReadyCountChanged;
 
-            if (PlayerTracker.Instance != null)
-            {
-                PlayerTracker.Instance.OnPlayerConnected += PlayerTracker_OnPlayerCountChanged;
-                PlayerTracker.Instance.OnPlayerDisconnected += PlayerTracker_OnPlayerCountChanged;
-            }
-
-            SyncBoard();
+            (int readyCount, int totalCount) = playersReady.GetReadyCount();
+            RebuildIcons(totalCount);
+            UpdateIcons(readyCount);
         }
-        
-        private void Update()
+
+        private void PlayersReady_OnReadyCountChanged(int readyCount, int totalCount)
         {
-            int currentCount = PlayerTracker.Instance.ConnectedPlayerCount;
-
-            if (currentCount != _lastPlayerCount)
+            if (_icons.Count != totalCount)
             {
-                _lastPlayerCount = currentCount;
-                SyncBoard();
-            }
-        }
-        
-
-        private void SyncBoard()
-        {
-            if (PlayerTracker.Instance == null || playersReady == null) return;
-
-            int totalPlayers = PlayerTracker.Instance.ConnectedPlayerCount;
-            (int readyCount, _) = playersReady.GetReadyCount();
-
-            if (_icons.Count != totalPlayers)
-            {
-                RebuildIcons(totalPlayers);
+                RebuildIcons(totalCount);
             }
 
             UpdateIcons(readyCount);
@@ -96,21 +72,6 @@ namespace Systems
             {
                 _icons[i].SetReady(i < clampedReadyCount);
             }
-        }
-
-        private void PlayersReady_OnReadyCountChanged(int readyCount, int totalCount)
-        {
-            if (_icons.Count != totalCount)
-            {
-                RebuildIcons(totalCount);
-            }
-
-            UpdateIcons(readyCount);
-        }
-
-        private void PlayerTracker_OnPlayerCountChanged(ulong clientId)
-        {
-            SyncBoard();
         }
 
         public bool CanInteract(GameObject interactor)
@@ -147,32 +108,22 @@ namespace Systems
         {
             _isReady = !_isReady;
 
-            ulong localClientId = NetworkManager.Singleton.LocalClientId;
-
             if (_isReady)
             {
-                playersReady.SetPlayerReadyServerRpc(localClientId);
+                playersReady.SetPlayerReadyRpc();
             }
             else
             {
-                playersReady.SetPlayerNotReadyServerRpc(localClientId);
+                playersReady.SetPlayerNotReadyRpc();
             }
         }
 
-        
         public override void OnNetworkDespawn()
         {
             if (playersReady != null)
             {
                 playersReady.OnReadyCountChanged -= PlayersReady_OnReadyCountChanged;
             }
-
-            if (PlayerTracker.Instance != null)
-            {
-                PlayerTracker.Instance.OnPlayerConnected -= PlayerTracker_OnPlayerCountChanged;
-                PlayerTracker.Instance.OnPlayerDisconnected -= PlayerTracker_OnPlayerCountChanged;
-            }
         }
-        
     }
 }

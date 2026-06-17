@@ -90,6 +90,7 @@ namespace UI
         {
             lobbyManager.LeaveLobby();
             gameObject.SetActive(false);
+            lobbyCodeText.text = string.Empty;
         }
         
         

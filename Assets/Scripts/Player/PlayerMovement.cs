@@ -85,6 +85,7 @@ namespace Player
             if(_isLocked)
             {
                 _movementInput = Vector2.zero;
+                StopMovement();
             }
         }
         
@@ -134,6 +135,18 @@ namespace Player
             rb.AddForce(new Vector3(_xVelocityDifference, 0f, _zVelocityDifference), ForceMode.VelocityChange); 
             
             OnPlayerMovement?.Invoke(_currentVelocity);
+        }
+        
+        private void StopMovement()
+        {
+            rb.linearVelocity = Vector3.zero;
+            rb.angularVelocity = Vector3.zero;
+            
+            _currentVelocity = Vector2.zero;
+            _movementInput = Vector2.zero;
+            
+            _xVelocityDifference = 0f;
+            _zVelocityDifference = 0f;
         }
         
         private void HandleFootsteps()

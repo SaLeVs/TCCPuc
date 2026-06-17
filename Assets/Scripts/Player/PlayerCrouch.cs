@@ -13,21 +13,22 @@ namespace Player
         [SerializeField] private PlayerState playerState;
         [SerializeField] private InputReader inputReader;
         [SerializeField] private CapsuleCollider capsuleCollider;
-
         [SerializeField] private float speedModifier = 0.5f;
 
-        [Header("Crouch collider settings")] [SerializeField]
-        private Vector3 crouchColliderCenter;
-
+        [Header("Crouch collider settings")] 
+        [SerializeField] private Vector3 crouchColliderCenter;
+        [SerializeField] private float crouchRadius;
         [SerializeField] private float crouchHeight;
+        
         [SerializeField] private float crouchSpeed;
-
+        
         [SerializeField] private Transform ceilingCheck;
         [SerializeField] private float ceilingCheckDistance = 0.25f;
         [SerializeField] private LayerMask ceilingMask;
 
         private Vector3 _standColliderCenter;
         private float _standHeight;
+        private float _standColliderRadius;
 
         private bool _isCrouching;
         private bool _isCeilingBlocked;
@@ -49,6 +50,7 @@ namespace Player
                 
                 _standColliderCenter = capsuleCollider.center;
                 _standHeight = capsuleCollider.height;
+                _standColliderRadius = capsuleCollider.radius;
             }
         }
         
@@ -110,8 +112,8 @@ namespace Player
         private void CrouchCollider()
         {
             capsuleCollider.height = Mathf.Lerp(capsuleCollider.height, crouchHeight, crouchSpeed * Time.deltaTime);
-            capsuleCollider.center =
-                Vector3.Lerp(capsuleCollider.center, crouchColliderCenter, crouchSpeed * Time.deltaTime);
+            capsuleCollider.center = Vector3.Lerp(capsuleCollider.center, crouchColliderCenter, crouchSpeed * Time.deltaTime);
+            capsuleCollider.radius = Mathf.Lerp(capsuleCollider.radius, crouchRadius, crouchSpeed * Time.deltaTime);
 
             if (Mathf.Abs(capsuleCollider.height - crouchHeight) < 0.01f)
             {
@@ -123,8 +125,8 @@ namespace Player
         private void StandCollider()
         {
             capsuleCollider.height = Mathf.Lerp(capsuleCollider.height, _standHeight, crouchSpeed * Time.deltaTime);
-            capsuleCollider.center =
-                Vector3.Lerp(capsuleCollider.center, _standColliderCenter, crouchSpeed * Time.deltaTime);
+            capsuleCollider.center = Vector3.Lerp(capsuleCollider.center, _standColliderCenter, crouchSpeed * Time.deltaTime);
+            capsuleCollider.radius = Mathf.Lerp(capsuleCollider.radius, _standColliderRadius, crouchSpeed * Time.deltaTime);
 
             if (Mathf.Abs(capsuleCollider.height - _standHeight) < 0.01f)
             {

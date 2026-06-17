@@ -19,32 +19,68 @@ namespace Systems
         [SerializeField] private CinemachineCamera readyBoardVCam;
 
         private readonly List<ReadyIconUI> _icons = new();
+
         private IInputLockable _currentInputLockable;
+
         private bool _isReady;
         private bool _isInUse;
+        
+        private int _lastPlayerCount = -1;
 
+        
         public override void OnNetworkSpawn()
         {
-            playersReady.OnReadyCountChanged += PlayersReady_OnUpdateIcons;
-            PlayerTracker.Instance.OnPlayerConnected += PlayerTracker_OnPlayerCountChanged;
-            PlayerTracker.Instance.OnPlayerDisconnected += PlayerTracker_OnPlayerCountChanged;
+            playersReady.OnReadyCountChanged += PlayersReady_OnReadyCountChanged;
 
-            SpawnIcons();
-            RefreshCount();
+            if (PlayerTracker.Instance != null)
+            {
+                PlayerTracker.Instance.OnPlayerConnected += PlayerTracker_OnPlayerCountChanged;
+                PlayerTracker.Instance.OnPlayerDisconnected += PlayerTracker_OnPlayerCountChanged;
+            }
+
+            SyncBoard();
+        }
+        
+        private void Update()
+        {
+            int currentCount = PlayerTracker.Instance.ConnectedPlayerCount;
+
+            if (currentCount != _lastPlayerCount)
+            {
+                _lastPlayerCount = currentCount;
+                SyncBoard();
+            }
+        }
+        
+
+        private void SyncBoard()
+        {
+            if (PlayerTracker.Instance == null || playersReady == null) return;
+
+            int totalPlayers = PlayerTracker.Instance.ConnectedPlayerCount;
+            (int readyCount, _) = playersReady.GetReadyCount();
+
+            if (_icons.Count != totalPlayers)
+            {
+                RebuildIcons(totalPlayers);
+            }
+
+            UpdateIcons(readyCount);
         }
 
-        private void SpawnIcons()
+        private void RebuildIcons(int totalPlayers)
         {
             foreach (ReadyIconUI icon in _icons)
             {
-                Destroy(icon.gameObject);
+                if (icon != null)
+                {
+                    Destroy(icon.gameObject);
+                }
             }
-            
+
             _icons.Clear();
 
-            int total = PlayerTracker.Instance.ConnectedPlayerCount;
-
-            for (int i = 0; i < total; i++)
+            for (int i = 0; i < totalPlayers; i++)
             {
                 ReadyIconUI icon = Instantiate(readyIconPrefab, iconsContainer);
                 icon.SetReady(false);
@@ -52,27 +88,35 @@ namespace Systems
             }
         }
 
-        private void PlayersReady_OnUpdateIcons(int readyCount, int totalCount)
+        private void UpdateIcons(int readyCount)
         {
+            int clampedReadyCount = Mathf.Clamp(readyCount, 0, _icons.Count);
+
             for (int i = 0; i < _icons.Count; i++)
             {
-                _icons[i].SetReady(i < readyCount);
+                _icons[i].SetReady(i < clampedReadyCount);
             }
+        }
+
+        private void PlayersReady_OnReadyCountChanged(int readyCount, int totalCount)
+        {
+            if (_icons.Count != totalCount)
+            {
+                RebuildIcons(totalCount);
+            }
+
+            UpdateIcons(readyCount);
         }
 
         private void PlayerTracker_OnPlayerCountChanged(ulong clientId)
         {
-            SpawnIcons();
-            RefreshCount();
+            SyncBoard();
         }
 
-        private void RefreshCount()
+        public bool CanInteract(GameObject interactor)
         {
-            (int ready, int total) = playersReady.GetReadyCount();
-            PlayersReady_OnUpdateIcons(ready, total);
+            return !_isInUse;
         }
-
-        public bool CanInteract(GameObject interactor) => !_isInUse;
 
         public bool Interact(GameObject playerInteractor)
         {
@@ -82,6 +126,7 @@ namespace Systems
 
             _isInUse = true;
             _currentInputLockable = lockable;
+
             _currentInputLockable.SetInputLocked(true);
             readyBoardVCam.Priority = 20;
 
@@ -91,8 +136,10 @@ namespace Systems
         public void Exit()
         {
             _isInUse = false;
+
             _currentInputLockable?.SetInputLocked(false);
             _currentInputLockable = null;
+
             readyBoardVCam.Priority = 0;
         }
 
@@ -100,29 +147,32 @@ namespace Systems
         {
             _isReady = !_isReady;
 
+            ulong localClientId = NetworkManager.Singleton.LocalClientId;
+
             if (_isReady)
             {
-                playersReady.SetPlayerReadyServerRpc(NetworkManager.Singleton.LocalClientId);
+                playersReady.SetPlayerReadyServerRpc(localClientId);
             }
             else
             {
-                playersReady.SetPlayerNotReadyServerRpc(NetworkManager.Singleton.LocalClientId);
+                playersReady.SetPlayerNotReadyServerRpc(localClientId);
             }
         }
 
         
         public override void OnNetworkDespawn()
         {
-            playersReady.OnReadyCountChanged -= PlayersReady_OnUpdateIcons; 
+            if (playersReady != null)
+            {
+                playersReady.OnReadyCountChanged -= PlayersReady_OnReadyCountChanged;
+            }
 
             if (PlayerTracker.Instance != null)
             {
                 PlayerTracker.Instance.OnPlayerConnected -= PlayerTracker_OnPlayerCountChanged;
                 PlayerTracker.Instance.OnPlayerDisconnected -= PlayerTracker_OnPlayerCountChanged;
             }
-            
         }
-        
         
     }
 }

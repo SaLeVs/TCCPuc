@@ -17,7 +17,6 @@ namespace Missions
         public event Action OnMainMissionCompleted;
         
         [SerializeField] private ContractsSO currentContract;
-        [SerializeField] private int individualMissionsPerPlayer;
         
         public ContractsSO CurrentContract => currentContract;
         
@@ -217,17 +216,8 @@ namespace Missions
         private bool ValidateMissionPool()
         {
             if (_allMissionsAtContract.Count == 0) return false;
-
-            int missionsNeeded = _playersInGame.Count * individualMissionsPerPlayer;
-
-            if (_allMissionsAtContract.Count < missionsNeeded)
-            {
-                Debug.LogError(
-                    $"MissionManager: Insufficient personal missions ({currentContract.contractName}). Required: {missionsNeeded}, available: {_allMissionsAtContract.Count}"
-                    );
-                return false;
-            }
-
+            if (_playersInGame.Count == 0) return false;
+ 
             return true;
         }
         
@@ -242,26 +232,29 @@ namespace Missions
         
         private void AssignMissionsToAllPlayers()
         {
+            int totalMissions = _allMissionsAtContract.Count; 
+            int totalPlayers = _playersInGame.Count;
+            int baseCount = totalMissions / totalPlayers;
+            int remainder = totalMissions % totalPlayers;
+ 
+            int missionIndex = 0;
+ 
             foreach (ulong clientId in _playersInGame)
             {
-                List<MissionSO> missionsAssigned = AssignMissionsToPlayer();
-                _personalMissionsForPlayers[clientId] = missionsAssigned;
-                _totalPersonalMissions += missionsAssigned.Count;
-                SendMissionsToPlayer(clientId, missionsAssigned);
+                int count = baseCount + (remainder-- > 0 ? 1 : 0);
+ 
+                List<MissionSO> assigned = new List<MissionSO>();
+ 
+                for (int i = 0; i < count; i++)
+                {
+                    assigned.Add(_allMissionsAtContract[missionIndex++]);
+                }
+ 
+                _personalMissionsForPlayers[clientId] = assigned;
+                _totalPersonalMissions += assigned.Count;
+ 
+                SendMissionsToPlayer(clientId, assigned);
             }
-        }
-
-        private List<MissionSO> AssignMissionsToPlayer()
-        {
-            List<MissionSO> missionAssigned = new List<MissionSO>();
-
-            for (int i = 0; i < individualMissionsPerPlayer; i++)
-            {
-                missionAssigned.Add(_allMissionsAtContract[0]);
-                _allMissionsAtContract.RemoveAt(0);
-            }
-
-            return missionAssigned;
         }
 
         private void SendMissionsToPlayer(ulong clientId, List<MissionSO> missions)

@@ -8,17 +8,26 @@ namespace Monster
 {
     public class MonsterSearch : NetworkBehaviour
     {
-        public event Action OnSearchStartedAnimation;
+        public event Action<int> OnSearchStartedAnimation;
         public event Action OnSearchEndedAnimation;
 
         [Header("Look Around")]
-        [SerializeField] private float minLookDuration = 0.45f;
-        [SerializeField] private float maxLookDuration = 0.85f;
+        [SerializeField] private float minLookDuration = 2f;
+        [SerializeField] private float maxLookDuration = 3f;
 
         [Header("Search")]
         [SerializeField] private float destinationTolerance = 0.5f;
+        [SerializeField] private float searchLookRotationSpeed = 12f;
+
+        public bool IsFinished => _phase == SearchPhase.Finished;
+        public bool IsLookingAround => _phase == SearchPhase.LookingAround;
 
         private NavMeshAgent _agent;
+        private SearchPhase _phase;
+
+        private float _lookTimer;
+        private float _lookDuration;
+        private Vector3 _lastKnownPosition;
 
         private enum SearchPhase
         {
@@ -27,14 +36,6 @@ namespace Monster
             Finished
         }
 
-        private SearchPhase _phase;
-
-        private float _lookTimer;
-        private float _lookDuration;
-
-        public bool IsFinished => _phase == SearchPhase.Finished;
-        public bool IsLookingAround => _phase == SearchPhase.LookingAround;
-
         public void Initialize(NavMeshAgent agent)
         {
             _agent = agent;
@@ -42,11 +43,13 @@ namespace Monster
 
         public void Begin(Vector3 lastKnownPosition, float chaseSpeed)
         {
+            _lastKnownPosition = lastKnownPosition;
             _phase = SearchPhase.MovingToLastKnownPosition;
 
             _agent.isStopped = false;
             _agent.speed = chaseSpeed;
-            _agent.updateRotation = true;
+            _agent.updateRotation = false;
+
             _agent.SetDestination(lastKnownPosition);
 
             _lookTimer = 0f;
@@ -69,16 +72,29 @@ namespace Monster
 
         private void UpdateMove()
         {
+            RotateTowardsMovement();
+
             if (_agent.pathPending) return;
             if (_agent.remainingDistance > Mathf.Max(_agent.stoppingDistance, destinationTolerance)) return;
 
             _agent.isStopped = true;
             _agent.ResetPath();
-            _agent.updateRotation = false;
 
             _phase = SearchPhase.LookingAround;
 
-            OnSearchStartedAnimation?.Invoke();
+            int searchDirection = Random.Range(1, 3);
+            OnSearchStartedAnimation?.Invoke(searchDirection);
+        }
+
+        private void RotateTowardsMovement()
+        {
+            Vector3 direction = _agent.desiredVelocity;
+            direction.y = 0f;
+
+            if (direction.sqrMagnitude < 0.01f) return;
+
+            Quaternion targetRotation = Quaternion.LookRotation(direction);
+            transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, searchLookRotationSpeed * Time.deltaTime);
         }
 
         private void UpdateLookAround(float deltaTime)
@@ -96,6 +112,7 @@ namespace Monster
 
             _agent.updateRotation = true;
             _agent.isStopped = false;
+
             _phase = SearchPhase.Finished;
         }
 
@@ -103,6 +120,7 @@ namespace Monster
         {
             _agent.updateRotation = true;
             _agent.isStopped = false;
+
             _phase = SearchPhase.Finished;
         }
     }

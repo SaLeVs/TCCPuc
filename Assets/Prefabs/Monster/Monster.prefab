@@ -183,11 +183,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: Components::Components.VisionSensor
   ShowTopMostFoldoutHeaderGroup: 1
   orientation: {fileID: 5585497228665570251}
-  distance: 35
-  angle: 100
+  distance: 40
+  angle: 90
   height: 5
-  meshColor: {r: 0.9339623, g: 0.88655144, b: 0.2863564, a: 0.7647059}
-  scanFrequency: 1
+  meshColor: {r: 0.25652552, g: 1, b: 0, a: 0.7647059}
+  scanFrequency: 3
   targetLayers:
     serializedVersion: 2
     m_Bits: 2048
@@ -404,9 +404,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Monster::Monster.MonsterSearch
   ShowTopMostFoldoutHeaderGroup: 1
-  minLookDuration: 1
-  maxLookDuration: 3
+  minLookDuration: 4
+  maxLookDuration: 6
   destinationTolerance: 1
+  searchLookRotationSpeed: 12
 --- !u!114 &8840795157782606983
 MonoBehaviour:
   m_ObjectHideFlags: 0

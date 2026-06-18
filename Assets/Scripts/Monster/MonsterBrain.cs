@@ -35,6 +35,7 @@ namespace Monster
         
         public readonly List<Transform> _playersInVision = new();
         public Vector3 LastKnownTargetPosition { get; private set; }
+        public Transform LastKnownTarget { get; private set; }
         public bool ShouldEnterAlert { get; set; }
         
         private StateMachine _stateMachine;
@@ -67,28 +68,22 @@ namespace Monster
         
         private void VisionSensor_OnTargetEnter(GameObject player)
         {
-            Debug.Log($"Monster: enter - {player.name}");
-
             _playersInVision.Add(player.transform);
-
-            Debug.Log($"Monster: players in vision {_playersInVision.Count}");
-            
             OnPlayerEnterInVision?.Invoke(player.transform);
         }
         
         private void VisionSensor_OnTargetExit(GameObject player)
         {
-            Debug.Log($"Monster: exit - {player.name}");
             _playersInVision.Remove(player.transform);
-            
+
             if (_playersInVision.Count == 0)
             {
                 LastKnownTargetPosition = player.transform.position;
+                LastKnownTarget = player.transform;
+
                 ShouldEnterAlert = true;
             }
-            
-            Debug.Log($"Monster: players in vision {_playersInVision.Count}");
-            
+
             OnPlayerExitInVision?.Invoke(player.transform);
         }
         

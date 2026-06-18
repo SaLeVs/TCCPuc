@@ -19,7 +19,11 @@ namespace Monster.MonsterStates.AlertStates
 
         protected override void OnUpdate(float deltaTime)
         {
-            if (_monsterBrain._playersInVision.Count > 0) return;
+            if (_monsterBrain._playersInVision.Count > 0)
+            {
+                StateMachine.Sequencer.RequestTransition(this, ((MonsterRoot)ParentState.ParentState).HuntState);
+                return;
+            }
 
             _monsterBrain.MonsterSearch.Tick(deltaTime);
 

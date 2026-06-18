@@ -19,6 +19,7 @@ namespace Monster
         public List<Transform> monsterTargets;
         public float DistanceFromTarget => _currentDistanceFromTarget;
         public bool HasTarget => _currentTarget != null;
+        public float ChaseSpeed => chaseSpeed;
         
         private NavMeshAgent _agent;
         private List<Transform> _monsterTargets;

@@ -26,6 +26,7 @@ namespace Monster
         [SerializeField] private float footstepDistance = 2.0f;
         [SerializeField] private float minMoveSpeedToStep = 0.1f;
 
+        
         private float _footstepTimer;
         
         private NavMeshAgent _agent;

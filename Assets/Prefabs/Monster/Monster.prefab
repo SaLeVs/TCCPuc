@@ -17,6 +17,7 @@ GameObject:
   - component: {fileID: 8380299532564787982}
   - component: {fileID: 5988213072746127775}
   - component: {fileID: 3757600163404236341}
+  - component: {fileID: 5948121288489261731}
   - component: {fileID: 8840795157782606983}
   - component: {fileID: 6796257646358809532}
   - component: {fileID: 9158156660860726962}
@@ -57,7 +58,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Unity.Netcode.Runtime::Unity.Netcode.NetworkObject
-  GlobalObjectIdHash: 3148608675
+  GlobalObjectIdHash: 3265427313
   InScenePlacedSourceGlobalObjectIdHash: 3265427313
   DeferredDespawnTick: 0
   Ownership: 1
@@ -136,6 +137,7 @@ MonoBehaviour:
   monsterChase: {fileID: 5988213072746127775}
   monsterAttack: {fileID: 3757600163404236341}
   monsterAnimator: {fileID: 8840795157782606983}
+  monsterSearch: {fileID: 5948121288489261731}
 --- !u!114 &5801510265212588046
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -150,9 +152,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: Components::Components.VisionSensor
   ShowTopMostFoldoutHeaderGroup: 1
   orientation: {fileID: 4949085718853090176}
-  distance: 30
-  angle: 100
-  height: 2
+  distance: 40
+  angle: 12
+  height: 6
   meshColor: {r: 0.9339623, g: 0.88655144, b: 0.2863564, a: 0.7647059}
   scanFrequency: 1
   targetLayers:
@@ -160,7 +162,7 @@ MonoBehaviour:
     m_Bits: 2048
   occlusionLayers:
     serializedVersion: 2
-    m_Bits: 87424
+    m_Bits: 95617
   detectedObjects: []
   previousDetectedObjects: []
 --- !u!114 &1764714957470938397
@@ -358,6 +360,27 @@ MonoBehaviour:
   attackCooldown: 2
   attackDuration: 1.05
   hitbox: {fileID: 9202415151627606512}
+--- !u!114 &5948121288489261731
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2397166377357422809}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 65c8631ff35f4ac58d64ad4c8a8a7efd, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Monster::Monster.MonsterSearch
+  ShowTopMostFoldoutHeaderGroup: 1
+  monsterTransform: {fileID: 2931985732990858266}
+  minLookDuration: 0.45
+  maxLookDuration: 0.85
+  minRotationSpeed: 240
+  maxRotationSpeed: 420
+  minSweeps: 2
+  maxSweeps: 4
+  destinationTolerance: 0.5
 --- !u!114 &8840795157782606983
 MonoBehaviour:
   m_ObjectHideFlags: 0

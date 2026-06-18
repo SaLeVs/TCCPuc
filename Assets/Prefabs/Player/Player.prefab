@@ -353,6 +353,7 @@ MonoBehaviour:
   inputReader: {fileID: 11400000, guid: b8967103b22990e4685e914ae00843a6, type: 2}
   flashlight: {fileID: 136951641080088674}
   lightBeam: {fileID: 7688046360106623429}
+  playerState: {fileID: 315419889962386199}
   batteryPercentMax: 500
   batteryPercentDecreasePerSecond: 1
 --- !u!1 &317605345587534326
@@ -664,6 +665,37 @@ MonoBehaviour:
   m_hasFontAssetChanged: 0
   m_baseMaterial: {fileID: 0}
   m_maskOffset: {x: 0, y: 0, z: 0, w: 0}
+--- !u!1 &1161502781854321520
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 5790530428844984641}
+  m_Layer: 11
+  m_Name: RagdollSpawn
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &5790530428844984641
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1161502781854321520}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1450085231864165735}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1622178068460486355
 GameObject:
   m_ObjectHideFlags: 0
@@ -3498,6 +3530,7 @@ Transform:
   - {fileID: 847016756603283365}
   - {fileID: 5036788259409135564}
   - {fileID: 1332281208470505733}
+  - {fileID: 5790530428844984641}
   - {fileID: 3401048168953547627}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -3609,6 +3642,7 @@ MonoBehaviour:
   playerInteractor: {fileID: 7401217255654113804}
   playerDead: {fileID: 3147938662615095034}
   playerCamera: {fileID: 9106684494112449477}
+  playerCameraOffset: {fileID: 229846428463956236}
 --- !u!114 &1694504125787105123
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -3738,7 +3772,6 @@ MonoBehaviour:
   playerState: {fileID: 315419889962386199}
   cinemachineCamera: {fileID: 6800444975667494322}
   cameraRoot: {fileID: 5036788259409135564}
-  deathCameraBone: {fileID: 3036463995372508531}
   cameraMoveSpeed: 10
   standingOffset: {x: 0, y: 1, z: 0.35}
   crouchOffset: {x: 0, y: 0.7, z: 0.45}
@@ -3827,6 +3860,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: Player::Player.PlayerDead
   ShowTopMostFoldoutHeaderGroup: 1
   playerHealth: {fileID: 411051831112395948}
+  playerAnimator: {fileID: 4944136999074124671}
+  ragdollSpawnRoot: {fileID: 5790530428844984641}
+  ragdollPrefab: {fileID: 7429760074917165057, guid: bc083590359f6df45ae8d806d5735b69, type: 3}
   deadLayer:
     serializedVersion: 2
     m_Bits: 4096

@@ -183,16 +183,20 @@ namespace Components
             if (!objectForTest.TryGetComponent(out Collider collider)) return false;
 
             _destination = collider.bounds.center;
+
+            Vector3 directionToTarget = _destination - orientation.position;
+            
+            if (directionToTarget.magnitude > distance) return false;
+            
             Vector3 localPos = orientation.InverseTransformPoint(_destination);
 
-            if (localPos.z < 0f || localPos.z > distance) return false;
-
-            float halfWidth = Mathf.Tan(angle * Mathf.Deg2Rad) * localPos.z;
+            if (localPos.y < -height * 0.5f || localPos.y > height * 0.5f) return false;
             
-            if (Mathf.Abs(localPos.x) > halfWidth) return false;
-            
-            if (localPos.y < -height / 2f || localPos.y > height / 2f) return false;
+            float dot = Vector3.Dot(orientation.forward, directionToTarget.normalized);
+            float minDot = Mathf.Cos(angle * 0.5f * Mathf.Deg2Rad);
 
+            if (dot < minDot) return false;
+            
             if (Physics.Linecast(orientation.position, _destination, occlusionLayers)) return false;
 
             return true;

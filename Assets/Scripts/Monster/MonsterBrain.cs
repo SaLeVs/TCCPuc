@@ -23,6 +23,7 @@ namespace Monster
         [SerializeField] private MonsterChase monsterChase;
         [SerializeField] private MonsterAttack monsterAttack;
         [SerializeField] private MonsterAnimator monsterAnimator;
+        [SerializeField] private MonsterSearch monsterSearch;
         
         
         public MonsterWander MonsterWander => monsterWander;
@@ -30,7 +31,12 @@ namespace Monster
         public MonsterChase MonsterChase => monsterChase;
         public MonsterAttack MonsterAttack => monsterAttack;
         public MonsterAnimator MonsterAnimator => monsterAnimator;
+        public MonsterSearch MonsterSearch => monsterSearch;
+        
         public readonly List<Transform> _playersInVision = new();
+        public Vector3 LastKnownTargetPosition { get; private set; }
+        public Transform LastKnownTarget { get; private set; }
+        public bool ShouldEnterAlert { get; set; }
         
         private StateMachine _stateMachine;
         private State _rootState;
@@ -51,6 +57,7 @@ namespace Monster
             MonsterChase.Initialize(_playersInVision, navMeshAgent, this);
             MonsterAnimator.Initialize(this);
             MonsterSabotage.Initialize();
+            MonsterSearch.Initialize(navMeshAgent);
             
             if (!IsServer) return;
             
@@ -68,6 +75,15 @@ namespace Monster
         private void VisionSensor_OnTargetExit(GameObject player)
         {
             _playersInVision.Remove(player.transform);
+
+            if (_playersInVision.Count == 0)
+            {
+                LastKnownTargetPosition = player.transform.position;
+                LastKnownTarget = player.transform;
+
+                ShouldEnterAlert = true;
+            }
+
             OnPlayerExitInVision?.Invoke(player.transform);
         }
         
@@ -81,7 +97,7 @@ namespace Monster
             
             if (statePath != _lastPath)
             {
-                Debug.Log($"State: {statePath}");
+                Debug.Log($"Monster: State: {statePath}");
                 _lastPath = statePath;
             }
         }

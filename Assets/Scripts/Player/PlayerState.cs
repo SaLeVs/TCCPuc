@@ -27,6 +27,7 @@ namespace Player
         [SerializeField] private PlayerInteractor playerInteractor;
         [SerializeField] private PlayerDead playerDead;
         [SerializeField] private PlayerCamera playerCamera;
+        [SerializeField] private PlayerCameraOffset playerCameraOffset;
 
         public bool IsDead => playerDead.IsDead;
         public CinemachineCamera PlayerCinemachineCamera => playerCamera.playerCinemachineCamera;
@@ -49,6 +50,7 @@ namespace Player
                 playerInventory.OnSelectedSlotChanged += PlayerInventory_OnSelectedSlotChanged;
                 
                 playerDead.OnDeathEvent += PlayerDead_OnDeathEvent;
+                playerDead.OnRagdollSpawned += PlayerDead_OnRagdollSpawned;
             }
 
             if (TryGetComponent(out NetworkObject networkObject))
@@ -62,6 +64,7 @@ namespace Player
             }
         }
         
+
         private IEnumerator DebugPosition()
         {
             yield return null;
@@ -114,6 +117,11 @@ namespace Player
             {
                 NotifyDeathServerRpc();
             }
+        }
+        
+        private void PlayerDead_OnRagdollSpawned(Transform ragdollBone)
+        {
+            playerCameraOffset.SetDeathCameraBone(ragdollBone);
         }
 
 

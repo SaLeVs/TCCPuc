@@ -43,7 +43,6 @@ namespace Network
             try
             { 
                 _allocation = await RelayService.Instance.JoinAllocationAsync(joinCode);
-                
             }
             catch (Exception e)
             {
@@ -58,7 +57,11 @@ namespace Network
             }
             
             NetworkManager.Singleton.StartClient();
-            
+        }
+        
+        public void StartLanClient()
+        {
+            NetworkManager.Singleton.StartClient();
         }
         
     }

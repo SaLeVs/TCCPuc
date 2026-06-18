@@ -24,19 +24,24 @@ namespace Monster.MonsterStates
 
         protected override State GetTransitionState()
         {
-            bool hasTargets = _monsterBrain._playersInVision.Any(playerTarget => playerTarget);
-            
+            bool hasTargets = _monsterBrain._playersInVision.Any();
+
             if (hasTargets && ActiveChild != HuntState)
             {
                 return HuntState;
             }
-            
-            if (!hasTargets && ActiveChild != RoamingState)
+
+            if (!hasTargets && _monsterBrain.ShouldEnterAlert && ActiveChild != AlertState)
+            {
+                return AlertState;
+            }
+
+            if (!hasTargets && !_monsterBrain.ShouldEnterAlert && ActiveChild != RoamingState)
             {
                 return RoamingState;
             }
 
-            return null;  
+            return null;
         } 
     }
 }

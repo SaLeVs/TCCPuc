@@ -10,7 +10,6 @@ namespace Player
         [SerializeField] private PlayerState playerState;
         [SerializeField] private CinemachineCamera cinemachineCamera;
         [SerializeField] private Transform cameraRoot;
-        [SerializeField] private Transform deathCameraBone;
         
         [SerializeField] private float cameraMoveSpeed = 10f;
         [SerializeField] private Vector3 standingOffset;
@@ -23,6 +22,7 @@ namespace Player
         private bool _isRunning;
         private bool _isCrouching;
         private bool _isDead;
+        private Transform _deathCameraBone;
         
         
         public override void OnNetworkSpawn()
@@ -59,20 +59,31 @@ namespace Player
             _isCrouching = isCrouching;
             UpdateCameraOffset();
         }
+
+        public void SetDeathCameraBone(Transform bone)
+        {
+            _deathCameraBone = bone;
+
+            if (_isDead && _deathCameraBone != null)
+            {
+                cameraRoot.SetParent(_deathCameraBone, worldPositionStays: true);
+            }
+        }
         
         private void PlayerState_OnPlayerDead(bool isDead)
         {
             _isDead = isDead;
-    
-            if (_isDead && deathCameraBone != null)
+
+            if (_isDead && _deathCameraBone != null)
             {
-                cameraRoot.SetParent(deathCameraBone, worldPositionStays: true);
+                cameraRoot.SetParent(_deathCameraBone, worldPositionStays: true);
             }
             else
             {
                 cameraRoot.SetParent(_originalParent, worldPositionStays: true);
+                _deathCameraBone = null;
             }
-    
+
             UpdateCameraOffset();
         }
         

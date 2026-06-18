@@ -14,39 +14,37 @@ namespace Systems
             NetworkVariableReadPermission.Everyone,
             NetworkVariableWritePermission.Server
         );
-        
+
         private NetworkVariable<bool> _isEnabled = new NetworkVariable<bool>(
             false,
             NetworkVariableReadPermission.Everyone,
             NetworkVariableWritePermission.Server
         );
+
         private NetworkVariable<bool> _isActivated = new NetworkVariable<bool>(
             false,
             NetworkVariableReadPermission.Everyone,
             NetworkVariableWritePermission.Server
         );
 
-        
         public override void OnNetworkSpawn()
         {
             _isEnabled.OnValueChanged += ReadyTotem_IsEnabled;
             _isActivated.OnValueChanged += ReadyTotem_IsActivated;
-            
+
             totemVisual.SetActive(_isEnabled.Value);
-            
         }
-        
-        
+
         private void ReadyTotem_IsEnabled(bool previousValue, bool newValue)
         {
             totemVisual.SetActive(newValue);
         }
-        
+
         private void ReadyTotem_IsActivated(bool previousValue, bool newValue)
         {
             if (newValue)
             {
-                totemVisual.SetActive(false); 
+                totemVisual.SetActive(false);
             }
         }
 
@@ -75,9 +73,9 @@ namespace Systems
             if (!CanInteract(playerNetworkObject.gameObject)) return;
 
             _isActivated.Value = true;
-            playersReady.SetPlayerReadyServerRpc(playerNetworkObject.OwnerClientId);
+            playersReady.SetPlayerReadyServer(playerNetworkObject.OwnerClientId);
         }
-        
+
         public bool CanInteract(GameObject interactor)
         {
             if (!_isEnabled.Value || _isActivated.Value) return false;
@@ -85,14 +83,11 @@ namespace Systems
 
             return netObj.OwnerClientId == _ownerClientId.Value;
         }
-        
+
         public override void OnNetworkDespawn()
         {
             _isEnabled.OnValueChanged -= ReadyTotem_IsEnabled;
             _isActivated.OnValueChanged -= ReadyTotem_IsActivated;
-            
         }
-        
-    } 
+    }
 }
-

@@ -33,6 +33,7 @@ namespace Player
         private float _currentUpperLayerWeight;
 
         private bool _isLocked;
+        private bool _isDead;
         
         
         public override void OnNetworkSpawn()
@@ -99,7 +100,12 @@ namespace Player
         
         private void PlayerState_OnPlayerDead(bool isDead)
         {
-            animator.SetTrigger(_deadHash);
+            _isDead = isDead;
+
+            if (isDead)
+            {
+                enabled = false;
+            }
         }
         
         private void PlayerState_OnPlayerLocked(bool locked)

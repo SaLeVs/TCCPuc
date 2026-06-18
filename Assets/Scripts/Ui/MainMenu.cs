@@ -12,6 +12,9 @@ namespace UI
         [SerializeField] private Lobby lobby;
         [SerializeField] private GameObject lobbyPanel;
         [SerializeField] private GameObject joinPanel;
+        [SerializeField] private GameObject onlinePanel;
+        [SerializeField] private GameObject lanPanel;
+        [SerializeField] private GameObject menuPanel;
 
         private void Start()
         {
@@ -36,6 +39,25 @@ namespace UI
         public void ToggleLobbyPanel()
         {
             joinPanel.SetActive(!joinPanel.activeSelf);
+        }
+
+        public void OpenOnlinePanel()
+        {
+            lanPanel.SetActive(false);
+            onlinePanel.SetActive(true);
+        }
+
+        public void OpenLanPanel()
+        {
+            onlinePanel.SetActive(false);
+            lanPanel.SetActive(true);
+        }
+
+        public void ReturnToMenuPanel()
+        {
+            lanPanel.SetActive(false);
+            onlinePanel.SetActive(false);
+            menuPanel.SetActive(true);
         }
 
         public void QuitGame()

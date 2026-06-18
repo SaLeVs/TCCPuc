@@ -19,32 +19,44 @@ namespace Systems
         [SerializeField] private CinemachineCamera readyBoardVCam;
 
         private readonly List<ReadyIconUI> _icons = new();
+
         private IInputLockable _currentInputLockable;
+
         private bool _isReady;
         private bool _isInUse;
 
         public override void OnNetworkSpawn()
         {
-            playersReady.OnReadyCountChanged += PlayersReady_OnUpdateIcons;
-            PlayerTracker.Instance.OnPlayerConnected += PlayerTracker_OnPlayerCountChanged;
-            PlayerTracker.Instance.OnPlayerDisconnected += PlayerTracker_OnPlayerCountChanged;
+            playersReady.OnReadyCountChanged += PlayersReady_OnReadyCountChanged;
 
-            SpawnIcons();
-            RefreshCount();
+            (int readyCount, int totalCount) = playersReady.GetReadyCount();
+            RebuildIcons(totalCount);
+            UpdateIcons(readyCount);
         }
 
-        private void SpawnIcons()
+        private void PlayersReady_OnReadyCountChanged(int readyCount, int totalCount)
+        {
+            if (_icons.Count != totalCount)
+            {
+                RebuildIcons(totalCount);
+            }
+
+            UpdateIcons(readyCount);
+        }
+
+        private void RebuildIcons(int totalPlayers)
         {
             foreach (ReadyIconUI icon in _icons)
             {
-                Destroy(icon.gameObject);
+                if (icon != null)
+                {
+                    Destroy(icon.gameObject);
+                }
             }
-            
+
             _icons.Clear();
 
-            int total = PlayerTracker.Instance.ConnectedPlayerCount;
-
-            for (int i = 0; i < total; i++)
+            for (int i = 0; i < totalPlayers; i++)
             {
                 ReadyIconUI icon = Instantiate(readyIconPrefab, iconsContainer);
                 icon.SetReady(false);
@@ -52,27 +64,20 @@ namespace Systems
             }
         }
 
-        private void PlayersReady_OnUpdateIcons(int readyCount, int totalCount)
+        private void UpdateIcons(int readyCount)
         {
+            int clampedReadyCount = Mathf.Clamp(readyCount, 0, _icons.Count);
+
             for (int i = 0; i < _icons.Count; i++)
             {
-                _icons[i].SetReady(i < readyCount);
+                _icons[i].SetReady(i < clampedReadyCount);
             }
         }
 
-        private void PlayerTracker_OnPlayerCountChanged(ulong clientId)
+        public bool CanInteract(GameObject interactor)
         {
-            SpawnIcons();
-            RefreshCount();
+            return !_isInUse;
         }
-
-        private void RefreshCount()
-        {
-            (int ready, int total) = playersReady.GetReadyCount();
-            PlayersReady_OnUpdateIcons(ready, total);
-        }
-
-        public bool CanInteract(GameObject interactor) => !_isInUse;
 
         public bool Interact(GameObject playerInteractor)
         {
@@ -82,6 +87,7 @@ namespace Systems
 
             _isInUse = true;
             _currentInputLockable = lockable;
+
             _currentInputLockable.SetInputLocked(true);
             readyBoardVCam.Priority = 20;
 
@@ -91,8 +97,10 @@ namespace Systems
         public void Exit()
         {
             _isInUse = false;
+
             _currentInputLockable?.SetInputLocked(false);
             _currentInputLockable = null;
+
             readyBoardVCam.Priority = 0;
         }
 
@@ -102,27 +110,20 @@ namespace Systems
 
             if (_isReady)
             {
-                playersReady.SetPlayerReadyServerRpc(NetworkManager.Singleton.LocalClientId);
+                playersReady.SetPlayerReadyRpc();
             }
             else
             {
-                playersReady.SetPlayerNotReadyServerRpc(NetworkManager.Singleton.LocalClientId);
+                playersReady.SetPlayerNotReadyRpc();
             }
         }
 
-        
         public override void OnNetworkDespawn()
         {
-            playersReady.OnReadyCountChanged -= PlayersReady_OnUpdateIcons; 
-
-            if (PlayerTracker.Instance != null)
+            if (playersReady != null)
             {
-                PlayerTracker.Instance.OnPlayerConnected -= PlayerTracker_OnPlayerCountChanged;
-                PlayerTracker.Instance.OnPlayerDisconnected -= PlayerTracker_OnPlayerCountChanged;
+                playersReady.OnReadyCountChanged -= PlayersReady_OnReadyCountChanged;
             }
-            
         }
-        
-        
     }
 }

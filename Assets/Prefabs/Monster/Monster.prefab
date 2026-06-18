@@ -1,5 +1,36 @@
 %YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
+--- !u!1 &1577402406685240774
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 5585497228665570251}
+  m_Layer: 0
+  m_Name: HeadVision
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &5585497228665570251
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1577402406685240774}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0.26916954, y: -0.000000005587935, z: 0.000000004190951, w: 0.96309286}
+  m_LocalPosition: {x: -0, y: 0.117, z: 0.205}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 3778472519562433395}
+  m_LocalEulerAnglesHint: {x: -31.23, y: 0, z: 0}
 --- !u!1 &2397166377357422809
 GameObject:
   m_ObjectHideFlags: 0
@@ -17,6 +48,7 @@ GameObject:
   - component: {fileID: 8380299532564787982}
   - component: {fileID: 5988213072746127775}
   - component: {fileID: 3757600163404236341}
+  - component: {fileID: 5948121288489261731}
   - component: {fileID: 8840795157782606983}
   - component: {fileID: 6796257646358809532}
   - component: {fileID: 9158156660860726962}
@@ -57,7 +89,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Unity.Netcode.Runtime::Unity.Netcode.NetworkObject
-  GlobalObjectIdHash: 3148608675
+  GlobalObjectIdHash: 3265427313
   InScenePlacedSourceGlobalObjectIdHash: 3265427313
   DeferredDespawnTick: 0
   Ownership: 1
@@ -136,6 +168,7 @@ MonoBehaviour:
   monsterChase: {fileID: 5988213072746127775}
   monsterAttack: {fileID: 3757600163404236341}
   monsterAnimator: {fileID: 8840795157782606983}
+  monsterSearch: {fileID: 5948121288489261731}
 --- !u!114 &5801510265212588046
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -149,18 +182,18 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Components::Components.VisionSensor
   ShowTopMostFoldoutHeaderGroup: 1
-  orientation: {fileID: 4949085718853090176}
-  distance: 15
-  angle: 75
-  height: 1.8
-  meshColor: {r: 0.9339623, g: 0.88655144, b: 0.2863564, a: 0.7647059}
-  scanFrequency: 1
+  orientation: {fileID: 5585497228665570251}
+  distance: 40
+  angle: 90
+  height: 5
+  meshColor: {r: 0.25652552, g: 1, b: 0, a: 0.7647059}
+  scanFrequency: 3
   targetLayers:
     serializedVersion: 2
     m_Bits: 2048
   occlusionLayers:
     serializedVersion: 2
-    m_Bits: 83328
+    m_Bits: 95617
   detectedObjects: []
   previousDetectedObjects: []
 --- !u!114 &1764714957470938397
@@ -358,6 +391,23 @@ MonoBehaviour:
   attackCooldown: 2
   attackDuration: 1.05
   hitbox: {fileID: 9202415151627606512}
+--- !u!114 &5948121288489261731
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2397166377357422809}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 65c8631ff35f4ac58d64ad4c8a8a7efd, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Monster::Monster.MonsterSearch
+  ShowTopMostFoldoutHeaderGroup: 1
+  minLookDuration: 4
+  maxLookDuration: 6
+  destinationTolerance: 1
+  searchLookRotationSpeed: 12
 --- !u!114 &8840795157782606983
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -543,7 +593,10 @@ PrefabInstance:
       objectReference: {fileID: 2100000, guid: 77b494d4ef031374b9f4af9b4fa66bc5, type: 2}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
-    m_AddedGameObjects: []
+    m_AddedGameObjects:
+    - targetCorrespondingSourceObject: {fileID: -3321919801592875672, guid: aae79147144b5ca4aa65b7b4043dce19, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 5585497228665570251}
     m_AddedComponents:
     - targetCorrespondingSourceObject: {fileID: 2715566404302941441, guid: aae79147144b5ca4aa65b7b4043dce19, type: 3}
       insertIndex: -1
@@ -552,6 +605,11 @@ PrefabInstance:
       insertIndex: -1
       addedObject: {fileID: 9202415151627606512}
   m_SourcePrefab: {fileID: 100100000, guid: aae79147144b5ca4aa65b7b4043dce19, type: 3}
+--- !u!4 &3778472519562433395 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: -3321919801592875672, guid: aae79147144b5ca4aa65b7b4043dce19, type: 3}
+  m_PrefabInstance: {fileID: 7316659679979922971}
+  m_PrefabAsset: {fileID: 0}
 --- !u!95 &3811006942233549706 stripped
 Animator:
   m_CorrespondingSourceObject: {fileID: 5866666021909216657, guid: aae79147144b5ca4aa65b7b4043dce19, type: 3}

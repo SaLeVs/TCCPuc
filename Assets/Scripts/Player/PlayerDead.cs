@@ -8,16 +8,23 @@ namespace Player
     public class PlayerDead : NetworkBehaviour
     {
         public event Action<bool> OnDeathEvent;
+        public event Action<Transform> OnRagdollSpawned;
         public static Action<Vector3> OnDeathSound;
         
 
         [SerializeField] private Health playerHealth;
+        [SerializeField] private Animator playerAnimator;
+        [SerializeField] private Transform ragdollSpawnRoot;
+        [SerializeField] private GameObject ragdollPrefab;
+        
         [SerializeField] private LayerMask deadLayer;
         [SerializeField] private LayerMask aliveLayer;
 
         public bool IsDead => _isDead.Value;
         
         private NetworkVariable<bool> _isDead = new NetworkVariable<bool>();
+        private GameObject _spawnedRagdoll;
+        private bool _deathHandled;
 
         
         public override void OnNetworkSpawn()
@@ -42,12 +49,24 @@ namespace Player
         private void PlayerDead_OnIsDeadChanged(bool previous, bool current)
         {
             ApplyLayerState(current);
-            OnDeathEvent?.Invoke(current);
-            
+
             if (current)
             {
+                HandleDeathLocally();
                 OnDeathSound?.Invoke(transform.position);
             }
+
+            OnDeathEvent?.Invoke(current);
+        }
+        
+        private void HandleDeathLocally()
+        {
+            if (_deathHandled) return;
+
+            _deathHandled = true;
+
+            SpawnRagdoll();
+            DisableLivingBody();
         }
         
         private void ApplyLayerState(bool dead)
@@ -80,6 +99,41 @@ namespace Player
             return layerIndex;
         }
         
+        private void DisableLivingBody()
+        {
+            if (playerAnimator != null) playerAnimator.enabled = false;
+
+            foreach (Renderer renderer in GetComponentsInChildren<Renderer>(true))
+            {
+                renderer.enabled = false;
+            }
+
+            foreach (Collider collider in GetComponentsInChildren<Collider>(true))
+            {
+                collider.enabled = false;
+            }
+        }
+        
+        private void SpawnRagdoll()
+        {
+            Transform spawnRoot = ragdollSpawnRoot != null ? ragdollSpawnRoot : transform;
+            _spawnedRagdoll = Instantiate(ragdollPrefab, spawnRoot.position, spawnRoot.rotation);
+
+            if (_spawnedRagdoll.TryGetComponent(out PlayerRagdoll ragdoll))
+            {
+                ragdoll.InitializeFrom(spawnRoot);
+                OnRagdollSpawned?.Invoke(ragdoll.HeadBone);
+            }
+
+            ApplyDeadLayerToRagdoll(_spawnedRagdoll);
+        }
+        
+        private void ApplyDeadLayerToRagdoll(GameObject ragdoll)
+        {
+            int layerIndex = LayerMaskToLayer(deadLayer);
+            SetLayerRecursively(ragdoll, layerIndex);
+        }
+        
         
         public override void OnNetworkDespawn()
         {
@@ -89,7 +143,14 @@ namespace Player
             {
                 playerHealth.OnDie -= PlayerHealth_OnDie; 
             }
+            
+            if (_spawnedRagdoll != null)
+            {
+                Destroy(_spawnedRagdoll);
+            }
+            
         }
+        
         
     }
 }

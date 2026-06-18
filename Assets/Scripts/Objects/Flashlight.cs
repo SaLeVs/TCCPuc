@@ -1,5 +1,6 @@
 using System;
 using Inputs;
+using Player;
 using Unity.Netcode;
 using UnityEngine;
 
@@ -12,6 +13,7 @@ namespace Objects
         [SerializeField] private InputReader inputReader;
         [SerializeField] private Light flashlight;
         [SerializeField] private GameObject lightBeam;
+        [SerializeField] private PlayerState playerState;
 
         [SerializeField] private int batteryPercentMax = 100;
         [SerializeField] private int batteryPercentDecreasePerSecond = 10;
@@ -22,6 +24,8 @@ namespace Objects
         private NetworkVariable<bool> _isFlashlightOn = new NetworkVariable<bool>();
 
         private bool _batteryDead;
+        private bool _isPlayerDead;
+        private bool _isPlayerLocked;
 
         public override void OnNetworkSpawn()
         {
@@ -36,11 +40,16 @@ namespace Objects
             if (IsOwner)
             {
                 inputReader.OnFlashlightEvent += OnFlashlightInput;
+                playerState.OnPlayerDead += PlayerState_OnPlayerDead;
+                playerState.OnPlayerLocked += PlayerState_OnPlayerLocked;
             }
 
             UpdateFlashlightVisual(_isFlashlightOn.Value);
         }
-
+        
+        private void PlayerState_OnPlayerDead(bool isPlayerDead) => _isPlayerDead = isPlayerDead;
+        private void PlayerState_OnPlayerLocked(bool isPlayerLocked) => _isPlayerLocked = isPlayerLocked;
+        
         private void OnBatteryChanged(float previous, float current)
         {
             OnBatteryPercentChangedEvent?.Invoke((int)current);
@@ -53,6 +62,8 @@ namespace Objects
         
         private void OnFlashlightInput() 
         {
+            if(_isPlayerLocked || _isPlayerDead) return;
+            
             ToggleFlashlightServerRpc();
         }
 
@@ -118,6 +129,8 @@ namespace Objects
             if (IsOwner)
             {
                 inputReader.OnFlashlightEvent -= OnFlashlightInput;
+                playerState.OnPlayerDead -= PlayerState_OnPlayerDead;
+                playerState.OnPlayerLocked -= PlayerState_OnPlayerLocked;
             }
             
         }

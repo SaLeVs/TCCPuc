@@ -39,7 +39,8 @@ namespace Player
         public override void OnNetworkSpawn()
         {
             Physics.SyncTransforms();
-            
+            playerDead.OnDeathEvent += PlayerDead_OnDeathEvent;
+
             if (IsOwner)
             {
                 playerMovement.OnPlayerMovement += PlayerMovement_OnPlayerMovement;
@@ -49,7 +50,7 @@ namespace Player
                 playerInteractor.OnInteractRequested += PlayerInteractor_OnInteractRequested;
                 playerInventory.OnSelectedSlotChanged += PlayerInventory_OnSelectedSlotChanged;
                 
-                playerDead.OnDeathEvent += PlayerDead_OnDeathEvent;
+               
                 playerDead.OnRagdollSpawned += PlayerDead_OnRagdollSpawned;
             }
 
@@ -113,7 +114,8 @@ namespace Player
         private void PlayerDead_OnDeathEvent(bool isDead)
         {
             OnPlayerDead?.Invoke(isDead);
-            if (isDead)
+
+            if (isDead && IsOwner) 
             {
                 NotifyDeathServerRpc();
             }
@@ -204,6 +206,8 @@ namespace Player
         
         public override void OnNetworkDespawn()
         {
+            playerDead.OnDeathEvent -= PlayerDead_OnDeathEvent;
+
             if (IsOwner)
             {
                 playerMovement.OnPlayerMovement -= PlayerMovement_OnPlayerMovement;
@@ -212,9 +216,8 @@ namespace Player
                 
                 playerInteractor.OnInteractRequested -= PlayerInteractor_OnInteractRequested;
                 playerInventory.OnSelectedSlotChanged -= PlayerInventory_OnSelectedSlotChanged;
-                
-                playerDead.OnDeathEvent -= PlayerDead_OnDeathEvent;
             }
+
         }
         
     }

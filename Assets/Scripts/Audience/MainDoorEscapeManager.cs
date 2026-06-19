@@ -1,5 +1,6 @@
 using Audience;
 using Missions;
+using Unity.AI.Navigation;
 using Unity.Netcode;
 using UnityEngine;
 
@@ -13,6 +14,7 @@ namespace Audience
         
         [SerializeField] private string messageForAudiencePending;
         [SerializeField] private string messageForAllObjectivesCompletion;
+        [SerializeField] private NavMeshSurface navMeshSurface;
 
         private static readonly int OpenHash = Animator.StringToHash("Open");
 
@@ -72,6 +74,7 @@ namespace Audience
         private void OpenEscapeRoomDoorRpc()
         {
             escapeDoorAnimator.SetTrigger(OpenHash);
+            navMeshSurface.BuildNavMesh();
         }
 
         public override void OnNetworkDespawn()

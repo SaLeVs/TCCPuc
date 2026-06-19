@@ -10,8 +10,8 @@ namespace Objects
         [SerializeField] private FloppyDiskTotem floppyDiskTotem;
         [SerializeField] private Animator leftDoorAnimator;
         [SerializeField] private Animator rightDoorAnimator;
-        [SerializeField] private MissionManager missionManager; // +
-        [SerializeField] private string messageForDoorsOpen; 
+        [SerializeField] private MissionManager missionManager; 
+        [SerializeField] private string messageForDoorsOpen;
 
         private static readonly int OpenHash = Animator.StringToHash("Open");
 
@@ -36,7 +36,7 @@ namespace Objects
             leftDoorAnimator.SetTrigger(OpenHash);
             rightDoorAnimator.SetTrigger(OpenHash);
         }
-
+        
         
         public override void OnNetworkDespawn()
         {

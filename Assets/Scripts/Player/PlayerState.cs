@@ -10,6 +10,7 @@ namespace Player
     public class PlayerState : NetworkBehaviour, IInputLockable
     {
         public event Action<Vector2> OnPlayerMovement;
+        public event Action<Vector2> OnPlayerMovementInput;
         public event Action<bool> OnRunEvent;
         public event Action<bool> OnCrouchEvent;
         public event Action OnInteract;
@@ -34,6 +35,7 @@ namespace Player
         public bool HasEscapedServerSide { get; set; }
         
         private bool _isInputLocked;
+        private Vector2 _movementInput;
         
         
         public override void OnNetworkSpawn()
@@ -44,6 +46,8 @@ namespace Player
             if (IsOwner)
             {
                 playerMovement.OnPlayerMovement += PlayerMovement_OnPlayerMovement;
+                playerMovement.OnPlayerMovementInput += ;
+
                 playerRun.OnRunEvent += PlayerRun_OnRunEvent;
                 playerCrouch.OnCrouchEvent += PlayerCrouch_OnCrouchEvent;
                 
@@ -91,6 +95,11 @@ namespace Player
             OnPlayerMovement?.Invoke(playerVelocity);
         }
         
+        private void PlayerMovement_OnPlayerMovementInput(Vector2 playerInput)
+        {
+            OnPlayerMovementInput?.Invoke(playerInput);
+        }
+
         private void PlayerRun_OnRunEvent(bool isRunning)
         {
             OnRunEvent?.Invoke(isRunning);

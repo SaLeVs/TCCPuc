@@ -11,6 +11,7 @@ namespace Player
     {
         public event Action<Vector2> OnPlayerMovement;
         public static Action<Vector3> OnFootstepSound;
+        public event Action<Vector2> OnPlayerMovementInput;
         
         [SerializeField] private PlayerState playerState;
         
@@ -66,7 +67,11 @@ namespace Player
         }
 
         
-        private void InputReader_OnMoveEvent(Vector2 movementInput) => _movementInput = movementInput;
+        private void InputReader_OnMoveEvent(Vector2 movementInput)
+        {
+            _movementInput = movementInput;
+            OnPlayerMovementInput?.Invoke(movementInput);
+        } 
         
         private void PlayerState_OnPlayerDead(bool isDead)
         {

@@ -33,6 +33,9 @@ namespace Monster.MonsterStates
 
             if (!hasTargets && _monsterBrain.ShouldEnterAlert && ActiveChild != AlertState)
             {
+                MonsterHunt hunt = (MonsterHunt)HuntState;
+                
+                if (ActiveChild == HuntState && hunt.ActiveChild == hunt.attackState) return null;
                 return AlertState;
             }
 
@@ -42,6 +45,6 @@ namespace Monster.MonsterStates
             }
 
             return null;
-        } 
+        }
     }
 }

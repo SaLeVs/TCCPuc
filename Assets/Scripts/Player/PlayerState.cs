@@ -46,7 +46,7 @@ namespace Player
             if (IsOwner)
             {
                 playerMovement.OnPlayerMovement += PlayerMovement_OnPlayerMovement;
-                playerMovement.OnPlayerMovementInput += ;
+                playerMovement.OnPlayerMovementInput += PlayerMovement_OnPlayerMovementInput;
 
                 playerRun.OnRunEvent += PlayerRun_OnRunEvent;
                 playerCrouch.OnCrouchEvent += PlayerCrouch_OnCrouchEvent;

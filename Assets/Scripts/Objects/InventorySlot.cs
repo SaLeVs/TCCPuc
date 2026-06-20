@@ -9,7 +9,9 @@ namespace Objects
     public class InventorySlot : MonoBehaviour
     {
         [SerializeField] private Image itemIcon;
+        [SerializeField] private GameObject slotImage;
         [SerializeField] private GameObject highlightSlot;
+        
 
         public int SlotIndex { get; private set; }
 
@@ -24,12 +26,14 @@ namespace Objects
         {
             itemIcon.sprite = itemData.icon;
             itemIcon.enabled = true;
+            slotImage.SetActive(true);
         }
 
         public void Clear()
         {
             itemIcon.enabled = false;
             itemIcon.sprite = null;
+            slotImage.SetActive(false);
         }
 
         public void SetHighlight(bool value)

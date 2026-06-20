@@ -1,6 +1,7 @@
 using System;
 using Unity.Netcode;
 using UnityEngine;
+using UnityEngine.AI;
 
 namespace Monster
 {
@@ -21,6 +22,7 @@ namespace Monster
         
         private float _timer;
         private bool _isAttacking;
+        private NavMeshAgent _agent;
 
 
         public override void OnNetworkSpawn()
@@ -29,10 +31,19 @@ namespace Monster
             hitbox.DisableHitbox();
         }
 
+        public void Initialize(NavMeshAgent agent) 
+        {
+            _agent = agent;
+        }
+        
         public void StartAttack()
         {
             _timer = 0f;
             _isAttacking = true;
+            
+            _agent.isStopped = true;
+            _agent.ResetPath();
+            _agent.obstacleAvoidanceType = ObstacleAvoidanceType.NoObstacleAvoidance;
             
             OnMonsterAttackSound?.Invoke(transform.position);
             OnAttackStartedAnimation?.Invoke();
@@ -56,6 +67,8 @@ namespace Monster
         {
             OnAttackEndedAnimation?.Invoke();
             _isAttacking = false;
+            _agent.isStopped = false;
+            _agent.obstacleAvoidanceType = ObstacleAvoidanceType.NoObstacleAvoidance;
             hitbox.DisableHitbox();
         }
         
@@ -63,6 +76,7 @@ namespace Monster
         {
             _isAttacking = false;
             hitbox.DisableHitbox();
+            _agent.isStopped = false;
         }
         
     } 

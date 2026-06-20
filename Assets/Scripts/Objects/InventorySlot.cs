@@ -28,8 +28,8 @@ namespace Objects
 
         public void Clear()
         {
-            itemIcon.sprite = null;
             itemIcon.enabled = false;
+            itemIcon.sprite = null;
         }
 
         public void SetHighlight(bool value)

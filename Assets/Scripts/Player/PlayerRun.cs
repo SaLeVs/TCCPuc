@@ -19,7 +19,8 @@ namespace Player
         [SerializeField] private float staminaDrainPerSecond;
         [SerializeField] private float staminaGainPerSecond;
         [SerializeField] private float staminaCooldownThreshold = 5f;
-        
+        [SerializeField] private float minMovementThreshold = 0.1f;
+
         public float MaxStamina => staminaMax;
         
         private float _stamina;
@@ -27,8 +28,11 @@ namespace Player
         private bool _isRunning;
         private bool _isDead;
         private bool _isLocked;
-        
-        
+        private Vector2 _movementInput; 
+
+        private bool IsMoving => _movementInput.sqrMagnitude > minMovementThreshold * minMovementThreshold;
+
+
         public override void OnNetworkSpawn()
         {
             _stamina = staminaMax;
@@ -36,15 +40,16 @@ namespace Player
             if (IsOwner)
             {
                 inputReader.OnRunEvent += InputReader_OnRunEvent;
+                playerState.OnPlayerMovementInput += PlayerState_OnPlayerMovementInput;
                 playerState.OnPlayerDead += PlayerState_OnPlayerDead;
                 playerState.OnPlayerLocked += PlayerState_OnPlayerLocked;
             }
             
         }
 
-
         private void InputReader_OnRunEvent(bool isRunning) => _isRunning = isRunning;
-        
+        private void PlayerState_OnPlayerMovementInput(Vector2 movementInput) => _movementInput = movementInput;
+
         private void PlayerState_OnPlayerDead(bool isDead)
         {
             _isDead = isDead;
@@ -75,7 +80,7 @@ namespace Player
         
         private void UpdateStamina(bool isRunning)
         {
-            bool canRun = isRunning && !_isExhausted;
+            bool canRun = isRunning && IsMoving && !_isExhausted;
             OnRunEvent?.Invoke(canRun);
             
             if (canRun)
@@ -118,6 +123,7 @@ namespace Player
             if (IsOwner)
             {
                 inputReader.OnRunEvent -= InputReader_OnRunEvent;
+                playerState.OnPlayerMovementInput -= PlayerState_OnPlayerMovementInput;
                 playerState.OnPlayerDead -= PlayerState_OnPlayerDead;
                 playerState.OnPlayerLocked -= PlayerState_OnPlayerLocked;
             }

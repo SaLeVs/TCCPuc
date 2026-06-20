@@ -58,6 +58,7 @@ namespace Monster
             MonsterAnimator.Initialize(this);
             MonsterSabotage.Initialize();
             MonsterSearch.Initialize(navMeshAgent);
+            MonsterAttack.Initialize(navMeshAgent);
             
             if (!IsServer) return;
             

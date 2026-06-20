@@ -49,11 +49,13 @@ namespace Player
 
         private void DropDisk()
         {
-            if (!playerDiskHolder.HasDisk) return;
             if (diskItem == null) return;
 
-            playerDiskHolder.TryConsumeDisk();
-            SpawnPickable(diskItem);
+            while (playerDiskHolder.HasDisk)
+            {
+                playerDiskHolder.TryConsumeDisk();
+                SpawnPickable(diskItem);
+            }
         }
 
         private void SpawnPickable(GameObject prefab)

@@ -15,6 +15,7 @@ namespace Monster
         
         [SerializeField] private float chaseSpeed = 8f;
         [SerializeField] private float targetReevaluationInterval = 1f;
+        [SerializeField] private float rotationSpeed = 10f; 
         
         public List<Transform> monsterTargets;
         public float DistanceFromTarget => _currentDistanceFromTarget;
@@ -88,7 +89,9 @@ namespace Monster
             Transform bestTarget = GetBestAvailableTarget();
 
             if (bestTarget != null && bestTarget != _currentTarget)
+            {
                 SetTarget(bestTarget);
+            }
         }
         
         private void SetTarget(Transform target)
@@ -133,6 +136,7 @@ namespace Monster
 
             _agent.isStopped = false;
             _agent.speed = chaseSpeed;
+            _agent.updateRotation = false;
             OnStartedChasingAnimation?.Invoke();
         }
         
@@ -140,20 +144,26 @@ namespace Monster
         public void ChaseUpdate(float deltaTime)
         {
             if (_agent == null) return;
-            
+    
             if (_currentTarget != null && !_currentTarget)
             {
                 _currentTarget = null;
                 Transform fallback = GetBestAvailableTarget();
-
-                if (fallback != null) SetTarget(fallback);
-                else { ClearTarget(); return; }
+                
+                if (fallback != null)
+                {
+                    SetTarget(fallback);
+                }
+                else
+                {
+                    ClearTarget(); 
+                    return;
+                }
             }
 
             if (_currentTarget == null) return;
-            
+    
             _reevaluationTimer += deltaTime;
-            
             if (_reevaluationTimer >= targetReevaluationInterval)
             {
                 _reevaluationTimer = 0f;
@@ -161,13 +171,28 @@ namespace Monster
             }
 
             _agent.SetDestination(_currentTarget.position);
+            RotateTowardsTarget(deltaTime);
         }
         
+        private void RotateTowardsTarget(float deltaTime)
+        {
+            if (_currentTarget == null) return;
+
+            Vector3 direction = _currentTarget.position - _agent.transform.position;
+            direction.y = 0f;
+
+            if (direction.sqrMagnitude < 0.01f) return;
+
+            Quaternion targetRotation = Quaternion.LookRotation(direction);
+            _agent.transform.rotation = Quaternion.Slerp(_agent.transform.rotation, targetRotation, rotationSpeed * deltaTime);
+        }
+
         public void StopChase()
         {
             if (_agent == null) return;
-            
+
             _agent.isStopped = true;
+            _agent.updateRotation = true;
             OnStoppedChasingAnimation?.Invoke();
         }
         
@@ -179,11 +204,9 @@ namespace Monster
                 return;
             }
     
-            _currentDistanceFromTarget = Vector3.Distance(
-                _agent.transform.position, 
-                _currentTarget.position
-            );
+            _currentDistanceFromTarget = Vector3.Distance(_agent.transform.position, _currentTarget.position);
         }
+        
         
         public void Uninitialize(List<Transform> monsterTargetsList, NavMeshAgent agent, MonsterBrain monsterBrain)
         {
@@ -196,6 +219,8 @@ namespace Monster
                 monsterBrain.OnPlayerExitInVision -= MonsterBrain_OnPlayerExitInVision;
             }
         }
+        
+        
     }
 
 }

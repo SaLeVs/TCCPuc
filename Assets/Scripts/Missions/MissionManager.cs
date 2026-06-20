@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using Interfaces;
@@ -84,15 +85,10 @@ namespace Missions
                 
                 transferMap[targetId].Add(deadMissions[i]);
             }
-            
-            foreach (var (targetId, missions) in transferMap)
-            {
-                ReassignInteractableOwners(missions, targetId);
-            }
 
-            if (NetworkManager.Singleton.ConnectedClients.TryGetValue(deadClientId, out NetworkClient deadClient)
-                && deadClient.PlayerObject != null
-                && deadClient.PlayerObject.TryGetComponent(out PlayerMissionHolder deadHolder))
+            StartCoroutine(ReassignOwnersNextFrame(transferMap));
+
+            if (NetworkManager.Singleton.ConnectedClients.TryGetValue(deadClientId, out NetworkClient deadClient) && deadClient.PlayerObject != null && deadClient.PlayerObject.TryGetComponent(out PlayerMissionHolder deadHolder))
             {
                 deadHolder.ClearPersonalMissionsRpc();
             }
@@ -100,7 +96,17 @@ namespace Missions
             deadMissions.Clear();
             Debug.Log($"MissionManager: Transferred {total} missions from player {deadClientId} to {alivePlayers.Count} player(s).");
         }
-        
+
+        private IEnumerator ReassignOwnersNextFrame(Dictionary<ulong, List<MissionSO>> transferMap)
+        {
+            yield return null; 
+
+            foreach (var (targetId, missions) in transferMap)
+            {
+                ReassignInteractableOwners(missions, targetId);
+            }
+        }
+
         private void ReassignInteractableOwners(List<MissionSO> missions, ulong newOwnerId)
         {
             MissionOwnershipSelector[] selectors = FindObjectsByType<MissionOwnershipSelector>(FindObjectsSortMode.None);

@@ -23,6 +23,7 @@ namespace Components
         [SerializeField] private float distance;
         [SerializeField, Range(0f, 180f)] private float angle;
         [SerializeField] private float height;
+        [SerializeField] private float closeProximityRadius = 2f;
         [SerializeField] private Color meshColor;
         
         [Header("Scan Settings")]
@@ -183,20 +184,24 @@ namespace Components
             if (!objectForTest.TryGetComponent(out Collider collider)) return false;
 
             _destination = collider.bounds.center;
-
             Vector3 directionToTarget = _destination - orientation.position;
-            
-            if (directionToTarget.magnitude > distance) return false;
-            
-            Vector3 localPos = orientation.InverseTransformPoint(_destination);
+            float directDistance = directionToTarget.magnitude;
 
-            if (localPos.y < -height * 0.5f || localPos.y > height * 0.5f) return false;
+            if (directDistance > distance) return false;
             
+            if (directDistance <= closeProximityRadius)
+            {
+                if (Physics.Linecast(orientation.position, _destination, occlusionLayers)) return false;
+                return true;
+            }
+
+            Vector3 localPos = orientation.InverseTransformPoint(_destination);
+            if (localPos.y < -height * 0.5f || localPos.y > height * 0.5f) return false;
+
             float dot = Vector3.Dot(orientation.forward, directionToTarget.normalized);
             float minDot = Mathf.Cos(angle * 0.5f * Mathf.Deg2Rad);
-
             if (dot < minDot) return false;
-            
+
             if (Physics.Linecast(orientation.position, _destination, occlusionLayers)) return false;
 
             return true;

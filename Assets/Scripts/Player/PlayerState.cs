@@ -10,6 +10,7 @@ namespace Player
     public class PlayerState : NetworkBehaviour, IInputLockable
     {
         public event Action<Vector2> OnPlayerMovement;
+        public event Action<Vector2> OnPlayerMovementInput;
         public event Action<bool> OnRunEvent;
         public event Action<bool> OnCrouchEvent;
         public event Action OnInteract;
@@ -34,22 +35,26 @@ namespace Player
         public bool HasEscapedServerSide { get; set; }
         
         private bool _isInputLocked;
+        private Vector2 _movementInput;
         
         
         public override void OnNetworkSpawn()
         {
             Physics.SyncTransforms();
-            
+            playerDead.OnDeathEvent += PlayerDead_OnDeathEvent;
+
             if (IsOwner)
             {
                 playerMovement.OnPlayerMovement += PlayerMovement_OnPlayerMovement;
+                playerMovement.OnPlayerMovementInput += PlayerMovement_OnPlayerMovementInput;
+
                 playerRun.OnRunEvent += PlayerRun_OnRunEvent;
                 playerCrouch.OnCrouchEvent += PlayerCrouch_OnCrouchEvent;
                 
                 playerInteractor.OnInteractRequested += PlayerInteractor_OnInteractRequested;
                 playerInventory.OnSelectedSlotChanged += PlayerInventory_OnSelectedSlotChanged;
                 
-                playerDead.OnDeathEvent += PlayerDead_OnDeathEvent;
+               
                 playerDead.OnRagdollSpawned += PlayerDead_OnRagdollSpawned;
             }
 
@@ -90,6 +95,11 @@ namespace Player
             OnPlayerMovement?.Invoke(playerVelocity);
         }
         
+        private void PlayerMovement_OnPlayerMovementInput(Vector2 playerInput)
+        {
+            OnPlayerMovementInput?.Invoke(playerInput);
+        }
+
         private void PlayerRun_OnRunEvent(bool isRunning)
         {
             OnRunEvent?.Invoke(isRunning);
@@ -113,7 +123,8 @@ namespace Player
         private void PlayerDead_OnDeathEvent(bool isDead)
         {
             OnPlayerDead?.Invoke(isDead);
-            if (isDead)
+
+            if (isDead && IsOwner) 
             {
                 NotifyDeathServerRpc();
             }
@@ -204,6 +215,8 @@ namespace Player
         
         public override void OnNetworkDespawn()
         {
+            playerDead.OnDeathEvent -= PlayerDead_OnDeathEvent;
+
             if (IsOwner)
             {
                 playerMovement.OnPlayerMovement -= PlayerMovement_OnPlayerMovement;
@@ -212,9 +225,8 @@ namespace Player
                 
                 playerInteractor.OnInteractRequested -= PlayerInteractor_OnInteractRequested;
                 playerInventory.OnSelectedSlotChanged -= PlayerInventory_OnSelectedSlotChanged;
-                
-                playerDead.OnDeathEvent -= PlayerDead_OnDeathEvent;
             }
+
         }
         
     }

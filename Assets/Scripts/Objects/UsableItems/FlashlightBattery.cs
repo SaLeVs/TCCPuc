@@ -47,20 +47,29 @@ namespace Objects.UsableItems
 
         public void Use(GameObject playerInteractor)
         {
-            if(CanUse(playerInteractor))
-            {
-                if (playerInteractor.GetComponentInChildren<Flashlight>() is Flashlight flashlight)
-                {
-                    flashlight.IncreaseFlashlightBattery(batteryPercentRecharge);
-                    
-                    if (playerInteractor.TryGetComponent(out PlayerInventory inventory))
-                    {
-                        inventory.TryRemoveItemServer(itemData.itemId);
-                    }
-                }
-            }
+            if (!CanUse(playerInteractor)) return;
             
+            UseServerRpc();
         }
+
+        [Rpc(SendTo.ClientsAndHost)]
+        private void UseServerRpc()
+        {
+            NetworkObject playerNetworkObject = NetworkManager.Singleton.SpawnManager.GetPlayerNetworkObject(OwnerClientId);
+
+            if (playerNetworkObject == null) return;
+            
+            Flashlight flashlight = playerNetworkObject.GetComponentInChildren<Flashlight>();
+            if (flashlight == null) return;
+    
+            flashlight.IncreaseFlashlightBattery(batteryPercentRecharge);
+            
+            if (playerNetworkObject.TryGetComponent(out PlayerInventory inventory))
+            {
+                inventory.TryRemoveItemServer(itemData.itemId);
+            }
+        }
+        
         
         public override void OnNetworkDespawn()
         {
@@ -70,6 +79,7 @@ namespace Objects.UsableItems
                 _playerInteractor = null;
             }
         }
+        
     }  
 }
 

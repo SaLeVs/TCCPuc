@@ -33,6 +33,7 @@ namespace Player
         public bool IsDead => playerDead.IsDead;
         public CinemachineCamera PlayerCinemachineCamera => playerCamera.playerCinemachineCamera;
         public bool HasEscapedServerSide { get; set; }
+        public bool HasWon { get; private set; }
         
         private bool _isInputLocked;
         private Vector2 _movementInput;
@@ -161,10 +162,16 @@ namespace Player
             }
         }
         
-        [Rpc(SendTo.Owner)]
+        [Rpc(SendTo.ClientsAndHost)]
         public void WinRpc()
         {
-            SetSpectatorMode(true);
+            HasWon = true;
+
+            if (IsOwner)
+            {
+                SetSpectatorMode(true);
+            }
+
             OnPlayerWon?.Invoke();
         }
         

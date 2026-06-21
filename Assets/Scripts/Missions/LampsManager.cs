@@ -34,6 +34,7 @@ namespace Missions
         public override void OnNetworkSpawn()
         {
             _correctLampsCount.OnValueChanged += HandleCorrectCountChanged;
+            _totalLampsCount.OnValueChanged += HandleTotalCountChanged;
             _isMissionComplete.OnValueChanged += HandleMissionCompleteChanged;
             
             OnCorrectLampsCountChanged?.Invoke(_correctLampsCount.Value, _totalLampsCount.Value);
@@ -43,6 +44,11 @@ namespace Missions
         private void HandleCorrectCountChanged(int previousValue, int newValue)
         {
             OnCorrectLampsCountChanged?.Invoke(newValue, _totalLampsCount.Value);
+        }
+
+        private void HandleTotalCountChanged(int previousValue, int newValue)
+        {
+            OnCorrectLampsCountChanged?.Invoke(_correctLampsCount.Value, newValue);
         }
 
         private void HandleMissionCompleteChanged(bool previousValue, bool newValue)
@@ -59,43 +65,61 @@ namespace Missions
         
         private void SpawnLamps()
         {
+            int totalLamps = spawnPoints.Length;
+            int wrongCount = CalculateWrongLampsCount(totalLamps);
+
+            List<int> shuffledIndices = new List<int>(totalLamps);
+            for (int i = 0; i < totalLamps; i++)
+                shuffledIndices.Add(i);
+
+            ShuffleIndices(shuffledIndices);
+
+            HashSet<int> wrongIndices = new HashSet<int>();
+            for (int i = 0; i < wrongCount; i++)
+                wrongIndices.Add(shuffledIndices[i]);
+
             for (int i = 0; i < spawnPoints.Length; i++)
             {
                 GameObject spawned = Instantiate(lampPrefab, spawnPoints[i].position, spawnPoints[i].rotation);
 
                 if (spawned.TryGetComponent(out NetworkObject netObj))
-                {
                     netObj.Spawn();
-                }
-                
+
                 if (spawned.TryGetComponent(out LampTotem lamp))
                 {
                     lamp.OnLampToggled += LampTotem_OnLampToggled;
                     _spawnedLamps.Add(lamp);
 
                     bool shouldBeOn = Random.Range(0, 2) == 0;
+                    bool startOn = wrongIndices.Contains(i) ? !shouldBeOn : shouldBeOn;
+
                     _requiredStates.Add(lamp, shouldBeOn);
-                    lamp.Initialize(this, shouldBeOn);
+                    lamp.Initialize(this, startOn);
                 }
             }
-            
+
             _totalLampsCount.Value = _spawnedLamps.Count;
-            EnsureAtLeastOneWrong();
             RecalculateCorrectLampsCount();
             OnSpawnCompleted?.Invoke();
         }
         
-        private void EnsureAtLeastOneWrong()
+        private int CalculateWrongLampsCount(int totalLamps)
         {
-            foreach (LampTotem lamp in _spawnedLamps)
+            if (totalLamps <= 0) return 0;
+
+            int minWrong = Mathf.CeilToInt(totalLamps * 0.5f); 
+            int maxWrong = totalLamps;                         
+
+            return Random.Range(minWrong, maxWrong + 1);
+        }
+
+        private void ShuffleIndices(List<int> indices)
+        {
+            for (int i = indices.Count - 1; i > 0; i--)
             {
-                if (lamp.IsOn != _requiredStates[lamp]) return;
+                int j = Random.Range(0, i + 1);
+                (indices[i], indices[j]) = (indices[j], indices[i]);
             }
-            
-            int randomIndex = Random.Range(0, _spawnedLamps.Count);
-            LampTotem lampToForce = _spawnedLamps[randomIndex];
-            
-            _requiredStates[lampToForce] = !_requiredStates[lampToForce];
         }
         
         private void LampTotem_OnLampToggled(ulong clientId, bool toggled)
@@ -147,6 +171,7 @@ namespace Missions
         {
             _correctLampsCount.OnValueChanged -= HandleCorrectCountChanged;
             _isMissionComplete.OnValueChanged -= HandleMissionCompleteChanged;
+            _totalLampsCount.OnValueChanged -= HandleTotalCountChanged;
 
             if (!IsServer) return;
 

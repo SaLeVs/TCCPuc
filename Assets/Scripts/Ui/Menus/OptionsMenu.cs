@@ -7,18 +7,14 @@ using UnityEngine.UI;
 public class OptionsMenu : MonoBehaviour
 {
     public static event Action<float> OnSensibilityChanged;
-    public static event Action<float> OnAimSensibilityChanged;
     
     [SerializeField] private Slider sensibilitySlider;
-    [SerializeField] private Slider aimSensibilitySlider;
-    
     [SerializeField] private TextMeshProUGUI sensibilityValueText;
-    [SerializeField] private TextMeshProUGUI aimSensibilityValueText;
     
     [SerializeField] private Slider musicVolumeSlider;
-    [SerializeField] private Slider soundEffectsVolumeSlider;
-    
     [SerializeField] private TextMeshProUGUI musicVolumeValueText;
+    
+    [SerializeField] private Slider soundEffectsVolumeSlider;
     [SerializeField] private TextMeshProUGUI soundEffectsVolumeValueText;
 
     [SerializeField] private GameObject rebindMenu;
@@ -28,14 +24,12 @@ public class OptionsMenu : MonoBehaviour
     [SerializeField] private AudioMixer sfxMixer;
     
     private const string _sensibilityKey = "MouseSensibility";
-    private const string _aimSensibilityKey = "AimMouseSensibility";
     
     private const string _musicVolumeKey = "MusicVolume";
     private const string _soundEffectsVolumeKey = "SoundEffectsVolume";
     
     
     private float _sensibility;
-    private float _aimSensibility;
     
     private float _musicVolume;
     private float _soundEffectsVolume;
@@ -44,7 +38,6 @@ public class OptionsMenu : MonoBehaviour
     private void OnEnable()
     {
         _sensibility = PlayerPrefs.GetFloat(_sensibilityKey, 0.5f);
-        _aimSensibility = PlayerPrefs.GetFloat(_aimSensibilityKey, 0.5f);
         
         _musicVolume = PlayerPrefs.GetFloat(_musicVolumeKey, 1f);
         _soundEffectsVolume = PlayerPrefs.GetFloat(_soundEffectsVolumeKey, 1f);
@@ -53,20 +46,17 @@ public class OptionsMenu : MonoBehaviour
         sfxMixer.SetFloat("sfxVolume", LinearToDecibel(_soundEffectsVolume));
         
         sensibilitySlider.value = _sensibility;
-        aimSensibilitySlider.value = _aimSensibility;
         
         musicVolumeSlider.value = _musicVolume;
         soundEffectsVolumeSlider.value = _soundEffectsVolume;
         
         
         UpdateSensibilityText(sensibilityValueText, _sensibility);
-        UpdateSensibilityText(aimSensibilityValueText, _aimSensibility);
         
         UpdateVolumeText(musicVolumeValueText, _musicVolume);
         UpdateVolumeText(soundEffectsVolumeValueText, _soundEffectsVolume);
         
         SensibilitySlider_OnSensibilityChanged(_sensibility);
-        AimSensibilitySlider_OnSensibilityChanged(_aimSensibility);
     }
 
     public void SensibilitySlider_OnSensibilityChanged(float sensibilityValue)
@@ -76,12 +66,6 @@ public class OptionsMenu : MonoBehaviour
         OnSensibilityChanged?.Invoke(sensibilityValue);
     }
     
-    public void AimSensibilitySlider_OnSensibilityChanged(float aimSensibilityValue)
-    {
-        PlayerPrefs.SetFloat(_aimSensibilityKey, aimSensibilityValue);
-        UpdateSensibilityText(aimSensibilityValueText, aimSensibilityValue);
-        OnAimSensibilityChanged?.Invoke(aimSensibilityValue);
-    }
 
     public void MusicSlider_OnValueChanged(float volumeValue)
     {

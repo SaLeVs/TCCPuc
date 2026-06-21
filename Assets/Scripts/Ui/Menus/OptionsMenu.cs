@@ -33,14 +33,14 @@ public class OptionsMenu : MonoBehaviour
     
     private float _musicVolume;
     private float _soundEffectsVolume;
-    
-    
-    private void OnEnable()
+
+
+    private void Awake()
     {
         _sensibility = PlayerPrefs.GetFloat(_sensibilityKey, 0.5f);
         
-        _musicVolume = PlayerPrefs.GetFloat(_musicVolumeKey, 1f);
-        _soundEffectsVolume = PlayerPrefs.GetFloat(_soundEffectsVolumeKey, 1f);
+        _musicVolume = PlayerPrefs.GetFloat(_musicVolumeKey, 0.5f);
+        _soundEffectsVolume = PlayerPrefs.GetFloat(_soundEffectsVolumeKey, 0.5f);
         
         musicMixer.SetFloat("musicVolume", LinearToDecibel(_musicVolume));
         sfxMixer.SetFloat("sfxVolume", LinearToDecibel(_soundEffectsVolume));
@@ -50,7 +50,11 @@ public class OptionsMenu : MonoBehaviour
         musicVolumeSlider.value = _musicVolume;
         soundEffectsVolumeSlider.value = _soundEffectsVolume;
         
-        
+        gameObject.SetActive(false);
+    }
+    
+    private void OnEnable()
+    {
         UpdateSensibilityText(sensibilityValueText, _sensibility);
         
         UpdateVolumeText(musicVolumeValueText, _musicVolume);

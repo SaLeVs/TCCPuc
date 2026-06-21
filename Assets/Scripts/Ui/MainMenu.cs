@@ -15,6 +15,7 @@ namespace UI
         [SerializeField] private GameObject onlinePanel;
         [SerializeField] private GameObject lanPanel;
         [SerializeField] private GameObject menuPanel;
+        [SerializeField] private GameObject optionPanel;
 
         private void Start()
         {
@@ -58,6 +59,11 @@ namespace UI
             lanPanel.SetActive(false);
             onlinePanel.SetActive(false);
             menuPanel.SetActive(true);
+        }
+
+        public void OpenOptionPanel()
+        {
+            optionPanel.SetActive(true);
         }
 
         public void QuitGame()

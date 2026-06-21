@@ -68,27 +68,18 @@ namespace Player.Chat
             }
         }
 
-        private void VisionSensor_OnStaticTargetSeen(RecordableTarget targetType)
+        private void VisionSensor_OnStaticTargetSeen(GameObject target)
         {
-            RecordableIdentifier[] identifiers = FindObjectsByType<RecordableIdentifier>(FindObjectsInactive.Exclude, FindObjectsSortMode.None);
-
-            foreach (RecordableIdentifier identifier in identifiers)
+            if (target.TryGetComponent(out RecordableIdentifier identifier))
             {
-                if (identifier.targetType != targetType) continue;
-
                 HandleTargetEnter(identifier);
             }
         }
 
-        private void VisionSensor_OnStaticTargetExitSeen(RecordableTarget targetType)
+        private void VisionSensor_OnStaticTargetExitSeen(GameObject target)
         {
-            RecordableIdentifier[] identifiers = FindObjectsByType<RecordableIdentifier>(FindObjectsInactive.Exclude, FindObjectsSortMode.None);
-
-            foreach (RecordableIdentifier identifier in identifiers)
+            if (target.TryGetComponent(out RecordableIdentifier identifier))
             {
-                if (identifier.targetType != targetType)
-                    continue;
-
                 HandleTargetExit(identifier);
             }
         }

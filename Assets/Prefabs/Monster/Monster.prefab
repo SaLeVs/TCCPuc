@@ -89,7 +89,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Unity.Netcode.Runtime::Unity.Netcode.NetworkObject
-  GlobalObjectIdHash: 3265427313
+  GlobalObjectIdHash: 3148608675
   InScenePlacedSourceGlobalObjectIdHash: 3265427313
   DeferredDespawnTick: 0
   Ownership: 1
@@ -186,6 +186,7 @@ MonoBehaviour:
   distance: 40
   angle: 90
   height: 5
+  closeProximityRadius: 2
   meshColor: {r: 0.25652552, g: 1, b: 0, a: 0.7647059}
   scanFrequency: 3
   targetLayers:
@@ -372,6 +373,7 @@ MonoBehaviour:
   ShowTopMostFoldoutHeaderGroup: 1
   chaseSpeed: 4
   targetReevaluationInterval: 1
+  rotationSpeed: 10
   monsterTargets: []
 --- !u!114 &3757600163404236341
 MonoBehaviour:
@@ -444,8 +446,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Components::Components.RecordableIdentifier
   targetType: 3
   audienceGain: 150
-  minimumViewTime: 2
-  reviewCooldown: 30
+  minimumViewTime: 4
+  reviewCooldown: 40
   canBeReviewed: 1
 --- !u!195 &9158156660860726962
 NavMeshAgent:

@@ -14,6 +14,5 @@ namespace Components
 
         public bool canBeReviewedForChat = true;
         public float chatCooldown = 20f;
-        
     }
 }

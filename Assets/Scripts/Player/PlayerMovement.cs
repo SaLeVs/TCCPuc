@@ -107,7 +107,7 @@ namespace Player
         
         private void Move()
         {
-           _targetSpeed = ApplySpeedModifiers(moveSpeed);
+            _targetSpeed = ApplySpeedModifiers(moveSpeed);
             
             Vector3 desiredVelocityWorld = Vector3.zero;
             
@@ -137,9 +137,10 @@ namespace Player
             _xVelocityDifference = _currentVelocity.x - rb.linearVelocity.x;
             _zVelocityDifference = _currentVelocity.y - rb.linearVelocity.z;
             
-            rb.AddForce(new Vector3(_xVelocityDifference, 0f, _zVelocityDifference), ForceMode.VelocityChange); 
+            rb.AddForce(new Vector3(_xVelocityDifference, 0f, _zVelocityDifference), ForceMode.VelocityChange);
             
-            OnPlayerMovement?.Invoke(_currentVelocity);
+            float normalizedSpeed = _targetSpeed > 0.001f ? _targetSpeed : 1f;
+            OnPlayerMovement?.Invoke(_currentVelocity / normalizedSpeed);
         }
         
         private void StopMovement()

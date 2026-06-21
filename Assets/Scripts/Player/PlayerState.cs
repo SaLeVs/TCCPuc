@@ -227,11 +227,14 @@ namespace Player
             if (IsOwner)
             {
                 playerMovement.OnPlayerMovement -= PlayerMovement_OnPlayerMovement;
+                playerMovement.OnPlayerMovementInput -= PlayerMovement_OnPlayerMovementInput;
                 playerRun.OnRunEvent -= PlayerRun_OnRunEvent;
                 playerCrouch.OnCrouchEvent -= PlayerCrouch_OnCrouchEvent;
-                
+        
                 playerInteractor.OnInteractRequested -= PlayerInteractor_OnInteractRequested;
                 playerInventory.OnSelectedSlotChanged -= PlayerInventory_OnSelectedSlotChanged;
+        
+                playerDead.OnRagdollSpawned -= PlayerDead_OnRagdollSpawned;
             }
 
         }

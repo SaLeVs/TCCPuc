@@ -6,13 +6,14 @@ namespace Components
     public class RecordableIdentifier : MonoBehaviour
     {
         public RecordableTarget targetType;
-        public float audienceGain = 50f;
         public float minimumViewTime = 2f;
+        
+        public float audienceGain = 50f;
         public float reviewCooldown = 60f;
         public bool canBeReviewed;
 
-        // Metodo para aleatorizar se pode ou nao contar view
-        // Metodo para aleatorizar quanto ganha de audiencia
-        // metodo para 
+        public bool canBeReviewedForChat = true;
+        public float chatCooldown = 20f;
+        
     }
 }

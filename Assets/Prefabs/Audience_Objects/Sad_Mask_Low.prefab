@@ -68,6 +68,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: Sad_Mask_Low
       objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 53dc81c1ef02da34784cdd50898db5fc, type: 3}
+      propertyPath: m_Layer
+      value: 14
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -97,10 +101,12 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Components::Components.RecordableIdentifier
   targetType: 6
-  audienceGain: 60
-  minimumViewTime: 3
-  reviewCooldown: 20
-  canBeReviewed: 0
+  minimumViewTime: 2
+  audienceGain: 80
+  reviewCooldown: 25
+  canBeReviewed: 1
+  canBeReviewedForChat: 1
+  chatCooldown: 20
 --- !u!65 &7622640847916610704
 BoxCollider:
   m_ObjectHideFlags: 0

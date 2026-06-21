@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using Unity.Netcode;
 using UnityEngine;
@@ -10,6 +11,7 @@ namespace Systems
         public event Action<int, int> OnReadyCountChanged;
 
         [SerializeField] private Loader.Scene sceneToLoad;
+        [SerializeField] private SceneTransition sceneTransition;
 
         private readonly Dictionary<ulong, bool> _playerReadyDictionary = new();
         private bool _subscribedToTracker;
@@ -112,9 +114,14 @@ namespace Systems
             if (areAllClientsReady && !_isSceneLoading)
             {
                 _isSceneLoading = true;
-                Debug.Log("All players are ready!");
-                Loader.LoadNetwork(sceneToLoad);
+                StartCoroutine(LoadSceneRoutine());
             }
+        }
+        
+        private IEnumerator LoadSceneRoutine()
+        {
+            yield return sceneTransition.FadeOut();
+            Loader.LoadNetwork(sceneToLoad);
         }
 
         [Rpc(SendTo.ClientsAndHost)]

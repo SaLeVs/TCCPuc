@@ -93,11 +93,10 @@ namespace Player
         {
             foreach (ulong clientId in _alivePlayerIds)
             {
-                if (NetworkManager.Singleton.ConnectedClients.TryGetValue(clientId, out NetworkClient networkClient) 
-                    && networkClient.PlayerObject != null 
-                    && networkClient.PlayerObject.TryGetComponent(out PlayerState playerStateClient))
+                if (NetworkManager.Singleton.ConnectedClients.TryGetValue(clientId, out NetworkClient networkClient) && networkClient.PlayerObject != null && networkClient.PlayerObject.TryGetComponent(out PlayerState playerStateClient))
                 {
                     playerStateClient.OnPlayerDead -= PlayerState_OnWatchedPlayerDied;
+                    playerStateClient.OnPlayerWon -= PlayerState_OnWatchedPlayerWon;
                 }
             }
 
@@ -109,14 +108,25 @@ namespace Player
 
                 NetworkObject playerObj = clientsInGame.Value.PlayerObject;
 
-                if (playerObj != null && playerObj.TryGetComponent(out PlayerState playerStateClient) && !playerStateClient.IsDead)
+                if (playerObj != null && playerObj.TryGetComponent(out PlayerState playerStateClient) && !playerStateClient.IsDead && !playerStateClient.HasWon)
                 {
                     _alivePlayerIds.Add(clientsInGame.Key);
                     playerStateClient.OnPlayerDead += PlayerState_OnWatchedPlayerDied;
+                    playerStateClient.OnPlayerWon += PlayerState_OnWatchedPlayerWon;
                 }
             }
         }
 
+        private void PlayerState_OnWatchedPlayerWon()
+        {
+            RefreshAliveList();
+
+            if (_alivePlayerIds.Count > 0)
+            {
+                SetTarget(0);
+            }
+        }
+        
         private void PlayerState_OnWatchedPlayerDied(bool isDead)
         {
             if (!isDead) return;

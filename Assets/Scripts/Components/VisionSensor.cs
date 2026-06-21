@@ -10,8 +10,8 @@ namespace Components
     {
         public event Action<GameObject, RecordableTarget> OnTargetEnterServer;
         public event Action<GameObject, RecordableTarget> OnTargetExitServer;
-        public event Action<RecordableTarget> OnTargetEnterStatic;
-        public event Action<RecordableTarget> OnTargetExitStatic;
+        public event Action<GameObject> OnTargetEnterStatic;
+        public event Action<GameObject> OnTargetExitStatic;
         public event Action<GameObject> OnTargetEnter;
         public event Action<GameObject> OnTargetExit;
         
@@ -129,7 +129,7 @@ namespace Components
             }
             else
             {
-                SendStaticTargetEnterRpc((int)targetType);
+                SendStaticTargetEnterRpc(target.GetInstanceID());
             }
         }
 
@@ -145,7 +145,7 @@ namespace Components
             }
             else
             {
-                SendStaticTargetExitRpc((int)targetType);
+                SendStaticTargetExitRpc(target.GetInstanceID());
             }
         }
         
@@ -168,15 +168,31 @@ namespace Components
         }
 
         [Rpc(SendTo.Owner)]
-        private void SendStaticTargetEnterRpc(int targetType)
+        private void SendStaticTargetEnterRpc(int instanceId)
         {
-            OnTargetEnterStatic?.Invoke((RecordableTarget)targetType);
+            RecordableIdentifier[] identifiers = FindObjectsByType<RecordableIdentifier>(FindObjectsInactive.Exclude, FindObjectsSortMode.None);
+
+            foreach (RecordableIdentifier identifier in identifiers)
+            {
+                if (identifier.gameObject.GetInstanceID() != instanceId) continue;
+
+                OnTargetEnterStatic?.Invoke(identifier.gameObject);
+                break;
+            }
         }
 
         [Rpc(SendTo.Owner)]
-        private void SendStaticTargetExitRpc(int targetType)
+        private void SendStaticTargetExitRpc(int instanceId)
         {
-            OnTargetExitStatic?.Invoke((RecordableTarget)targetType);
+            RecordableIdentifier[] identifiers = FindObjectsByType<RecordableIdentifier>(FindObjectsInactive.Exclude, FindObjectsSortMode.None);
+
+            foreach (RecordableIdentifier identifier in identifiers)
+            {
+                if (identifier.gameObject.GetInstanceID() != instanceId) continue;
+
+                OnTargetExitStatic?.Invoke(identifier.gameObject);
+                break;
+            }
         }
         
         private bool IsObjectInVision(GameObject objectForTest)

@@ -30,9 +30,9 @@ namespace Missions
         public void Initialize(LampsManager lampManager, bool initialState)
         {
             InitializeBase(lampManager);
-            
+
             if (!IsServer) return;
-            
+
             _isOn.Value = initialState;
         }
 

@@ -11,15 +11,16 @@ namespace Objects.PickupItems
     {
         [SerializeField] private ItemDataSO itemData;
         
-        
         private MissionOwnershipFilter _ownershipFilter;
 
+        public int ItemId => itemData.itemId;
+        
         private void Awake()
         {
             _ownershipFilter = GetComponent<MissionOwnershipFilter>();
         }
-
         
+
         public void SetOwnershipSelector(MissionsManagerBase manager)
         {
             _ownershipFilter?.SetManager(manager);

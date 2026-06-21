@@ -69,6 +69,7 @@ namespace Missions
                     if (spawned.TryGetComponent(out IMissionOwnerAware ownerAware))
                     {
                         ownerAware.SetOwnershipSelector(this);
+                        MissionItemRegistry.Instance?.Register(ownerAware.ItemId, this);
                     }
 
                     _spawnedPickables.Add(netObj);

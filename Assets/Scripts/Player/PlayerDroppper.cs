@@ -4,11 +4,14 @@ using ScriptableObjects;
 using Systems;
 using Unity.Netcode;
 using UnityEngine;
+using System;
 
 namespace Player
 {
     public class PlayerDropper : NetworkBehaviour
     {
+        public static event Action<GameObject, int> OnItemDropped;
+        
         [SerializeField] private PlayerInventory playerInventory;
         [SerializeField] private PlayerDiskHolder playerDiskHolder;
         [SerializeField] private PlayerDead playerDead;
@@ -39,13 +42,13 @@ namespace Player
             foreach (int itemId in items)
             {
                 ItemDataSO item = itemDatabase.GetItem(itemId);
-                
                 if (item != null)
                 {
-                    SpawnPickable(item.prefabPickable);
+                    SpawnPickable(item.prefabPickable, itemId);
                 }
             }
         }
+
 
         private void DropDisk()
         {
@@ -58,7 +61,7 @@ namespace Player
             }
         }
 
-        private void SpawnPickable(GameObject prefab)
+        private void SpawnPickable(GameObject prefab, int itemId = -1)
         {
             if (prefab == null) return;
 
@@ -70,6 +73,11 @@ namespace Player
             if (spawned.TryGetComponent(out NetworkObject netObj))
             {
                 netObj.Spawn();
+            }
+
+            if (itemId >= 0)
+            {
+                OnItemDropped?.Invoke(spawned, itemId);
             }
         }
 

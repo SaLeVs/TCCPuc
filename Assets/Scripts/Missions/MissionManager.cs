@@ -40,10 +40,11 @@ namespace Missions
             {
                 MissionCompleter.OnMissionCompleted += MissionCompleter_OnMissionCompleted;
                 PlayerTracker.Instance.OnAllPlayersConnected += DistributeMissionsForPlayers;
+                PlayerDropper.OnItemDropped += PlayerDropper_OnItemDropped;
             }
         }
-        
-        
+
+
         public void HandlePlayerDeath(ulong deadClientId)
         {
             if (!IsServer) return;
@@ -338,6 +339,15 @@ namespace Missions
             }
         }
         
+        private void PlayerDropper_OnItemDropped(GameObject spawned, int itemId)
+        {
+            if (!spawned.TryGetComponent(out IMissionOwnerAware ownerAware)) return;
+            if (MissionItemRegistry.Instance == null) return;
+            if (!MissionItemRegistry.Instance.TryGetManager(itemId, out MissionsManagerBase manager)) return;
+
+            ownerAware.SetOwnershipSelector(manager);
+        }
+        
         public void CompleteMainMission()
         {
             if (!IsServer) return;
@@ -374,7 +384,8 @@ namespace Missions
             if (IsServer)
             {
                 MissionCompleter.OnMissionCompleted -= MissionCompleter_OnMissionCompleted;
-        
+                PlayerDropper.OnItemDropped -= PlayerDropper_OnItemDropped;
+
                 if (PlayerTracker.Instance != null)
                 {
                     PlayerTracker.Instance.OnAllPlayersConnected -= DistributeMissionsForPlayers;

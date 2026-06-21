@@ -196,9 +196,9 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 0}
-        m_TargetAssemblyTypeName: Ui.PauseMenuUi, Ui
-        m_MethodName: ReturnToMainMenu
+      - m_Target: {fileID: 6967474944833097480}
+        m_TargetAssemblyTypeName: OptionsMenu, Ui
+        m_MethodName: CloseBrightnessPanel
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
@@ -487,10 +487,16 @@ MonoBehaviour:
   musicVolumeValueText: {fileID: 7926806686040798839}
   soundEffectsVolumeSlider: {fileID: 7527662888348428148}
   soundEffectsVolumeValueText: {fileID: 7616559378291526495}
+  brightnessSlider: {fileID: 1451796334387773963}
+  brightnessValueText: {fileID: 4731928063717395059}
   rebindMenu: {fileID: 0}
   closeMenuButton: {fileID: 7907229897415742609}
   musicMixer: {fileID: 24100000, guid: 3dc92f719c53e9245ba8fdc79a2cff88, type: 2}
   sfxMixer: {fileID: 24100000, guid: f5388b4d87247e14ba528070026f59b7, type: 2}
+  globalVolume: {fileID: 0}
+  darkPreviewImage: {fileID: 619182559218157833}
+  lightPreviewImage: {fileID: 5572091185419583642}
+  brightnessPanel: {fileID: 3264779619426999781}
 --- !u!1 &918704954380818419
 GameObject:
   m_ObjectHideFlags: 0
@@ -525,7 +531,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 1, y: 0.5}
   m_AnchorMax: {x: 1, y: 0.5}
-  m_AnchoredPosition: {x: 20.2744, y: 0}
+  m_AnchoredPosition: {x: 20.274414, y: 0}
   m_SizeDelta: {x: 90, y: 50}
   m_Pivot: {x: 1, y: 0.5}
 --- !u!222 &8329284796033629418
@@ -1705,7 +1711,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &3524748569110802029
 RectTransform:
   m_ObjectHideFlags: 0
@@ -1850,7 +1856,19 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 2947457752425858943}
   m_OnClick:
     m_PersistentCalls:
-      m_Calls: []
+      m_Calls:
+      - m_Target: {fileID: 6967474944833097480}
+        m_TargetAssemblyTypeName: OptionsMenu, Ui
+        m_MethodName: OpenBrightnessPanel
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
 --- !u!1 &3561092928542247497
 GameObject:
   m_ObjectHideFlags: 0
@@ -3010,7 +3028,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 1, y: 0.5}
   m_AnchorMax: {x: 1, y: 0.5}
-  m_AnchoredPosition: {x: 20.2744, y: 0}
+  m_AnchoredPosition: {x: 20.274414, y: 0}
   m_SizeDelta: {x: 90, y: 50}
   m_Pivot: {x: 1, y: 0.5}
 --- !u!222 &4996454347772704576
@@ -3381,7 +3399,19 @@ MonoBehaviour:
   m_Value: 0
   m_OnValueChanged:
     m_PersistentCalls:
-      m_Calls: []
+      m_Calls:
+      - m_Target: {fileID: 6967474944833097480}
+        m_TargetAssemblyTypeName: OptionsMenu, Ui
+        m_MethodName: BrightnessSlider_OnValueChanged
+        m_Mode: 0
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
 --- !u!1 &7430861599072461774
 GameObject:
   m_ObjectHideFlags: 0
@@ -3416,7 +3446,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 1, y: 0.5}
   m_AnchorMax: {x: 1, y: 0.5}
-  m_AnchoredPosition: {x: 20.2744, y: 0}
+  m_AnchoredPosition: {x: 20.274414, y: 0}
   m_SizeDelta: {x: 90, y: 50}
   m_Pivot: {x: 1, y: 0.5}
 --- !u!222 &3295385318833330518
@@ -3642,9 +3672,9 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 0}
-        m_TargetAssemblyTypeName: Ui.PauseMenuUi, Ui
-        m_MethodName: ReturnToMainMenu
+      - m_Target: {fileID: 6967474944833097480}
+        m_TargetAssemblyTypeName: OptionsMenu, Ui
+        m_MethodName: CloseOptionsMenu
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}

@@ -2942,6 +2942,55 @@ MonoBehaviour:
   speed: 30
   secondImage: {fileID: 34419054}
   overlapOffset: 135.06
+--- !u!1 &702052690
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 702052692}
+  - component: {fileID: 702052691}
+  m_Layer: 0
+  m_Name: Global Volume
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &702052691
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 702052690}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 172515602e62fb746b5d573b38a5fe58, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Unity.RenderPipelines.Core.Runtime::UnityEngine.Rendering.Volume
+  m_IsGlobal: 1
+  priority: 0
+  blendDistance: 0
+  weight: 1
+  sharedProfile: {fileID: 11400000, guid: 23e9a4bffdad26a429a19d745b6dbdc6, type: 2}
+--- !u!4 &702052692
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 702052690}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 961.928, y: 610.6384, z: -0.7399998}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &706540638
 GameObject:
   m_ObjectHideFlags: 0
@@ -7214,7 +7263,7 @@ Canvas:
   serializedVersion: 3
   m_RenderMode: 0
   m_Camera: {fileID: 421920275}
-  m_PlaneDistance: 100
+  m_PlaneDistance: 1
   m_PixelPerfect: 0
   m_ReceivesEvents: 1
   m_OverrideSorting: 0
@@ -9464,17 +9513,6 @@ RectTransform:
   m_CorrespondingSourceObject: {fileID: 4714060994328695905, guid: 023676bf6ef791e44b6e535869f1e52f, type: 3}
   m_PrefabInstance: {fileID: 1726156194489358276}
   m_PrefabAsset: {fileID: 0}
---- !u!114 &1768559102 stripped
-MonoBehaviour:
-  m_CorrespondingSourceObject: {fileID: 6967474944833097480, guid: 023676bf6ef791e44b6e535869f1e52f, type: 3}
-  m_PrefabInstance: {fileID: 1726156194489358276}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1768559100}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: ab528bd3128017b44b3d2e66c042080a, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Ui::OptionsMenu
 --- !u!1 &1778258153
 GameObject:
   m_ObjectHideFlags: 0
@@ -11495,27 +11533,7 @@ PrefabInstance:
       propertyPath: m_Name
       value: OptionsMenu
       objectReference: {fileID: 0}
-    - target: {fileID: 751055723183718667, guid: 023676bf6ef791e44b6e535869f1e52f, type: 3}
-      propertyPath: m_IsActive
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 2042099666836317308, guid: 023676bf6ef791e44b6e535869f1e52f, type: 3}
-      propertyPath: m_AnchorMax.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 2678853455075813988, guid: 023676bf6ef791e44b6e535869f1e52f, type: 3}
-      propertyPath: m_AnchorMax.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 2728202203901813828, guid: 023676bf6ef791e44b6e535869f1e52f, type: 3}
-      propertyPath: m_AnchorMax.y
-      value: 0
-      objectReference: {fileID: 0}
     - target: {fileID: 2934294417596831767, guid: 023676bf6ef791e44b6e535869f1e52f, type: 3}
-      propertyPath: m_AnchorMax.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 3369690621634444084, guid: 023676bf6ef791e44b6e535869f1e52f, type: 3}
       propertyPath: m_AnchorMax.y
       value: 0
       objectReference: {fileID: 0}
@@ -11607,10 +11625,6 @@ PrefabInstance:
       propertyPath: m_AnchorMax.y
       value: 0
       objectReference: {fileID: 0}
-    - target: {fileID: 5317379780884326670, guid: 023676bf6ef791e44b6e535869f1e52f, type: 3}
-      propertyPath: m_AnchorMax.y
-      value: 0
-      objectReference: {fileID: 0}
     - target: {fileID: 6522712031186129053, guid: 023676bf6ef791e44b6e535869f1e52f, type: 3}
       propertyPath: m_AnchorMax.y
       value: 0
@@ -11619,38 +11633,10 @@ PrefabInstance:
       propertyPath: m_AnchorMax.y
       value: 0
       objectReference: {fileID: 0}
-    - target: {fileID: 7709425967967253295, guid: 023676bf6ef791e44b6e535869f1e52f, type: 3}
-      propertyPath: m_AnchorMax.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 7878012039488655208, guid: 023676bf6ef791e44b6e535869f1e52f, type: 3}
-      propertyPath: m_AnchorMax.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 7920838083327481785, guid: 023676bf6ef791e44b6e535869f1e52f, type: 3}
-      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_Target
+    - target: {fileID: 6967474944833097480, guid: 023676bf6ef791e44b6e535869f1e52f, type: 3}
+      propertyPath: globalVolume
       value: 
-      objectReference: {fileID: 1768559102}
-    - target: {fileID: 7920838083327481785, guid: 023676bf6ef791e44b6e535869f1e52f, type: 3}
-      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_MethodName
-      value: CloseOptionsMenu
-      objectReference: {fileID: 0}
-    - target: {fileID: 7920838083327481785, guid: 023676bf6ef791e44b6e535869f1e52f, type: 3}
-      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_TargetAssemblyTypeName
-      value: OptionsMenu, Ui
-      objectReference: {fileID: 0}
-    - target: {fileID: 8060717996591653773, guid: 023676bf6ef791e44b6e535869f1e52f, type: 3}
-      propertyPath: m_AnchorMax.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 8061045199560281563, guid: 023676bf6ef791e44b6e535869f1e52f, type: 3}
-      propertyPath: m_AnchorMax.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 9169904311846535704, guid: 023676bf6ef791e44b6e535869f1e52f, type: 3}
-      propertyPath: m_AnchorMax.y
-      value: 0
-      objectReference: {fileID: 0}
+      objectReference: {fileID: 702052691}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -11662,6 +11648,7 @@ SceneRoots:
   m_Roots:
   - {fileID: 419309981}
   - {fileID: 421920276}
+  - {fileID: 702052692}
   - {fileID: 1139785509}
   - {fileID: 1152366057}
   - {fileID: 1902624049}

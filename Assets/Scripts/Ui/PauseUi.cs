@@ -9,6 +9,8 @@ namespace Ui
     public class PauseMenuUi : MonoBehaviour
     {
         [SerializeField] private GameObject pausePanel;
+        [SerializeField] private GameObject optionPanel;
+        
         [SerializeField] private string mainMenuSceneName = "MainMenu";
         [SerializeField] private PlayerCamera playerCamera;
 
@@ -46,6 +48,11 @@ namespace Ui
             SceneManager.LoadScene(mainMenuSceneName);
         }
 
+
+        public void OpenOptionPanel()
+        {
+            optionPanel.SetActive(true);
+        }
         
         private void OnDestroy()
         {

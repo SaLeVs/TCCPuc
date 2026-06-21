@@ -18193,7 +18193,7 @@ MonoBehaviour:
   m_Center: {x: 0, y: 2, z: 0}
   m_LayerMask:
     serializedVersion: 2
-    m_Bits: 4294967295
+    m_Bits: 91520
   m_UseGeometry: 0
   m_DefaultArea: 0
   m_GenerateLinks: 0
@@ -18202,7 +18202,7 @@ MonoBehaviour:
   m_OverrideTileSize: 0
   m_TileSize: 256
   m_OverrideVoxelSize: 0
-  m_VoxelSize: 0.1
+  m_VoxelSize: 0.033333335
   m_MinRegionArea: 2
   m_NavMeshData: {fileID: 23800000, guid: 5ec68699962b7ce41b64934f4f227a31, type: 2}
   m_BuildHeightMesh: 0
@@ -27183,10 +27183,12 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Components::Components.RecordableIdentifier
   targetType: 6
-  audienceGain: 150
   minimumViewTime: 2
+  audienceGain: 150
   reviewCooldown: 10
   canBeReviewed: 1
+  canBeReviewedForChat: 1
+  chatCooldown: 20
 --- !u!65 &1318101669
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -30633,10 +30635,12 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Components::Components.RecordableIdentifier
   targetType: 7
-  audienceGain: 50
   minimumViewTime: 1.5
+  audienceGain: 50
   reviewCooldown: 120
   canBeReviewed: 1
+  canBeReviewedForChat: 1
+  chatCooldown: 20
 --- !u!65 &1521475430
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -33056,10 +33060,12 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Components::Components.RecordableIdentifier
   targetType: 6
-  audienceGain: 200
   minimumViewTime: 2
+  audienceGain: 200
   reviewCooldown: 10
   canBeReviewed: 1
+  canBeReviewedForChat: 1
+  chatCooldown: 20
 --- !u!1001 &1632499337
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -36729,10 +36735,12 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Components::Components.RecordableIdentifier
   targetType: 7
-  audienceGain: 50
   minimumViewTime: 1.5
+  audienceGain: 50
   reviewCooldown: 120
   canBeReviewed: 1
+  canBeReviewedForChat: 1
+  chatCooldown: 20
 --- !u!65 &1804196188
 BoxCollider:
   m_ObjectHideFlags: 0

@@ -1,3 +1,4 @@
+using System.Collections;
 using Audience;
 using Missions;
 using Unity.AI.Navigation;
@@ -74,7 +75,19 @@ namespace Audience
         private void OpenEscapeRoomDoorRpc()
         {
             escapeDoorAnimator.SetTrigger(OpenHash);
+            StartCoroutine(RebuildNavMeshAfterAnimation());
+        }
+
+        private IEnumerator RebuildNavMeshAfterAnimation()
+        {
+            yield return null;
+            
+            AnimatorStateInfo stateInfo = escapeDoorAnimator.GetCurrentAnimatorStateInfo(0);
+            
+            yield return new WaitForSeconds(stateInfo.length);
+
             navMeshSurface.BuildNavMesh();
+            Debug.Log("Build NavMesh after door opened");
         }
 
         public override void OnNetworkDespawn()

@@ -1,3 +1,4 @@
+using System;
 using Player;
 using Unity.Netcode;
 using UnityEngine;
@@ -9,12 +10,15 @@ namespace Ui
     public class PauseMenuUi : MonoBehaviour
     {
         [SerializeField] private GameObject pausePanel;
+        [SerializeField] private GameObject optionPanel;
+        
         [SerializeField] private string mainMenuSceneName = "MainMenu";
         [SerializeField] private PlayerCamera playerCamera;
 
         private bool _isReturningToMenu;
 
         
+
         private void Start()
         {
             pausePanel.SetActive(false);
@@ -46,6 +50,11 @@ namespace Ui
             SceneManager.LoadScene(mainMenuSceneName);
         }
 
+
+        public void OpenOptionPanel()
+        {
+            optionPanel.SetActive(true);
+        }
         
         private void OnDestroy()
         {

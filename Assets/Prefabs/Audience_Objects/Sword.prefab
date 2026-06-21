@@ -68,6 +68,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: Sword
       objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 598505386b066314abdc5b1a7ec1196d, type: 3}
+      propertyPath: m_Layer
+      value: 14
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -97,10 +101,12 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Components::Components.RecordableIdentifier
   targetType: 6
+  minimumViewTime: 2.5
   audienceGain: 120
-  minimumViewTime: 3
   reviewCooldown: 40
-  canBeReviewed: 0
+  canBeReviewed: 1
+  canBeReviewedForChat: 1
+  chatCooldown: 20
 --- !u!65 &5373636831064224773
 BoxCollider:
   m_ObjectHideFlags: 0

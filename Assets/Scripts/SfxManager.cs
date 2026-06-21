@@ -94,6 +94,7 @@ public class SfxManager : MonoBehaviour
         aSource.minDistance = 10f;           
         aSource.maxDistance = 50f;            
         aSource.playOnAwake = false;
+        aSource.outputAudioMixerGroup = audioSource.outputAudioMixerGroup;
 
         aSource.Play();
         Destroy(tempGO, clip.length);

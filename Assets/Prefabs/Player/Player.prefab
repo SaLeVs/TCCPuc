@@ -2161,6 +2161,7 @@ GameObject:
   - component: {fileID: 4473322791002792294}
   - component: {fileID: 9050313896134913968}
   - component: {fileID: 698595927468390778}
+  - component: {fileID: 8310508884860127548}
   m_Layer: 11
   m_Name: Canvas
   m_TagString: Untagged
@@ -2334,6 +2335,20 @@ MonoBehaviour:
   m_EditorClassIdentifier: Ui::Ui.SoundMissionUi
   missionPanel: {fileID: 7209491413899597692}
   skillCheckController: {fileID: 1929989678681404664}
+--- !u!114 &8310508884860127548
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3631855709488682452}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9d937b5a54d3a334da6e9cf115d4bfe8, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Ui::SettingUiConfigs
+  musicMixer: {fileID: 24100000, guid: 3dc92f719c53e9245ba8fdc79a2cff88, type: 2}
+  sfxMixer: {fileID: 24100000, guid: f5388b4d87247e14ba528070026f59b7, type: 2}
 --- !u!1 &3651877571896663881
 GameObject:
   m_ObjectHideFlags: 0
@@ -6893,7 +6908,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 751055723183718667, guid: 023676bf6ef791e44b6e535869f1e52f, type: 3}
       propertyPath: m_IsActive
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 2934294417596831767, guid: 023676bf6ef791e44b6e535869f1e52f, type: 3}
       propertyPath: m_AnchorMax.y

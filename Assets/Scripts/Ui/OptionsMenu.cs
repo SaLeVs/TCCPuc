@@ -4,6 +4,7 @@ using UnityEngine;
 using UnityEngine.Audio;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
+using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
 public class OptionsMenu : MonoBehaviour
@@ -82,7 +83,7 @@ public class OptionsMenu : MonoBehaviour
         ApplyBrightness(_brightness);
         UpdateBrightnessPreview(_brightness);
         
-        gameObject.SetActive(false);
+        SceneManager.sceneLoaded += OnSceneLoaded;
     }
     
     private void OnEnable()
@@ -98,6 +99,7 @@ public class OptionsMenu : MonoBehaviour
 
     public void SensibilitySlider_OnSensibilityChanged(float sensibilityValue)
     {
+        _sensibility = sensibilityValue;
         PlayerPrefs.SetFloat(SENSIBILITY_KEY, sensibilityValue);
         UpdateSensibilityText(sensibilityValueText, sensibilityValue);
         OnSensibilityChanged?.Invoke(sensibilityValue);
@@ -106,6 +108,7 @@ public class OptionsMenu : MonoBehaviour
 
     public void MusicSlider_OnValueChanged(float volumeValue)
     {
+        _musicVolume = volumeValue;
         PlayerPrefs.SetFloat(MUSIC_VOLUME_KEY, volumeValue);
         UpdateVolumeText(musicVolumeValueText, volumeValue);
         musicMixer.SetFloat("musicVolume", LinearToDecibel(volumeValue));
@@ -113,6 +116,7 @@ public class OptionsMenu : MonoBehaviour
     
     public void SoundEffectsSlider_OnValueChanged(float volumeValue)
     {
+        _soundEffectsVolume = volumeValue;
         PlayerPrefs.SetFloat(SOUND_EFFECTS_VOLUME_KEY, volumeValue);
         UpdateVolumeText(soundEffectsVolumeValueText, volumeValue);   
         sfxMixer.SetFloat("sfxVolume", LinearToDecibel(volumeValue));
@@ -153,6 +157,19 @@ public class OptionsMenu : MonoBehaviour
         }
     }
 
+    private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
+    {
+        _colorAdjustments = null;
+        globalVolume = FindFirstObjectByType<Volume>();
+
+        if (globalVolume != null && globalVolume.profile != null)
+        {
+            globalVolume.profile.TryGet(out _colorAdjustments);
+        }
+
+        ApplyBrightness(_brightness);
+    }
+    
     private void UpdateBrightnessText(float value)
     {
         int percent = Mathf.RoundToInt(value * 100f);
@@ -204,6 +221,16 @@ public class OptionsMenu : MonoBehaviour
     public void CloseBrightnessPanel()
     {
         brightnessPanel.SetActive(false);
+    }
+
+    private void OnDisable()
+    {
+        PlayerPrefs.Save();
+    }
+    
+    private void OnDestroy()
+    {
+        SceneManager.sceneLoaded -= OnSceneLoaded;
     }
     
 }

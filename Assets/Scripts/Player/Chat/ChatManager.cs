@@ -158,20 +158,19 @@ namespace Player.Chat
             }
 
             int messagesCountToSend = Random.Range(minMessages, maxMessages + 1);
-
-            for (int i = 0; i < messagesCountToSend; i++)
-            {
-                string viewer = nameDatabase.GetNext();
-                string message =entry.GetWeightedRandom();
-                float delay = Random.Range(minDelay, maxDelay);
-                StartCoroutine(SendDelayed(viewer, message, delay));
-            }
+            StartCoroutine(SendMessagesSequentially(entry, messagesCountToSend));
         }
 
-        private IEnumerator SendDelayed(string viewer, string message, float delay)
+        private IEnumerator SendMessagesSequentially(TargetChatData entry, int count)
         {
-            yield return new WaitForSeconds(delay);
-            OnMessageSent?.Invoke(viewer, message);
+            for (int i = 0; i < count; i++)
+            {
+                yield return new WaitForSeconds(Random.Range(minDelay, maxDelay));
+
+                string viewer = nameDatabase.GetNext();
+                string message = entry.GetWeightedRandom();
+                OnMessageSent?.Invoke(viewer, message);
+            }
         }
 
         

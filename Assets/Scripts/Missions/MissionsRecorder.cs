@@ -15,12 +15,15 @@ namespace Missions
     public class MissionsRecorder : MainMission
     {
         [SerializeField] private RecordableTargetConfig[] requiredTargets;
+        [SerializeField] private float checkInterval = 0.5f;
+        
 
         private Dictionary<RecordableTarget, HashSet<ulong>> _playersWatching = new();
         private Dictionary<RecordableTarget, GameObject> _targetObjects = new();
         private HashSet<RecordableTarget> _recordedTargets = new();
         
         private MissionManager _missionManager;
+        private float _checkTimer;
         
 
         public override void StartMission()
@@ -33,8 +36,6 @@ namespace Missions
             }
             
             _missionManager = FindFirstObjectByType<MissionManager>();
-            
-            Debug.Log("MissionsRecorder: Mission started!");
         }
 
         public override void AbortMission()
@@ -44,8 +45,8 @@ namespace Missions
             _playersWatching.Clear();
             _targetObjects.Clear();
             _recordedTargets.Clear();
-            Debug.Log("MissionsRecorder: Mission aborted!");
         }
+        
 
         public void ReportTargetEnter(ulong clientId, GameObject target, RecordableTarget targetType)
         {
@@ -56,7 +57,6 @@ namespace Missions
             _playersWatching[targetType].Add(clientId);
             
             CheckMissionComplete();
-            Debug.Log($"MissionsRecorder: target entered {targetType} by client {clientId}");
         }
 
         public void ReportTargetExit(ulong clientId, RecordableTarget targetType)
@@ -73,6 +73,19 @@ namespace Missions
             
         }
 
+        private void Update()
+        {
+            if (!IsServer) return;
+            if (_recordedTargets.Count >= requiredTargets.Length) return;
+
+            _checkTimer += Time.deltaTime;
+            if (_checkTimer >= checkInterval)
+            {
+                _checkTimer = 0f;
+                CheckMissionComplete();
+            }
+        }
+        
         private void CheckMissionComplete()
         {
             if (_recordedTargets.Count >= requiredTargets.Length) return;
@@ -91,7 +104,6 @@ namespace Missions
 
                     if (dist > config.maxDistanceToOtherTargets)
                     {
-                        Debug.Log($"MissionsRecorder: {config.targetType} too far from {other.targetType}: {dist}");
                         return;
                     }
                 }
@@ -102,8 +114,8 @@ namespace Missions
             if (_recordedTargets.Count >= requiredTargets.Length)
             {
                 _missionManager.CompleteMainMission();
-                Debug.Log("MissionsRecorder: All targets recorded and close enough, mission Complete!");
             }
         }
+        
     }
 }

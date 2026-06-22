@@ -92,8 +92,7 @@ namespace Systems
 
         private void CheckAllReady()
         {
-            if (!IsServer || PlayerTracker.Instance == null)
-                return;
+            if (!IsServer || PlayerTracker.Instance == null) return;
 
             int totalCount = PlayerTracker.Instance.ExpectedPlayerCount;
             int connectedCount = PlayerTracker.Instance.ConnectedPlayerCount;
@@ -114,13 +113,21 @@ namespace Systems
             if (areAllClientsReady && !_isSceneLoading)
             {
                 _isSceneLoading = true;
+
+                StartFadeAndLoadClientRpc();
                 StartCoroutine(LoadSceneRoutine());
             }
         }
         
+        [Rpc(SendTo.ClientsAndHost)]
+        private void StartFadeAndLoadClientRpc()
+        {
+            StartCoroutine(sceneTransition.FadeOut());
+        }
+        
         private IEnumerator LoadSceneRoutine()
         {
-            yield return sceneTransition.FadeOut();
+            yield return new WaitForSeconds(sceneTransition.FadeDuration);
             Loader.LoadNetwork(sceneToLoad);
         }
 
@@ -132,8 +139,7 @@ namespace Systems
 
         public (int ready, int total) GetReadyCount()
         {
-            if (PlayerTracker.Instance == null)
-                return (0, 0);
+            if (PlayerTracker.Instance == null) return (0, 0);
 
             int total = PlayerTracker.Instance.ExpectedPlayerCount;
             int ready = 0;
@@ -149,6 +155,7 @@ namespace Systems
             return (ready, total);
         }
 
+        
         public override void OnNetworkDespawn()
         {
             if (PlayerTracker.Instance != null && _subscribedToTracker)
@@ -158,5 +165,6 @@ namespace Systems
                 _subscribedToTracker = false;
             }
         }
+        
     }
 }

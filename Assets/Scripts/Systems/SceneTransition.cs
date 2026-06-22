@@ -11,8 +11,10 @@ namespace Systems
         [SerializeField] private float timeToFade = 1f;
         [SerializeField] private bool wantToFadeIn = true;
 
+        public float FadeDuration => timeToFade;
         private Coroutine _currentFade;
 
+        
         private void Start()
         {
             if (wantToFadeIn)

@@ -4565,9 +4565,9 @@ GameObject:
   - component: {fileID: 1740412110358022840}
   - component: {fileID: 3916989616377195318}
   - component: {fileID: 1861191804149879818}
+  - component: {fileID: 4373805126515133335}
   - component: {fileID: 3158690138509095668}
   - component: {fileID: 2207057075489463036}
-  - component: {fileID: 4373805126515133335}
   m_Layer: 11
   m_Name: Player
   m_TagString: Untagged
@@ -4607,7 +4607,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Unity.Netcode.Runtime::Unity.Netcode.NetworkObject
-  GlobalObjectIdHash: 3919488120
+  GlobalObjectIdHash: 282796449
   InScenePlacedSourceGlobalObjectIdHash: 0
   DeferredDespawnTick: 0
   Ownership: 1
@@ -5056,6 +5056,29 @@ MonoBehaviour:
     m_Bits: 68480
   detectedObjects: []
   previousDetectedObjects: []
+--- !u!114 &4373805126515133335
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6252520807053122715}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6c5c6cd2109edb847b650303cc5d7f29, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Ui::RemoveUiDebug
+  uiObjects:
+  - {fileID: 3205022582486267336}
+  - {fileID: 2350391976534525055}
+  - {fileID: 8299473911520280138}
+  - {fileID: 4372796597709465268}
+  - {fileID: 4477351902051161798}
+  - {fileID: 2488481795177805449}
+  - {fileID: 4815455263877584644}
+  - {fileID: 9105935279322315719}
+  - {fileID: 2882450633769576589}
+  - {fileID: 8584737319804502943}
 --- !u!54 &3158690138509095668
 Rigidbody:
   m_ObjectHideFlags: 0
@@ -5106,29 +5129,6 @@ CapsuleCollider:
   m_Height: 1.3992002
   m_Direction: 1
   m_Center: {x: 0, y: 0.72539985, z: 0.14625272}
---- !u!114 &4373805126515133335
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 6252520807053122715}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 6c5c6cd2109edb847b650303cc5d7f29, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Ui::RemoveUiDebug
-  uiObjects:
-  - {fileID: 3205022582486267336}
-  - {fileID: 2350391976534525055}
-  - {fileID: 8299473911520280138}
-  - {fileID: 4372796597709465268}
-  - {fileID: 4477351902051161798}
-  - {fileID: 2488481795177805449}
-  - {fileID: 4815455263877584644}
-  - {fileID: 9105935279322315719}
-  - {fileID: 2882450633769576589}
-  - {fileID: 8584737319804502943}
 --- !u!1 &6597970676442130686
 GameObject:
   m_ObjectHideFlags: 0
@@ -8112,7 +8112,7 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 4872851973958549206, guid: 3bc24c2d5845869428982f72dbf96afd, type: 3}
       propertyPath: m_SizeDelta.y
-      value: 0
+      value: 3
       objectReference: {fileID: 0}
     - target: {fileID: 5714232411238863896, guid: 3bc24c2d5845869428982f72dbf96afd, type: 3}
       propertyPath: m_Name
@@ -8638,7 +8638,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7928477944169878567, guid: 69d3eb0e15e37624a88d642f46096351, type: 3}
       propertyPath: m_SizeDelta.y
-      value: 0
+      value: 3
       objectReference: {fileID: 0}
     - target: {fileID: 9024786202233854397, guid: 69d3eb0e15e37624a88d642f46096351, type: 3}
       propertyPath: visionSensor

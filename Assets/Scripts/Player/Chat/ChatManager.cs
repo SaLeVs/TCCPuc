@@ -178,6 +178,7 @@ namespace Player.Chat
 
             _activeTargets.Clear();
             _pendingViewTime.Clear();
+            _lastSentTime.Clear();
         }
         
     }

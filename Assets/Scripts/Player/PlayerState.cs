@@ -30,6 +30,7 @@ namespace Player
         [SerializeField] private PlayerCamera playerCamera;
         [SerializeField] private PlayerCameraOffset playerCameraOffset;
 
+        
         public bool IsDead => playerDead.IsDead;
         public CinemachineCamera PlayerCinemachineCamera => playerCamera.playerCinemachineCamera;
         public bool HasEscapedServerSide { get; set; }
@@ -219,6 +220,8 @@ namespace Player
             SetInputLocked(true);
             OnGameOverTriggered?.Invoke();
         }
+        
+        public void SetOcclusionVisible(bool visible) => playerCamera.SetOcclusionRenderersVisible(visible);
         
         public override void OnNetworkDespawn()
         {

@@ -49,9 +49,9 @@ namespace Player
             } 
         }
 
+        
         private void InputReader_OnCameraLookEvent(Vector2 cameraLookInput) => _lookInput = cameraLookInput;
         
-
         public void SetSpectatorMode(bool isSpectating)
         {
             cinemachineCamera.Priority = isSpectating ? 0 : ownerCameraPriority;
@@ -118,6 +118,12 @@ namespace Player
             }
         }
         
+        public void SetOcclusionRenderersVisible(bool visible)
+        {
+            foreach (Renderer currentRenderer in occlusionRenderers)
+                currentRenderer.enabled = visible;
+        }
+        
         private void LateUpdate()
         {
             if (IsOwner && !_isDead && !_isLocked)
@@ -141,7 +147,6 @@ namespace Player
         }
         
         
-        
         public override void OnNetworkDespawn()
         {
             if (IsOwner)
@@ -153,8 +158,8 @@ namespace Player
                 
                 cinemachineCamera.Priority = 0;
             }
-            
         }
+        
     }
 }
 

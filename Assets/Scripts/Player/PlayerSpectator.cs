@@ -22,6 +22,7 @@ namespace Player
 
         private const int SPECTATOR_PRIORITY = 20;
         private Coroutine _spectatorCoroutine;
+        private PlayerState _currentTargetState;
 
         
         public override void OnNetworkSpawn()
@@ -164,21 +165,27 @@ namespace Player
             if (_currentTargetVCam != null)
             {
                 _currentTargetVCam.Priority = 0;
+                _currentTargetState?.SetOcclusionVisible(true);
             }
 
             ulong targetId = _alivePlayerIds[index];
 
-            if (!NetworkManager.Singleton.ConnectedClients.TryGetValue(targetId, out NetworkClient client) || client.PlayerObject == null) return;
+            if (!NetworkManager.Singleton.ConnectedClients.TryGetValue(targetId, out NetworkClient client) 
+                || client.PlayerObject == null) return;
 
             if (client.PlayerObject.TryGetComponent(out PlayerState targetState))
             {
                 _currentTargetVCam = targetState.PlayerCinemachineCamera;
                 _currentTargetVCam.Priority = SPECTATOR_PRIORITY;
+
+                _currentTargetState = targetState;
+                _currentTargetState.SetOcclusionVisible(false);
             }
 
             OnTargetChanged?.Invoke($"Player {targetId}");
         }
 
+        
         public override void OnNetworkDespawn()
         {
             if (!IsOwner) return;
@@ -187,9 +194,12 @@ namespace Player
             {
                 _currentTargetVCam.Priority = 0;
             }
-
+            
+            _currentTargetState?.SetOcclusionVisible(true);
+            
             playerState.OnPlayerDead -= PlayerState_OnDeathChanged;
             playerState.OnPlayerWon -= PlayerState_OnPlayerWon;
         }
+        
     }
 }

@@ -87,33 +87,32 @@ namespace Missions
         
         private void CheckMissionComplete()
         {
-            if (_recordedTargets.Count >= requiredTargets.Length) return;
-
             foreach (RecordableTargetConfig config in requiredTargets)
             {
-                if (_playersWatching[config.targetType].Count == 0) return;
-                if (!_targetObjects.TryGetValue(config.targetType, out GameObject thisObj)) return;
-
-                foreach (RecordableTargetConfig other in requiredTargets)
-                {
-                    if (other.targetType == config.targetType) continue;
-                    if (!_targetObjects.TryGetValue(other.targetType, out GameObject otherObj)) return;
-
-                    float dist = Vector3.Distance(thisObj.transform.position, otherObj.transform.position);
-
-                    if (dist > config.maxDistanceToOtherTargets)
-                    {
-                        return;
-                    }
-                }
-
-                _recordedTargets.Add(config.targetType);
+                if (!_playersWatching.TryGetValue(config.targetType, out var viewers)) return;
+                if (viewers.Count == 0) return;
+                if (!_targetObjects.ContainsKey(config.targetType)) return;
             }
-
-            if (_recordedTargets.Count >= requiredTargets.Length)
+            
+            for (int i = 0; i < requiredTargets.Length; i++)
             {
-                _missionManager.CompleteMainMission();
+                RecordableTargetConfig current = requiredTargets[i];
+
+                GameObject currentObj = _targetObjects[current.targetType];
+
+                for (int j = i + 1; j < requiredTargets.Length; j++)
+                {
+                    RecordableTargetConfig other = requiredTargets[j];
+
+                    GameObject otherObj = _targetObjects[other.targetType];
+
+                    float distance = Vector3.Distance(currentObj.transform.position, otherObj.transform.position);
+
+                    if (distance > current.maxDistanceToOtherTargets) return;
+                }
             }
+
+            _missionManager.CompleteMainMission();
         }
         
     }

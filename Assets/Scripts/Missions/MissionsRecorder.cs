@@ -76,7 +76,6 @@ namespace Missions
         private void Update()
         {
             if (!IsServer) return;
-            if (_recordedTargets.Count >= requiredTargets.Length) return;
 
             _checkTimer += Time.deltaTime;
             if (_checkTimer >= checkInterval)
@@ -119,3 +118,4 @@ namespace Missions
         
     }
 }
+        

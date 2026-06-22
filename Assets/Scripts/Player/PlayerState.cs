@@ -59,38 +59,8 @@ namespace Player
                
                 playerDead.OnRagdollSpawned += PlayerDead_OnRagdollSpawned;
             }
-
-            if (TryGetComponent(out NetworkObject networkObject))
-            {
-                Debug.Log(
-                    $"Owner={networkObject.OwnerClientId} " +
-                    $"Spawnado em {transform.position}"
-                );
-
-                StartCoroutine(DebugPosition());
-            }
         }
         
-
-        private IEnumerator DebugPosition()
-        {
-            yield return null;
-                
-            if (TryGetComponent(out NetworkObject networkObject))
-            {
-                Debug.Log(
-                    $"[CLIENT {networkObject.OwnerClientId}] " +
-                    $"Frame seguinte: {transform.position}"
-                );
-            }
-            
-            yield return new WaitForSeconds(1f);
-
-            Debug.Log(
-                $"[CLIENT {networkObject.OwnerClientId}] " +
-                $"Frame seguinte: {transform.position}"
-            );
-        }
         
         private void PlayerMovement_OnPlayerMovement(Vector2 playerVelocity)
         {

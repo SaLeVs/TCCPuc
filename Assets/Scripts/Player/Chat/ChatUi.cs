@@ -41,7 +41,6 @@ namespace Player.Chat
             if (SceneManager.GetActiveScene().name != nameof(Scenes.Game)) return;
             
             chatManager.OnMessageSent += ChatManager_OnMessageSent;
-            Debug.Log("Chat: Add the listener");
         }
         
         
@@ -58,11 +57,9 @@ namespace Player.Chat
         
         private void OnDisable()
         {
-            
             if (SceneManager.GetActiveScene().name != nameof(Scenes.Game)) return;
             
             chatManager.OnMessageSent -= ChatManager_OnMessageSent;
-            Debug.Log("Chat: Remove the listener");
         }
         
     }

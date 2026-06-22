@@ -58,6 +58,10 @@ namespace Player.Chat
             {
                 HandleTargetEnter(identifier);
             }
+            else
+            {
+                Debug.LogWarning($"[ChatManager] No RecordableIdentifier on {target.name}");
+            }
         }
 
         private void VisionSensor_OnNetworkTargetExitSeen(GameObject target)
@@ -145,7 +149,11 @@ namespace Player.Chat
 
         private void TriggerMessage(RecordableTarget target)
         {
-            if (!messageDatabase.TryGetData(target, out TargetChatData entry)) return;
+            if (!messageDatabase.TryGetData(target, out TargetChatData entry))
+            {
+                Debug.LogWarning($"[ChatManager] No chat data for {target}");
+                return;
+            }
 
             string viewer = nameDatabase.GetNext();
             string message = entry.GetWeightedRandom();
@@ -156,7 +164,6 @@ namespace Player.Chat
         private IEnumerator SendDelayed(string viewer, string message, float delay)
         {
             yield return new WaitForSeconds(delay);
-
             OnMessageSent?.Invoke(viewer, message);
         }
 

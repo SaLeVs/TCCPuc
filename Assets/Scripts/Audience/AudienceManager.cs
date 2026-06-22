@@ -140,7 +140,6 @@ namespace Audience
             {
                 _thresholdReached = true;
                 OnAudienceThresholdReached?.Invoke();
-                Debug.Log($"AudienceManager: {escapeThreshold * 100}% Hit audience target");
             }
         }
 

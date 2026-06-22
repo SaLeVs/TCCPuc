@@ -20,24 +20,41 @@ namespace Audience
         
         private Dictionary<int, float> _seenObjects = new Dictionary<int, float>();
         private HashSet<GameObject> _presenceObjects = new HashSet<GameObject>();
-
-
+        
+        
         public override void OnNetworkSpawn()
         {
-            if (IsServer)
+            if (!IsOwner) return;
+
+            visionSensor.OnTargetEnter += HandleTargetEnterStatic;
+            visionSensor.OnTargetExit += HandleTargetExitStatic;
+
+            visionSensor.OnTargetEnterStatic += HandleTargetEnterStatic;
+            visionSensor.OnTargetExitStatic += HandleTargetExitStatic;
+        }
+        
+        
+        private void Update()
+        {
+            if (!IsOwner) return;
+
+            TickActiveObjects(Time.deltaTime);
+            TickPresenceObjects();
+        }
+        
+        private void HandleTargetEnterStatic(GameObject target)
+        {
+            if (target.TryGetComponent(out RecordableIdentifier id))
             {
-                visionSensor.OnTargetEnterServer += HandleTargetEnter;
-                visionSensor.OnTargetExitServer  += HandleTargetExit;
+                HandleTargetEnter(target, id.targetType);
             }
         }
         
-
-        private void Update()
+        private void HandleTargetExitStatic(GameObject target)
         {
-            if (IsServer)
+            if (target.TryGetComponent(out RecordableIdentifier id))
             {
-                TickActiveObjects(Time.deltaTime);
-                TickPresenceObjects();
+                HandleTargetExit(target, id.targetType);
             }
         }
         
@@ -53,12 +70,10 @@ namespace Audience
                 {
                     _seenObjects.Remove(id);
                     _activeObjects[target] = 0f;
-                    Debug.Log($"AudienceContributor: {target.name} review cooldown expired, tracking again.");
                 }
                 else
                 {
                     _presenceObjects.Add(target);
-                    Debug.Log($"AudienceContributor: {target.name} re-entered view for decay prevention.");
                 }
                 return;
             }
@@ -70,7 +85,6 @@ namespace Audience
                 {
                     resumedTime = saved;
                     _pendingViewTime.Remove(id);
-                    Debug.Log($"AudienceContributor: {target.name} re-entered, resuming at {resumedTime}s.");
                 }
                 else
                 {
@@ -86,7 +100,6 @@ namespace Audience
             if (_presenceObjects.Contains(target))
             {
                 _presenceObjects.Remove(target);
-                Debug.Log($"AudienceContributor: {target.name} left presence view.");
                 return;
             }
 
@@ -100,12 +113,10 @@ namespace Audience
             {
                 _pendingViewTime[id] = accumulatedTime;
                 _activeObjects.Remove(target);
-                Debug.Log($"AudienceContributor: {target.name} left early ({accumulatedTime}s / {identifier.minimumViewTime}s). Progress saved.");
             }
             else
             {
                 _activeObjects.Remove(target);
-                Debug.Log($"AudienceContributor: {target.name} confirmed seen on exit.");
             }
         }
         
@@ -124,25 +135,33 @@ namespace Audience
                 if (!target.TryGetComponent(out RecordableIdentifier identifier)) continue;
 
                 _activeObjects[target] += deltaTime;
-                float secondsInView = _activeObjects[target];
-                
-                if (secondsInView < identifier.minimumViewTime) continue;
 
-                int id = target.GetInstanceID();
-                
-                AudienceManager.Instance.SubmitGain(identifier.audienceGain);
-                
-                _seenObjects[id] = Time.time;
+                if (_activeObjects[target] < identifier.minimumViewTime) continue;
+
+                SubmitAudienceServerRpc(identifier.audienceGain);
+
+                _seenObjects[target.GetInstanceID()] = Time.time;
                 _activeObjects.Remove(target);
-
-                Debug.Log($"AudienceContributor: {target.name} confirmed — awarded {identifier.audienceGain} audience.");
             }
+        }
+
+        [Rpc(SendTo.Server)]
+        private void SubmitAudienceServerRpc(float gain)
+        {
+            AudienceManager.Instance.SubmitGain(gain);
         }
         
         private void TickPresenceObjects()
         {
-            if (_presenceObjects.Count == 0) return;
-            
+            if (_presenceObjects.Count == 0)
+                return;
+
+            SubmitPresenceServerRpc();
+        }
+
+        [Rpc(SendTo.Server)]
+        private void SubmitPresenceServerRpc()
+        {
             AudienceManager.Instance.SubmitPresence();
         }
         
@@ -158,11 +177,13 @@ namespace Audience
         
         public override void OnNetworkDespawn()
         {
-            if (IsServer)
-            {
-                visionSensor.OnTargetEnterServer -= HandleTargetEnter;
-                visionSensor.OnTargetExitServer  -= HandleTargetExit;
-            }
+            if (!IsOwner) return;
+
+            visionSensor.OnTargetEnter -= HandleTargetEnterStatic;
+            visionSensor.OnTargetExit -= HandleTargetExitStatic;
+
+            visionSensor.OnTargetEnterStatic -= HandleTargetEnterStatic;
+            visionSensor.OnTargetExitStatic -= HandleTargetExitStatic;
         }
         
     }

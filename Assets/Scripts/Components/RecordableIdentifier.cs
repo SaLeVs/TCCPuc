@@ -5,6 +5,9 @@ namespace Components
 {
     public class RecordableIdentifier : MonoBehaviour
     {
+        [SerializeField] private string recordableId;
+        public string RecordableId => recordableId;
+        
         public RecordableTarget targetType;
         public float minimumViewTime = 2f;
         

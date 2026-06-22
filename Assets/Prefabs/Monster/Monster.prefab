@@ -390,7 +390,7 @@ MonoBehaviour:
   ShowTopMostFoldoutHeaderGroup: 1
   distanceToAttack: 1
   damageAmountPerAttack: 15
-  attackCooldown: 2
+  attackCooldown: 1
   attackDuration: 1.05
   hitbox: {fileID: 9202415151627606512}
 --- !u!114 &5948121288489261731
@@ -444,11 +444,14 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4dd8e00f9e7042cfa31b55f7719b6016, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Components::Components.RecordableIdentifier
+  recordableId: 1005
   targetType: 3
-  audienceGain: 150
   minimumViewTime: 4
+  audienceGain: 150
   reviewCooldown: 40
   canBeReviewed: 1
+  canBeReviewedForChat: 1
+  chatCooldown: 20
 --- !u!195 &9158156660860726962
 NavMeshAgent:
   m_ObjectHideFlags: 0

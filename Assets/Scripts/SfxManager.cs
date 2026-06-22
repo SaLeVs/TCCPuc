@@ -33,7 +33,7 @@ public class SfxManager : MonoBehaviour
         MonsterAttack.OnMonsterAttackSound += MonsterAttack_OnMonsterAttack;
         MonsterSabotage.OnSabotageSound += MonsterSabotage_OnSabotageSound;
         MonsterChase.OnMonsterSeeTargetSound += MonsterChase_OnMonsterSeeTargetSound;
-        MonsterWander.OnMonsterFootstepSound += MonsterWander_OnMonsterFootstepSound;
+        MonsterBrain.OnMonsterFootstepSound += MonsterBrain_OnMonsterFootstepSound;
     }
 
 
@@ -77,7 +77,7 @@ public class SfxManager : MonoBehaviour
         PlaySound(audioClipRefsSO.monsterSeeTarget, position);
     }
     
-    private void MonsterWander_OnMonsterFootstepSound(Vector3 position)
+    private void MonsterBrain_OnMonsterFootstepSound(Vector3 position)
     {
         PlaySound(audioClipRefsSO.monsterFootsteps, position);
     }
@@ -152,7 +152,7 @@ public class SfxManager : MonoBehaviour
         MonsterAttack.OnMonsterAttackSound -= MonsterAttack_OnMonsterAttack;
         MonsterSabotage.OnSabotageSound -= MonsterSabotage_OnSabotageSound;
         MonsterChase.OnMonsterSeeTargetSound -= MonsterChase_OnMonsterSeeTargetSound;
-        MonsterWander.OnMonsterFootstepSound -= MonsterWander_OnMonsterFootstepSound;
+        MonsterBrain.OnMonsterFootstepSound -= MonsterBrain_OnMonsterFootstepSound;
     }
     
 }

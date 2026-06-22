@@ -12,7 +12,7 @@ namespace Monster
     {
         public event Action OnStartedMovingAnimation;
         public event Action OnStoppedMovingAnimation;
-        public static Action<Vector3> OnMonsterFootstepSound;
+        
         
         [SerializeField] private float walkSpeed;
         [SerializeField] private float wanderRadius;
@@ -22,9 +22,6 @@ namespace Monster
         [SerializeField] private float maxTimeInSector;
         [SerializeField] private float waypointReachedDistance;
         [SerializeField] private PatrolSector[] allSectors;
-        
-        [SerializeField] private float footstepDistance = 2.0f;
-        [SerializeField] private float minMoveSpeedToStep = 0.1f;
 
         
         private float _footstepTimer;
@@ -38,9 +35,6 @@ namespace Monster
         private float _currentWanderInterval;
 
         private bool _waitingAtPoint;
-        
-        private float _distanceSinceLastFootstep;
-        private Vector3 _lastFootstepPosition;
         
         
         public void Initialize(NavMeshAgent monsterAgent)
@@ -152,42 +146,6 @@ namespace Monster
                     OnStartedMovingAnimation?.Invoke();
                 }
             }
-            
-            HandleFootsteps(deltaTime);
-        }
-        
-        private void HandleFootsteps(float deltaTime)
-        {
-            if (_agent == null || _agent.isStopped)
-            {
-                _distanceSinceLastFootstep = 0f;
-                _lastFootstepPosition = transform.position;
-                return;
-            }
-
-            Vector3 currentPosition = transform.position;
-
-            Vector3 flatDelta = currentPosition - _lastFootstepPosition;
-            flatDelta.y = 0f;
-
-            float currentSpeed = _agent.velocity.magnitude;
-
-            if (currentSpeed < minMoveSpeedToStep)
-            {
-                _distanceSinceLastFootstep = 0f;
-                _lastFootstepPosition = currentPosition;
-                return;
-            }
-
-            _distanceSinceLastFootstep += flatDelta.magnitude;
-            _lastFootstepPosition = currentPosition;
-
-            if (_distanceSinceLastFootstep >= footstepDistance)
-            {
-                _distanceSinceLastFootstep -= footstepDistance;
-
-                OnMonsterFootstepSound?.Invoke(transform.position);
-            }
         }
         
         public void StopWander()
@@ -197,8 +155,6 @@ namespace Monster
 
             _sectorTimer = 0f;
             _wanderTimer = 0f;
-
-            _distanceSinceLastFootstep = 0f;
         }
         
         private bool ReachedDestination()

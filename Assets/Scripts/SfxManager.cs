@@ -1,3 +1,4 @@
+using System.Collections;
 using Components;
 using Missions;
 using Monster;
@@ -7,6 +8,14 @@ using UnityEngine;
 
 public class SfxManager : MonoBehaviour
 {
+    [SerializeField] private float sfxMinDistance = 1f;
+    [SerializeField] private float sfxMaxDistance = 20f;
+    
+    [SerializeField] private LayerMask occlusionLayers;
+    [SerializeField] private float occludedCutoffFrequency = 500f;
+    [SerializeField] private float openCutoffFrequency = 22000f;  
+    [SerializeField] private float occlusionCheckInterval = 0.1f; 
+    
     [SerializeField] private AudioClipsRefsSO audioClipRefsSO;
     [SerializeField] private Transform mainCamera;
     [SerializeField] private AudioSource audioSource;
@@ -77,8 +86,12 @@ public class SfxManager : MonoBehaviour
     {
         if (audioClipArray == null || audioClipArray.Length == 0) return;
 
-        if (position == Vector3.zero)
+        bool isUiSound = position == Vector3.zero;
+
+        if (isUiSound)
+        {
             position = mainCamera.position;
+        }
 
         AudioClip clip = audioClipArray[Random.Range(0, audioClipArray.Length)];
 
@@ -87,17 +100,43 @@ public class SfxManager : MonoBehaviour
 
         AudioSource aSource = tempGO.AddComponent<AudioSource>();
         aSource.clip = clip;
-    
         aSource.volume = volume;
-        aSource.spatialBlend = 1f;     
-        aSource.rolloffMode = AudioRolloffMode.Linear;
-        aSource.minDistance = 10f;           
-        aSource.maxDistance = 50f;            
+        aSource.spatialBlend = isUiSound ? 0f : 1f; 
+        aSource.rolloffMode = AudioRolloffMode.Logarithmic;
+        aSource.minDistance = sfxMinDistance;
+        aSource.maxDistance = sfxMaxDistance;
         aSource.playOnAwake = false;
         aSource.outputAudioMixerGroup = audioSource.outputAudioMixerGroup;
 
+        AudioLowPassFilter lowPass = tempGO.AddComponent<AudioLowPassFilter>();
+        lowPass.cutoffFrequency = openCutoffFrequency;
+
         aSource.Play();
+
+        if (!isUiSound)
+        {
+            StartCoroutine(HandleOcclusion(tempGO, aSource, lowPass));
+        }
+
         Destroy(tempGO, clip.length);
+    }
+
+    private IEnumerator HandleOcclusion(GameObject tempGO, AudioSource aSource, AudioLowPassFilter lowPass)
+    {
+        while (tempGO != null && aSource.isPlaying)
+        {
+            Vector3 direction = mainCamera.position - tempGO.transform.position;
+            bool occluded = Physics.Raycast(
+                tempGO.transform.position,
+                direction.normalized,
+                direction.magnitude,
+                occlusionLayers
+            );
+
+            lowPass.cutoffFrequency = occluded ? occludedCutoffFrequency : openCutoffFrequency;
+
+            yield return new WaitForSeconds(occlusionCheckInterval);
+        }
     }
 
     

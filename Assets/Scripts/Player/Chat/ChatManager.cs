@@ -19,6 +19,8 @@ namespace Player.Chat
         [SerializeField] private ChatMessageDatabaseSO messageDatabase;
         [SerializeField] private ViewerNameDatabaseSO nameDatabase;
         [SerializeField] private GameObject chatUi;
+        [SerializeField] private int maxMessages;
+        [SerializeField] private int minMessages;
 
         [Header("Timing")]
         [SerializeField] private float minDelay = 0.5f;
@@ -155,10 +157,15 @@ namespace Player.Chat
                 return;
             }
 
-            string viewer = nameDatabase.GetNext();
-            string message = entry.GetWeightedRandom();
+            int messagesCountToSend = Random.Range(minMessages, maxMessages + 1);
 
-            StartCoroutine(SendDelayed(viewer, message, Random.Range(minDelay, maxDelay)));
+            for (int i = 0; i < messagesCountToSend; i++)
+            {
+                string viewer = nameDatabase.GetNext();
+                string message =entry.GetWeightedRandom();
+                float delay = Random.Range(minDelay, maxDelay);
+                StartCoroutine(SendDelayed(viewer, message, delay));
+            }
         }
 
         private IEnumerator SendDelayed(string viewer, string message, float delay)

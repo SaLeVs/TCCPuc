@@ -16,7 +16,7 @@ namespace Ui
         [SerializeField] private PlayerCamera playerCamera;
 
         private bool _isReturningToMenu;
-
+        private bool isPanelEnabled;
         
 
         private void Start()
@@ -26,9 +26,21 @@ namespace Ui
             NetworkManager.Singleton.OnClientDisconnectCallback += OnClientDisconnected;
         }
 
-        
-        private void PlayerCamera_OnPauseToggled(bool isPaused) => pausePanel.SetActive(isPaused);
 
+        private void PlayerCamera_OnPauseToggled(bool isPaused)
+        {
+            pausePanel.SetActive(isPaused);
+            isPanelEnabled = isPaused;
+
+            Cursor.lockState = isPaused ? CursorLockMode.None : CursorLockMode.Locked;
+            Cursor.visible = isPaused;
+        }
+
+        public void ClosePauseMenu()
+        {
+            playerCamera.SetPauseState(false);
+        }
+        
         private void OnClientDisconnected(ulong clientId)
         {
             if (_isReturningToMenu) return;

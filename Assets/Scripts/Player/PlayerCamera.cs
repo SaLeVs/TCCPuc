@@ -73,6 +73,12 @@ namespace Player
             OnPauseToggled?.Invoke(_isPaused);
         }
         
+        public void SetPauseState(bool isPaused)
+        {
+            _isPaused = isPaused;
+            OnPauseToggled?.Invoke(isPaused);
+        }
+        
         private void PlayerState_OnPlayerDead(bool isDead) => _isDead = isDead;
         
         private void PlayerState_OnPlayerLocked(bool locked)

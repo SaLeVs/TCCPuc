@@ -23,7 +23,7 @@ public class SfxManager : MonoBehaviour
     
     private void Start()
     {
-        PlayerMovement.OnFootstepSound += PlayerMovement_OnFootStepSound;
+        FootstepSound.OnFootstepSound += FootstepSound_OnFootStepSound;
         PlayerDead.OnDeathSound += PlayerDead_OnDeathSound;
         Health.OnDamageSound += PlayerHealth_OnDamageSound;
         
@@ -37,7 +37,7 @@ public class SfxManager : MonoBehaviour
     }
 
 
-    private void PlayerMovement_OnFootStepSound(Vector3 position)
+    private void FootstepSound_OnFootStepSound(Vector3 position)
     {
         PlaySound(audioClipRefsSO.playerFootsteps, position);
     }
@@ -142,7 +142,7 @@ public class SfxManager : MonoBehaviour
     
     private void OnDestroy()
     {
-        PlayerMovement.OnFootstepSound -= PlayerMovement_OnFootStepSound;
+        FootstepSound.OnFootstepSound -= FootstepSound_OnFootStepSound;
         PlayerDead.OnDeathSound -= PlayerDead_OnDeathSound;
         Health.OnDamageSound -= PlayerHealth_OnDamageSound;
         

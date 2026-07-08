@@ -10,7 +10,6 @@ namespace Player
     public class PlayerMovement : NetworkBehaviour
     {
         public event Action<Vector2> OnPlayerMovement;
-        public static Action<Vector3> OnFootstepSound;
         public event Action<Vector2> OnPlayerMovementInput;
         
         [SerializeField] private PlayerState playerState;
@@ -21,10 +20,6 @@ namespace Player
 
         [SerializeField] private float moveSpeed;
         [SerializeField] private float blendMovementTime = 8.9f;
-        
-        [SerializeField] private float footstepDistance = 1.8f;
-        [SerializeField] private float minMoveSpeedToStep = 0.1f;
-        
         
         private float _targetSpeed;
         
@@ -39,10 +34,6 @@ namespace Player
         
         private bool _isDead;
         private bool _isLocked;
-        
-        private float _footstepTimer;
-        private float _distanceSinceLastFootstep;
-        private Vector3 _lastFootstepPosition;        
         
         
         private void Awake()
@@ -79,7 +70,7 @@ namespace Player
             
             if (isDead)
             {
-                _movementInput = Vector2.zero;
+                StopMovement();
             }
         }
         
@@ -89,7 +80,6 @@ namespace Player
             
             if(_isLocked)
             {
-                _movementInput = Vector2.zero;
                 StopMovement();
             }
         }
@@ -100,8 +90,6 @@ namespace Player
             {
                 Move();
             }
-            
-            HandleFootsteps();
         }
         
         
@@ -109,7 +97,7 @@ namespace Player
         {
             _targetSpeed = ApplySpeedModifiers(moveSpeed);
             
-            Vector3 desiredVelocityWorld = Vector3.zero;
+            Vector3 desiredVelocityWorld;
             
             if (_movementInput.sqrMagnitude > 0.0001f)
             {
@@ -153,31 +141,6 @@ namespace Player
             
             _xVelocityDifference = 0f;
             _zVelocityDifference = 0f;
-        }
-        
-        private void HandleFootsteps()
-        {
-            Vector3 currentPosition = transform.position;
-            Vector3 flatDelta = currentPosition - _lastFootstepPosition;
-            flatDelta.y = 0f;
-
-            float currentSpeed = new Vector3(rb.linearVelocity.x, 0f, rb.linearVelocity.z).magnitude;
-
-            if (currentSpeed < minMoveSpeedToStep)
-            {
-                _distanceSinceLastFootstep = 0f;
-                _lastFootstepPosition = currentPosition;
-                return;
-            }
-
-            _distanceSinceLastFootstep += flatDelta.magnitude;
-            _lastFootstepPosition = currentPosition;
-
-            if (_distanceSinceLastFootstep >= footstepDistance)
-            {
-                _distanceSinceLastFootstep -= footstepDistance;
-                OnFootstepSound?.Invoke(transform.position);
-            }
         }
         
         private float ApplySpeedModifiers(float baseSpeed)

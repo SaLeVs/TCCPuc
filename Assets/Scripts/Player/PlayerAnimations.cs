@@ -19,8 +19,6 @@ namespace Player
         private readonly int _interactHash = Animator.StringToHash("_interact");
         private readonly int _heldItemHash = Animator.StringToHash("_holdItem");
         
-        private readonly int _deadHash = Animator.StringToHash("_isDead");
-        
         
         private float _targetMoveX;
         private float _targetMoveY;
@@ -33,7 +31,6 @@ namespace Player
         private float _currentUpperLayerWeight;
 
         private bool _isLocked;
-        private bool _isDead;
         
         
         public override void OnNetworkSpawn()
@@ -47,7 +44,6 @@ namespace Player
                 playerState.OnInteract += PlayerState_OnInteract;
                 playerState.OnHoldItem += PlayerState_OnHoldItem;
                 
-                playerState.OnPlayerDead += PlayerState_OnPlayerDead;
                 playerState.OnPlayerLocked += PlayerState_OnPlayerLocked;
             }
         }
@@ -98,16 +94,6 @@ namespace Player
             animator.SetBool(_heldItemHash, _isHoldingItem);
         }
         
-        private void PlayerState_OnPlayerDead(bool isDead)
-        {
-            _isDead = isDead;
-
-            if (isDead)
-            {
-                enabled = false;
-            }
-        }
-        
         private void PlayerState_OnPlayerLocked(bool locked)
         {
             if (!locked) return;
@@ -131,7 +117,6 @@ namespace Player
                 playerState.OnInteract -= PlayerState_OnInteract;
                 playerState.OnHoldItem -= PlayerState_OnHoldItem;
                 
-                playerState.OnPlayerDead -= PlayerState_OnPlayerDead;
                 playerState.OnPlayerLocked -= PlayerState_OnPlayerLocked;
             }
             

@@ -25,7 +25,6 @@ namespace Components
             {
                 NotifyFootstepServerRpc(transform.position);
             }
-            
         }
         
         

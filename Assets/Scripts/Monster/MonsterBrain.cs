@@ -14,7 +14,6 @@ namespace Monster
     {
         public event Action<Transform> OnPlayerEnterInVision;
         public event Action<Transform> OnPlayerExitInVision;
-        public static Action<Vector3> OnMonsterFootstepSound;
         
         [SerializeField] private NavMeshAgent navMeshAgent;
         
@@ -25,13 +24,6 @@ namespace Monster
         [SerializeField] private MonsterAttack monsterAttack;
         [SerializeField] private MonsterAnimator monsterAnimator;
         [SerializeField] private MonsterSearch monsterSearch;
-        
-        [SerializeField] private float footstepDistance = 2.0f;
-        [SerializeField] private float minMoveSpeedToStep = 0.1f;
-
-        private float _distanceSinceLastFootstep;
-        private Vector3 _lastFootstepPosition;
-        
         
         public MonsterWander MonsterWander => monsterWander;
         public MonsterSabotage MonsterSabotage => monsterSabotage;
@@ -47,7 +39,6 @@ namespace Monster
         
         private StateMachine _stateMachine;
         private State _rootState;
-        
         private string _lastPath;
 
         
@@ -57,6 +48,7 @@ namespace Monster
             StateMachineBuilder stateMachineBuilder = new StateMachineBuilder(_rootState);
             _stateMachine = stateMachineBuilder.Build();
         }
+        
         
         public override void OnNetworkSpawn()
         {
@@ -73,6 +65,7 @@ namespace Monster
             visionSensor.OnTargetEnter += VisionSensor_OnTargetEnter;
             visionSensor.OnTargetExit += VisionSensor_OnTargetExit;
         }
+        
         
         private void VisionSensor_OnTargetEnter(GameObject player)
         {
@@ -100,7 +93,6 @@ namespace Monster
             if (!IsServer) return;
             
             _stateMachine.Tick(Time.deltaTime);
-            HandleFootsteps();
             
             string statePath = StatePath(_stateMachine.Root.Leaf());
             if (statePath != _lastPath)
@@ -108,43 +100,6 @@ namespace Monster
                 Debug.Log($"Monster: State: {statePath}");
                 _lastPath = statePath;
             }
-        }
-        
-        private void HandleFootsteps()
-        {
-            if (navMeshAgent == null || navMeshAgent.isStopped) 
-            {
-                _distanceSinceLastFootstep = 0f;
-                _lastFootstepPosition = transform.position;
-                return;
-            }
-
-            float currentSpeed = navMeshAgent.velocity.magnitude;
-
-            if (currentSpeed < minMoveSpeedToStep)
-            {
-                _distanceSinceLastFootstep = 0f;
-                _lastFootstepPosition = transform.position;
-                return;
-            }
-
-            Vector3 flatDelta = transform.position - _lastFootstepPosition;
-            flatDelta.y = 0f;
-
-            _distanceSinceLastFootstep += flatDelta.magnitude;
-            _lastFootstepPosition = transform.position;
-
-            if (_distanceSinceLastFootstep >= footstepDistance)
-            {
-                _distanceSinceLastFootstep -= footstepDistance;
-                NotifyFootstepClientRpc(transform.position);
-            }
-        }
-
-        [Rpc(SendTo.ClientsAndHost)]
-        private void NotifyFootstepClientRpc(Vector3 position)
-        {
-            OnMonsterFootstepSound?.Invoke(position);
         }
         
         private static string StatePath(State state)

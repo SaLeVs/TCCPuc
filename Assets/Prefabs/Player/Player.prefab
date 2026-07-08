@@ -4722,8 +4722,6 @@ MonoBehaviour:
   orientation: {fileID: 847016756603283365}
   moveSpeed: 3
   blendMovementTime: 8.9
-  footstepDistance: 1.5
-  minMoveSpeedToStep: 0.3
 --- !u!114 &4084110916807435523
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -7609,6 +7607,9 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 37c386933ed65d64bb4a2438c8acbfbf, type: 3}
       insertIndex: -1
       addedObject: {fileID: 8090210471771507143}
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 37c386933ed65d64bb4a2438c8acbfbf, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1300374042160880593}
   m_SourcePrefab: {fileID: 100100000, guid: 37c386933ed65d64bb4a2438c8acbfbf, type: 3}
 --- !u!4 &1332281208470505733 stripped
 Transform:
@@ -7672,6 +7673,21 @@ MonoBehaviour:
       Synchronize: 1
       ParameterType: 9
   AnimatorParametersExpanded: 0
+--- !u!114 &1300374042160880593
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1816892524021699519}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d4425c630644d304993eee345f417fa4, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Components::Components.FootstepSound
+  footstepDistance: 1.5
+  minMoveSpeedToStep: 0.3
+  rb: {fileID: 3158690138509095668}
 --- !u!4 &3764744458408356686 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 2434337355144988064, guid: 37c386933ed65d64bb4a2438c8acbfbf, type: 3}

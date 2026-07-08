@@ -1,5 +1,6 @@
 using System.Collections;
 using Components;
+using Enums;
 using Missions;
 using Monster;
 using Player;
@@ -23,7 +24,7 @@ public class SfxManager : MonoBehaviour
     
     private void Start()
     {
-        FootstepSound.OnFootstepSound += FootstepSound_OnFootStepSound;
+        FootstepEmitter.OnFootstepSound += FootstepEmitter_OnFootStepSound;
         PlayerDead.OnDeathSound += PlayerDead_OnDeathSound;
         Health.OnDamageSound += PlayerHealth_OnDamageSound;
         
@@ -33,13 +34,20 @@ public class SfxManager : MonoBehaviour
         MonsterAttack.OnMonsterAttackSound += MonsterAttack_OnMonsterAttack;
         MonsterSabotage.OnSabotageSound += MonsterSabotage_OnSabotageSound;
         MonsterChase.OnMonsterSeeTargetSound += MonsterChase_OnMonsterSeeTargetSound;
-        MonsterBrain.OnMonsterFootstepSound += MonsterBrain_OnMonsterFootstepSound;
     }
 
 
-    private void FootstepSound_OnFootStepSound(Vector3 position)
+    private void FootstepEmitter_OnFootStepSound(FootstepSource source, Vector3 position)
     {
-        PlaySound(audioClipRefsSO.playerFootsteps, position);
+        switch (source)
+        {
+            case FootstepSource.Player:
+                PlaySound(audioClipRefsSO.playerFootsteps, position);
+                break;
+            case FootstepSource.Monster:
+                PlaySound(audioClipRefsSO.monsterFootsteps, position);
+                break;
+        }
     }
     
     private void PlayerDead_OnDeathSound(Vector3 position)
@@ -77,10 +85,6 @@ public class SfxManager : MonoBehaviour
         PlaySound(audioClipRefsSO.monsterSeeTarget, position);
     }
     
-    private void MonsterBrain_OnMonsterFootstepSound(Vector3 position)
-    {
-        PlaySound(audioClipRefsSO.monsterFootsteps, position);
-    }
 
     public void PlaySound(AudioClip[] audioClipArray, Vector3 position, float volume = 1f)
     {
@@ -126,15 +130,8 @@ public class SfxManager : MonoBehaviour
         while (tempGO != null && aSource.isPlaying)
         {
             Vector3 direction = mainCamera.position - tempGO.transform.position;
-            bool occluded = Physics.Raycast(
-                tempGO.transform.position,
-                direction.normalized,
-                direction.magnitude,
-                occlusionLayers
-            );
-
+            bool occluded = Physics.Raycast(tempGO.transform.position, direction.normalized, direction.magnitude, occlusionLayers);
             lowPass.cutoffFrequency = occluded ? occludedCutoffFrequency : openCutoffFrequency;
-
             yield return new WaitForSeconds(occlusionCheckInterval);
         }
     }
@@ -142,7 +139,7 @@ public class SfxManager : MonoBehaviour
     
     private void OnDestroy()
     {
-        FootstepSound.OnFootstepSound -= FootstepSound_OnFootStepSound;
+        FootstepEmitter.OnFootstepSound -= FootstepEmitter_OnFootStepSound;
         PlayerDead.OnDeathSound -= PlayerDead_OnDeathSound;
         Health.OnDamageSound -= PlayerHealth_OnDamageSound;
         
@@ -152,7 +149,6 @@ public class SfxManager : MonoBehaviour
         MonsterAttack.OnMonsterAttackSound -= MonsterAttack_OnMonsterAttack;
         MonsterSabotage.OnSabotageSound -= MonsterSabotage_OnSabotageSound;
         MonsterChase.OnMonsterSeeTargetSound -= MonsterChase_OnMonsterSeeTargetSound;
-        MonsterBrain.OnMonsterFootstepSound -= MonsterBrain_OnMonsterFootstepSound;
     }
     
 }

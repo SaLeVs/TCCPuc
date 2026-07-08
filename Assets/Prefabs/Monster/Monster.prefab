@@ -51,6 +51,7 @@ GameObject:
   - component: {fileID: 5948121288489261731}
   - component: {fileID: 8840795157782606983}
   - component: {fileID: 6796257646358809532}
+  - component: {fileID: 8220886843260042270}
   - component: {fileID: 9158156660860726962}
   - component: {fileID: 7437886285449800429}
   m_Layer: 9
@@ -89,7 +90,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Unity.Netcode.Runtime::Unity.Netcode.NetworkObject
-  GlobalObjectIdHash: 3148608675
+  GlobalObjectIdHash: 3265427313
   InScenePlacedSourceGlobalObjectIdHash: 3265427313
   DeferredDespawnTick: 0
   Ownership: 1
@@ -169,8 +170,6 @@ MonoBehaviour:
   monsterAttack: {fileID: 3757600163404236341}
   monsterAnimator: {fileID: 8840795157782606983}
   monsterSearch: {fileID: 5948121288489261731}
-  footstepDistance: 2
-  minMoveSpeedToStep: 0.1
 --- !u!114 &5801510265212588046
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -537,6 +536,33 @@ MonoBehaviour:
   canBeReviewed: 1
   canBeReviewedForChat: 1
   chatCooldown: 40
+--- !u!54 &8220886843260042270
+Rigidbody:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2397166377357422809}
+  serializedVersion: 5
+  m_Mass: 1
+  m_LinearDamping: 0
+  m_AngularDamping: 0.05
+  m_CenterOfMass: {x: 0, y: 0, z: 0}
+  m_InertiaTensor: {x: 1, y: 1, z: 1}
+  m_InertiaRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ImplicitCom: 1
+  m_ImplicitTensor: 1
+  m_UseGravity: 0
+  m_IsKinematic: 1
+  m_Interpolate: 1
+  m_Constraints: 80
+  m_CollisionDetection: 0
 --- !u!195 &9158156660860726962
 NavMeshAgent:
   m_ObjectHideFlags: 0
@@ -956,6 +982,9 @@ PrefabInstance:
       insertIndex: -1
       addedObject: {fileID: 5585497228665570251}
     m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: aae79147144b5ca4aa65b7b4043dce19, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1549375284971142165}
     - targetCorrespondingSourceObject: {fileID: 2715566404302941441, guid: aae79147144b5ca4aa65b7b4043dce19, type: 3}
       insertIndex: -1
       addedObject: {fileID: 6751811831516074723}
@@ -1018,3 +1047,25 @@ Transform:
   m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: aae79147144b5ca4aa65b7b4043dce19, type: 3}
   m_PrefabInstance: {fileID: 7316659679979922971}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &7586479492456864586 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 919132149155446097, guid: aae79147144b5ca4aa65b7b4043dce19, type: 3}
+  m_PrefabInstance: {fileID: 7316659679979922971}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &1549375284971142165
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7586479492456864586}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d4425c630644d304993eee345f417fa4, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Components::Components.FootstepEmitter
+  ShowTopMostFoldoutHeaderGroup: 1
+  rb: {fileID: 8220886843260042270}
+  source: 1
+  footstepDistance: 2
+  minMoveSpeedToStep: 0.1

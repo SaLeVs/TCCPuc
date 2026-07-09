@@ -10,7 +10,6 @@ namespace Player
         public event Action<bool> OnDeathEvent;
         public event Action<Transform> OnRagdollSpawned;
         public static Action<Vector3> OnDeathSound;
-        
 
         [SerializeField] private Health playerHealth;
         [SerializeField] private Animator playerAnimator;

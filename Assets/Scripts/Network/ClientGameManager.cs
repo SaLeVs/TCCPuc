@@ -22,7 +22,7 @@ namespace Network
         {
             await UnityServices.InitializeAsync();
             AuthenticationState authState = await AuthenticationController.Authenticate(MAX_TRIES_TO_AUTH);
-
+            
             if (authState == AuthenticationState.Authenticated)
             {
                 Debug.Log("ClientGameManager: Authenticated");

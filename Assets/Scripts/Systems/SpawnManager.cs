@@ -54,13 +54,6 @@ namespace Systems
         {
             GameObject player = Instantiate(playerPrefab, spawnPoint.SpawnTransform.position, spawnPoint.SpawnTransform.rotation);
             
-            Debug.Log(
-                $"[SERVER] SpawnPoint: {spawnPoint.name} | " +
-                $"Posição esperada: {spawnPoint.SpawnTransform.position} | " +
-                $"Posição do objeto criado: {player.transform.position} | " +
-                $"ClientId: {clientId}"
-            );
-
             if (player.TryGetComponent(out NetworkObject networkObject))
             {
                 networkObject.SpawnAsPlayerObject(clientId, destroyWithScene: true);

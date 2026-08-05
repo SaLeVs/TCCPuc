@@ -17,10 +17,15 @@ namespace Network
         
         private JoinAllocation _allocation;
         
+        private NetworkClientManager _networkClientManager;
+        
         
         public async Task<bool> InitAsync()
         {
             await UnityServices.InitializeAsync();
+            
+            _networkClientManager = new NetworkClientManager(NetworkManager.Singleton);
+            
             AuthenticationState authState = await AuthenticationController.Authenticate(MAX_TRIES_TO_AUTH);
             
             if (authState == AuthenticationState.Authenticated)

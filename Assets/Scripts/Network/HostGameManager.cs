@@ -17,6 +17,8 @@ namespace Network
         private Allocation _allocation;
         private string _joinCode;
         
+        private NetworkServer _networkServer;
+        
         public async Task<string> StartHostAsync()
         {
             try
@@ -43,8 +45,11 @@ namespace Network
                 transport.SetRelayServerData(AllocationUtils.ToRelayServerData(_allocation, "dtls"));
             }
             
+            _networkServer = new NetworkServer(NetworkManager.Singleton);
+            
             NetworkManager.Singleton.StartHost();
             Loader.LoadNetwork(Loader.Scene.Lobby);
+            
             return _joinCode;
         }
         

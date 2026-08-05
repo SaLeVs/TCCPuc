@@ -14,7 +14,7 @@ namespace Network
         [SerializeField] private int minCharacterLength;
         [SerializeField] private int maxCharacterLength;
         
-        private const string PlayerNameKey = "PlayerName";
+        public const string PLAYER_NAME_KEY = "PlayerName";
 
         private void Start()
         {
@@ -23,7 +23,7 @@ namespace Network
                 SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex + 1);   
             }
             
-            nameInputField.text = PlayerPrefs.GetString(PlayerNameKey, string.Empty);
+            nameInputField.text = PlayerPrefs.GetString(PLAYER_NAME_KEY, string.Empty);
             OnNameInputChanged();
         }
         
@@ -34,7 +34,7 @@ namespace Network
 
         public void Connect()
         {
-            PlayerPrefs.SetString(PlayerNameKey, nameInputField.text);
+            PlayerPrefs.SetString(PLAYER_NAME_KEY, nameInputField.text);
             SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex + 1);  
         }
         

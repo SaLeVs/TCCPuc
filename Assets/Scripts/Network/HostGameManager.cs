@@ -4,6 +4,7 @@ using Systems;
 using Unity.Netcode;
 using Unity.Netcode.Transports.UTP;
 using Unity.Networking.Transport.Relay;
+using Unity.Services.Authentication;
 using Unity.Services.Relay;
 using Unity.Services.Relay.Models;
 using UnityEngine;
@@ -46,6 +47,17 @@ namespace Network
             }
             
             _networkServer = new NetworkServer(NetworkManager.Singleton);
+
+            UserData userData = new UserData
+            {
+                playerName = PlayerPrefs.GetString(NameSelector.PLAYER_NAME_KEY, "Error"),
+                userAuthId = AuthenticationService.Instance.PlayerId
+            };
+            
+            string payload = JsonUtility.ToJson(userData);
+            byte[] payloadBytes = System.Text.Encoding.UTF8.GetBytes(payload);
+            
+            NetworkManager.Singleton.NetworkConfig.ConnectionData = payloadBytes;
             
             NetworkManager.Singleton.StartHost();
             Loader.LoadNetwork(Loader.Scene.Lobby);

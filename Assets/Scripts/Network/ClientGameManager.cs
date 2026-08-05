@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 using Systems;
 using Unity.Netcode;
 using Unity.Netcode.Transports.UTP;
+using Unity.Services.Authentication;
 using Unity.Services.Core;
 using Unity.Services.Relay;
 using Unity.Services.Relay.Models;
@@ -57,7 +58,8 @@ namespace Network
             
             UserData userData = new UserData
             {
-                playerName = PlayerPrefs.GetString(NameSelector.PLAYER_NAME_KEY, "Error")
+                playerName = PlayerPrefs.GetString(NameSelector.PLAYER_NAME_KEY, "Error"),
+                userAuthId = AuthenticationService.Instance.PlayerId
             };
             
             string payload = JsonUtility.ToJson(userData);

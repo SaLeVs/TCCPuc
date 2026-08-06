@@ -12,12 +12,12 @@ namespace Network
 {
     public class HostGameManager : IDisposable
     {
+        public NetworkServer NetworkServer { get; private set; }
+        
         private const int MAX_CONNECTIONS = 4;
         
         private Allocation _allocation;
         private string _joinCode;
-        
-        private NetworkServer _networkServer;
         
         public async Task<string> StartHostAsync()
         {
@@ -45,7 +45,7 @@ namespace Network
                 transport.SetRelayServerData(AllocationUtils.ToRelayServerData(_allocation, "dtls"));
             }
             
-            _networkServer = new NetworkServer(NetworkManager.Singleton);
+            NetworkServer = new NetworkServer(NetworkManager.Singleton);
 
             UserData userData = new UserData
             {
@@ -72,7 +72,7 @@ namespace Network
 
         public void Dispose()
         {
-            _networkServer?.Dispose();
+            NetworkServer?.Dispose();
             
         }
         

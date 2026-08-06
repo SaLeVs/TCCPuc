@@ -28,12 +28,15 @@ namespace Player
         [SerializeField] private PlayerDead playerDead;
         [SerializeField] private PlayerCamera playerCamera;
         [SerializeField] private PlayerCameraOffset playerCameraOffset;
+        [SerializeField] private PlayerInfos playerInfos;
 
         
         public bool IsDead => playerDead.IsDead;
         public CinemachineCamera PlayerCinemachineCamera => playerCamera.playerCinemachineCamera;
         public bool HasEscapedServerSide { get; set; }
         public bool HasWon { get; private set; }
+        
+        public PlayerInfos PlayerInfos => playerInfos;
         
         private bool _isInputLocked;
         private Vector2 _movementInput;

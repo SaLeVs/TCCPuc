@@ -33,6 +33,10 @@ namespace Network
 
         public void Dispose()
         {
+            if (_networkManager != null)
+            {
+                _networkManager.OnClientDisconnectCallback -= NetworkManager_OnClientDisconnect;
+            }
             
         }
     }

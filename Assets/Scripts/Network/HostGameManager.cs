@@ -3,7 +3,6 @@ using System.Threading.Tasks;
 using Systems;
 using Unity.Netcode;
 using Unity.Netcode.Transports.UTP;
-using Unity.Networking.Transport.Relay;
 using Unity.Services.Authentication;
 using Unity.Services.Relay;
 using Unity.Services.Relay.Models;
@@ -11,7 +10,7 @@ using UnityEngine;
 
 namespace Network
 {
-    public class HostGameManager
+    public class HostGameManager : IDisposable
     {
         private const int MAX_CONNECTIONS = 4;
         
@@ -70,6 +69,13 @@ namespace Network
             NetworkManager.Singleton.StartHost();
             Loader.LoadNetwork(Loader.Scene.Lobby);
         }
+
+        public void Dispose()
+        {
+            _networkServer?.Dispose();
+            
+        }
+        
     }
 }
 

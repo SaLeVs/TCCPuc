@@ -11,7 +11,7 @@ using UnityEngine;
 
 namespace Network
 {
-    public class ClientGameManager
+    public class ClientGameManager : IDisposable
     {
         private const int MAX_TRIES_TO_AUTH = 5;
         
@@ -79,7 +79,11 @@ namespace Network
         {
             NetworkManager.Singleton.StartClient();
         }
-        
+
+        public void Dispose()
+        {
+            _networkClientManager?.Dispose();
+        }
     }
 }
 

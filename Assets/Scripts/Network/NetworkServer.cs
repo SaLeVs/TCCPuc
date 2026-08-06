@@ -1,10 +1,11 @@
+using System;
 using System.Collections.Generic;
 using Unity.Netcode;
 using UnityEngine;
 
 namespace Network
 {
-    public class NetworkServer
+    public class NetworkServer : IDisposable
     {
         private NetworkManager _networkManager;
         
@@ -42,6 +43,21 @@ namespace Network
                 authIdToUserData.Remove(authId);
                 clientIdToAuth.Remove(clientId);
             }
+        }
+
+        public void Dispose()
+        {
+            if(_networkManager == null) return;
+            
+            _networkManager.ConnectionApprovalCallback -= NetworkManager_ApprovalCheck;
+            _networkManager.OnClientDisconnectCallback -= NetworkManager_OnClientDisconnected;
+            _networkManager.OnServerStarted -= NetworkManager_OnServerStarted;
+            
+            if(_networkManager.IsListening)
+            {
+                _networkManager.Shutdown();
+            }
+            
         }
     }
 }

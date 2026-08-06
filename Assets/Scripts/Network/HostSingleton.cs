@@ -37,8 +37,13 @@ namespace Network
         public void CreateHost()
         {
             gameManager = new HostGameManager();
-            
         }
+
+        private void OnDestroy()
+        {
+            gameManager?.Dispose();
+        }
+        
     }
 }
 

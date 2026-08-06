@@ -27,15 +27,9 @@ namespace Network
         
         private float _lobbyUpdateTimer;
         private float _lobbyUpdateMaxTimer = 1.1f;
-
-        private string _playerName;
+        
         private bool _hasJoinedGame;
-
-
-        private void Start()
-        {
-            _playerName = $"Player {UnityEngine.Random.Range(0, 100)}";
-        }
+        
 
         private void Update()
         {
@@ -291,11 +285,15 @@ namespace Network
         
         private Player GetPlayer()
         {
+            UserData userData = LocalUserData.Load();
+            userData.userAuthId = AuthenticationService.Instance.PlayerId;
+    
             return new Player
             {
                 Data = new Dictionary<string, PlayerDataObject>
                 {
-                    {"PlayerName", new PlayerDataObject(PlayerDataObject.VisibilityOptions.Member, _playerName)}
+                    { "UserData", new PlayerDataObject(PlayerDataObject.VisibilityOptions.Member, JsonUtility.ToJson(userData)) },
+                    { PLAYER_READY, new PlayerDataObject(PlayerDataObject.VisibilityOptions.Member, "0") }
                 }
             };
         }

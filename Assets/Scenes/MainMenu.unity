@@ -3201,6 +3201,7 @@ GameObject:
   - component: {fileID: 184429924}
   - component: {fileID: 184429923}
   - component: {fileID: 184429922}
+  - component: {fileID: 184429925}
   m_Layer: 0
   m_Name: Point Light (15)
   m_TagString: Untagged
@@ -3330,6 +3331,26 @@ Light:
   m_LightUnit: 1
   m_LuxAtDistance: 1
   m_EnableSpotReflector: 1
+--- !u!114 &184429925
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 184429920}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0d325dd67b7261446b15a1723e713ab3, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Game::FlickeringLightBadContact
+  steadyIntensity: 4.47
+  minFlickerIntensity: 3
+  maxFlickerIntensity: 6
+  minSteadyTime: 5
+  maxSteadyTime: 10
+  minFlickerTime: 1
+  maxFlickerTime: 3
+  flickerChangeSpeed: 0.05
 --- !u!1 &193265334
 GameObject:
   m_ObjectHideFlags: 0
@@ -7143,7 +7164,7 @@ Transform:
   m_GameObject: {fileID: 459137582}
   serializedVersion: 2
   m_LocalRotation: {x: 0.7071066, y: -0, z: -0, w: 0.70710707}
-  m_LocalPosition: {x: 6.925, y: 1.999, z: -2.259}
+  m_LocalPosition: {x: 6.797, y: 1.999, z: -2.259}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -7202,7 +7223,7 @@ Light:
   serializedVersion: 12
   m_Type: 0
   m_Color: {r: 0.9245283, g: 0.70299035, b: 0.70299035, a: 1}
-  m_Intensity: 19.6
+  m_Intensity: 29.99
   m_Range: 10
   m_SpotAngle: 86.39671
   m_InnerSpotAngle: 36.490067
@@ -11615,6 +11636,7 @@ GameObject:
   - component: {fileID: 831789335}
   - component: {fileID: 831789334}
   - component: {fileID: 831789333}
+  - component: {fileID: 831789336}
   m_Layer: 0
   m_Name: Point Light (17)
   m_TagString: Untagged
@@ -11744,6 +11766,26 @@ Light:
   m_LightUnit: 1
   m_LuxAtDistance: 1
   m_EnableSpotReflector: 1
+--- !u!114 &831789336
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 831789331}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0d325dd67b7261446b15a1723e713ab3, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Game::FlickeringLightBadContact
+  steadyIntensity: 43
+  minFlickerIntensity: 3
+  maxFlickerIntensity: 6
+  minSteadyTime: 5
+  maxSteadyTime: 10
+  minFlickerTime: 1
+  maxFlickerTime: 3
+  flickerChangeSpeed: 0.05
 --- !u!1 &832180718
 GameObject:
   m_ObjectHideFlags: 0
@@ -12421,7 +12463,7 @@ Transform:
   m_GameObject: {fileID: 855397634}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 7.033, y: 1.395, z: -1.92}
+  m_LocalPosition: {x: 6.774, y: 1.711, z: -2.218}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -14609,7 +14651,7 @@ ParticleSystem:
     rateOverTime:
       serializedVersion: 2
       minMaxState: 0
-      scalar: 22
+      scalar: 40
       minScalar: 10
       maxCurve:
         serializedVersion: 2
@@ -23200,6 +23242,10 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 8843464739196451006, guid: 76d6db6178947354cbd2bb5e0b0b47e2, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 3.083
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -23356,15 +23402,15 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 2931985732990858266, guid: df83281545a37654988173f7c89e3785, type: 3}
       propertyPath: m_LocalPosition.x
-      value: -3.201
+      value: -3.225
       objectReference: {fileID: 0}
     - target: {fileID: 2931985732990858266, guid: df83281545a37654988173f7c89e3785, type: 3}
       propertyPath: m_LocalPosition.y
-      value: -0.044
+      value: -0.222
       objectReference: {fileID: 0}
     - target: {fileID: 2931985732990858266, guid: df83281545a37654988173f7c89e3785, type: 3}
       propertyPath: m_LocalPosition.z
-      value: -6.389
+      value: -6.454
       objectReference: {fileID: 0}
     - target: {fileID: 2931985732990858266, guid: df83281545a37654988173f7c89e3785, type: 3}
       propertyPath: m_LocalRotation.w
@@ -36004,7 +36050,7 @@ Transform:
   m_GameObject: {fileID: 2062088247}
   serializedVersion: 2
   m_LocalRotation: {x: 0.7071066, y: -0, z: -0, w: 0.70710707}
-  m_LocalPosition: {x: 10.654, y: 2.957, z: -2.466}
+  m_LocalPosition: {x: 10.547, y: 2.957, z: -2.466}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []

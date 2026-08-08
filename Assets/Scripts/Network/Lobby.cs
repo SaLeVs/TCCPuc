@@ -13,6 +13,7 @@ namespace Network
     {
         public event Action OnJoinedLobby;
         public event Action OnLobbyUpdated;
+        public event Action OnLeftLobby;
         
         private const int MAX_PLAYERS = 4;
         private const string PLAYER_READY = "Ready";
@@ -157,15 +158,47 @@ namespace Network
         {
             try
             {
-                await LobbyService.Instance.RemovePlayerAsync(_joinedLobby.Id, AuthenticationService.Instance.PlayerId);
+                if (_joinedLobby == null) return;
+
+                if (IsHost())
+                {
+                    if (_joinedLobby.Players.Count > 1)
+                    {
+                        await MigrateHostAsync();
+                        await LobbyService.Instance.RemovePlayerAsync(_joinedLobby.Id, AuthenticationService.Instance.PlayerId);
+                    }
+                    else
+                    {
+                        await LobbyService.Instance.DeleteLobbyAsync(_joinedLobby.Id);
+                    }
+                }
+                else
+                {
+                    await LobbyService.Instance.RemovePlayerAsync(_joinedLobby.Id, AuthenticationService.Instance.PlayerId);
+                }
+
                 _joinedLobby = null;
                 _hostLobby = null;
+                OnLeftLobby?.Invoke();
             }
             catch (Exception e)
             {
                 Debug.Log(e);
             }
-           
+        }
+
+        private async Task MigrateHostAsync()
+        {
+            string myId = AuthenticationService.Instance.PlayerId;
+            Player nextHost = _joinedLobby.Players.Find(p => p.Id != myId);
+
+            if (nextHost == null) return;
+
+            _hostLobby = await LobbyService.Instance.UpdateLobbyAsync(_joinedLobby.Id, new UpdateLobbyOptions
+            {
+                HostId = nextHost.Id
+            });
+            _joinedLobby = _hostLobby;
         }
 
         public async void KickPlayer()
@@ -178,35 +211,6 @@ namespace Network
             {
                 Debug.Log(e);
             }
-        }
-
-        public async void MigrateHost()
-        {
-            try
-            {
-                _hostLobby = await LobbyService.Instance.UpdateLobbyAsync(_hostLobby.Id, new UpdateLobbyOptions
-                {
-                    HostId = _joinedLobby.Players[1].Id
-                });
-                _joinedLobby = _hostLobby;
-            }
-            catch (Exception e)
-            {
-                Debug.Log(e);
-            }
-        }
-
-        public async void DeleteLobby()
-        {
-            try
-            {
-                await LobbyService.Instance.DeleteLobbyAsync(_joinedLobby.Id);
-            }
-            catch (Exception e)
-            {
-                Debug.Log(e);
-            }
-            
         }
         
         public async Task SetPlayerReady(bool isReady)

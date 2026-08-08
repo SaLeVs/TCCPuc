@@ -4437,6 +4437,18 @@ MonoBehaviour:
           m_StringArgument: 
           m_BoolArgument: 0
         m_CallState: 2
+      - m_Target: {fileID: 1152366058}
+        m_TargetAssemblyTypeName: Network.Lobby, Network
+        m_MethodName: LeaveLobby
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
 --- !u!114 &987406969
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -8728,6 +8740,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 18ad7325ca9eb9b4bbd1bd48993b6386, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Network::Network.VivoxManager
+  lobbyManager: {fileID: 1152366058}
 --- !u!1 &1680614705
 GameObject:
   m_ObjectHideFlags: 0
@@ -9303,7 +9316,7 @@ MonoBehaviour:
         m_CallState: 2
       - m_Target: {fileID: 1658579881}
         m_TargetAssemblyTypeName: Network.VivoxManager, Network
-        m_MethodName: JoinChannelAsync
+        m_MethodName: CreateLobbyChanelAsync
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}

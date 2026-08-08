@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
 using Unity.Services.Vivox;
 using UnityEngine;
@@ -16,9 +18,6 @@ public class AudioDeviceSettings : MonoBehaviour
     public Text EffectiveInputDeviceText;
     public Text EffectiveOutputDeviceText;
 
-    public Button QuitButton;
-    public Button toResetCursorTo;
-
     // Setting based on the min and max acceptable values for Vivox but the range can be adjusted.
     const float k_minSliderVolume = -50;
     const float k_maxSliderVolume = 50;
@@ -31,8 +30,7 @@ public class AudioDeviceSettings : MonoBehaviour
         VivoxService.Instance.AvailableOutputDevicesChanged += RefreshOutputDeviceList;
         VivoxService.Instance.EffectiveInputDeviceChanged += EffectiveInputDeviceChanged;
         VivoxService.Instance.EffectiveOutputDeviceChanged += EffectiveOutputDeviceChanged;
-
-
+        
         InputDeviceDropdown.onValueChanged.AddListener((i) =>
         {
             InputDeviceValueChanged(i);
@@ -55,8 +53,7 @@ public class AudioDeviceSettings : MonoBehaviour
         OutputDeviceVolume.minValue = k_minSliderVolume;
         OutputDeviceVolume.maxValue = k_maxSliderVolume;
     }
-
-    // Start is called before the first frame update
+    
     void OnEnable()
     {
         DeviceEnergyMask.fillAmount = 0;
@@ -68,12 +65,6 @@ public class AudioDeviceSettings : MonoBehaviour
         OutputDeviceVolume.value = VivoxService.Instance.OutputDeviceVolume;
         EffectiveInputDeviceText.text = $"{k_effectiveDevicePrefix} {VivoxService.Instance.EffectiveInputDevice.DeviceName}";
         EffectiveOutputDeviceText.text = $"{k_effectiveDevicePrefix} {VivoxService.Instance.EffectiveOutputDevice.DeviceName}";
-        QuitButton.Select();
-    }
-
-    void OnDisable()
-    {
-        toResetCursorTo.Select();
     }
 
     void OnDestroy()
@@ -92,9 +83,13 @@ public class AudioDeviceSettings : MonoBehaviour
     {
         if (VivoxService.Instance.ActiveChannels.Count > 0)
         {
-            var channel = VivoxService.Instance.ActiveChannels.FirstOrDefault();
-            var localParticipant = channel.Value.FirstOrDefault(p => p.IsSelf);
-            DeviceEnergyMask.fillAmount = Mathf.Lerp(DeviceEnergyMask.fillAmount, (float)localParticipant.AudioEnergy, Time.deltaTime * k_voiceMeterSpeed);
+            KeyValuePair<string, ReadOnlyCollection<VivoxParticipant>> channel = VivoxService.Instance.ActiveChannels.FirstOrDefault();
+            VivoxParticipant localParticipant = channel.Value.FirstOrDefault(p => p.IsSelf);
+
+            if (localParticipant != null)
+            {
+                DeviceEnergyMask.fillAmount = Mathf.Lerp(DeviceEnergyMask.fillAmount, (float)localParticipant.AudioEnergy, Time.deltaTime * k_voiceMeterSpeed);
+            }
         }
     }
 
@@ -147,4 +142,5 @@ public class AudioDeviceSettings : MonoBehaviour
     {
         VivoxService.Instance.SetOutputDeviceVolume((int)val);
     }
+    
 }

@@ -1,4 +1,5 @@
 using System;
+using Network;
 using TMPro;
 using UnityEngine;
 using UnityEngine.Audio;
@@ -32,6 +33,8 @@ public class OptionsMenu : MonoBehaviour
     [SerializeField] private Image darkPreviewImage;
     [SerializeField] private Image lightPreviewImage;
     [SerializeField] private GameObject brightnessPanel;
+    
+    [SerializeField] private GameObject audioDevicePanel;
     
     
     private const string SENSIBILITY_KEY = "MouseSensibility";
@@ -221,6 +224,18 @@ public class OptionsMenu : MonoBehaviour
     public void CloseBrightnessPanel()
     {
         brightnessPanel.SetActive(false);
+    }
+
+    public void OpenAudioDevicePanel()
+    {
+        audioDevicePanel.SetActive(true);
+        VivoxManager.instance.EnterTestVoiceChannel();
+    }
+
+    public void CloseAudioDevicePanel()
+    {
+        audioDevicePanel.SetActive(false);
+        VivoxManager.instance.LeaveTestVoiceChannel();
     }
 
     private void OnDisable()

@@ -12,13 +12,8 @@ namespace Network
         {
             get
             {
-                if (Instance != null)
-                {
-                    return Instance;
-                }
-                
+                if (Instance != null) return Instance;
                 Instance = FindFirstObjectByType<VivoxManager>();
-
                 if (Instance == null)
                 {
                     Debug.LogError("VivoxManager not found");
@@ -29,10 +24,13 @@ namespace Network
         }
         
         [SerializeField] private Lobby lobbyManager;
-        
-        private string _currentChannelName;
 
-        
+        private const string ECHO_CHANNEL_NAME = "MicTestChannel";
+
+        private string _currentChannelName;
+        private string _channelBeforeTest;
+        private bool _isInTestChannel;
+
         private void Start()
         {
             VivoxService.Instance.LoggedIn += VivoxService_OnUserLoggedIn;
@@ -44,7 +42,6 @@ namespace Network
             lobbyManager.OnJoinedLobby += VivoxService_OnJoinedLobby;
             lobbyManager.OnLeftLobby += VivoxService_OnLeftLobby;
         }
-        
 
         private void VivoxService_OnJoinedLobby()
         {
@@ -60,7 +57,7 @@ namespace Network
         {
             try
             {
-                if (lobbyManager.JoinedLobby == null) return;   
+                if (lobbyManager.JoinedLobby == null) return;
 
                 LoginOptions loginOptions = new LoginOptions()
                 {
@@ -73,7 +70,7 @@ namespace Network
                     await VivoxService.Instance.LoginAsync(loginOptions);
                 }
 
-                _currentChannelName = lobbyManager.JoinedLobby.Id;  
+                _currentChannelName = lobbyManager.JoinedLobby.Id;
                 await VivoxService.Instance.JoinGroupChannelAsync(_currentChannelName, ChatCapability.TextAndAudio);
             }
             catch (Exception e)
@@ -87,6 +84,61 @@ namespace Network
             if (string.IsNullOrEmpty(_currentChannelName)) return;
             await VivoxService.Instance.LeaveChannelAsync(_currentChannelName);
             _currentChannelName = null;
+        }
+
+        public async void EnterTestVoiceChannel()
+        {
+            try
+            {
+                if (_isInTestChannel) return;
+
+                LoginOptions loginOptions = new LoginOptions()
+                {
+                    DisplayName = LocalUserData.Load().playerName,
+                    ParticipantUpdateFrequency = ParticipantPropertyUpdateFrequency.FivePerSecond
+                };
+
+                if (!VivoxService.Instance.IsLoggedIn)
+                {
+                    await VivoxService.Instance.LoginAsync(loginOptions);
+                }
+                
+                if (!string.IsNullOrEmpty(_currentChannelName))
+                {
+                    _channelBeforeTest = _currentChannelName;
+                    await VivoxService.Instance.LeaveChannelAsync(_currentChannelName);
+                    _currentChannelName = null;
+                }
+
+                await VivoxService.Instance.JoinEchoChannelAsync(ECHO_CHANNEL_NAME, ChatCapability.AudioOnly);
+                _isInTestChannel = true;
+            }
+            catch (Exception e)
+            {
+                Debug.LogError($"Error entering test voice channel: {e.Message}");
+            }
+        }
+
+        public async void LeaveTestVoiceChannel()
+        {
+            try
+            {
+                if (!_isInTestChannel) return;
+
+                await VivoxService.Instance.LeaveChannelAsync(ECHO_CHANNEL_NAME);
+                _isInTestChannel = false;
+                
+                if (!string.IsNullOrEmpty(_channelBeforeTest))
+                {
+                    _currentChannelName = _channelBeforeTest;
+                    _channelBeforeTest = null;
+                    await VivoxService.Instance.JoinGroupChannelAsync(_currentChannelName, ChatCapability.TextAndAudio);
+                }
+            }
+            catch (Exception e)
+            {
+                Debug.LogError($"Error leaving test voice channel: {e.Message}");
+            }
         }
 
         private void VivoxService_OnChannelJoined(string channelName)
@@ -108,7 +160,5 @@ namespace Network
         {
             Debug.Log("User logged out");
         }
-        
     }
 }
-

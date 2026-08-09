@@ -9,43 +9,41 @@ namespace Network
     {
         [SerializeField] private SpawnPoint[] spawnPoints;
         [SerializeField] private GameObject playerPrefab;
-        
+
         private readonly List<SpawnPoint> _availableSpawns = new List<SpawnPoint>();
-        
+
         public override void OnNetworkSpawn()
         {
-            if (!IsServer) return;
-            
-            InitializeSpawnPool();
             NetworkManager.SceneManager.OnSceneEvent += NetworkManager_OnSceneEvent;
-            
-            NetworkManager.Singleton.SceneManager.OnSceneEvent += sceneEvent =>
-            {
-                if (sceneEvent.SceneEventType != SceneEventType.LoadComplete) return;
-                if (sceneEvent.ClientId != NetworkManager.Singleton.LocalClientId) return;
 
-                VivoxManager.instance.EnterGameVoice();
-            };
+            if (!IsServer) return;
+
+            InitializeSpawnPool();
         }
-        
+
         private void InitializeSpawnPool()
         {
             _availableSpawns.Clear();
             _availableSpawns.AddRange(spawnPoints);
             ShuffleSpawns();
         }
-        
+
         private void NetworkManager_OnSceneEvent(SceneEvent sceneEvent)
         {
             if (sceneEvent.SceneEventType != SceneEventType.LoadComplete) return;
+            
+            if (sceneEvent.ClientId == NetworkManager.LocalClientId)
+            {
+                VivoxManager.instance.EnterGameVoice();
+            }
+            
+            if (!IsServer) return;
 
             SpawnClient(sceneEvent.ClientId);
         }
-     
+
         private void SpawnClient(ulong clientId)
         {
-            if (!IsServer) return;
-
             if (_availableSpawns.Count == 0)
             {
                 Debug.LogWarning($"SpawnManager: No spawns remaining for client: {clientId}");
@@ -57,17 +55,17 @@ namespace Network
 
             SpawnPlayer(clientId, chosenSpawn);
         }
-        
+
         private void SpawnPlayer(ulong clientId, SpawnPoint spawnPoint)
         {
             GameObject player = Instantiate(playerPrefab, spawnPoint.SpawnTransform.position, spawnPoint.SpawnTransform.rotation);
-            
+
             if (player.TryGetComponent(out NetworkObject networkObject))
             {
                 networkObject.SpawnAsPlayerObject(clientId, destroyWithScene: true);
             }
         }
-        
+
         private void ShuffleSpawns()
         {
             for (int i = _availableSpawns.Count - 1; i > 0; i--)
@@ -79,8 +77,6 @@ namespace Network
 
         public override void OnNetworkDespawn()
         {
-            if (!IsServer) return;
-            
             NetworkManager.SceneManager.OnSceneEvent -= NetworkManager_OnSceneEvent;
         }
     }

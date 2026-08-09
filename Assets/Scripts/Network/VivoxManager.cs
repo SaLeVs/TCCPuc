@@ -1,4 +1,5 @@
 using System;
+using System.Threading.Tasks;
 using UnityEngine;
 using Unity.Services.Vivox;
 
@@ -7,7 +8,7 @@ namespace Network
     public class VivoxManager : MonoBehaviour
     {
         private static VivoxManager Instance;
-        
+
         public static VivoxManager instance
         {
             get
@@ -22,20 +23,29 @@ namespace Network
                 return Instance;
             }
         }
-        
+
         [SerializeField] private Lobby lobbyManager;
+        [SerializeField] private int audibleDistance;
+        [SerializeField] private int conversationalDistance;
+        [SerializeField] private float audioFadeIntensity;
+        [SerializeField] private AudioFadeModel audioFadeModel;
 
         private const string ECHO_CHANNEL_NAME = "MicTestChannel";
+        private const string LOBBY_CHANNEL_SUFFIX = "_lobby";
+        private const string GAME_CHANNEL_SUFFIX = "_game";
 
         private string _currentChannelName;
+        private ChatCapability _currentChannelCapability;
         private string _channelBeforeTest;
+        private ChatCapability _channelBeforeTestCapability;
         private bool _isInTestChannel;
+        private bool _isSwitchingChannel;
 
         private void Start()
         {
             VivoxService.Instance.LoggedIn += VivoxService_OnUserLoggedIn;
             VivoxService.Instance.LoggedOut += VivoxService_OnUserLoggedOut;
-            
+
             VivoxService.Instance.ChannelJoined += VivoxService_OnChannelJoined;
             VivoxService.Instance.ChannelLeft += VivoxService_OnChannelLeft;
 
@@ -45,7 +55,7 @@ namespace Network
 
         private void VivoxService_OnJoinedLobby()
         {
-            JoinVoiceForCurrentLobby();
+            EnterLobbyVoice();
         }
 
         private void VivoxService_OnLeftLobby()
@@ -53,29 +63,68 @@ namespace Network
             LeaveVoiceChannel();
         }
 
-        private async void JoinVoiceForCurrentLobby()
+        private async Task EnsureLoggedInAsync()
         {
+            if (VivoxService.Instance.IsLoggedIn) return;
+
+            LoginOptions loginOptions = new LoginOptions()
+            {
+                DisplayName = LocalUserData.Load().playerName,
+                ParticipantUpdateFrequency = ParticipantPropertyUpdateFrequency.FivePerSecond
+            };
+
+            await VivoxService.Instance.LoginAsync(loginOptions);
+        }
+
+        public async void EnterLobbyVoice()
+        {
+            if (lobbyManager.JoinedLobby == null) return;
+            await SwitchToPositionalChannelAsync(lobbyManager.JoinedLobby.Id + LOBBY_CHANNEL_SUFFIX, ChatCapability.TextAndAudio);
+        }
+
+        public async void EnterGameVoice()
+        {
+            if (lobbyManager.JoinedLobby == null) return;
+            await SwitchToPositionalChannelAsync(lobbyManager.JoinedLobby.Id + GAME_CHANNEL_SUFFIX, ChatCapability.AudioOnly);
+        }
+
+        private async Task SwitchToPositionalChannelAsync(string newChannelName, ChatCapability capability)
+        {
+            if (_isSwitchingChannel) return;
+            if (_currentChannelName == newChannelName) return;
+            if (_isInTestChannel) return;
+
+            _isSwitchingChannel = true;
+
             try
             {
-                if (lobbyManager.JoinedLobby == null) return;
+                await EnsureLoggedInAsync();
 
-                LoginOptions loginOptions = new LoginOptions()
+                if (!string.IsNullOrEmpty(_currentChannelName))
                 {
-                    DisplayName = LocalUserData.Load().playerName,
-                    ParticipantUpdateFrequency = ParticipantPropertyUpdateFrequency.FivePerSecond
-                };
-
-                if (!VivoxService.Instance.IsLoggedIn)
-                {
-                    await VivoxService.Instance.LoginAsync(loginOptions);
+                    await VivoxService.Instance.LeaveChannelAsync(_currentChannelName);
+                    _currentChannelName = null;
                 }
 
-                _currentChannelName = lobbyManager.JoinedLobby.Id;
-                await VivoxService.Instance.JoinGroupChannelAsync(_currentChannelName, ChatCapability.TextAndAudio);
+                Channel3DProperties properties = new Channel3DProperties(
+                    audibleDistance: audibleDistance,
+                    conversationalDistance: conversationalDistance,
+                    audioFadeIntensityByDistanceaudio: audioFadeIntensity,
+                    audioFadeModel: audioFadeModel
+                );
+
+                await VivoxService.Instance.JoinPositionalChannelAsync(newChannelName, capability, properties);
+
+                _currentChannelName = newChannelName;
+                _currentChannelCapability = capability;
             }
             catch (Exception e)
             {
-                Debug.LogError($"Error joining voice channel: {e.Message}");
+                Debug.LogError($"Error switching to positional voice channel: {e.Message}");
+            }
+            finally
+            {
+                _isSwitchingChannel = false;
             }
         }
 
@@ -92,20 +141,12 @@ namespace Network
             {
                 if (_isInTestChannel) return;
 
-                LoginOptions loginOptions = new LoginOptions()
-                {
-                    DisplayName = LocalUserData.Load().playerName,
-                    ParticipantUpdateFrequency = ParticipantPropertyUpdateFrequency.FivePerSecond
-                };
+                await EnsureLoggedInAsync();
 
-                if (!VivoxService.Instance.IsLoggedIn)
-                {
-                    await VivoxService.Instance.LoginAsync(loginOptions);
-                }
-                
                 if (!string.IsNullOrEmpty(_currentChannelName))
                 {
                     _channelBeforeTest = _currentChannelName;
+                    _channelBeforeTestCapability = _currentChannelCapability;
                     await VivoxService.Instance.LeaveChannelAsync(_currentChannelName);
                     _currentChannelName = null;
                 }
@@ -127,12 +168,28 @@ namespace Network
 
                 await VivoxService.Instance.LeaveChannelAsync(ECHO_CHANNEL_NAME);
                 _isInTestChannel = false;
-                
+
                 if (!string.IsNullOrEmpty(_channelBeforeTest))
                 {
-                    _currentChannelName = _channelBeforeTest;
+                    string channelToRejoin = _channelBeforeTest;
+                    ChatCapability capabilityToRejoin = _channelBeforeTestCapability;
                     _channelBeforeTest = null;
-                    await VivoxService.Instance.JoinGroupChannelAsync(_currentChannelName, ChatCapability.TextAndAudio);
+
+                    Channel3DProperties properties = new Channel3DProperties(
+                        audibleDistance: audibleDistance,
+                        conversationalDistance: conversationalDistance,
+                        audioFadeIntensityByDistanceaudio: audioFadeIntensity,
+                        audioFadeModel: audioFadeModel
+                    );
+
+                    await VivoxService.Instance.JoinPositionalChannelAsync(
+                        channelToRejoin,
+                        capabilityToRejoin,
+                        properties
+                    );
+
+                    _currentChannelName = channelToRejoin;
+                    _currentChannelCapability = capabilityToRejoin;
                 }
             }
             catch (Exception e)
@@ -141,24 +198,9 @@ namespace Network
             }
         }
 
-        private void VivoxService_OnChannelJoined(string channelName)
-        {
-            Debug.Log($"Joined channel: {channelName}");
-        }
-
-        private void VivoxService_OnChannelLeft(string channelName)
-        {
-            Debug.Log($"Left channel: {channelName}");
-        }
-
-        private void VivoxService_OnUserLoggedIn()
-        {
-            Debug.Log("User logged in");
-        }
-
-        private void VivoxService_OnUserLoggedOut()
-        {
-            Debug.Log("User logged out");
-        }
+        private void VivoxService_OnChannelJoined(string channelName) => Debug.Log($"Joined channel: {channelName}");
+        private void VivoxService_OnChannelLeft(string channelName) => Debug.Log($"Left channel: {channelName}");
+        private void VivoxService_OnUserLoggedIn() => Debug.Log("User logged in");
+        private void VivoxService_OnUserLoggedOut() => Debug.Log("User logged out");
     }
 }

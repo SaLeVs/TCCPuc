@@ -1,9 +1,9 @@
 using System.Collections.Generic;
 using Unity.Netcode;
-using Unity.Netcode.Components;
 using UnityEngine;
+using Systems;
 
-namespace Systems
+namespace Network
 {
     public class SpawnManager : NetworkBehaviour
     {
@@ -18,6 +18,14 @@ namespace Systems
             
             InitializeSpawnPool();
             NetworkManager.SceneManager.OnSceneEvent += NetworkManager_OnSceneEvent;
+            
+            NetworkManager.Singleton.SceneManager.OnSceneEvent += sceneEvent =>
+            {
+                if (sceneEvent.SceneEventType != SceneEventType.LoadComplete) return;
+                if (sceneEvent.ClientId != NetworkManager.Singleton.LocalClientId) return;
+
+                VivoxManager.instance.EnterGameVoice();
+            };
         }
         
         private void InitializeSpawnPool()

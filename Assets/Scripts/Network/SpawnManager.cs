@@ -14,11 +14,10 @@ namespace Network
 
         public override void OnNetworkSpawn()
         {
-            NetworkManager.SceneManager.OnSceneEvent += NetworkManager_OnSceneEvent;
-
             if (!IsServer) return;
 
             InitializeSpawnPool();
+            NetworkManager.SceneManager.OnSceneEvent += NetworkManager_OnSceneEvent;
         }
 
         private void InitializeSpawnPool()
@@ -31,14 +30,6 @@ namespace Network
         private void NetworkManager_OnSceneEvent(SceneEvent sceneEvent)
         {
             if (sceneEvent.SceneEventType != SceneEventType.LoadComplete) return;
-            
-            if (sceneEvent.ClientId == NetworkManager.LocalClientId)
-            {
-                VivoxManager.instance.EnterGameVoice();
-            }
-            
-            if (!IsServer) return;
-
             SpawnClient(sceneEvent.ClientId);
         }
 
@@ -77,6 +68,7 @@ namespace Network
 
         public override void OnNetworkDespawn()
         {
+            if (!IsServer) return;
             NetworkManager.SceneManager.OnSceneEvent -= NetworkManager_OnSceneEvent;
         }
     }

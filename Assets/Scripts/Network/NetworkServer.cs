@@ -34,8 +34,6 @@ namespace Network
         private void NetworkManager_OnServerStarted()
         {
             _networkManager.OnClientDisconnectCallback += NetworkManager_OnClientDisconnected;
-            
-            
         }
 
         private void NetworkManager_OnClientDisconnected(ulong clientId)

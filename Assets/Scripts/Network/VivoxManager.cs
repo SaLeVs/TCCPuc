@@ -1,11 +1,12 @@
 using System;
 using System.Threading.Tasks;
+using Unity.Netcode;
 using UnityEngine;
 using Unity.Services.Vivox;
 
 namespace Network
 {
-    public class VivoxManager : MonoBehaviour
+    public class VivoxManager : NetworkBehaviour
     {
         private static VivoxManager Instance;
 
@@ -30,18 +31,21 @@ namespace Network
         [SerializeField] private float audioFadeIntensity;
         [SerializeField] private AudioFadeModel audioFadeModel;
 
-        
         public string CurrentChannelName => _currentChannelName;
         public bool IsInPositionalChannel { get; private set; }
-        
+
         private const string ECHO_CHANNEL_NAME = "MicTestChannel";
         private const string LOBBY_CHANNEL_SUFFIX = "_lobby";
         private const string GAME_CHANNEL_SUFFIX = "_game";
 
         private string _currentChannelName;
         private ChatCapability _currentChannelCapability;
+        private bool _currentChannelPositional;
+
         private string _channelBeforeTest;
         private ChatCapability _channelBeforeTestCapability;
+        private bool _channelBeforeTestPositional;
+
         private bool _isInTestChannel;
         private bool _isSwitchingChannel;
 
@@ -57,15 +61,8 @@ namespace Network
             lobbyManager.OnLeftLobby += VivoxService_OnLeftLobby;
         }
 
-        private void VivoxService_OnJoinedLobby()
-        {
-            EnterLobbyVoice();
-        }
-
-        private void VivoxService_OnLeftLobby()
-        {
-            LeaveVoiceChannel();
-        }
+        private void VivoxService_OnJoinedLobby() => EnterLobbyVoice();
+        private void VivoxService_OnLeftLobby() => LeaveVoiceChannel();
 
         private async Task EnsureLoggedInAsync()
         {
@@ -83,24 +80,38 @@ namespace Network
         public async void EnterLobbyVoice()
         {
             if (lobbyManager.JoinedLobby == null) return;
-            await SwitchToGroupChannelAsync(lobbyManager.JoinedLobby.Id + LOBBY_CHANNEL_SUFFIX, ChatCapability.TextAndAudio);
+            await SwitchChannelAsync(lobbyManager.JoinedLobby.Id + LOBBY_CHANNEL_SUFFIX, ChatCapability.TextAndAudio, positional: false);
         }
 
-        public async void EnterGameVoice()
+        public void EnterGameVoice()
         {
             if (lobbyManager.JoinedLobby == null) return;
-            await SwitchToGroupChannelAsync(lobbyManager.JoinedLobby.Id + GAME_CHANNEL_SUFFIX, ChatCapability.AudioOnly);
+
+            EnterInChannelGame();
+    
+            if (IsServer) return;
+    
+            EnterGameVoiceClientRpc();
         }
 
-        
-        private async Task SwitchToGroupChannelAsync(string newChannelName, ChatCapability capability)
+        [Rpc(SendTo.ClientsAndHost)]
+        private void EnterGameVoiceClientRpc()
+        {
+            EnterInChannelGame();
+        }
+
+        private async void EnterInChannelGame()
+        {
+            await SwitchChannelAsync(lobbyManager.JoinedLobby.Id + GAME_CHANNEL_SUFFIX, ChatCapability.AudioOnly, positional: true);
+        }
+
+        private async Task SwitchChannelAsync(string newChannelName, ChatCapability capability, bool positional)
         {
             if (_isSwitchingChannel) return;
             if (_currentChannelName == newChannelName) return;
             if (_isInTestChannel) return;
 
             _isSwitchingChannel = true;
-            IsInPositionalChannel = false;
 
             try
             {
@@ -112,27 +123,42 @@ namespace Network
                     _currentChannelName = null;
                 }
 
-                await VivoxService.Instance.JoinGroupChannelAsync(newChannelName, capability);
+                if (positional)
+                {
+                    Channel3DProperties properties = new Channel3DProperties(audibleDistance: audibleDistance, conversationalDistance: conversationalDistance,
+                        audioFadeIntensityByDistanceaudio: audioFadeIntensity, audioFadeModel: audioFadeModel);
+
+                    await VivoxService.Instance.JoinPositionalChannelAsync(newChannelName, capability, properties);
+                    Debug.Log("Enter in positionalGameAsync");
+                }
+                else
+                {
+                    await VivoxService.Instance.JoinGroupChannelAsync(newChannelName, capability);
+                    Debug.Log("Enter in groupChannelAsync");
+                }
 
                 _currentChannelName = newChannelName;
                 _currentChannelCapability = capability;
+                _currentChannelPositional = positional;
+                IsInPositionalChannel = positional;
             }
             catch (Exception e)
             {
-                Debug.LogError($"Error switching to group voice channel: {e.Message}");
+                Debug.LogError($"Error switching voice channel: {e.Message}");
             }
             finally
             {
                 _isSwitchingChannel = false;
             }
         }
-
+        
         public async void LeaveVoiceChannel()
         {
             if (string.IsNullOrEmpty(_currentChannelName)) return;
-            IsInPositionalChannel = false;
+
             await VivoxService.Instance.LeaveChannelAsync(_currentChannelName);
             _currentChannelName = null;
+            IsInPositionalChannel = false;
         }
 
         public async void EnterTestVoiceChannel()
@@ -147,6 +173,8 @@ namespace Network
                 {
                     _channelBeforeTest = _currentChannelName;
                     _channelBeforeTestCapability = _currentChannelCapability;
+                    _channelBeforeTestPositional = _currentChannelPositional;
+
                     await VivoxService.Instance.LeaveChannelAsync(_currentChannelName);
                     _currentChannelName = null;
                 }
@@ -159,7 +187,7 @@ namespace Network
                 Debug.LogError($"Error entering test voice channel: {e.Message}");
             }
         }
-
+        
         public async void LeaveTestVoiceChannel()
         {
             try
@@ -173,15 +201,10 @@ namespace Network
                 {
                     string channelToRejoin = _channelBeforeTest;
                     ChatCapability capabilityToRejoin = _channelBeforeTestCapability;
+                    bool positionalToRejoin = _channelBeforeTestPositional;
                     _channelBeforeTest = null;
 
-                    Channel3DProperties properties = new Channel3DProperties(audibleDistance: audibleDistance, conversationalDistance: conversationalDistance, audioFadeIntensityByDistanceaudio: audioFadeIntensity, audioFadeModel: audioFadeModel);
-
-                    await VivoxService.Instance.JoinPositionalChannelAsync(channelToRejoin, capabilityToRejoin, properties);
-
-                    _currentChannelName = channelToRejoin;
-                    _currentChannelCapability = capabilityToRejoin;
-                    IsInPositionalChannel = true;
+                    await SwitchChannelAsync(channelToRejoin, capabilityToRejoin, positionalToRejoin);
                 }
             }
             catch (Exception e)

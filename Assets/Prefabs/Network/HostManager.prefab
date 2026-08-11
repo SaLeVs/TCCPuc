@@ -9,7 +9,10 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 6877696669411952303}
+  - component: {fileID: 6518530522482743389}
   - component: {fileID: 1755682664980891843}
+  - component: {fileID: 8724421483003044138}
+  - component: {fileID: 257841531025191649}
   m_Layer: 0
   m_Name: HostManager
   m_TagString: Untagged
@@ -32,6 +35,31 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &6518530522482743389
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5685351612462631357}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Unity.Netcode.Runtime::Unity.Netcode.NetworkObject
+  GlobalObjectIdHash: 0
+  InScenePlacedSourceGlobalObjectIdHash: 0
+  DeferredDespawnTick: 0
+  Ownership: 1
+  AlwaysReplicateAsRoot: 0
+  SynchronizeTransform: 1
+  ActiveSceneSynchronization: 0
+  SceneMigrationSynchronization: 1
+  SpawnWithObservers: 1
+  DontDestroyWithOwner: 0
+  AutoObjectParentSync: 1
+  SyncOwnerTransformWhenParented: 1
+  AllowOwnerToParent: 0
 --- !u!114 &1755682664980891843
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -44,3 +72,33 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: be43e6205ed1b754fa2b439aadf3d0ef, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Network::Network.HostSingleton
+--- !u!114 &8724421483003044138
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5685351612462631357}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 18ad7325ca9eb9b4bbd1bd48993b6386, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Network::Network.VivoxManager
+  ShowTopMostFoldoutHeaderGroup: 1
+  lobbyManager: {fileID: 257841531025191649}
+  audibleDistance: 1
+  conversationalDistance: 5
+  audioFadeIntensity: 5
+  audioFadeModel: 3
+--- !u!114 &257841531025191649
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5685351612462631357}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b93a054dbf4242841bda4ed3136abd90, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Network::Network.Lobby

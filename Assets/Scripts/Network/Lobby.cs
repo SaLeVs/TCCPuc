@@ -57,37 +57,48 @@ namespace Network
 
         private async void HeartBeat()
         {
-            if (_hostLobby != null)
+            if (_hostLobby == null) return;
+            if (_hasJoinedGame) return; 
+
+            _heartBeatTimer -= Time.deltaTime;
+
+            if (_heartBeatTimer <= 0f)
             {
-                _heartBeatTimer -= Time.deltaTime;
-                
-                if (_heartBeatTimer <= 0f)
+                _heartBeatTimer = _heartBeatMaxTimer;
+                try
                 {
-                    _heartBeatTimer = _heartBeatMaxTimer;
                     await LobbyService.Instance.SendHeartbeatPingAsync(_hostLobby.Id);
-                    
                 }
-                
+                catch (Exception e)
+                {
+                    Debug.LogWarning($"Heartbeat failed: {e.Message}");
+                }
             }
         }
 
         private async void LobbyPullForUpdate()
         {
-            if (_joinedLobby != null)
+            if (_joinedLobby == null) return;
+            if (_hasJoinedGame) return;  
+
+            _lobbyUpdateTimer -= Time.deltaTime;
+
+            if (_lobbyUpdateTimer <= 0f)
             {
-                _lobbyUpdateTimer -= Time.deltaTime;
-                
-                if (_lobbyUpdateTimer <= 0f)
+                _lobbyUpdateTimer = _lobbyUpdateMaxTimer;
+
+                try
                 {
-                    _lobbyUpdateTimer = _lobbyUpdateMaxTimer;
-                    
                     Unity.Services.Lobbies.Models.Lobby lobby = await LobbyService.Instance.GetLobbyAsync(_joinedLobby.Id);
-                    _joinedLobby =  lobby;
-                    
+                    _joinedLobby = lobby;
+
                     OnLobbyUpdated?.Invoke();
                     CheckIfGameStarted();
                 }
-                
+                catch (Exception e)
+                {
+                    Debug.LogWarning($"Lobby poll failed: {e.Message}");
+                }
             }
         }
 

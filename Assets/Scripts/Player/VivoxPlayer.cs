@@ -5,16 +5,16 @@ using UnityEngine;
 
 namespace Player
 {
-    public class VivoxPositionUpdater : NetworkBehaviour
+    public class VivoxPlayer : NetworkBehaviour
     {
         [SerializeField] private Transform earTransform;
-
         
         public override void OnNetworkSpawn()
         {
             if (!IsOwner) return;
             
             enabled = true;
+            VivoxManager.instance.EnterGameVoice();
         }
 
         private void Update()

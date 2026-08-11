@@ -55,8 +55,6 @@ namespace Network
             {
                 networkObject.SpawnAsPlayerObject(clientId, destroyWithScene: true);
             }
-            
-            VivoxManager.instance.EnterGameVoice();
         }
         
         private void ShuffleSpawns()

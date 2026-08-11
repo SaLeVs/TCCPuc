@@ -6,7 +6,7 @@ using Unity.Services.Vivox;
 
 namespace Network
 {
-    public class VivoxManager : NetworkBehaviour
+    public class VivoxManager : MonoBehaviour
     {
         private static VivoxManager Instance;
 
@@ -83,21 +83,10 @@ namespace Network
             await SwitchChannelAsync(lobbyManager.JoinedLobby.Id + LOBBY_CHANNEL_SUFFIX, ChatCapability.TextAndAudio, positional: false);
         }
 
-        public void EnterGameVoice()
+        public async void EnterGameVoice()
         {
             if (lobbyManager.JoinedLobby == null) return;
-
-            EnterInChannelGame();
-    
-            if (IsServer) return;
-    
-            EnterGameVoiceClientRpc();
-        }
-
-        [Rpc(SendTo.ClientsAndHost)]
-        private void EnterGameVoiceClientRpc()
-        {
-            EnterInChannelGame();
+            await SwitchChannelAsync(lobbyManager.JoinedLobby.Id + GAME_CHANNEL_SUFFIX, ChatCapability.AudioOnly, positional: true);
         }
 
         private async void EnterInChannelGame()
@@ -125,6 +114,7 @@ namespace Network
 
                 if (positional)
                 {
+                    Debug.Log($"[Vivox] audible={audibleDistance} conversational={conversationalDistance} fade={audioFadeIntensity}");
                     Channel3DProperties properties = new Channel3DProperties(audibleDistance: audibleDistance, conversationalDistance: conversationalDistance,
                         audioFadeIntensityByDistanceaudio: audioFadeIntensity, audioFadeModel: audioFadeModel);
 

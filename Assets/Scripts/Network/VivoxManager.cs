@@ -57,8 +57,8 @@ namespace Network
             VivoxService.Instance.ChannelJoined += VivoxService_OnChannelJoined;
             VivoxService.Instance.ChannelLeft += VivoxService_OnChannelLeft;
 
-            lobbyManager.OnJoinedLobby += VivoxService_OnJoinedLobby;
-            lobbyManager.OnLeftLobby += VivoxService_OnLeftLobby;
+            Lobby.instance.OnJoinedLobby += VivoxService_OnJoinedLobby;
+            Lobby.instance.OnLeftLobby += VivoxService_OnLeftLobby;
         }
 
         private void VivoxService_OnJoinedLobby() => EnterLobbyVoice();
@@ -217,5 +217,19 @@ namespace Network
         private void VivoxService_OnChannelLeft(string channelName) => Debug.Log($"Left channel: {channelName}");
         private void VivoxService_OnUserLoggedIn() => Debug.Log("User logged in");
         private void VivoxService_OnUserLoggedOut() => Debug.Log("User logged out");
+
+        
+        private void OnDisable()
+        {
+            VivoxService.Instance.LoggedIn -= VivoxService_OnUserLoggedIn;
+            VivoxService.Instance.LoggedOut -= VivoxService_OnUserLoggedOut;
+
+            VivoxService.Instance.ChannelJoined -= VivoxService_OnChannelJoined;
+            VivoxService.Instance.ChannelLeft -= VivoxService_OnChannelLeft;
+
+            Lobby.instance.OnJoinedLobby -= VivoxService_OnJoinedLobby;
+            Lobby.instance.OnLeftLobby -= VivoxService_OnLeftLobby;
+        }
+        
     }
 }

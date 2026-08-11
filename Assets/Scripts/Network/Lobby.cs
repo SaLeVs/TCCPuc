@@ -11,6 +11,23 @@ namespace Network
 {
     public class Lobby : MonoBehaviour
     {
+        private static Lobby Instance;
+
+        public static Lobby instance
+        {
+            get
+            {
+                if (Instance != null) return Instance;
+                Instance = FindFirstObjectByType<Lobby>();
+                if (Instance == null)
+                {
+                    Debug.LogError("Lobby not found");
+                    return null;
+                }
+                return Instance;
+            }
+        }
+        
         public event Action OnJoinedLobby;
         public event Action OnLobbyUpdated;
         public event Action OnLeftLobby;

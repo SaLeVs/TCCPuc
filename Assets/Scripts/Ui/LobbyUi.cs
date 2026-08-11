@@ -7,8 +7,6 @@ namespace UI
 {
     public class LobbyUi : MonoBehaviour
     {
-        [SerializeField] private Lobby lobbyManager;
-        
         [SerializeField] private List<PlayerLobbySlot> playerSlots;
         
         [SerializeField] private GameObject startGameButton;
@@ -25,8 +23,8 @@ namespace UI
         
         private void OnEnable()
         {
-            lobbyManager.OnJoinedLobby += LobbyManager_OnPlayerJoinedInLobby;
-            lobbyManager.OnLobbyUpdated += LobbyManager_OnLobbyRefresh;
+            Lobby.instance.OnJoinedLobby += LobbyManager_OnPlayerJoinedInLobby;
+            Lobby.instance.OnLobbyUpdated += LobbyManager_OnLobbyRefresh;
         }
         
         
@@ -42,7 +40,7 @@ namespace UI
         
         private void RefreshLobbyInfo()
         {
-            Unity.Services.Lobbies.Models.Lobby currentLobby = lobbyManager.JoinedLobby;
+            Unity.Services.Lobbies.Models.Lobby currentLobby = Lobby.instance.JoinedLobby;
  
             if (currentLobby == null) return;
             
@@ -66,13 +64,13 @@ namespace UI
                 }
             }
 
-            startGameButton.gameObject.SetActive(lobbyManager.IsHost());
+            startGameButton.gameObject.SetActive(Lobby.instance.IsHost());
         }
         
         public async void ReadyButton()
         {
             _isPlayerReady = !_isPlayerReady;
-            await lobbyManager.SetPlayerReady(_isPlayerReady);
+            await Lobby.instance.SetPlayerReady(_isPlayerReady);
             
             if (readyButton != null)
             {
@@ -83,12 +81,12 @@ namespace UI
         
         public async void StartGameButton()
         {
-            await lobbyManager.StartGame();
+            await Lobby.instance.StartGame();
         }
 
         public void LeaveButton()
         {
-            lobbyManager.LeaveLobby();
+            Lobby.instance.LeaveLobby();
             gameObject.SetActive(false);
             lobbyCodeText.text = string.Empty;
         }
@@ -96,8 +94,8 @@ namespace UI
         
         private void OnDisable()
         {
-            lobbyManager.OnJoinedLobby -= LobbyManager_OnPlayerJoinedInLobby;
-            lobbyManager.OnLobbyUpdated -= LobbyManager_OnLobbyRefresh;
+            Lobby.instance.OnJoinedLobby -= LobbyManager_OnPlayerJoinedInLobby;
+            Lobby.instance.OnLobbyUpdated -= LobbyManager_OnLobbyRefresh;
         }
         
     }

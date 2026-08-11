@@ -1,4 +1,3 @@
-using System;
 using Network;
 using TMPro;
 using UnityEngine;
@@ -9,7 +8,6 @@ namespace UI
     public class MainMenu : MonoBehaviour
     {
         [SerializeField] private TMP_InputField lobbyCodeInputField;
-        [SerializeField] private Lobby lobby;
         [SerializeField] private GameObject lobbyPanel;
         [SerializeField] private GameObject joinPanel;
         [SerializeField] private GameObject onlinePanel;
@@ -25,14 +23,14 @@ namespace UI
 
         public async void CreateLobby()
         {
-            await lobby.CreateLobbyAsync();
+            await Lobby.instance.CreateLobbyAsync();
             lobbyPanel.SetActive(true);
         }
 
         public void JoinLobby()
         {
             string lobbyCode = lobbyCodeInputField.text;
-            lobby.JoinLobbyByCode(lobbyCode);
+            Lobby.instance.JoinLobbyByCode(lobbyCode);
             lobbyPanel.SetActive(true);
             
         }

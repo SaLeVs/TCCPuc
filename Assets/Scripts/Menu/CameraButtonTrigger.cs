@@ -4,16 +4,24 @@ public class ButtonCameraTrigger : MonoBehaviour
 {
     public CameraMoveToTarget cameraController;
     public Transform target;
-    public GameObject panelToOpen;   // ex: LanPanel
-    public PanelDissolve panelDissolve; // o PanelDissolve do mesmo painel
+
+    [Header("Painel que soma instantâneo (ex: MainMenuPanel)")]
+    public GameObject panelToDeactivateInstantly;
+
+    [Header("Painel que vai abrir (com dissolve)")]
+    public GameObject panelToOpen;
+    public PanelDissolve panelDissolve;
 
     public void OnButtonClick()
     {
-        panelToOpen.SetActive(true); // ativa já invisível (por causa do OnEnable)
+        if (panelToDeactivateInstantly != null)
+            panelToDeactivateInstantly.SetActive(false); // some na hora, sem fade
+
+        panelToOpen.SetActive(true); // ativa o novo painel (invisível, por causa do OnEnable)
 
         cameraController.MoveCameraToTarget(target, () =>
         {
-            panelDissolve.Appear(); // só dissolve pra dentro quando a câmera chegar
+            panelDissolve.Appear(); // dissolve pra dentro quando a câmera chegar
         });
     }
 }

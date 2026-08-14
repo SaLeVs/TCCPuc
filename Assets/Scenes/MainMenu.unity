@@ -20037,7 +20037,6 @@ GameObject:
   - component: {fileID: 1004258874}
   - component: {fileID: 1004258873}
   - component: {fileID: 1004258872}
-  - component: {fileID: 1004258875}
   m_Layer: 5
   m_Name: Quit
   m_TagString: Untagged
@@ -20121,18 +20120,6 @@ MonoBehaviour:
           m_StringArgument: 
           m_BoolArgument: 0
         m_CallState: 2
-      - m_Target: {fileID: 1004258875}
-        m_TargetAssemblyTypeName: ButtonCameraTrigger, Game
-        m_MethodName: OnButtonClick
-        m_Mode: 1
-        m_Arguments:
-          m_ObjectArgument: {fileID: 0}
-          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
-          m_IntArgument: 0
-          m_FloatArgument: 0
-          m_StringArgument: 
-          m_BoolArgument: 0
-        m_CallState: 2
 --- !u!114 &1004258873
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -20171,22 +20158,6 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1004258870}
   m_CullTransparentMesh: 1
---- !u!114 &1004258875
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1004258870}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: cde70765ec616234e8b46dfa3d25ce5a, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Game::ButtonCameraTrigger
-  cameraController: {fileID: 74660614}
-  target: {fileID: 1581830889}
-  panelToOpen: {fileID: 0}
-  panelDissolve: {fileID: 0}
 --- !u!1001 &1006872694
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -26209,6 +26180,9 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1320693036}
+  - component: {fileID: 1320693039}
+  - component: {fileID: 1320693038}
+  - component: {fileID: 1320693037}
   m_Layer: 5
   m_Name: MainMenuPanel
   m_TagString: Untagged
@@ -26238,6 +26212,46 @@ RectTransform:
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
+--- !u!114 &1320693037
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1320693035}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bc30c7b7919c48b489c6bc7b150d9daf, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Game::PanelDissolve
+  canvasGroup: {fileID: 1320693038}
+  fadeOutDuration: 0.5
+  fadeInDuration: 0.5
+--- !u!225 &1320693038
+CanvasGroup:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1320693035}
+  m_Enabled: 1
+  m_Alpha: 1
+  m_Interactable: 1
+  m_BlocksRaycasts: 1
+  m_IgnoreParentGroups: 0
+--- !u!114 &1320693039
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1320693035}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2a1b4e7ea7d9b3e41b8eae629789c380, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Game::MainMenuStart
+  mainMenuDissolve: {fileID: 0}
 --- !u!1001 &1321533760
 PrefabInstance:
   m_ObjectHideFlags: 0

@@ -1,33 +1,27 @@
 using UnityEngine;
 using System.Collections;
+using System;
 
 public class CameraMoveToTarget : MonoBehaviour
 {
-    [Header("Referências")]
-    public Transform cameraTransform; // arraste a Main Camera aqui
-
-    [Header("Configuração do movimento")]
+    public Transform cameraTransform;
     public float duration = 1.2f;
     public AnimationCurve easeCurve = AnimationCurve.EaseInOut(0, 0, 1, 1);
 
-    private Vector3 startPos;
-    private Quaternion startRot;
     private Coroutine currentRoutine;
 
-    // Chame essa função passando o Transform de destino de cada botão
-    public void MoveCameraToTarget(Transform targetPosition)
+    public void MoveCameraToTarget(Transform targetPosition, Action onComplete = null)
     {
         if (currentRoutine != null)
             StopCoroutine(currentRoutine);
 
-        currentRoutine = StartCoroutine(MoveRoutine(targetPosition));
+        currentRoutine = StartCoroutine(MoveRoutine(targetPosition, onComplete));
     }
 
-    IEnumerator MoveRoutine(Transform targetPosition)
+    IEnumerator MoveRoutine(Transform targetPosition, Action onComplete)
     {
-        startPos = cameraTransform.position;
-        startRot = cameraTransform.rotation;
-
+        Vector3 startPos = cameraTransform.position;
+        Quaternion startRot = cameraTransform.rotation;
         float elapsed = 0f;
 
         while (elapsed < duration)
@@ -45,5 +39,6 @@ public class CameraMoveToTarget : MonoBehaviour
         cameraTransform.rotation = targetPosition.rotation;
 
         currentRoutine = null;
+        onComplete?.Invoke(); // avisa que terminou
     }
 }

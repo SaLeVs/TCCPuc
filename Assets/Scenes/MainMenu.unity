@@ -1542,6 +1542,76 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 1661054403297244267, guid: aced1305cf05c9e4ebf0e1c3a2e36c0b, type: 3}
   m_PrefabInstance: {fileID: 69914715}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &74660613
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 74660615}
+  - component: {fileID: 74660614}
+  m_Layer: 0
+  m_Name: CameraPositionTransition
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &74660614
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 74660613}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8185802848f722d4784de7360f96d877, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Game::CameraMoveToTarget
+  cameraTransform: {fileID: 421920276}
+  duration: 1.2
+  easeCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    - serializedVersion: 3
+      time: 1
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+--- !u!4 &74660615
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 74660613}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0, y: -0.00000023841855, z: -0, w: 1}
+  m_LocalPosition: {x: -11.51, y: 0.27, z: 2.717}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1001 &75603094
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -4963,6 +5033,76 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 6264254651177176156, guid: 5df988b56c39a844c815565f202acb4a, type: 3}
   m_PrefabInstance: {fileID: 288621496}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &300652118
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 300652119}
+  - component: {fileID: 300652120}
+  m_Layer: 0
+  m_Name: PositionCameraLobby
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &300652119
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 300652118}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0.9063079, z: 0, w: 0.42261827}
+  m_LocalPosition: {x: -0.814, y: 1.465, z: -3.085}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 130, z: 0}
+--- !u!114 &300652120
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 300652118}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8185802848f722d4784de7360f96d877, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Game::CameraMoveToTarget
+  cameraTransform: {fileID: 421920276}
+  duration: 1.2
+  easeCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    - serializedVersion: 3
+      time: 1
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
 --- !u!1001 &319661265
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -6996,7 +7136,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 421920273}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: f40f4a7e1fb8d5d4cb51adfafd8c81fe, type: 3}
   m_Name: 
@@ -9897,6 +10037,7 @@ GameObject:
   - component: {fileID: 667674543}
   - component: {fileID: 667674542}
   - component: {fileID: 667674541}
+  - component: {fileID: 667674544}
   m_Layer: 5
   m_Name: Quit
   m_TagString: Untagged
@@ -9980,6 +10121,18 @@ MonoBehaviour:
           m_StringArgument: 
           m_BoolArgument: 0
         m_CallState: 2
+      - m_Target: {fileID: 667674544}
+        m_TargetAssemblyTypeName: ButtonCameraTrigger, Game
+        m_MethodName: OnButtonClick
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
 --- !u!114 &667674542
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -10018,6 +10171,20 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 667674539}
   m_CullTransparentMesh: 1
+--- !u!114 &667674544
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 667674539}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: cde70765ec616234e8b46dfa3d25ce5a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Game::ButtonCameraTrigger
+  cameraController: {fileID: 74660614}
+  target: {fileID: 1581830889}
 --- !u!1001 &685844367
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -19868,6 +20035,7 @@ GameObject:
   - component: {fileID: 1004258874}
   - component: {fileID: 1004258873}
   - component: {fileID: 1004258872}
+  - component: {fileID: 1004258875}
   m_Layer: 5
   m_Name: Quit
   m_TagString: Untagged
@@ -19951,6 +20119,18 @@ MonoBehaviour:
           m_StringArgument: 
           m_BoolArgument: 0
         m_CallState: 2
+      - m_Target: {fileID: 1004258875}
+        m_TargetAssemblyTypeName: ButtonCameraTrigger, Game
+        m_MethodName: OnButtonClick
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
 --- !u!114 &1004258873
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -19989,6 +20169,20 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1004258870}
   m_CullTransparentMesh: 1
+--- !u!114 &1004258875
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1004258870}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: cde70765ec616234e8b46dfa3d25ce5a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Game::ButtonCameraTrigger
+  cameraController: {fileID: 74660614}
+  target: {fileID: 1581830889}
 --- !u!1001 &1006872694
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -23033,6 +23227,7 @@ GameObject:
   - component: {fileID: 1143173638}
   - component: {fileID: 1143173637}
   - component: {fileID: 1143173636}
+  - component: {fileID: 1143173639}
   m_Layer: 5
   m_Name: OnlineGame
   m_TagString: Untagged
@@ -23116,6 +23311,18 @@ MonoBehaviour:
           m_StringArgument: 
           m_BoolArgument: 0
         m_CallState: 2
+      - m_Target: {fileID: 1143173639}
+        m_TargetAssemblyTypeName: ButtonCameraTrigger, Game
+        m_MethodName: OnButtonClick
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
 --- !u!114 &1143173637
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -23154,6 +23361,20 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1143173634}
   m_CullTransparentMesh: 1
+--- !u!114 &1143173639
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1143173634}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: cde70765ec616234e8b46dfa3d25ce5a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Game::ButtonCameraTrigger
+  cameraController: {fileID: 300652120}
+  target: {fileID: 300652119}
 --- !u!1001 &1152154803
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -24765,6 +24986,37 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 171221406781098007, guid: d0bf8d3d9903dd741bcdb864093988e2, type: 3}
   m_PrefabInstance: {fileID: 1246462720}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &1247201002
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1247201003}
+  m_Layer: 0
+  m_Name: PositionCameraOptions
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1247201003
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1247201002}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0.32969064, z: 0, w: 0.94408906}
+  m_LocalPosition: {x: 0.913, y: 1.669, z: -1.522}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 38.5, z: 0}
 --- !u!1001 &1253215793
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -26678,6 +26930,7 @@ GameObject:
   - component: {fileID: 1369346375}
   - component: {fileID: 1369346374}
   - component: {fileID: 1369346373}
+  - component: {fileID: 1369346376}
   m_Layer: 5
   m_Name: Quit
   m_TagString: Untagged
@@ -26761,6 +27014,18 @@ MonoBehaviour:
           m_StringArgument: 
           m_BoolArgument: 0
         m_CallState: 2
+      - m_Target: {fileID: 1369346376}
+        m_TargetAssemblyTypeName: ButtonCameraTrigger, Game
+        m_MethodName: OnButtonClick
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
 --- !u!114 &1369346374
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -26799,6 +27064,20 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1369346371}
   m_CullTransparentMesh: 1
+--- !u!114 &1369346376
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1369346371}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: cde70765ec616234e8b46dfa3d25ce5a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Game::ButtonCameraTrigger
+  cameraController: {fileID: 74660614}
+  target: {fileID: 1581830889}
 --- !u!4 &1374090039 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 1286000029480284880, guid: 8a2e3bcc59cb82448b3efe73f152f021, type: 3}
@@ -30240,6 +30519,37 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 1661054403297244267, guid: aced1305cf05c9e4ebf0e1c3a2e36c0b, type: 3}
   m_PrefabInstance: {fileID: 1581700999}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &1581830888
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1581830889}
+  m_Layer: 0
+  m_Name: PositionCameraMenu
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1581830889
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1581830888}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0.06821539, y: 0.70380867, z: -0.055921823, w: 0.70489204}
+  m_LocalPosition: {x: -6.102, y: 1.316, z: -2.805}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1001 &1587258366
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -32036,6 +32346,7 @@ GameObject:
   - component: {fileID: 1713096124}
   - component: {fileID: 1713096123}
   - component: {fileID: 1713096122}
+  - component: {fileID: 1713096125}
   m_Layer: 5
   m_Name: LanGame
   m_TagString: Untagged
@@ -32119,6 +32430,18 @@ MonoBehaviour:
           m_StringArgument: 
           m_BoolArgument: 0
         m_CallState: 2
+      - m_Target: {fileID: 1713096125}
+        m_TargetAssemblyTypeName: ButtonCameraTrigger, Game
+        m_MethodName: OnButtonClick
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
 --- !u!114 &1713096123
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -32157,6 +32480,20 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1713096120}
   m_CullTransparentMesh: 1
+--- !u!114 &1713096125
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1713096120}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: cde70765ec616234e8b46dfa3d25ce5a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Game::ButtonCameraTrigger
+  cameraController: {fileID: 74660614}
+  target: {fileID: 300652119}
 --- !u!1001 &1713429138
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -33447,6 +33784,7 @@ GameObject:
   - component: {fileID: 1800283247}
   - component: {fileID: 1800283246}
   - component: {fileID: 1800283245}
+  - component: {fileID: 1800283248}
   m_Layer: 5
   m_Name: Settings
   m_TagString: Untagged
@@ -33530,6 +33868,18 @@ MonoBehaviour:
           m_StringArgument: 
           m_BoolArgument: 0
         m_CallState: 2
+      - m_Target: {fileID: 1800283248}
+        m_TargetAssemblyTypeName: ButtonCameraTrigger, Game
+        m_MethodName: OnButtonClick
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
 --- !u!114 &1800283246
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -33568,6 +33918,20 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1800283243}
   m_CullTransparentMesh: 1
+--- !u!114 &1800283248
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1800283243}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: cde70765ec616234e8b46dfa3d25ce5a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Game::ButtonCameraTrigger
+  cameraController: {fileID: 74660614}
+  target: {fileID: 1247201003}
 --- !u!1 &1813035294
 GameObject:
   m_ObjectHideFlags: 0
@@ -34297,8 +34661,12 @@ PrefabInstance:
       value: SM_Notice_Board
       objectReference: {fileID: 0}
     - target: {fileID: 6675640561245772859, guid: e18f6c497d5019d4b806f96049e56725, type: 3}
+      propertyPath: m_LocalScale.z
+      value: 0.98
+      objectReference: {fileID: 0}
+    - target: {fileID: 6675640561245772859, guid: e18f6c497d5019d4b806f96049e56725, type: 3}
       propertyPath: m_LocalPosition.x
-      value: 9.704
+      value: 9.89
       objectReference: {fileID: 0}
     - target: {fileID: 6675640561245772859, guid: e18f6c497d5019d4b806f96049e56725, type: 3}
       propertyPath: m_LocalPosition.y
@@ -37289,6 +37657,25 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2063003470}
   m_CullTransparentMesh: 1
+--- !u!1 &2063740109 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 7907229897415742609, guid: 023676bf6ef791e44b6e535869f1e52f, type: 3}
+  m_PrefabInstance: {fileID: 1726156194489358276}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &2063740114
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2063740109}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: cde70765ec616234e8b46dfa3d25ce5a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Game::ButtonCameraTrigger
+  cameraController: {fileID: 74660614}
+  target: {fileID: 1581830889}
 --- !u!1 &2068985638
 GameObject:
   m_ObjectHideFlags: 0
@@ -38340,9 +38727,21 @@ PrefabInstance:
       propertyPath: m_AnchorMax.y
       value: 1
       objectReference: {fileID: 0}
+    - target: {fileID: 1218931494720488028, guid: 023676bf6ef791e44b6e535869f1e52f, type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 2934294417596831767, guid: 023676bf6ef791e44b6e535869f1e52f, type: 3}
       propertyPath: m_AnchorMax.y
       value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 4135852077187469503, guid: 023676bf6ef791e44b6e535869f1e52f, type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4368126714741752982, guid: 023676bf6ef791e44b6e535869f1e52f, type: 3}
+      propertyPath: m_IsActive
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 4714060994328695905, guid: 023676bf6ef791e44b6e535869f1e52f, type: 3}
       propertyPath: m_Pivot.x
@@ -38424,6 +38823,10 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 4853816940096277194, guid: 023676bf6ef791e44b6e535869f1e52f, type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 5086962826842831307, guid: 023676bf6ef791e44b6e535869f1e52f, type: 3}
       propertyPath: m_AnchorMax.y
       value: 1
@@ -38452,14 +38855,61 @@ PrefabInstance:
       propertyPath: globalVolume
       value: 
       objectReference: {fileID: 702052691}
+    - target: {fileID: 7793938052858569841, guid: 023676bf6ef791e44b6e535869f1e52f, type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7920838083327481785, guid: 023676bf6ef791e44b6e535869f1e52f, type: 3}
+      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.size
+      value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 7920838083327481785, guid: 023676bf6ef791e44b6e535869f1e52f, type: 3}
+      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[1].m_Mode
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 7920838083327481785, guid: 023676bf6ef791e44b6e535869f1e52f, type: 3}
+      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[1].m_Target
+      value: 
+      objectReference: {fileID: 2063740114}
+    - target: {fileID: 7920838083327481785, guid: 023676bf6ef791e44b6e535869f1e52f, type: 3}
+      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[1].m_CallState
+      value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 7920838083327481785, guid: 023676bf6ef791e44b6e535869f1e52f, type: 3}
+      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[1].m_MethodName
+      value: OnButtonClick
+      objectReference: {fileID: 0}
+    - target: {fileID: 7920838083327481785, guid: 023676bf6ef791e44b6e535869f1e52f, type: 3}
+      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[1].m_TargetAssemblyTypeName
+      value: ButtonCameraTrigger, Game
+      objectReference: {fileID: 0}
+    - target: {fileID: 7920838083327481785, guid: 023676bf6ef791e44b6e535869f1e52f, type: 3}
+      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[1].m_Arguments.m_ObjectArgumentAssemblyTypeName
+      value: UnityEngine.Object, UnityEngine
+      objectReference: {fileID: 0}
+    - target: {fileID: 8019928459332868642, guid: 023676bf6ef791e44b6e535869f1e52f, type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 8316940319736277161, guid: 023676bf6ef791e44b6e535869f1e52f, type: 3}
       propertyPath: m_AnchorMax.y
       value: 1
       objectReference: {fileID: 0}
+    - target: {fileID: 8899695867935913828, guid: 023676bf6ef791e44b6e535869f1e52f, type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 9109284745396327435, guid: 023676bf6ef791e44b6e535869f1e52f, type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 7907229897415742609, guid: 023676bf6ef791e44b6e535869f1e52f, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 2063740114}
   m_SourcePrefab: {fileID: 100100000, guid: 023676bf6ef791e44b6e535869f1e52f, type: 3}
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
@@ -38472,6 +38922,10 @@ SceneRoots:
   - {fileID: 1152366057}
   - {fileID: 1902624049}
   - {fileID: 732026000}
+  - {fileID: 74660615}
+  - {fileID: 1581830889}
+  - {fileID: 1247201003}
+  - {fileID: 300652119}
   - {fileID: 246407918}
   - {fileID: 2107571414}
   - {fileID: 706540639}

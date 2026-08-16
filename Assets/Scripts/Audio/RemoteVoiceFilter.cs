@@ -11,6 +11,7 @@ namespace Audio
 
         private VivoxParticipant _participant;
         private AudioReverbFilter _reverbFilter;
+        private AudioSource _audioSource;
 
         
         private void OnEnable()
@@ -20,50 +21,66 @@ namespace Audio
                 VivoxManager.instance.OnParticipantJoinedChannel += VivoxManager_OnParticipantJoined;
                 VivoxManager.instance.OnParticipantLeftChannel += VivoxManager_OnParticipantLeft;
             }
-
-            zoneState.OnZonePresetChanged += PlayerZoneAudioState_OnZonePresetChanged;
+            
+            if (zoneState != null)
+            {
+                zoneState.OnZonePresetChanged += PlayerZoneAudioState_OnZonePresetChanged;
+            }
         }
         
 
         private void VivoxManager_OnParticipantJoined(VivoxParticipant participant)
         {
             if (participant.IsSelf) return;
-            if (voiceIdentity == null || participant.PlayerId != voiceIdentity.VivoxPlayerId) return;
+            if (voiceIdentity == null) return;
+            if (participant.PlayerId != voiceIdentity.VivoxPlayerId) return;
             if (_participant != null) return;
-
+            
             _participant = participant;
 
             GameObject tapObject = participant.CreateVivoxParticipantTap($"VoiceTap_{participant.DisplayName}", silenceInChannelAudioMix: true);
 
             if (tapObject == null)
             {
-                Debug.LogError($"Failed when creating VivoxParticipantTap for {participant.DisplayName}");
                 _participant = null;
                 return;
             }
 
-            tapObject.transform.SetParent(transform, worldPositionStays: false);
+            tapObject.transform.SetParent(transform, false);
             tapObject.transform.localPosition = Vector3.zero;
 
-            if (tapObject.TryGetComponent(out AudioSource audioSource))
+            _audioSource = tapObject.GetComponent<AudioSource>();
+
+            if (_audioSource == null)
             {
-                audioSource.spatialBlend = 1f;
-                audioSource.rolloffMode = AudioRolloffMode.Linear;
-                audioSource.minDistance = VivoxManager.instance != null ? VivoxManager.instance.ConversationalDistance : 3;
-                audioSource.maxDistance = VivoxManager.instance != null ? VivoxManager.instance.AudibleDistance : 15;
+                _audioSource = tapObject.GetComponentInChildren<AudioSource>();
             }
 
-            _reverbFilter = tapObject.AddComponent<AudioReverbFilter>();
-            _reverbFilter.reverbPreset = zoneState.CurrentPreset;
+            if (_audioSource == null) return;
+
+            _audioSource.spatialBlend = 1f;
+            _audioSource.rolloffMode = AudioRolloffMode.Linear;
+
+            if (VivoxManager.instance != null)
+            {
+                _audioSource.minDistance = VivoxManager.instance.ConversationalDistance;
+                _audioSource.maxDistance = VivoxManager.instance.AudibleDistance;
+            }
+
+            _reverbFilter = _audioSource.gameObject.AddComponent<AudioReverbFilter>();
+
+            AudioReverbPreset initialPreset = zoneState != null ? zoneState.CurrentPreset : AudioReverbPreset.Off;
+            _reverbFilter.reverbPreset = initialPreset;
         }
 
         private void VivoxManager_OnParticipantLeft(VivoxParticipant participant)
         {
-            if (_participant == null || participant.PlayerId != _participant.PlayerId) return;
-            
+            if (_participant == null) return;
+            if (participant.PlayerId != _participant.PlayerId) return;
+
             DestroyTap();
         }
-
+        
         private void PlayerZoneAudioState_OnZonePresetChanged(AudioReverbPreset preset)
         {
             if (_reverbFilter != null)
@@ -71,14 +88,15 @@ namespace Audio
                 _reverbFilter.reverbPreset = preset;
             }
         }
-
+        
         private void DestroyTap()
         {
             _participant?.DestroyVivoxParticipantTap();
             _participant = null;
             _reverbFilter = null;
+            _audioSource = null;
         }
-
+        
         
         private void OnDisable()
         {
@@ -88,10 +106,13 @@ namespace Audio
                 VivoxManager.instance.OnParticipantLeftChannel -= VivoxManager_OnParticipantLeft;
             }
 
-            zoneState.OnZonePresetChanged -= PlayerZoneAudioState_OnZonePresetChanged;
+            if (zoneState != null)
+            {
+                zoneState.OnZonePresetChanged -= PlayerZoneAudioState_OnZonePresetChanged;
+            }
+            
             DestroyTap();
         }
-        
         
     }
 }

@@ -8151,6 +8151,15 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 37c386933ed65d64bb4a2438c8acbfbf, type: 3}
       insertIndex: -1
       addedObject: {fileID: 3543101474296564965}
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 37c386933ed65d64bb4a2438c8acbfbf, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 5911442021877570890}
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 37c386933ed65d64bb4a2438c8acbfbf, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1872326034872167580}
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 37c386933ed65d64bb4a2438c8acbfbf, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 9001772810478597928}
   m_SourcePrefab: {fileID: 100100000, guid: 37c386933ed65d64bb4a2438c8acbfbf, type: 3}
 --- !u!4 &1332281208470505733 stripped
 Transform:
@@ -8238,6 +8247,45 @@ MonoBehaviour:
   m_EditorClassIdentifier: Player::Player.VivoxPositionUpdater
   ShowTopMostFoldoutHeaderGroup: 1
   earTransform: {fileID: 8214403075322047269}
+--- !u!114 &5911442021877570890
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1816892524021699519}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fabccd07b13df7f4a9287cfd2318aecd, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Network::Network.PlayerVoiceIdentity
+  ShowTopMostFoldoutHeaderGroup: 1
+--- !u!114 &1872326034872167580
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1816892524021699519}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 886a3167cd567ba46b0af125ae2ea685, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Audio::Audio.PlayerZoneAudioState
+--- !u!114 &9001772810478597928
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1816892524021699519}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f3f6cf53f633bc9418500f9e27716b96, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Audio::Audio.RemoteVoiceFilter
+  voiceIdentity: {fileID: 5911442021877570890}
+  zoneState: {fileID: 1872326034872167580}
 --- !u!4 &3764744458408356686 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 2434337355144988064, guid: 37c386933ed65d64bb4a2438c8acbfbf, type: 3}

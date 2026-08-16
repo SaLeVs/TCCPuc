@@ -39,7 +39,9 @@ namespace Network
 
         public string CurrentChannelName => _currentChannelName;
         public bool IsInPositionalChannel { get; private set; }
-
+        public int AudibleDistance => audibleDistance;
+        public int ConversationalDistance => conversationalDistance;
+        
         private const string ECHO_CHANNEL_NAME = "MicTestChannel";
         private const string LOBBY_CHANNEL_SUFFIX = "_lobby";
         private const string GAME_CHANNEL_SUFFIX = "_game";

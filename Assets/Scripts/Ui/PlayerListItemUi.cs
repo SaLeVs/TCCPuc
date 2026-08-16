@@ -25,6 +25,12 @@ namespace UI
 
             nameText.text = participant.DisplayName;
 
+            bool controlsEnabled = !participant.IsSelf;
+            volumeSlider.gameObject.SetActive(controlsEnabled);
+            muteToggle.gameObject.SetActive(controlsEnabled);
+
+            if (!controlsEnabled) return;
+
             muteToggle.SetIsOnWithoutNotify(false);
             muteToggle.onValueChanged.AddListener(HandleMuteChanged);
 

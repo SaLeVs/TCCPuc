@@ -50,7 +50,7 @@ namespace UI
             if (_rosterEntries.ContainsKey(participant.PlayerId)) return;
 
             PlayerListItemUi entry = Instantiate(playerListItemUi, playerListContent);
-            entry.Setup(participant, OnVolumeChanged);
+            entry.Setup(participant, OnVolumeChanged, OnMuteChanged);
             _rosterEntries[participant.PlayerId] = entry;
         }
 
@@ -66,7 +66,12 @@ namespace UI
         {
             VivoxManager.instance?.SetParticipantVolume(playerId, volume);
         }
-
+        
+        private void OnMuteChanged(string playerId, bool isMuted)
+        {
+            VivoxManager.instance?.SetParticipantLocalMute(playerId, isMuted);
+        }
+        
         
         public override void OnNetworkDespawn()
         {
@@ -90,6 +95,7 @@ namespace UI
             
             _rosterEntries.Clear();
         }
+        
         
     }
 }

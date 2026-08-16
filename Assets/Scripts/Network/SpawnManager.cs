@@ -12,6 +12,7 @@ namespace Network
 
         private readonly List<SpawnPoint> _availableSpawns = new List<SpawnPoint>();
 
+        
         public override void OnNetworkSpawn()
         {
             if (!IsServer) return;
@@ -20,6 +21,7 @@ namespace Network
             NetworkManager.SceneManager.OnSceneEvent += NetworkManager_OnSceneEvent;
         }
 
+        
         private void InitializeSpawnPool()
         {
             _availableSpawns.Clear();
@@ -66,10 +68,13 @@ namespace Network
             }
         }
 
+        
         public override void OnNetworkDespawn()
         {
             if (!IsServer) return;
+            
             NetworkManager.SceneManager.OnSceneEvent -= NetworkManager_OnSceneEvent;
         }
+        
     }
 }

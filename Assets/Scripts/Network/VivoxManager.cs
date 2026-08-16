@@ -1,4 +1,6 @@
 using System;
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
 using System.Threading.Tasks;
 using Unity.Netcode;
@@ -210,7 +212,7 @@ namespace Network
         {
             volume = Mathf.Clamp(volume, -50, 50);
 
-            foreach (var channel in VivoxService.Instance.ActiveChannels)
+            foreach (KeyValuePair<string, ReadOnlyCollection<VivoxParticipant>> channel in VivoxService.Instance.ActiveChannels)
             {
                 foreach (VivoxParticipant participant in channel.Value)
                 {
@@ -218,6 +220,20 @@ namespace Network
                     {
                         participant.SetLocalVolume(volume);
                     }
+                }
+            }
+        }
+        
+        public void SetParticipantLocalMute(string playerId, bool isMuted)
+        {
+            foreach (KeyValuePair<string, ReadOnlyCollection<VivoxParticipant>> currentChannel in VivoxService.Instance.ActiveChannels)
+            {
+                foreach (VivoxParticipant participant in currentChannel.Value)
+                {
+                    if (participant.PlayerId != playerId) continue;
+
+                    if (isMuted) participant.MutePlayerLocally();
+                    else participant.UnmutePlayerLocally();
                 }
             }
         }

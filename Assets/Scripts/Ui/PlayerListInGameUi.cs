@@ -26,11 +26,12 @@ namespace UI
 
             inputReader.OnPlayerListEvent += InputReader_OnPlayerListPressed;
 
-            if (VivoxManager.instance != null)
-            {
-                VivoxManager.instance.OnParticipantJoinedChannel += VivoxManager_OnParticipantJoined;
-                VivoxManager.instance.OnParticipantLeftChannel += VivoxManager_OnParticipantLeft;
-            }
+            if (VivoxManager.instance == null) return;
+
+            VivoxManager.instance.OnParticipantJoinedChannel += VivoxManager_OnParticipantJoined;
+            VivoxManager.instance.OnParticipantLeftChannel += VivoxManager_OnParticipantLeft;
+
+            RebuildParticipantList();
         }
 
         
@@ -61,6 +62,8 @@ namespace UI
             Destroy(entry.gameObject);
             _rosterEntries.Remove(participant.PlayerId);
         }
+        
+        
 
         private void OnVolumeChanged(string playerId, int volume)
         {
@@ -72,6 +75,13 @@ namespace UI
             VivoxManager.instance?.SetParticipantLocalMute(playerId, isMuted);
         }
         
+        private void RebuildParticipantList()
+        {
+            foreach (VivoxParticipant participant in VivoxManager.instance.CurrentParticipants)
+            {
+                VivoxManager_OnParticipantJoined(participant);
+            }
+        }
         
         public override void OnNetworkDespawn()
         {

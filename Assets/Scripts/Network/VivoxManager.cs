@@ -42,6 +42,20 @@ namespace Network
         public int AudibleDistance => audibleDistance;
         public int ConversationalDistance => conversationalDistance;
         
+        public IEnumerable<VivoxParticipant> CurrentParticipants
+        {
+            get
+            {
+                if (string.IsNullOrEmpty(_currentChannelName)) yield break;
+                if (!VivoxService.Instance.ActiveChannels.TryGetValue(_currentChannelName, out ReadOnlyCollection<VivoxParticipant> participants)) yield break;
+
+                foreach (VivoxParticipant participant in participants)
+                {
+                    yield return participant;
+                }
+            }
+        }
+        
         private const string ECHO_CHANNEL_NAME = "MicTestChannel";
         private const string LOBBY_CHANNEL_SUFFIX = "_lobby";
         private const string GAME_CHANNEL_SUFFIX = "_game";

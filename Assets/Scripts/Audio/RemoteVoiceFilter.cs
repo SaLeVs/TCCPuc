@@ -20,8 +20,10 @@ namespace Audio
             {
                 VivoxManager.instance.OnParticipantJoinedChannel += VivoxManager_OnParticipantJoined;
                 VivoxManager.instance.OnParticipantLeftChannel += VivoxManager_OnParticipantLeft;
+
+                TryBindExistingParticipant();
             }
-            
+
             if (zoneState != null)
             {
                 zoneState.OnZonePresetChanged += PlayerZoneAudioState_OnZonePresetChanged;
@@ -56,7 +58,11 @@ namespace Audio
                 _audioSource = tapObject.GetComponentInChildren<AudioSource>();
             }
 
-            if (_audioSource == null) return;
+            if (_audioSource == null)
+            {
+                _participant = null;
+                return;
+            }
 
             _audioSource.spatialBlend = 1f;
             _audioSource.rolloffMode = AudioRolloffMode.Linear;
@@ -95,6 +101,20 @@ namespace Audio
             _participant = null;
             _reverbFilter = null;
             _audioSource = null;
+        }
+        
+        private void TryBindExistingParticipant()
+        {
+            if (voiceIdentity == null) return;
+
+            foreach (VivoxParticipant participant in VivoxManager.instance.CurrentParticipants)
+            {
+                if (participant.PlayerId == voiceIdentity.VivoxPlayerId)
+                {
+                    VivoxManager_OnParticipantJoined(participant);
+                    break;
+                }
+            }
         }
         
         

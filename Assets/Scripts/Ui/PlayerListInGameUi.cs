@@ -1,4 +1,5 @@
 using Inputs;
+using Network;
 using Unity.Netcode;
 using UnityEngine;
 
@@ -19,6 +20,7 @@ namespace UI
             if (!IsOwner) return;
             
             inputReader.OnPlayerListEvent += InputReader_OnPlayerListPressed;
+            VivoxManager.instance += SpawnManager_OnPlayerSpawned;
         }
 
         private void InputReader_OnPlayerListPressed()

@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using System.Threading.Tasks;
 using Unity.Netcode;
 using UnityEngine;
@@ -8,6 +9,9 @@ namespace Network
 {
     public class VivoxManager : MonoBehaviour
     {
+        public event Action<VivoxParticipant> OnParticipantJoinedChannel;
+        public event Action<VivoxParticipant> OnParticipantLeftChannel;
+        
         private static VivoxManager Instance;
 
         public static VivoxManager instance
@@ -56,6 +60,10 @@ namespace Network
 
             VivoxService.Instance.ChannelJoined += VivoxService_OnChannelJoined;
             VivoxService.Instance.ChannelLeft += VivoxService_OnChannelLeft;
+            
+            VivoxService.Instance.ParticipantAddedToChannel += VivoxService_OnParticipantAddedToChannel;
+            VivoxService.Instance.ParticipantRemovedFromChannel += VivoxService_OnParticipantRemovedFromChannel;
+
 
             Lobby.instance.OnJoinedLobby += VivoxService_OnJoinedLobby;
             Lobby.instance.OnLeftLobby += VivoxService_OnLeftLobby;
@@ -86,11 +94,6 @@ namespace Network
         public async void EnterGameVoice()
         {
             if (lobbyManager.JoinedLobby == null) return;
-            await SwitchChannelAsync(lobbyManager.JoinedLobby.Id + GAME_CHANNEL_SUFFIX, ChatCapability.AudioOnly, positional: true);
-        }
-
-        private async void EnterInChannelGame()
-        {
             await SwitchChannelAsync(lobbyManager.JoinedLobby.Id + GAME_CHANNEL_SUFFIX, ChatCapability.AudioOnly, positional: true);
         }
 
@@ -202,7 +205,44 @@ namespace Network
                 Debug.LogError($"Error leaving test voice channel: {e.Message}");
             }
         }
+    
+        public void SetParticipantVolume(string playerId, int volume)
+        {
+            volume = Mathf.Clamp(volume, -50, 50);
 
+            foreach (var channel in VivoxService.Instance.ActiveChannels)
+            {
+                foreach (VivoxParticipant participant in channel.Value)
+                {
+                    if (participant.PlayerId == playerId)
+                    {
+                        participant.SetLocalVolume(volume);
+                    }
+                }
+            }
+        }
+        
+        public VivoxParticipant GetChannelParticipant(string playerId, string channelName = null)
+        {
+            channelName ??= _currentChannelName;
+            if (string.IsNullOrEmpty(channelName)) return null;
+            if (!VivoxService.Instance.ActiveChannels.TryGetValue(channelName, out var participants)) return null;
+
+            return participants.FirstOrDefault(p => p.PlayerId == playerId);
+        }
+
+        private void VivoxService_OnParticipantAddedToChannel(VivoxParticipant participant)
+        {
+            if (participant.ChannelName == ECHO_CHANNEL_NAME) return;
+            OnParticipantJoinedChannel?.Invoke(participant);
+        }
+
+        private void VivoxService_OnParticipantRemovedFromChannel(VivoxParticipant participant)
+        {
+            if (participant.ChannelName == ECHO_CHANNEL_NAME) return;
+            OnParticipantLeftChannel?.Invoke(participant);
+        }
+        
         private void VivoxService_OnChannelJoined(string channelName) => Debug.Log($"Joined channel: {channelName}");
         private void VivoxService_OnChannelLeft(string channelName) => Debug.Log($"Left channel: {channelName}");
         private void VivoxService_OnUserLoggedIn() => Debug.Log("User logged in");
@@ -216,6 +256,9 @@ namespace Network
 
             VivoxService.Instance.ChannelJoined -= VivoxService_OnChannelJoined;
             VivoxService.Instance.ChannelLeft -= VivoxService_OnChannelLeft;
+            
+            VivoxService.Instance.ParticipantAddedToChannel -= VivoxService_OnParticipantAddedToChannel;
+            VivoxService.Instance.ParticipantRemovedFromChannel -= VivoxService_OnParticipantRemovedFromChannel;
 
             Lobby.instance.OnJoinedLobby -= VivoxService_OnJoinedLobby;
             Lobby.instance.OnLeftLobby -= VivoxService_OnLeftLobby;

@@ -70,7 +70,9 @@ namespace Network
 
         private bool _isInTestChannel;
         private bool _isSwitchingChannel;
+        private bool _isTogglingTestChannel;
 
+        
         private void Start()
         {
             VivoxService.Instance.LoggedIn += VivoxService_OnUserLoggedIn;
@@ -78,13 +80,14 @@ namespace Network
 
             VivoxService.Instance.ChannelJoined += VivoxService_OnChannelJoined;
             VivoxService.Instance.ChannelLeft += VivoxService_OnChannelLeft;
-            
+
             VivoxService.Instance.ParticipantAddedToChannel += VivoxService_OnParticipantAddedToChannel;
             VivoxService.Instance.ParticipantRemovedFromChannel += VivoxService_OnParticipantRemovedFromChannel;
 
-
             Lobby.instance.OnJoinedLobby += VivoxService_OnJoinedLobby;
             Lobby.instance.OnLeftLobby += VivoxService_OnLeftLobby;
+
+            Application.quitting += Application_ApplicationQuit;
         }
 
         private void VivoxService_OnJoinedLobby() => EnterLobbyVoice();
@@ -174,10 +177,12 @@ namespace Network
 
         public async void EnterTestVoiceChannel()
         {
+            if (_isTogglingTestChannel || _isInTestChannel) return;
+
+            _isTogglingTestChannel = true;
+
             try
             {
-                if (_isInTestChannel) return;
-
                 await EnsureLoggedInAsync();
 
                 if (!string.IsNullOrEmpty(_currentChannelName))
@@ -197,14 +202,20 @@ namespace Network
             {
                 Debug.LogError($"Error entering test voice channel: {e.Message}");
             }
+            finally
+            {
+                _isTogglingTestChannel = false;
+            }
         }
         
         public async void LeaveTestVoiceChannel()
         {
+            if (_isTogglingTestChannel || !_isInTestChannel) return;
+
+            _isTogglingTestChannel = true;
+
             try
             {
-                if (!_isInTestChannel) return;
-
                 await VivoxService.Instance.LeaveChannelAsync(ECHO_CHANNEL_NAME);
                 _isInTestChannel = false;
 
@@ -221,6 +232,10 @@ namespace Network
             catch (Exception e)
             {
                 Debug.LogError($"Error leaving test voice channel: {e.Message}");
+            }
+            finally
+            {
+                _isTogglingTestChannel = false;
             }
         }
     
@@ -292,6 +307,21 @@ namespace Network
         private void VivoxService_OnUserLoggedIn() => Debug.Log("User logged in");
         private void VivoxService_OnUserLoggedOut() => Debug.Log("User logged out");
 
+        private async void Application_ApplicationQuit()
+        {
+            try
+            {
+                if (VivoxService.Instance.IsLoggedIn)
+                {
+                    await VivoxService.Instance.LogoutAsync();
+                }
+            }
+            catch (Exception e)
+            {
+                Debug.LogError($"Error logging out of Vivox on quit: {e.Message}");
+            }
+        }
+        
         
         private void OnDisable()
         {
@@ -300,12 +330,14 @@ namespace Network
 
             VivoxService.Instance.ChannelJoined -= VivoxService_OnChannelJoined;
             VivoxService.Instance.ChannelLeft -= VivoxService_OnChannelLeft;
-            
+
             VivoxService.Instance.ParticipantAddedToChannel -= VivoxService_OnParticipantAddedToChannel;
             VivoxService.Instance.ParticipantRemovedFromChannel -= VivoxService_OnParticipantRemovedFromChannel;
 
             Lobby.instance.OnJoinedLobby -= VivoxService_OnJoinedLobby;
             Lobby.instance.OnLeftLobby -= VivoxService_OnLeftLobby;
+
+            Application.quitting -= Application_ApplicationQuit;
         }
         
     }

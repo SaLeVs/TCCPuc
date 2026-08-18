@@ -1,9 +1,9 @@
 using System;
+using Network;
 using Player;
 using Unity.Netcode;
 using UnityEngine;
 using UnityEngine.SceneManagement;
-using UnityEngine.UI;
 
 namespace Ui
 {
@@ -58,6 +58,9 @@ namespace Ui
         private void GoToMainMenu()
         {
             _isReturningToMenu = true;
+
+            Lobby.instance?.LeaveLobby();
+            VivoxManager.instance?.LeaveVoiceChannel();
             NetworkManager.Singleton.Shutdown();
             SceneManager.LoadScene(mainMenuSceneName);
         }

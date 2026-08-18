@@ -226,7 +226,7 @@ namespace Network
     
         public void SetParticipantVolume(string playerId, int volume)
         {
-            volume = Mathf.Clamp(volume, -50, 50);
+            volume = Mathf.Clamp(volume, -50, 10);
 
             foreach (KeyValuePair<string, ReadOnlyCollection<VivoxParticipant>> channel in VivoxService.Instance.ActiveChannels)
             {
@@ -235,9 +235,21 @@ namespace Network
                     if (participant.PlayerId == playerId)
                     {
                         participant.SetLocalVolume(volume);
+                        
+                        if (participant.ParticipantTapAudioSource != null)
+                        {
+                            participant.ParticipantTapAudioSource.volume = ConvertVivoxVolumeToLinear(volume);
+                        }
                     }
                 }
             }
+        }
+
+        private static float ConvertVivoxVolumeToLinear(int vivoxVolume)
+        {
+            vivoxVolume = Mathf.Clamp(vivoxVolume, -50, 10);
+            
+            return vivoxVolume >= 0 ? Mathf.Lerp(1f, 2f, vivoxVolume / 50f) : Mathf.Lerp(0f, 1f, (vivoxVolume + 50f) / 50f);
         }
         
         public void SetParticipantLocalMute(string playerId, bool isMuted)

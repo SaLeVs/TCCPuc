@@ -204,15 +204,16 @@ namespace Network
                 {
                     await LobbyService.Instance.RemovePlayerAsync(_joinedLobby.Id, AuthenticationService.Instance.PlayerId);
                 }
-
+            }
+            finally
+            {
                 _joinedLobby = null;
                 _hostLobby = null;
+                _hasJoinedGame = false;
+                ResetLobbyState();
                 OnLeftLobby?.Invoke();
             }
-            catch (Exception e)
-            {
-                Debug.Log(e);
-            }
+            
         }
 
         private async Task MigrateHostAsync()
@@ -313,6 +314,17 @@ namespace Network
 
                 await ClientSingleton.instance.gameManager.StartClientAsync(relayCode);
             }
+        }
+        
+        public void ResetLobbyState()
+        {
+            _hasJoinedGame = false;
+
+            _joinedLobby = null;
+            _hostLobby = null;
+
+            _heartBeatTimer = 0f;
+            _lobbyUpdateTimer = 0f;
         }
         
         private Player GetPlayer()

@@ -171,8 +171,17 @@ namespace Network
             if (string.IsNullOrEmpty(_currentChannelName)) return;
 
             await VivoxService.Instance.LeaveChannelAsync(_currentChannelName);
-            _currentChannelName = null;
-            IsInPositionalChannel = false;
+            
+            _currentChannelCapability = default;
+            _currentChannelPositional = false;
+
+            _channelBeforeTest = null;
+            _channelBeforeTestCapability = default;
+            _channelBeforeTestPositional = false;
+
+            _isInTestChannel = false;
+            _isSwitchingChannel = false;
+            _isTogglingTestChannel = false;
         }
 
         public async void EnterTestVoiceChannel()

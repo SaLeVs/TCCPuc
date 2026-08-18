@@ -1,4 +1,5 @@
 using System;
+using System.Threading.Tasks;
 using Network;
 using Player;
 using Unity.Netcode;
@@ -55,13 +56,34 @@ namespace Ui
             GoToMainMenu();
         }
 
-        private void GoToMainMenu()
+        private async void GoToMainMenu()
         {
             _isReturningToMenu = true;
 
-            Lobby.instance?.LeaveLobby();
-            VivoxManager.instance?.LeaveVoiceChannel();
-            NetworkManager.Singleton.Shutdown();
+            try
+            {
+                if (VivoxManager.instance != null)
+                {
+                    VivoxManager.instance.LeaveVoiceChannel();
+                }
+
+                if (Lobby.instance != null)
+                {
+                    Lobby.instance.LeaveLobby();
+                }
+
+                if (NetworkManager.Singleton != null)
+                {
+                    NetworkManager.Singleton.Shutdown();
+                }
+
+                await Task.Delay(500);
+            }
+            catch (Exception e)
+            {
+                Debug.LogException(e);
+            }
+
             SceneManager.LoadScene(mainMenuSceneName);
         }
 

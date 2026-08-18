@@ -11,6 +11,9 @@ public class HoverMaterialChange : MonoBehaviour
     public Color normalEmission = Color.black;
     public Color hoverEmission = Color.white;
 
+    [Header("Luz do hover")]
+    public Light hoverLight; // arraste a luz que deve acender/apagar no hover
+
     private Renderer rend;
     private MaterialPropertyBlock propBlock;
     private Camera cam;
@@ -23,6 +26,9 @@ public class HoverMaterialChange : MonoBehaviour
 
         if (!useEmissionInstead && normalMaterial != null)
             rend.material = normalMaterial;
+
+        if (hoverLight != null)
+            hoverLight.enabled = false; // começa apagada
     }
 
     void Update()
@@ -41,5 +47,8 @@ public class HoverMaterialChange : MonoBehaviour
         {
             rend.material = isHovering ? hoverMaterial : normalMaterial;
         }
+
+        if (hoverLight != null)
+            hoverLight.enabled = isHovering;
     }
 }

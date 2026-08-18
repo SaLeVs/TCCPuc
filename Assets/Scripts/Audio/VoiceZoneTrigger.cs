@@ -13,12 +13,20 @@ namespace Audio
         
         private void OnTriggerEnter(Collider other)
         {
-            other.GetComponentInChildren<PlayerZoneAudioState>().EnterZone(this);
+            PlayerZoneAudioState playerZoneAudioState = other.GetComponentInChildren<PlayerZoneAudioState>();
+
+            if (playerZoneAudioState == null) return;
+
+            playerZoneAudioState.EnterZone(this);
         }
 
         private void OnTriggerExit(Collider other)
         {
-            other.GetComponentInChildren<PlayerZoneAudioState>().ExitZone(this);
+            PlayerZoneAudioState playerZoneAudioState = other.GetComponentInChildren<PlayerZoneAudioState>();
+
+            if (playerZoneAudioState == null) return;
+
+            playerZoneAudioState.ExitZone(this);
         }
         
     }

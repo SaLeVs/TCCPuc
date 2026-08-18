@@ -74,7 +74,9 @@ namespace Ui
 
                 if (NetworkManager.Singleton != null)
                 {
-                    NetworkManager.Singleton.Shutdown();
+                    HostSingleton.instance?.gameManager?.Dispose();
+                    ClientSingleton.instance?.gameManager?.Dispose();
+                    NetworkManager.Singleton?.Shutdown();
                 }
 
                 await Task.Delay(500);

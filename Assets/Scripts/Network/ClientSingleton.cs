@@ -40,6 +40,16 @@ namespace Network
             gameManager = new ClientGameManager();
             return await gameManager.InitAsync();
         }
+        
+        public async Task Reset()
+        {
+            gameManager?.Dispose();
+
+            gameManager = new ClientGameManager();
+
+            await gameManager.InitAsync();
+        }
+        
 
         private void OnDestroy()
         {

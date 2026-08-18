@@ -170,8 +170,21 @@ namespace Network
         {
             if (string.IsNullOrEmpty(_currentChannelName)) return;
 
-            await VivoxService.Instance.LeaveChannelAsync(_currentChannelName);
-            
+            try
+            {
+                if (VivoxService.Instance.ActiveChannels.ContainsKey(_currentChannelName))
+                {
+                    await VivoxService.Instance.LeaveChannelAsync(_currentChannelName);
+                }
+            }
+            catch (Exception e)
+            {
+                Debug.LogWarning(e);
+            }
+
+            _currentChannelName = null;
+            IsInPositionalChannel = false;
+
             _currentChannelCapability = default;
             _currentChannelPositional = false;
 

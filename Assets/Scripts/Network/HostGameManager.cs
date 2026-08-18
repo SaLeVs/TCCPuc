@@ -21,6 +21,12 @@ namespace Network
         
         public async Task<string> StartHostAsync()
         {
+            if (NetworkServer != null)
+            {
+                NetworkServer.Dispose();
+                NetworkServer = null;
+            }
+            
             try
             {
                 _allocation = await RelayService.Instance.CreateAllocationAsync(MAX_CONNECTIONS);
@@ -73,7 +79,9 @@ namespace Network
         public void Dispose()
         {
             NetworkServer?.Dispose();
-            
+            NetworkServer = null;
+
+            _joinCode = null;
         }
         
     }

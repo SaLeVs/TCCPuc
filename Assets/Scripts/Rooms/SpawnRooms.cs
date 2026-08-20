@@ -37,7 +37,7 @@ namespace Rooms
         {
             if (!BuildRoomList()) return;
 
-            // ShuffleRooms();
+            ShuffleList(_roomsToSpawn);
             SpawnAllRooms();
             missionManager.OnRoomsSpawned();
             RebuildNavMeshRpc();
@@ -45,6 +45,8 @@ namespace Rooms
 
         private bool BuildRoomList()
         {
+            _roomsToSpawn.Clear();
+            
             List<RoomDataSO> requiredRooms = _currentContract.GetAllRequiredRooms();
 
             if (requiredRooms.Count > _totalSpawnPoints) 
@@ -64,10 +66,13 @@ namespace Rooms
 
         private void FillWithLootRooms()
         {
-            foreach (RoomDataSO room in _currentContract.lootRooms)
+            List<RoomDataSO> shuffledLoot = new List<RoomDataSO>(_currentContract.lootRooms);
+            ShuffleList(shuffledLoot);
+
+            foreach (RoomDataSO room in shuffledLoot)
             {
                 if (_remainingSlots <= 0) break;
-
+                
                 _roomsToSpawn.Add(room);
                 _remainingSlots--;
             }
@@ -87,23 +92,17 @@ namespace Rooms
 
         private void FillWithRandomBaseRooms()
         {
-            List<RoomDataSO> nonUniqueBaseRooms = _currentContract.baseRooms.FindAll(room => !room.isUniqueRoom);
-
+            List<RoomDataSO> nonUniqueBaseRooms = _currentContract.baseRooms.FindAll(r => !r.isUniqueRoom);
             if (nonUniqueBaseRooms.Count == 0) return;
+
+            ShuffleList(nonUniqueBaseRooms);
+            int poolIndex = 0;
 
             while (_remainingSlots > 0)
             {
-                RoomDataSO room = GetRandomRoom(nonUniqueBaseRooms);
-                _roomsToSpawn.Add(room);
+                _roomsToSpawn.Add(nonUniqueBaseRooms[poolIndex % nonUniqueBaseRooms.Count]);
+                poolIndex++;
                 _remainingSlots--;
-            }
-        }
-        private void ShuffleRooms()
-        {
-            for (int i = _roomsToSpawn.Count - 1; i > 0; i--)
-            {
-                int randomIndex = Random.Range(0, i + 1);
-                (_roomsToSpawn[i], _roomsToSpawn[randomIndex]) = (_roomsToSpawn[randomIndex], _roomsToSpawn[i]);
             }
         }
         
@@ -117,7 +116,9 @@ namespace Rooms
                 GameObject roomObject = Instantiate(roomData.prefab, spawnPoint.position, spawnPoint.rotation);
 
                 if (roomObject.TryGetComponent(out NetworkObject networkObject))
+                {
                     networkObject.Spawn();
+                }
 
                 SpawnNetworkEntries(roomData, spawnPoint); 
             }
@@ -141,17 +142,20 @@ namespace Rooms
             }
         }
 
-        private RoomDataSO GetRandomRoom(List<RoomDataSO> pool)
-        {
-            return pool[Random.Range(0, pool.Count)];
-        }
-
         [Rpc(SendTo.ClientsAndHost)]
         private void RebuildNavMeshRpc()
         {
             navMeshSurface.BuildNavMesh();
         }
-
+        
+        private void ShuffleList<T>(List<T> list)
+        {
+            for (int i = list.Count - 1; i > 0; i--)
+            {
+                int randomIndex = Random.Range(0, i + 1);
+                (list[i], list[randomIndex]) = (list[randomIndex], list[i]);
+            }
+        }
         
         public override void OnNetworkDespawn()
         {

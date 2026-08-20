@@ -11,8 +11,26 @@ namespace Network
 {
     public class Lobby : MonoBehaviour
     {
+        private static Lobby Instance;
+
+        public static Lobby instance
+        {
+            get
+            {
+                if (Instance != null) return Instance;
+                Instance = FindFirstObjectByType<Lobby>();
+                if (Instance == null)
+                {
+                    Debug.LogError("Lobby not found");
+                    return null;
+                }
+                return Instance;
+            }
+        }
+        
         public event Action OnJoinedLobby;
         public event Action OnLobbyUpdated;
+        public event Action OnLeftLobby;
         
         private const int MAX_PLAYERS = 4;
         private const string PLAYER_READY = "Ready";
@@ -27,15 +45,9 @@ namespace Network
         
         private float _lobbyUpdateTimer;
         private float _lobbyUpdateMaxTimer = 1.1f;
-
-        private string _playerName;
+        
         private bool _hasJoinedGame;
-
-
-        private void Start()
-        {
-            _playerName = $"Player {UnityEngine.Random.Range(0, 100)}";
-        }
+        
 
         private void Update()
         {
@@ -45,37 +57,48 @@ namespace Network
 
         private async void HeartBeat()
         {
-            if (_hostLobby != null)
+            if (_hostLobby == null) return;
+            if (_hasJoinedGame) return; 
+
+            _heartBeatTimer -= Time.deltaTime;
+
+            if (_heartBeatTimer <= 0f)
             {
-                _heartBeatTimer -= Time.deltaTime;
-                
-                if (_heartBeatTimer <= 0f)
+                _heartBeatTimer = _heartBeatMaxTimer;
+                try
                 {
-                    _heartBeatTimer = _heartBeatMaxTimer;
                     await LobbyService.Instance.SendHeartbeatPingAsync(_hostLobby.Id);
-                    
                 }
-                
+                catch (Exception e)
+                {
+                    Debug.LogWarning($"Heartbeat failed: {e.Message}");
+                }
             }
         }
 
         private async void LobbyPullForUpdate()
         {
-            if (_joinedLobby != null)
+            if (_joinedLobby == null) return;
+            if (_hasJoinedGame) return;  
+
+            _lobbyUpdateTimer -= Time.deltaTime;
+
+            if (_lobbyUpdateTimer <= 0f)
             {
-                _lobbyUpdateTimer -= Time.deltaTime;
-                
-                if (_lobbyUpdateTimer <= 0f)
+                _lobbyUpdateTimer = _lobbyUpdateMaxTimer;
+
+                try
                 {
-                    _lobbyUpdateTimer = _lobbyUpdateMaxTimer;
-                    
                     Unity.Services.Lobbies.Models.Lobby lobby = await LobbyService.Instance.GetLobbyAsync(_joinedLobby.Id);
-                    _joinedLobby =  lobby;
-                    
+                    _joinedLobby = lobby;
+
                     OnLobbyUpdated?.Invoke();
                     CheckIfGameStarted();
                 }
-                
+                catch (Exception e)
+                {
+                    Debug.LogWarning($"Lobby poll failed: {e.Message}");
+                }
             }
         }
 
@@ -163,15 +186,48 @@ namespace Network
         {
             try
             {
-                await LobbyService.Instance.RemovePlayerAsync(_joinedLobby.Id, AuthenticationService.Instance.PlayerId);
+                if (_joinedLobby == null) return;
+
+                if (IsHost())
+                {
+                    if (_joinedLobby.Players.Count > 1)
+                    {
+                        await MigrateHostAsync();
+                        await LobbyService.Instance.RemovePlayerAsync(_joinedLobby.Id, AuthenticationService.Instance.PlayerId);
+                    }
+                    else
+                    {
+                        await LobbyService.Instance.DeleteLobbyAsync(_joinedLobby.Id);
+                    }
+                }
+                else
+                {
+                    await LobbyService.Instance.RemovePlayerAsync(_joinedLobby.Id, AuthenticationService.Instance.PlayerId);
+                }
+            }
+            finally
+            {
                 _joinedLobby = null;
                 _hostLobby = null;
+                _hasJoinedGame = false;
+                ResetLobbyState();
+                OnLeftLobby?.Invoke();
             }
-            catch (Exception e)
+            
+        }
+
+        private async Task MigrateHostAsync()
+        {
+            string myId = AuthenticationService.Instance.PlayerId;
+            Player nextHost = _joinedLobby.Players.Find(p => p.Id != myId);
+
+            if (nextHost == null) return;
+
+            _hostLobby = await LobbyService.Instance.UpdateLobbyAsync(_joinedLobby.Id, new UpdateLobbyOptions
             {
-                Debug.Log(e);
-            }
-           
+                HostId = nextHost.Id
+            });
+            _joinedLobby = _hostLobby;
         }
 
         public async void KickPlayer()
@@ -184,35 +240,6 @@ namespace Network
             {
                 Debug.Log(e);
             }
-        }
-
-        public async void MigrateHost()
-        {
-            try
-            {
-                _hostLobby = await LobbyService.Instance.UpdateLobbyAsync(_hostLobby.Id, new UpdateLobbyOptions
-                {
-                    HostId = _joinedLobby.Players[1].Id
-                });
-                _joinedLobby = _hostLobby;
-            }
-            catch (Exception e)
-            {
-                Debug.Log(e);
-            }
-        }
-
-        public async void DeleteLobby()
-        {
-            try
-            {
-                await LobbyService.Instance.DeleteLobbyAsync(_joinedLobby.Id);
-            }
-            catch (Exception e)
-            {
-                Debug.Log(e);
-            }
-            
         }
         
         public async Task SetPlayerReady(bool isReady)
@@ -289,13 +316,28 @@ namespace Network
             }
         }
         
+        public void ResetLobbyState()
+        {
+            _hasJoinedGame = false;
+
+            _joinedLobby = null;
+            _hostLobby = null;
+
+            _heartBeatTimer = 0f;
+            _lobbyUpdateTimer = 0f;
+        }
+        
         private Player GetPlayer()
         {
+            UserData userData = LocalUserData.Load();
+            userData.userAuthId = AuthenticationService.Instance.PlayerId;
+    
             return new Player
             {
                 Data = new Dictionary<string, PlayerDataObject>
                 {
-                    {"PlayerName", new PlayerDataObject(PlayerDataObject.VisibilityOptions.Member, _playerName)}
+                    { "UserData", new PlayerDataObject(PlayerDataObject.VisibilityOptions.Member, JsonUtility.ToJson(userData)) },
+                    { PLAYER_READY, new PlayerDataObject(PlayerDataObject.VisibilityOptions.Member, "0") }
                 }
             };
         }

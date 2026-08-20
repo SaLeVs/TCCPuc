@@ -3,15 +3,17 @@ using System.Threading.Tasks;
 using Systems;
 using Unity.Netcode;
 using Unity.Netcode.Transports.UTP;
-using Unity.Networking.Transport.Relay;
+using Unity.Services.Authentication;
 using Unity.Services.Relay;
 using Unity.Services.Relay.Models;
 using UnityEngine;
 
 namespace Network
 {
-    public class HostGameManager
+    public class HostGameManager : IDisposable
     {
+        public NetworkServer NetworkServer { get; private set; }
+        
         private const int MAX_CONNECTIONS = 4;
         
         private Allocation _allocation;
@@ -19,6 +21,12 @@ namespace Network
         
         public async Task<string> StartHostAsync()
         {
+            if (NetworkServer != null)
+            {
+                NetworkServer.Dispose();
+                NetworkServer = null;
+            }
+            
             try
             {
                 _allocation = await RelayService.Instance.CreateAllocationAsync(MAX_CONNECTIONS);
@@ -43,8 +51,22 @@ namespace Network
                 transport.SetRelayServerData(AllocationUtils.ToRelayServerData(_allocation, "dtls"));
             }
             
+            NetworkServer = new NetworkServer(NetworkManager.Singleton);
+
+            UserData userData = new UserData
+            {
+                playerName = PlayerPrefs.GetString(NameSelector.PLAYER_NAME_KEY, "Error"),
+                userAuthId = AuthenticationService.Instance.PlayerId
+            };
+            
+            string payload = JsonUtility.ToJson(userData);
+            byte[] payloadBytes = System.Text.Encoding.UTF8.GetBytes(payload);
+            
+            NetworkManager.Singleton.NetworkConfig.ConnectionData = payloadBytes;
+            
             NetworkManager.Singleton.StartHost();
             Loader.LoadNetwork(Loader.Scene.Lobby);
+            
             return _joinCode;
         }
         
@@ -53,6 +75,15 @@ namespace Network
             NetworkManager.Singleton.StartHost();
             Loader.LoadNetwork(Loader.Scene.Lobby);
         }
+
+        public void Dispose()
+        {
+            NetworkServer?.Dispose();
+            NetworkServer = null;
+
+            _joinCode = null;
+        }
+        
     }
 }
 

@@ -38,7 +38,6 @@ namespace Network
             {
                 try
                 {
-                    await UnityServices.InitializeAsync();
                     await AuthenticationService.Instance.SignInAnonymouslyAsync();
                     await VivoxService.Instance.InitializeAsync();
                 

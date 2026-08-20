@@ -32,8 +32,16 @@ namespace Systems
         {
             SceneManager.LoadScene(_targetScene.ToString());
         }
-        
-        
+
+        public static UnityEngine.SceneManagement.Scene GetCurrentScene()
+        {
+            return SceneManager.GetActiveScene();
+        }
+
+        public static UnityEngine.SceneManagement.Scene GetSceneByName(Scene wantedScene)
+        {
+            return SceneManager.GetSceneByName(wantedScene.ToString());
+        }
     }
 }
 

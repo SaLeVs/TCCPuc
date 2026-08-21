@@ -6,7 +6,7 @@ namespace Missions
     [Serializable]
     public class SpawnConfig
     {
-        public GameObject prefab;
-        public Transform spawnPoint;
+        public GameObject[] prefabs;
+        public Transform[] spawnPoints;
     }
 }

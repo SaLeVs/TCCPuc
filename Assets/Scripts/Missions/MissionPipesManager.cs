@@ -35,17 +35,21 @@ namespace Missions
             for (int i = 0; i < pipeConfigs.Count; i++)
             {
                 PipeSpawnConfig config = pipeConfigs[i];
-                GameObject spawnedPipe = Instantiate(config.prefab, config.spawnPoint.position, config.spawnPoint.rotation);
 
-                if (spawnedPipe.TryGetComponent(out NetworkObject networkObject))
+                foreach ((GameObject prefab, Transform spawnPoint) assignment in SpawnUtility.GenerateSpawnAssignments(config))
                 {
-                    networkObject.Spawn();
-                }
+                    GameObject spawned = Instantiate(assignment.prefab, assignment.spawnPoint.position, assignment.spawnPoint.rotation);
 
-                if (spawnedPipe.TryGetComponent(out PipeTotem pipe))
-                {
-                    pipe.Initialize(this, possibleAngles, config.correctSteps, randomSteps[i]);
-                    _spawnedPipes.Add(pipe);
+                    if (spawned.TryGetComponent(out NetworkObject networkObject))
+                    {
+                        networkObject.Spawn();
+                    }
+
+                    if (spawned.TryGetComponent(out PipeTotem pipe))
+                    {
+                        pipe.Initialize(this, possibleAngles, config.correctSteps, randomSteps[i]);
+                        _spawnedPipes.Add(pipe);
+                    }
                 }
             }
 

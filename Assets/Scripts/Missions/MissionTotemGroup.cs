@@ -34,20 +34,24 @@ namespace Missions
         {
             foreach (SpawnConfig config in totemConfigs)
             {
-                if (config.prefab == null || config.spawnPoint == null) continue;
+                if (config.prefabs == null || config.spawnPoints == null) continue;
 
-                GameObject spawned = Instantiate(config.prefab, config.spawnPoint.position, config.spawnPoint.rotation);
-
-                if (spawned.TryGetComponent(out NetworkObject netObj))
+                foreach ((GameObject prefab, Transform spawnPoint) assignment in SpawnUtility.GenerateSpawnAssignments(config))
                 {
-                    netObj.Spawn();
-                }
+                    GameObject spawned = Instantiate(assignment.prefab, assignment.spawnPoint.position, assignment.spawnPoint.rotation);
 
-                if (spawned.TryGetComponent(out MissionTotem totem))
-                {
-                    totem.Initialize(this);
-                    totem.OnTotemDeposited += MissionTotem_OnTotemDeposited;
-                    _spawnedTotems.Add(totem);
+                    if (spawned.TryGetComponent(out NetworkObject netObj))
+                    {
+                        netObj.Spawn();
+                    }
+
+                    if (spawned.TryGetComponent(out MissionTotem totem))
+                    {
+                        totem.Initialize(this);
+                        totem.OnTotemDeposited += MissionTotem_OnTotemDeposited;
+
+                        _spawnedTotems.Add(totem);
+                    }
                 }
             }
 
@@ -58,21 +62,24 @@ namespace Missions
         {
             foreach (SpawnConfig config in pickableConfigs)
             {
-                if (config.prefab == null || config.spawnPoint == null) continue;
+                if (config.prefabs == null || config.spawnPoints == null) continue;
 
-                GameObject spawned = Instantiate(config.prefab, config.spawnPoint.position, config.spawnPoint.rotation);
-
-                if (spawned.TryGetComponent(out NetworkObject netObj))
+                foreach ((GameObject prefab, Transform spawnPoint) assignment in SpawnUtility.GenerateSpawnAssignments(config))
                 {
-                    netObj.Spawn();
+                    GameObject spawned = Instantiate(assignment.prefab, assignment.spawnPoint.position, assignment.spawnPoint.rotation);
 
-                    if (spawned.TryGetComponent(out IMissionOwnerAware ownerAware))
+                    if (spawned.TryGetComponent(out NetworkObject netObj))
                     {
-                        ownerAware.SetOwnershipSelector(this);
-                        MissionItemRegistry.Instance?.Register(ownerAware.ItemId, this);
-                    }
+                        netObj.Spawn();
 
-                    _spawnedPickables.Add(netObj);
+                        if (spawned.TryGetComponent(out IMissionOwnerAware ownerAware))
+                        {
+                            ownerAware.SetOwnershipSelector(this);
+                            MissionItemRegistry.Instance?.Register(ownerAware.ItemId, this);
+                        }
+
+                        _spawnedPickables.Add(netObj);
+                    }
                 }
             }
         }

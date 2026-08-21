@@ -30,20 +30,23 @@ namespace Missions
         {
             foreach (SpawnConfig config in soundObjectConfigs)
             {
-                if (config.prefab == null || config.spawnPoint == null) continue;
+                if (config.prefabs == null || config.spawnPoints == null) continue;
 
-                GameObject spawned = Instantiate(config.prefab, config.spawnPoint.position, config.spawnPoint.rotation);
-
-                if (spawned.TryGetComponent(out NetworkObject netObj))
+                foreach ((GameObject prefab, Transform spawnPoint) assignment in SpawnUtility.GenerateSpawnAssignments(config))
                 {
-                    netObj.Spawn();
+                    GameObject spawned = Instantiate(assignment.prefab, assignment.spawnPoint.position, assignment.spawnPoint.rotation);
 
-                    if (spawned.TryGetComponent(out IMissionOwnerAware ownerAware))
+                    if (spawned.TryGetComponent(out NetworkObject netObj))
                     {
-                        ownerAware.SetOwnershipSelector(this);
-                    }
+                        netObj.Spawn();
 
-                    _spawnedObjects.Add(netObj);
+                        if (spawned.TryGetComponent(out IMissionOwnerAware ownerAware))
+                        {
+                            ownerAware.SetOwnershipSelector(this);
+                        }
+
+                        _spawnedObjects.Add(netObj);
+                    }
                 }
             }
         }

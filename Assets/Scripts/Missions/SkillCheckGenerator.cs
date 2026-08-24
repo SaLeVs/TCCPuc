@@ -13,6 +13,7 @@ namespace UI
         [SerializeField] private float radius = 100f;
         
         [SerializeField] private float minAngleGapDegrees = 10f;
+        [SerializeField] private float rotationOffset;
 
         private readonly List<SkillCheckSlot> _slots = new();
 
@@ -82,8 +83,13 @@ namespace UI
         private void PositionSlot(RectTransform slotRect, float angleDegrees)
         {
             float rad = angleDegrees * Mathf.Deg2Rad;
-            slotRect.anchoredPosition = new Vector2(Mathf.Sin(rad), Mathf.Cos(rad)) * radius;
-            slotRect.localRotation = Quaternion.Euler(0f, 0f, -angleDegrees);
+
+            Vector2 pos = new Vector2(Mathf.Cos(rad), Mathf.Sin(rad)) * radius;
+            slotRect.anchoredPosition = pos;
+
+            Debug.Log($"Angle: {angleDegrees} Pos: {pos}");
+
+            slotRect.localRotation = Quaternion.Euler(0f, 0f, angleDegrees + rotationOffset);
         }
         
         private List<float> GenerateRandomAngles(int count, float minGapDegrees)

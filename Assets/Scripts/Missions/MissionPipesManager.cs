@@ -19,17 +19,18 @@ namespace Missions
         [SerializeField] private Transform spawnListRoot;
         [SerializeField] private GameObject defaultPipePrefab;
         [SerializeField] private List<PipeGridLayout> possibleGridLayouts;
+        [SerializeField] private List<PipeSpawnConfig> pipeConfigs = new();
         
         public override bool IsComplete { get; protected set; }
         public List<float> PossiblePipesAngles => possibleAngles;
         
         private readonly List<PipeTotem> _spawnedPipes = new();
-        private List<PipeSpawnConfig> pipeConfigs = new();
         
         public void RequestSpawn()
         {
             if (!IsServer) return;
-
+            Debug.Log("MissionPipesManager: RequestSpawn called");
+            
             ResolvePipeConfigsFromGridIfNeeded();
             SpawnPipes();
         }
@@ -37,7 +38,12 @@ namespace Missions
         
         private void ResolvePipeConfigsFromGridIfNeeded()
         {
-            if (possibleGridLayouts == null || possibleGridLayouts.Count == 0) return;
+            if (possibleGridLayouts == null || possibleGridLayouts.Count == 0)
+            {
+                Debug.LogWarning("MissionPipesManager: possibleGridLayouts empty. using manual pipeConfigs");
+                return;
+            }
+            
             if (spawnListRoot == null)
             {
                 Debug.LogWarning("MissionPipesManager: possibleGridLayouts defined, but spawnListRoot is null. Using manual pipeConfigs.");
@@ -61,25 +67,38 @@ namespace Missions
         private void SpawnPipes()
         {
             List<int> randomSteps = GenerateRandomSteps(pipeConfigs.Count);
-    
+
             for (int i = 0; i < pipeConfigs.Count; i++)
             {
                 PipeSpawnConfig config = pipeConfigs[i];
 
-                foreach ((GameObject prefab, Transform spawnPoint) assignment in SpawnUtility.GenerateSpawnAssignments(config))
+                if (config.prefab == null)
                 {
-                    GameObject spawned = Instantiate(assignment.prefab, assignment.spawnPoint.position, assignment.spawnPoint.rotation);
+                    Debug.LogWarning($"Pipe {i} prefab null");
+                    continue;
+                }
 
-                    if (spawned.TryGetComponent(out NetworkObject networkObject))
-                    {
-                        networkObject.Spawn();
-                    }
+                if (config.spawnPoint == null || config.spawnPoint.Count == 0)
+                {
+                    Debug.LogWarning($"Pipe {i} spawnpoint null");
+                    continue;
+                }
 
-                    if (spawned.TryGetComponent(out PipeTotem pipe))
-                    {
-                        pipe.Initialize(this, possibleAngles, config.correctSteps, randomSteps[i]);
-                        _spawnedPipes.Add(pipe);
-                    }
+                Transform spawn = config.spawnPoint[0];
+
+                Debug.Log($"Instantiating {config.prefab.name} at {spawn.position}");
+
+                GameObject spawned = Instantiate(config.prefab, spawn.position, spawn.rotation);
+
+                if (spawned.TryGetComponent(out PipeTotem pipe))
+                {
+                    pipe.Initialize(this, possibleAngles, config.correctSteps, randomSteps[i]);
+                    _spawnedPipes.Add(pipe);
+                }
+
+                if (spawned.TryGetComponent(out NetworkObject netObj))
+                {
+                    netObj.Spawn();
                 }
             }
 

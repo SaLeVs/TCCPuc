@@ -61,10 +61,10 @@ namespace ScriptableObjects
         public int column;
         public int row;
 
-        [Tooltip("Se vazio, o manager usa o prefab padrão (defaultPipePrefab).")]
+        [Tooltip("Prefab to override the default pipe prefab for this cell.")]
         public GameObject prefabOverride;
 
-        [Tooltip("Índices de possibleAngles considerados 'corretos' para esta célula.")]
+        [Tooltip("Indices of possible angles considered 'correct' for this cell.")]
         public List<int> correctSteps;
     }
 }

@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 using ScriptableObjects;
 using UnityEngine;
 
@@ -22,9 +23,11 @@ namespace Missions
                 return configs;
             }
 
+            List<Transform> orderedSpawnPoints = GetOrderedSpawnPoints(spawnListRoot);
+
             foreach (PipeCellData cell in layout.Cells)
             {
-                Transform spawnPoint = GetSpawnPoint(spawnListRoot, cell.row, cell.column);
+                Transform spawnPoint = GetSpawnPoint(orderedSpawnPoints, cell.row, cell.column, layout.columns);
 
                 if (spawnPoint == null)
                 {
@@ -34,12 +37,12 @@ namespace Missions
 
                 GameObject prefab = cell.prefabOverride != null ? cell.prefabOverride : defaultPrefab;
 
-                if (prefab == null) 
+                if (prefab == null)
                 {
                     Debug.LogWarning($"PipeGridResolver: None prefab found for column {cell.column}, row {cell.row}. Skipping this cell.");
                     continue;
                 }
-                
+
                 PipeSpawnConfig config = new PipeSpawnConfig
                 {
                     prefab = prefab,
@@ -53,16 +56,34 @@ namespace Missions
             return configs;
         }
 
-        private static Transform GetSpawnPoint(Transform spawnListRoot, int row, int column)
+
+        private static List<Transform> GetOrderedSpawnPoints(Transform spawnListRoot)
         {
-            if (row < 0 || row >= spawnListRoot.childCount) return null;
+            List<Transform> points = new();
 
-            Transform line = spawnListRoot.GetChild(row);
+            for (int i = 0; i < spawnListRoot.childCount; i++)
+            {
+                points.Add(spawnListRoot.GetChild(i));
+            }
 
-            if (column < 0 || column >= line.childCount) return null;
+            points.Sort((a, b) => ExtractNumber(a.name).CompareTo(ExtractNumber(b.name)));
 
-            return line.GetChild(column);
+            return points;
         }
-        
+
+        private static int ExtractNumber(string objectName)
+        {
+            string digits = new string(objectName.Where(char.IsDigit).ToArray());
+            return int.TryParse(digits, out int number) ? number : int.MaxValue;
+        }
+
+        private static Transform GetSpawnPoint(List<Transform> orderedSpawnPoints, int row, int column, int columns)
+        {
+            int index = row * columns + column;
+
+            if (index < 0 || index >= orderedSpawnPoints.Count) return null;
+
+            return orderedSpawnPoints[index];
+        }
     }
 }

@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using Enums;
 using Interfaces;
+using ScriptableObjects;
 using Unity.Netcode;
 using UnityEngine;
 
@@ -13,19 +14,48 @@ namespace Missions
         
         [SerializeField] private MissionCompleter missionCompleter;
         
-        [SerializeField] private List<PipeSpawnConfig> pipeConfigs;
         [SerializeField] private List<float> possibleAngles;
+        
+        [SerializeField] private Transform spawnListRoot;
+        [SerializeField] private GameObject defaultPipePrefab;
+        [SerializeField] private List<PipeGridLayout> possibleGridLayouts;
         
         public override bool IsComplete { get; protected set; }
         public List<float> PossiblePipesAngles => possibleAngles;
         
         private readonly List<PipeTotem> _spawnedPipes = new();
-    
+        private List<PipeSpawnConfig> pipeConfigs = new();
         
         public void RequestSpawn()
         {
             if (!IsServer) return;
+
+            ResolvePipeConfigsFromGridIfNeeded();
             SpawnPipes();
+        }
+        
+        
+        private void ResolvePipeConfigsFromGridIfNeeded()
+        {
+            if (possibleGridLayouts == null || possibleGridLayouts.Count == 0) return;
+            if (spawnListRoot == null)
+            {
+                Debug.LogWarning("MissionPipesManager: possibleGridLayouts defined, but spawnListRoot is null. Using manual pipeConfigs.");
+                return;
+            }
+
+            PipeGridLayout selectedLayout = possibleGridLayouts[UnityEngine.Random.Range(0, possibleGridLayouts.Count)];
+
+            List<PipeSpawnConfig> resolvedConfigs = PipeGridResolver.BuildSpawnConfigs(selectedLayout, spawnListRoot, defaultPipePrefab);
+
+            if (resolvedConfigs.Count > 0)
+            {
+                pipeConfigs = resolvedConfigs;
+            }
+            else
+            {
+                Debug.LogWarning($"MissionPipesManager: The layout '{selectedLayout.name}' did not generate any valid config. Using manual pipeConfigs.");
+            }
         }
         
         private void SpawnPipes()
@@ -175,4 +205,3 @@ namespace Missions
         
     }
 }
-

@@ -90,15 +90,16 @@ namespace Missions
 
                 GameObject spawned = Instantiate(config.prefab, spawn.position, spawn.rotation);
 
+                
+                if (spawned.TryGetComponent(out NetworkObject netObj))
+                {
+                    netObj.Spawn();
+                }
+                
                 if (spawned.TryGetComponent(out PipeTotem pipe))
                 {
                     pipe.Initialize(this, possibleAngles, config.correctSteps, randomSteps[i]);
                     _spawnedPipes.Add(pipe);
-                }
-
-                if (spawned.TryGetComponent(out NetworkObject netObj))
-                {
-                    netObj.Spawn();
                 }
             }
 

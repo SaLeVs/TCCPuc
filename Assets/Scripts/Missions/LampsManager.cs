@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using Interfaces;
-using Missions.PersonalMissions;
 using Unity.Netcode;
 using UnityEngine;
 using Random = UnityEngine.Random;
@@ -23,9 +22,9 @@ namespace Missions
         public int CorrectLampsCount => _correctLampsCount.Value;
         public int TotalLampsCount => _totalLampsCount.Value;
 
-        private NetworkVariable<int> _correctLampsCount = new NetworkVariable<int>(0);
-        private NetworkVariable<int> _totalLampsCount = new NetworkVariable<int>(0);
-        private NetworkVariable<bool> _isMissionComplete = new NetworkVariable<bool>(false);
+        private NetworkVariable<int> _correctLampsCount = new NetworkVariable<int>();
+        private NetworkVariable<int> _totalLampsCount = new NetworkVariable<int>();
+        private NetworkVariable<bool> _isMissionComplete = new NetworkVariable<bool>();
 
         private readonly List<LampTotem> _spawnedLamps = new();
         private readonly Dictionary<LampTotem, bool> _requiredStates = new();
@@ -69,21 +68,46 @@ namespace Missions
             int wrongCount = CalculateWrongLampsCount(totalLamps);
 
             List<int> shuffledIndices = new List<int>(totalLamps);
+            
             for (int i = 0; i < totalLamps; i++)
+            {
                 shuffledIndices.Add(i);
+            }
 
             ShuffleIndices(shuffledIndices);
 
             HashSet<int> wrongIndices = new HashSet<int>();
+            
             for (int i = 0; i < wrongCount; i++)
-                wrongIndices.Add(shuffledIndices[i]);
-
-            for (int i = 0; i < spawnPoints.Length; i++)
             {
-                GameObject spawned = Instantiate(lampPrefab, spawnPoints[i].position, spawnPoints[i].rotation);
+                wrongIndices.Add(shuffledIndices[i]);
+            }
+            
+            GameObject[] prefabsToSpawn = new GameObject[totalLamps];
+            
+            for (int i = 0; i < totalLamps; i++)
+            {
+                prefabsToSpawn[i] = lampPrefab;
+            }
+
+            SpawnConfig config = new SpawnConfig
+            {
+                prefabs = prefabsToSpawn,
+                spawnPoints = spawnPoints
+            };
+
+            List<(GameObject prefab, Transform spawnPoint)> assignments = SpawnUtility.GenerateSpawnAssignments(config);
+
+            for (int i = 0; i < assignments.Count; i++)
+            {
+                Transform spawnPoint = assignments[i].spawnPoint;
+
+                GameObject spawned = Instantiate(assignments[i].prefab, spawnPoint.position, spawnPoint.rotation);
 
                 if (spawned.TryGetComponent(out NetworkObject netObj))
+                {
                     netObj.Spawn();
+                }
 
                 if (spawned.TryGetComponent(out LampTotem lamp))
                 {
@@ -195,4 +219,3 @@ namespace Missions
         
     }
 }
-

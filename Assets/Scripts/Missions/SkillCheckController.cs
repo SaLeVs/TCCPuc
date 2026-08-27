@@ -26,7 +26,7 @@ public class SkillCheckController : MonoBehaviour
     {
         _puzzleActive = false;
         _currentCorrectChecks = 0;
-        generator.Reset();
+        generator.Reset(); 
     }
         
         

@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using Enums;
 using Interfaces;
+using ScriptableObjects;
 using Unity.Netcode;
 using UnityEngine;
 
@@ -13,36 +14,89 @@ namespace Missions
         
         [SerializeField] private MissionCompleter missionCompleter;
         
-        [SerializeField] private List<PipeSpawnConfig> pipeConfigs;
         [SerializeField] private List<float> possibleAngles;
+        
+        [SerializeField] private Transform spawnListRoot;
+        [SerializeField] private GameObject defaultPipePrefab;
+        [SerializeField] private List<PipeGridLayout> possibleGridLayouts;
+        [SerializeField] private List<PipeSpawnConfig> pipeConfigs = new();
         
         public override bool IsComplete { get; protected set; }
         public List<float> PossiblePipesAngles => possibleAngles;
         
         private readonly List<PipeTotem> _spawnedPipes = new();
-    
         
         public void RequestSpawn()
         {
             if (!IsServer) return;
+            Debug.Log("MissionPipesManager: RequestSpawn called");
+            
+            ResolvePipeConfigsFromGridIfNeeded();
             SpawnPipes();
+        }
+        
+        
+        private void ResolvePipeConfigsFromGridIfNeeded()
+        {
+            if (possibleGridLayouts == null || possibleGridLayouts.Count == 0)
+            {
+                Debug.LogWarning("MissionPipesManager: possibleGridLayouts empty. using manual pipeConfigs");
+                return;
+            }
+            
+            if (spawnListRoot == null)
+            {
+                Debug.LogWarning("MissionPipesManager: possibleGridLayouts defined, but spawnListRoot is null. Using manual pipeConfigs.");
+                return;
+            }
+
+            PipeGridLayout selectedLayout = possibleGridLayouts[UnityEngine.Random.Range(0, possibleGridLayouts.Count)];
+
+            List<PipeSpawnConfig> resolvedConfigs = PipeGridResolver.BuildSpawnConfigs(selectedLayout, spawnListRoot, defaultPipePrefab);
+
+            if (resolvedConfigs.Count > 0)
+            {
+                pipeConfigs = resolvedConfigs;
+            }
+            else
+            {
+                Debug.LogWarning($"MissionPipesManager: The layout '{selectedLayout.name}' did not generate any valid config. Using manual pipeConfigs.");
+            }
         }
         
         private void SpawnPipes()
         {
             List<int> randomSteps = GenerateRandomSteps(pipeConfigs.Count);
-    
+
             for (int i = 0; i < pipeConfigs.Count; i++)
             {
                 PipeSpawnConfig config = pipeConfigs[i];
-                GameObject spawnedPipe = Instantiate(config.prefab, config.spawnPoint.position, config.spawnPoint.rotation);
 
-                if (spawnedPipe.TryGetComponent(out NetworkObject networkObject))
+                if (config.prefab == null)
                 {
-                    networkObject.Spawn();
+                    Debug.LogWarning($"Pipe {i} prefab null");
+                    continue;
                 }
 
-                if (spawnedPipe.TryGetComponent(out PipeTotem pipe))
+                if (config.spawnPoint == null || config.spawnPoint.Count == 0)
+                {
+                    Debug.LogWarning($"Pipe {i} spawnpoint null");
+                    continue;
+                }
+
+                Transform spawn = config.spawnPoint[0];
+
+                Debug.Log($"Instantiating {config.prefab.name} at {spawn.position}");
+
+                GameObject spawned = Instantiate(config.prefab, spawn.position, spawn.rotation);
+
+                
+                if (spawned.TryGetComponent(out NetworkObject netObj))
+                {
+                    netObj.Spawn();
+                }
+                
+                if (spawned.TryGetComponent(out PipeTotem pipe))
                 {
                     pipe.Initialize(this, possibleAngles, config.correctSteps, randomSteps[i]);
                     _spawnedPipes.Add(pipe);
@@ -171,4 +225,3 @@ namespace Missions
         
     }
 }
-

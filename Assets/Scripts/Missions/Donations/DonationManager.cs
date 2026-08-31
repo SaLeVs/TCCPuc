@@ -34,6 +34,7 @@ namespace Missions.Donations
         private readonly NetworkVariable<int> _manualViewerCount = new(0);
         private float _currentEvaluationInterval;
         private float _evaluationTimer;
+        private List<DonationInstance> completed = null;
         
         public int ViewerCount => _manualViewerCount.Value > 0 ? _manualViewerCount.Value : (NetworkManager.Singleton != null ? NetworkManager.Singleton.ConnectedClientsIds.Count : 0);
 
@@ -227,12 +228,22 @@ namespace Missions.Donations
                 if (instance.Definition.category != DonationCategory.Recording) continue;
                 if (instance.Definition.recordingTarget != target) continue;
 
-                float step = instance.Definition.requiredRecordingSeconds > 0f ? deltaSeconds / instance.Definition.requiredRecordingSeconds : 1f;
+                float step = instance.Definition.requiredRecordingSeconds > 0f
+                    ? deltaSeconds / instance.Definition.requiredRecordingSeconds
+                    : 1f;
 
                 instance.Progress = Mathf.Clamp01(instance.Progress + step);
                 PushNetworkState(instance);
 
                 if (instance.Progress >= 1f)
+                {
+                    (completed ??= new List<DonationInstance>()).Add(instance);
+                }
+            }
+
+            if (completed != null)
+            {
+                foreach (var instance in completed)
                 {
                     CompleteDonation(instance);
                 }

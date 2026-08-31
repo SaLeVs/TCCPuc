@@ -19,7 +19,9 @@ namespace Missions.Donations
 
         [Header("Timing")]
         [Tooltip("Every how many seconds the server tries to roll new donations")]
-        [SerializeField] private float evaluationInterval = 5f;
+        [Header("Timing")]
+        [SerializeField] private float minEvaluationInterval = 3f;
+        [SerializeField] private float maxEvaluationInterval = 10f;
         
         public NetworkList<DonationNetworkState> NetworkStates => _networkStates;
         
@@ -30,6 +32,7 @@ namespace Missions.Donations
         private readonly Dictionary<RecordableTarget, HashSet<ulong>> _recordingWatchers = new();
 
         private readonly NetworkVariable<int> _manualViewerCount = new(0);
+        private float _currentEvaluationInterval;
         private float _evaluationTimer;
         
         public int ViewerCount => _manualViewerCount.Value > 0 ? _manualViewerCount.Value : (NetworkManager.Singleton != null ? NetworkManager.Singleton.ConnectedClientsIds.Count : 0);
@@ -37,6 +40,18 @@ namespace Missions.Donations
         private void Awake()
         {
             Instance = this;
+        }
+        
+        private void Start()
+        {
+            if (!IsServer) return;
+
+            RollNextEvaluationInterval();
+        }
+
+        private void RollNextEvaluationInterval()
+        {
+            _currentEvaluationInterval = UnityEngine.Random.Range(minEvaluationInterval, maxEvaluationInterval);
         }
 
         public void SetViewerCount(int value)
@@ -55,9 +70,11 @@ namespace Missions.Donations
             TickRecordingWatchers(Time.deltaTime);
 
             _evaluationTimer += Time.deltaTime;
-            if (_evaluationTimer >= evaluationInterval)
+
+            if (_evaluationTimer >= _currentEvaluationInterval)
             {
                 _evaluationTimer = 0f;
+
                 EvaluateSpawns();
             }
         }
@@ -167,12 +184,14 @@ namespace Missions.Donations
 
         private void SpawnDonation(DonationDefinition definition)
         {
+            RollNextEvaluationInterval();
+            
             _cooldownTimers[definition.donationId] = definition.triggerRule.cooldownSeconds;
 
             double now = NetworkManager.Singleton.ServerTime.TimeAsFloat;
             double expireTime = definition.durationSeconds > 0f ? now + definition.durationSeconds : 0.0;
 
-            var instance = new DonationInstance
+            DonationInstance instance = new DonationInstance
             {
                 InstanceId = Guid.NewGuid().ToString("N"),
                 Definition = definition,

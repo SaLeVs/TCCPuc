@@ -1,0 +1,34 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4291d0ec521026741a70ee8ae48becd1, type: 3}
+  m_Name: DonationType
+  m_EditorClassIdentifier: Missions::Missions.Donations.DonationDefinition
+  donationId: 0
+  displayName: Record monster
+  message: Record the monster for me (5 seconds, please)
+  category: 0
+  recordingTarget: 3
+  requiredRecordingSeconds: 5
+  micActionId: default
+  requiredSpeechSeconds: 3
+  minAmount: 50
+  maxAmount: 100
+  durationSeconds: 180
+  triggerRule:
+    viewerInfluenceWeight: 0.2
+    randomWeight: 0.5
+    minViewersRequired: 10
+    maxViewersConsidered: 1000
+    baseChance: 0.3
+    cooldownSeconds: 50
+  stackingMode: 1
+  fakeDonorNames: {fileID: 11400000, guid: e24c0f54490f029478baa9188c78730a, type: 2}

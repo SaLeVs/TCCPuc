@@ -1,6 +1,7 @@
 using Components;
 using Enums;
 using Missions;
+using Missions.Donations;
 using Unity.Netcode;
 using UnityEngine;
 
@@ -23,17 +24,24 @@ namespace Objects.Camera
         private void VisionSensor_OnTargetEnterServer(GameObject target, RecordableTarget targetType)
         {
             MissionsRecorder recorder = FindAnyObjectByType<MissionsRecorder>();
-            if (recorder == null) return;
+            
+            if (recorder != null)
+            {
+                recorder.ReportTargetEnter(OwnerClientId, target, targetType);
+            }
 
-            recorder.ReportTargetEnter(OwnerClientId, target, targetType);
+            DonationManager.Instance?.ReportTargetEnter(OwnerClientId, targetType);
         }
 
         private void VisionSensor_OnTargetExitServer(GameObject target, RecordableTarget targetType)
         {
             MissionsRecorder recorder = FindAnyObjectByType<MissionsRecorder>();
-            if (recorder == null) return;
+            if (recorder != null)
+            {
+                recorder.ReportTargetExit(OwnerClientId, targetType);
+            }
 
-            recorder.ReportTargetExit(OwnerClientId, targetType);
+            DonationManager.Instance?.ReportTargetExit(OwnerClientId, targetType);
         }
 
 
@@ -47,4 +55,3 @@ namespace Objects.Camera
         }
     }
 }
-

@@ -18,19 +18,21 @@ namespace Missions.Donations
         [SerializeField] private DonationDefinition[] donationPool;
 
         [Header("Timing")]
-        [Tooltip("How much time (in seconds) to wait between evaluating the donation pool for possible spawns.")]
+        [Tooltip("Every how many seconds the server tries to roll new donations")]
         [SerializeField] private float evaluationInterval = 5f;
         
-        public int ViewerCount => _manualViewerCount.Value > 0 ? _manualViewerCount.Value : (NetworkManager.Singleton != null ? NetworkManager.Singleton.ConnectedClientsIds.Count : 0);
-        
-        private readonly NetworkList<DonationNetworkState> _networkStates = new();
         public NetworkList<DonationNetworkState> NetworkStates => _networkStates;
         
+        private readonly NetworkList<DonationNetworkState> _networkStates = new();
         private readonly Dictionary<string, DonationInstance> _activeInstances = new();
         private readonly Dictionary<string, float> _cooldownTimers = new();
 
+        private readonly Dictionary<RecordableTarget, HashSet<ulong>> _recordingWatchers = new();
+
         private readonly NetworkVariable<int> _manualViewerCount = new(0);
         private float _evaluationTimer;
+        
+        public int ViewerCount => _manualViewerCount.Value > 0 ? _manualViewerCount.Value : (NetworkManager.Singleton != null ? NetworkManager.Singleton.ConnectedClientsIds.Count : 0);
 
         private void Awake()
         {
@@ -50,12 +52,52 @@ namespace Missions.Donations
 
             TickCooldowns(Time.deltaTime);
             TickExpirations();
+            TickRecordingWatchers(Time.deltaTime);
 
             _evaluationTimer += Time.deltaTime;
             if (_evaluationTimer >= evaluationInterval)
             {
                 _evaluationTimer = 0f;
                 EvaluateSpawns();
+            }
+        }
+
+        /// <summary>Call this when a player starts "watching"/recording a RecordableTarget (e.g., from CameraVision).</summary>
+        public void ReportTargetEnter(ulong clientId, RecordableTarget targetType)
+        {
+            if (!IsServer) return;
+
+            if (!_recordingWatchers.TryGetValue(targetType, out var watchers))
+            {
+                watchers = new HashSet<ulong>();
+                _recordingWatchers[targetType] = watchers;
+            }
+
+            watchers.Add(clientId);
+        }
+
+        /// <summary>Call this when a player stops "watching"/recording a RecordableTarget (e.g., from CameraVision).</summary>
+        public void ReportTargetExit(ulong clientId, RecordableTarget targetType)
+        {
+            if (!IsServer) return;
+            if (_recordingWatchers.TryGetValue(targetType, out var watchers))
+            {
+                watchers.Remove(clientId);
+            }
+        }
+
+        private void TickRecordingWatchers(float delta)
+        {
+            if (_recordingWatchers.Count == 0) return;
+
+            foreach (var kvp in _recordingWatchers)
+            {
+                if (kvp.Value.Count == 0) continue;
+
+                foreach (var clientId in kvp.Value)
+                {
+                    ReportRecordingProgress(clientId, kvp.Key, delta);
+                }
             }
         }
 
@@ -130,7 +172,7 @@ namespace Missions.Donations
             double now = NetworkManager.Singleton.ServerTime.TimeAsFloat;
             double expireTime = definition.durationSeconds > 0f ? now + definition.durationSeconds : 0.0;
 
-            DonationInstance instance = new DonationInstance
+            var instance = new DonationInstance
             {
                 InstanceId = Guid.NewGuid().ToString("N"),
                 Definition = definition,
@@ -155,7 +197,7 @@ namespace Missions.Donations
             return definition.fakeDonorNames.GetNext();
         }
 
-        /// <summary>Call from your recording progress detection system (see DonationRecordableZone).</summary>
+        /// <summary>Call this from your recording progress detection system (see DonationRecordableZone).</summary>
         public void ReportRecordingProgress(ulong clientId, RecordableTarget target, float deltaSeconds)
         {
             if (!IsServer) return;
@@ -166,9 +208,7 @@ namespace Missions.Donations
                 if (instance.Definition.category != DonationCategory.Recording) continue;
                 if (instance.Definition.recordingTarget != target) continue;
 
-                float step = instance.Definition.requiredRecordingSeconds > 0f
-                    ? deltaSeconds / instance.Definition.requiredRecordingSeconds
-                    : 1f;
+                float step = instance.Definition.requiredRecordingSeconds > 0f ? deltaSeconds / instance.Definition.requiredRecordingSeconds : 1f;
 
                 instance.Progress = Mathf.Clamp01(instance.Progress + step);
                 PushNetworkState(instance);
@@ -180,7 +220,7 @@ namespace Missions.Donations
             }
         }
 
-        /// <summary>Call from your microphone speech detection system (see DonationMicWatcher).</summary>
+        /// <summary>Call this from your microphone speech detection system (see DonationMicWatcher).</summary>
         public void ReportMicSpeech(string micActionId, float deltaSeconds)
         {
             if (!IsServer) return;
@@ -191,9 +231,7 @@ namespace Missions.Donations
                 if (instance.Definition.category != DonationCategory.MicSpeech) continue;
                 if (instance.Definition.micActionId != micActionId) continue;
 
-                float step = instance.Definition.requiredSpeechSeconds > 0f
-                    ? deltaSeconds / instance.Definition.requiredSpeechSeconds
-                    : 1f;
+                float step = instance.Definition.requiredSpeechSeconds > 0f ? deltaSeconds / instance.Definition.requiredSpeechSeconds : 1f;
 
                 instance.Progress = Mathf.Clamp01(instance.Progress + step);
                 PushNetworkState(instance);

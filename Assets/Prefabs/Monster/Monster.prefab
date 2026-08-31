@@ -51,6 +51,7 @@ GameObject:
   - component: {fileID: 5948121288489261731}
   - component: {fileID: 8840795157782606983}
   - component: {fileID: 6796257646358809532}
+  - component: {fileID: 8580716177634354972}
   - component: {fileID: 8220886843260042270}
   - component: {fileID: 9158156660860726962}
   - component: {fileID: 7437886285449800429}
@@ -536,6 +537,20 @@ MonoBehaviour:
   canBeReviewed: 1
   canBeReviewedForChat: 1
   chatCooldown: 40
+--- !u!114 &8580716177634354972
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2397166377357422809}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c41754781a363624eb5f2cd22931ac62, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Missions::Missions.Donations.DonationRecordableZone
+  ShowTopMostFoldoutHeaderGroup: 1
+  targetType: 3
 --- !u!54 &8220886843260042270
 Rigidbody:
   m_ObjectHideFlags: 0
@@ -1065,7 +1080,4 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Components::Components.FootstepEmitter
   ShowTopMostFoldoutHeaderGroup: 1
-  rb: {fileID: 8220886843260042270}
   source: 1
-  footstepDistance: 2
-  minMoveSpeedToStep: 0.1

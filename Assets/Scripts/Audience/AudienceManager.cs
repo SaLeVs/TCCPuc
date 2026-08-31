@@ -1,6 +1,7 @@
 using System;
 using Interfaces;
 using Missions;
+using Missions.Donations;
 using Unity.Netcode;
 using UnityEngine;
 
@@ -133,6 +134,7 @@ namespace Audience
             
             if (audienceAmount > 0f)
             {
+                DonationManager.Instance.SetViewerCount((int)_audience.Value);
                 NotifyGainClientRpc(audienceAmount);
             }
             
@@ -153,6 +155,7 @@ namespace Audience
             
             if (audienceAmount > 0f)
             {
+                DonationManager.Instance.SetViewerCount((int)_audience.Value);
                 NotifyLossClientRpc(audienceAmount);
             }
         }

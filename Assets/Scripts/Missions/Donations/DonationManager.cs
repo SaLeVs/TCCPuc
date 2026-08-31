@@ -133,6 +133,8 @@ namespace Missions.Donations
         private void TickExpirations()
         {
             if (_activeInstances.Count == 0) return;
+            if (NetworkManager.Singleton == null) return;
+            if (!NetworkManager.Singleton.IsListening) return;
 
             double now = NetworkManager.Singleton.ServerTime.TimeAsFloat;
             List<DonationInstance> toExpire = null;
@@ -146,6 +148,7 @@ namespace Missions.Donations
             }
 
             if (toExpire == null) return;
+
             foreach (var instance in toExpire)
             {
                 ExpireDonation(instance);

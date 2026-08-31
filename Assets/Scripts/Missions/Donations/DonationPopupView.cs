@@ -10,11 +10,14 @@ namespace Missions.Donations
     {
         [Header("References")]
         [SerializeField] private CanvasGroup canvasGroup;
-        [SerializeField] private TMP_Text donorNameText;
+        [SerializeField] private TMP_Text donationText;
         [SerializeField] private TMP_Text messageText;
-        [SerializeField] private TMP_Text amountText;
         [SerializeField] private Image progressFill;
         [SerializeField] private Image expirationFill;
+        [SerializeField] private TMP_Text expirationText;
+
+        [Header("Texto do donate")]
+        [SerializeField] private string donationTextFormat = "{donor} donate R$ {amount} para o chat!";
 
         [Header("Animation")]
         [SerializeField] private float enterDuration = 0.35f;
@@ -33,12 +36,16 @@ namespace Missions.Donations
         public void Setup(DonationNetworkState state)
         {
             InstanceId = state.InstanceId.ToString();
-            donorNameText.text = state.DonorName.ToString();
-            messageText.text = state.Message.ToString();
-            amountText.text = $"R$ {state.Amount:0.00}";
 
+            if (donationText != null)
+            {
+                donationText.text = donationTextFormat.Replace("{donor}", state.DonorName.ToString()).Replace("{amount}", state.Amount.ToString("0.00"));
+            }
+
+            if (messageText != null) messageText.text = state.Message.ToString();
             if (progressFill != null) progressFill.fillAmount = state.Progress;
             if (expirationFill != null) expirationFill.fillAmount = 1f;
+            if (expirationText != null) expirationText.text = string.Empty;
 
             gameObject.SetActive(true);
             canvasGroup.alpha = 0f;
@@ -52,10 +59,21 @@ namespace Missions.Donations
             if (progressFill != null) progressFill.fillAmount = state.Progress;
         }
 
-        /// <summary>Called by DonationUiController by each frame with the remaining time (0..1).</summary>
-        public void SetExpirationRatio(float ratio)
+        /// <summary>
+        /// Chamado pelo DonationUiController a cada frame com o quanto falta pra expirar:
+        /// ratio (0..1, pra barra) e remainingSeconds (pro texto de contagem regressiva).
+        /// Passe remainingSeconds &lt; 0 pra donates que nunca expiram (limpa o texto).
+        /// </summary>
+        public void SetExpiration(float ratio, float remainingSeconds)
         {
             if (expirationFill != null) expirationFill.fillAmount = Mathf.Clamp01(ratio);
+
+            if (expirationText != null)
+            {
+                expirationText.text = remainingSeconds >= 0f
+                    ? $"{Mathf.CeilToInt(remainingSeconds)}s"
+                    : string.Empty;
+            }
         }
 
         public void PlayExit(Action onComplete)
@@ -67,7 +85,7 @@ namespace Missions.Donations
         private IEnumerator AnimateEnter()
         {
             float timer = 0f;
-            
+
             while (timer < enterDuration)
             {
                 timer += Time.deltaTime;
@@ -76,7 +94,7 @@ namespace Missions.Donations
                 _rect.localScale = Vector3.one * Mathf.Lerp(0.85f, 1f, p);
                 yield return null;
             }
-            
+
             canvasGroup.alpha = 1f;
             _rect.localScale = Vector3.one;
         }
@@ -85,7 +103,7 @@ namespace Missions.Donations
         {
             float timer = 0f;
             float startAlpha = canvasGroup.alpha;
-            
+
             while (timer < exitDuration)
             {
                 timer += Time.deltaTime;
@@ -94,9 +112,8 @@ namespace Missions.Donations
                 _rect.anchoredPosition += new Vector2(0f, Time.deltaTime * 40f);
                 yield return null;
             }
-            
+
             onComplete?.Invoke();
         }
-        
     }
 }

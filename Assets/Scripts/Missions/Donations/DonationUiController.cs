@@ -1,10 +1,11 @@
+using System;
 using System.Collections.Generic;
 using Unity.Netcode;
 using UnityEngine;
 
 namespace Missions.Donations
 {
-    public class DonationUiController : MonoBehaviour
+    public class DonationUIController : MonoBehaviour
     {
         [SerializeField] private Transform feedContainer;
         [SerializeField] private DonationPopupView popupPrefab;
@@ -13,11 +14,18 @@ namespace Missions.Donations
         private readonly Dictionary<string, DonationPopupView> _activeViews = new();
         private readonly Dictionary<string, DonationNetworkState> _lastKnownState = new();
         private DonationManager _manager;
-        
 
         private void OnEnable()
         {
             TryBind();
+        }
+
+        private void OnDisable()
+        {
+            if (_manager != null)
+            {
+                _manager.NetworkStates.OnListChanged -= HandleListChanged;
+            }
         }
 
         private void Update()
@@ -50,16 +58,22 @@ namespace Missions.Donations
 
             double now = NetworkManager.Singleton.ServerTime.TimeAsFloat;
 
-            foreach (KeyValuePair<string, DonationPopupView> kvp in _activeViews)
+            foreach (var kvp in _activeViews)
             {
                 if (!_lastKnownState.TryGetValue(kvp.Key, out var state)) continue;
-                if (state.ExpireTime <= 0) continue;
+
+                if (state.ExpireTime <= 0)
+                {
+                    kvp.Value.SetExpiration(1f, -1f);
+                    continue;
+                }
 
                 double total = state.ExpireTime - state.SpawnTime;
                 double elapsed = now - state.SpawnTime;
+                double remaining = Math.Max(0, state.ExpireTime - now);
                 float ratio = total > 0 ? 1f - Mathf.Clamp01((float)(elapsed / total)) : 1f;
 
-                kvp.Value.SetExpirationRatio(ratio);
+                kvp.Value.SetExpiration(ratio, (float)remaining);
             }
         }
 
@@ -115,14 +129,5 @@ namespace Missions.Donations
                 view.PlayExit(() => Destroy(view.gameObject));
             }
         }
-        
-        private void OnDisable()
-        {
-            if (_manager != null)
-            {
-                _manager.NetworkStates.OnListChanged -= HandleListChanged;
-            }
-        }
-        
     }
 }

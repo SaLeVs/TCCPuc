@@ -8,7 +8,7 @@ using UnityEngine.Rendering.Universal;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
-public class OptionsMenu : MonoBehaviour
+public class OptionsMenuManager : MonoBehaviour
 {
     public static event Action<float> OnSensibilityChanged;
     
@@ -104,10 +104,10 @@ public class OptionsMenu : MonoBehaviour
     {
         _sensibility = sensibilityValue;
         PlayerPrefs.SetFloat(SENSIBILITY_KEY, sensibilityValue);
+        SensibilitySettings.Set(sensibilityValue);
         UpdateSensibilityText(sensibilityValueText, sensibilityValue);
         OnSensibilityChanged?.Invoke(sensibilityValue);
     }
-    
 
     public void MusicSlider_OnValueChanged(float volumeValue)
     {
@@ -249,3 +249,5 @@ public class OptionsMenu : MonoBehaviour
     }
     
 }
+
+

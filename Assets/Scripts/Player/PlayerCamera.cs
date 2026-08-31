@@ -20,13 +20,20 @@ namespace Player
         [SerializeField] private Renderer[] occlusionRenderers;
 
         [SerializeField] private int ownerCameraPriority = 10;
+        [SerializeField] private float minSensitivityMultiplier = 0.3f;
+        [SerializeField] private float maxSensitivityMultiplier = 3f;
 
         public CinemachineCamera playerCinemachineCamera => cinemachineCamera;
 
         private bool _isDead;
         private bool _isLocked;
         private bool _isPaused;
-
+        private const string SENSIBILITY_KEY = "MouseSensibility";
+        
+        private float _baseLookXGain;
+        private float _baseLookYGain;
+        
+        
         public override void OnNetworkSpawn()
         {
             if (IsOwner)
@@ -37,6 +44,11 @@ namespace Player
                 playerState.OnPlayerLocked += PlayerState_OnPlayerLocked;
 
                 inputAxisController.enabled = true;
+
+                CacheBaseSensitivityGains();
+                ApplySensitivity(SensibilitySettings.Current);
+                SensibilitySettings.OnSensibilityChanged += ApplySensitivity;
+
                 LockMouse();
                 HideOcclusionRenderers();
             }
@@ -45,6 +57,7 @@ namespace Player
                 inputAxisController.enabled = false;
             }
         }
+        
 
         public void SetSpectatorMode(bool isSpectating)
         {
@@ -127,7 +140,28 @@ namespace Player
             orientation.rotation = Quaternion.Euler(0f, yaw, 0f);
             transform.rotation = Quaternion.Euler(0f, yaw, 0f);
         }
+        
+        private void CacheBaseSensitivityGains()
+        {
+            foreach (var controller in inputAxisController.Controllers)
+            {
+                if (controller.Name.Contains("Pan")) _baseLookXGain = controller.Input.Gain;
+                else if (controller.Name.Contains("Tilt")) _baseLookYGain = controller.Input.Gain;
+            }
+        }
 
+        private void ApplySensitivity(float normalizedSensitivity)
+        {
+            float multiplier = Mathf.Lerp(minSensitivityMultiplier, maxSensitivityMultiplier, normalizedSensitivity);
+
+            foreach (var controller in inputAxisController.Controllers)
+            {
+                if (controller.Name.Contains("Pan")) controller.Input.Gain = _baseLookXGain * multiplier;
+                else if (controller.Name.Contains("Tilt")) controller.Input.Gain = _baseLookYGain * multiplier;
+            }
+        }
+        
+        
         public override void OnNetworkDespawn()
         {
             if (IsOwner)
@@ -135,6 +169,7 @@ namespace Player
                 inputReader.OnPauseEvent -= ToggleMouse;
                 playerState.OnPlayerDead -= PlayerState_OnPlayerDead;
                 playerState.OnPlayerLocked -= PlayerState_OnPlayerLocked;
+                SensibilitySettings.OnSensibilityChanged -= ApplySensitivity;
 
                 cinemachineCamera.Priority = 0;
             }

@@ -29,15 +29,12 @@ namespace ScriptableObjects
 
         public string GetNext()
         {
-            if (_queue.Count == 0)
+            if (_queue == null || _queue.Count == 0)
             {
                 Shuffle();
             }
-            
-            string viewerName = _queue.Dequeue();
-            _queue.Enqueue(viewerName); 
-            
-            return viewerName;
+
+            return _queue!.Dequeue();
         }
         
     }

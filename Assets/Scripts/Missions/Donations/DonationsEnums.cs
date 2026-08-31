@@ -7,6 +7,12 @@ namespace Missions.Donations
         Recording,
         MicSpeech
     }
+    
+    public enum DonationStackingMode
+    {
+        Cumulative,
+        Exclusive
+    }
 
     public enum DonationState
     {

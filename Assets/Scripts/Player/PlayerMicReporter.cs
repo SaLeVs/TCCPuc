@@ -102,6 +102,7 @@ namespace Player
 
                 _isReportingSpeech = isSpeaking;
                 NotifySpeakingServerRpc(isSpeaking);
+                Debug.Log($"Reporting scream state: {isSpeaking}");
             }
             catch (System.NullReferenceException)
             {

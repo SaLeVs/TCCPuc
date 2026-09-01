@@ -10,16 +10,16 @@ namespace UI
         [SerializeField] private List<PlayerLobbySlot> playerSlots;
         
         [SerializeField] private GameObject startGameButton;
-        [SerializeField] private GameObject readyButton;
         [SerializeField] private GameObject leaveButton;
 
-        [SerializeField] private TextMeshProUGUI readyButtonText;
+        [SerializeField] private TextMeshProUGUI startButtonText;
         [SerializeField] private TextMeshProUGUI lobbyCodeText;
         
         
         private bool _isPlayerReady;
         private const string PLAYER_READY = "READY";
         private const string PLAYER_NOT_READY = "NOT READY";
+        private const string HOST_START = "START GAME";
         
         private void OnEnable()
         {
@@ -63,25 +63,29 @@ namespace UI
                     playerSlots[i].SetEmpty();
                 }
             }
-
-            startGameButton.gameObject.SetActive(Lobby.instance.IsHost());
+            
+            UpdateStartButtonText();
         }
         
-        public async void ReadyButton()
-        {
-            _isPlayerReady = !_isPlayerReady;
-            await Lobby.instance.SetPlayerReady(_isPlayerReady);
-            
-            if (readyButton != null)
-            {
-                readyButtonText.text = _isPlayerReady ? PLAYER_NOT_READY : PLAYER_READY;
-            }
-            
+        private void UpdateStartButtonText()
+        { 
+            startButtonText.text = Lobby.instance.IsHost() ? HOST_START : (_isPlayerReady ? PLAYER_NOT_READY : PLAYER_READY);
         }
         
         public async void StartGameButton()
-        {
-            await Lobby.instance.StartGame();
+        { 
+            if (Lobby.instance.IsHost())
+            {
+                _isPlayerReady = true;
+                await Lobby.instance.SetPlayerReady(_isPlayerReady);
+                await Lobby.instance.StartGame();
+            }
+            else
+            {
+                _isPlayerReady = !_isPlayerReady;
+                await Lobby.instance.SetPlayerReady(_isPlayerReady);
+                UpdateStartButtonText();
+            }
         }
 
         public void LeaveButton()

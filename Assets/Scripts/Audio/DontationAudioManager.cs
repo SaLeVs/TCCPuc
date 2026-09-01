@@ -5,7 +5,7 @@ using UnityEngine;
 
 namespace Audio
 {
-    public class DonationAudioManager : MonoBehaviour
+    public class DonationTTSManager : MonoBehaviour
     {
         [Header("TTS")]
         [SerializeField] private bool enableTTS = true;

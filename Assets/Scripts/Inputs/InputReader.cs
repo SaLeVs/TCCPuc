@@ -21,6 +21,7 @@ namespace Inputs
         public event Action<int> OnSlotEvent;
         public event Action OnPauseEvent;
         public event Action OnPlayerListEvent;
+        public event Action OnChatEvent;
         
 
         private void OnEnable()
@@ -162,6 +163,14 @@ namespace Inputs
             if (context.performed)
             {
                 OnPlayerListEvent?.Invoke();
+            }
+        }
+
+        public void OnChat(InputAction.CallbackContext context)
+        {
+            if (context.performed)
+            {
+                OnChatEvent?.Invoke();
             }
         }
 

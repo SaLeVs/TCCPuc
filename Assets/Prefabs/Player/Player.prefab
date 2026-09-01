@@ -5218,6 +5218,8 @@ MonoBehaviour:
   orientation: {fileID: 847016756603283365}
   moveSpeed: 3
   blendMovementTime: 8.9
+  acceleration: 20
+  deceleration: 30
 --- !u!114 &4084110916807435523
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -5310,8 +5312,8 @@ MonoBehaviour:
   occlusionRenderers:
   - {fileID: 7502012381566954303}
   ownerCameraPriority: 10
-  minSensitivityMultiplier: 1
-  maxSensitivityMultiplier: 20
+  minSensitivityMultiplier: 0.3
+  maxSensitivityMultiplier: 3
 --- !u!114 &229846428463956236
 MonoBehaviour:
   m_ObjectHideFlags: 0

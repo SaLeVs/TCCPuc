@@ -21,6 +21,9 @@ namespace Player
         [SerializeField] private float moveSpeed;
         [SerializeField] private float blendMovementTime = 8.9f;
         
+        [SerializeField] private float acceleration = 20f;
+        [SerializeField] private float deceleration = 30f;
+        
         private float _targetSpeed;
         
         private Vector2 _movementInput;
@@ -119,8 +122,10 @@ namespace Player
                 desiredVelocityWorld = Vector3.zero;
             }
             
-            _currentVelocity.x = Mathf.Lerp(_currentVelocity.x, desiredVelocityWorld.x, blendMovementTime * Time.fixedDeltaTime);
-            _currentVelocity.y = Mathf.Lerp(_currentVelocity.y, desiredVelocityWorld.z, blendMovementTime * Time.fixedDeltaTime);
+            float accel = desiredVelocityWorld.magnitude > _currentVelocity.magnitude ? acceleration : deceleration;
+
+            _currentVelocity.x = Mathf.MoveTowards(_currentVelocity.x, desiredVelocityWorld.x, accel * Time.fixedDeltaTime);
+            _currentVelocity.y = Mathf.MoveTowards(_currentVelocity.y, desiredVelocityWorld.z, accel * Time.fixedDeltaTime);
             
             _xVelocityDifference = _currentVelocity.x - rb.linearVelocity.x;
             _zVelocityDifference = _currentVelocity.y - rb.linearVelocity.z;

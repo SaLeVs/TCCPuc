@@ -1,9 +1,10 @@
+using Interfaces;
 using Unity.Netcode;
 using UnityEngine;
 
 namespace Missions.Donations
 {
-    public class DonationMicWatcher : NetworkBehaviour
+    public class DonationMicWatcher : NetworkBehaviour, IMicSpeechReporter
     {
         [Tooltip("Need to match the micActionId configured in the corresponding DonationDefinition")]
         [SerializeField] private string micActionId = "default";

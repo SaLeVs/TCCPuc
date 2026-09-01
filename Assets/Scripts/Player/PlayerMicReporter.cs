@@ -17,42 +17,96 @@ namespace Player
 
         public override void OnNetworkSpawn()
         {
-            if (!IsOwner) enabled = false;
-            
+            if (!IsOwner)
+            {
+                enabled = false;
+                return;
+            }
+
             _micWatcher = micWatcherBehaviour as IMicSpeechReporter;
-            
+
             if (_micWatcher == null)
             {
                 Debug.LogError("Failed to cast micWatcherBehaviour to IMicSpeechReporter");
+                return;
             }
+
+            SubscribeVivoxEvents();
+            BindExistingParticipant();
+        }
+
+        public override void OnNetworkDespawn()
+        {
+            if (!IsOwner) return;
+
+            UnsubscribeVivoxEvents();
+        }
+
+        private void SubscribeVivoxEvents()
+        {
+            if (VivoxManager.instance == null) return;
+
+            VivoxManager.instance.OnParticipantJoinedChannel += OnParticipantAdded;
+            VivoxManager.instance.OnParticipantLeftChannel += OnParticipantRemoved;
+        }
+
+        private void UnsubscribeVivoxEvents()
+        {
+            if (VivoxManager.instance == null) return;
+
+            VivoxManager.instance.OnParticipantJoinedChannel -= OnParticipantAdded;
+            VivoxManager.instance.OnParticipantLeftChannel -= OnParticipantRemoved;
+        }
+
+        private void BindExistingParticipant()
+        {
+            if (VivoxManager.instance == null) return;
+
+            foreach (var participant in VivoxManager.instance.CurrentParticipants)
+            {
+                if (!participant.IsSelf) continue;
+
+                _localParticipant = participant;
+                break;
+            }
+        }
+
+        private void OnParticipantAdded(VivoxParticipant participant)
+        {
+            if (!participant.IsSelf) return;
+
+            Debug.Log("Local Vivox participant connected");
+            _localParticipant = participant;
+        }
+
+        private void OnParticipantRemoved(VivoxParticipant participant)
+        {
+            if (_localParticipant != participant) return;
+
+            Debug.Log("Local Vivox participant disconnected");
+
+            _localParticipant = null;
+            _isReportingSpeech = false;
         }
 
         private void Update()
         {
             if (!IsOwner) return;
+            if (_localParticipant == null) return;
 
-            if (_localParticipant == null)
+            try
             {
-                TryBindLocalParticipant();
-                return;
+                bool isSpeaking = _localParticipant.AudioEnergy >= audioEnergyThreshold;
+
+                if (isSpeaking == _isReportingSpeech) return;
+
+                _isReportingSpeech = isSpeaking;
+                NotifySpeakingServerRpc(isSpeaking);
             }
-
-            bool isScreaming = _localParticipant.AudioEnergy >= audioEnergyThreshold;
-            if (isScreaming == _isReportingSpeech) return;
-
-            _isReportingSpeech = isScreaming;
-            NotifySpeakingServerRpc(isScreaming);
-        }
-
-        private void TryBindLocalParticipant()
-        {
-            if (VivoxManager.instance == null) return;
-
-            foreach (VivoxParticipant participant in VivoxManager.instance.CurrentParticipants)
+            catch (System.NullReferenceException)
             {
-                if (!participant.IsSelf) continue;
-                _localParticipant = participant;
-                break;
+                Debug.LogWarning("Vivox participant became invalid. Waiting for rebind.");
+                _localParticipant = null;
             }
         }
 

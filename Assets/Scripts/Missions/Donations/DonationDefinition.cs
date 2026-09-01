@@ -4,7 +4,7 @@ using UnityEngine;
 
 namespace Missions.Donations
 {
-    [CreateAssetMenu(fileName = "DonationDefinition", menuName = "Missions/Donations/Donation Definition")]
+    [CreateAssetMenu(fileName = "DonationDefinition", menuName = "ScriptableObjects/Donations/Donation Definition")]
     public class DonationDefinition : ScriptableObject
     {
         [Header("Identity")] 

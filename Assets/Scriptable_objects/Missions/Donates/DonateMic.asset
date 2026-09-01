@@ -10,25 +10,26 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 4291d0ec521026741a70ee8ae48becd1, type: 3}
-  m_Name: DonationType
+  m_Name: DonateMic
   m_EditorClassIdentifier: Missions::Missions.Donations.DonationDefinition
-  donationId: 0
-  displayName: Record monster
-  message: Record the monster for me (5 seconds, please)
-  category: 0
-  recordingTarget: 3
+  donationId: 1
+  displayName: Scream in monster!!!!!
+  message: My man, sorry for this, but you need to scream close to monster kkkkkkkkkkkkkk
+    let me see if you are brave
+  category: 1
+  targetType: 3
   requiredRecordingSeconds: 5
   micActionId: default
-  requiredSpeechSeconds: 3
-  minAmount: 50
-  maxAmount: 100
-  durationSeconds: 180
+  requiredSpeechSeconds: 5
+  minAmount: 300
+  maxAmount: 500
+  durationSeconds: 60
   triggerRule:
-    viewerInfluenceWeight: 0.2
+    viewerInfluenceWeight: 0.8
     randomWeight: 0.5
-    minViewersRequired: 10
-    maxViewersConsidered: 1000
-    baseChance: 0.3
-    cooldownSeconds: 50
+    minViewersRequired: 500
+    maxViewersConsidered: 1200
+    baseChance: 0.5
+    cooldownSeconds: 120
   stackingMode: 1
   fakeDonorNames: {fileID: 11400000, guid: e24c0f54490f029478baa9188c78730a, type: 2}

@@ -4,7 +4,7 @@ using UnityEngine;
 
 namespace ScriptableObjects
 {
-    [CreateAssetMenu(fileName = "PipeGridLayout", menuName = "Missions/Pipes/Pipe Grid Layout")]
+    [CreateAssetMenu(fileName = "PipeGridLayout", menuName = "ScriptableObjects/Pipes/Pipe Grid Layout")]
     public class PipeGridLayout : ScriptableObject
     {
         [Tooltip("Collums in grid")]

@@ -199,7 +199,7 @@ namespace Missions.Donations
                 InstanceId = Guid.NewGuid().ToString("N"),
                 Definition = definition,
                 DonorName = PickDonorName(definition),
-                Amount = UnityEngine.Random.Range(definition.minAmount, definition.maxAmount),
+                Amount = UnityEngine.Random.Range(definition.minAmountMoney, definition.maxAmountMoney),
                 SpawnTime = now,
                 ExpireTime = expireTime,
                 State = DonationState.Active,

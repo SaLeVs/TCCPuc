@@ -1,4 +1,4 @@
-using Enums;
+ using Enums;
 using ScriptableObjects;
 using UnityEngine;
 
@@ -30,8 +30,8 @@ namespace Missions.Donations
         public float requiredSpeechSeconds = 3f;
 
         [Header("Donation amount (simulated)")]
-        public float minAmount = 5f;
-        public float maxAmount = 100f;
+        public float minAmountMoney = 5f;
+        public float maxAmountMoney = 100f;
 
         [Header("Expiration")]
         [Tooltip("0 = never expires")]

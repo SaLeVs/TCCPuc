@@ -253,8 +253,13 @@ namespace Network
                     }
                 }
             };
-            
-            await LobbyService.Instance.UpdatePlayerAsync(_joinedLobby.Id, AuthenticationService.Instance.PlayerId, playerOptions);
+    
+            Unity.Services.Lobbies.Models.Lobby updatedLobby = await LobbyService.Instance.UpdatePlayerAsync(_joinedLobby.Id, AuthenticationService.Instance.PlayerId, playerOptions);
+
+            _joinedLobby = updatedLobby;
+            if (IsHost()) _hostLobby = updatedLobby;
+
+            OnLobbyUpdated?.Invoke();
         }
         
         public bool AreAllPlayersReady()

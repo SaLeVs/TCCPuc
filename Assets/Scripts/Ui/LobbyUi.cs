@@ -19,7 +19,7 @@ namespace UI
         private bool _isPlayerReady;
         private const string PLAYER_READY = "READY";
         private const string PLAYER_NOT_READY = "NOT READY";
-        private const string HOST_START = "START GAME";
+        private const string HOST_START = "START";
         
         private void OnEnable()
         {

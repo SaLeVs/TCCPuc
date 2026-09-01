@@ -1491,7 +1491,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Unity.TextMeshPro::TMPro.TextMeshProUGUI
   m_Material: {fileID: 0}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
-  m_RaycastTarget: 1
+  m_RaycastTarget: 0
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
   m_OnCullStateChanged:
@@ -3975,8 +3975,8 @@ GameObject:
   - component: {fileID: 3079235408304551161}
   - component: {fileID: 7732165188750401425}
   - component: {fileID: 5473463083410926551}
-  - component: {fileID: 2549648357885189894}
   - component: {fileID: 6754525618838062772}
+  - component: {fileID: 2937707713325302409}
   m_Layer: 5
   m_Name: WorldSpaceCanvas
   m_TagString: Untagged
@@ -4050,23 +4050,6 @@ MonoBehaviour:
   m_DefaultSpriteDPI: 96
   m_DynamicPixelsPerUnit: 1
   m_PresetInfoIsWorld: 1
---- !u!114 &2549648357885189894
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 4884003861088983894}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: dc42784cf147c0c48a680349fa168899, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.GraphicRaycaster
-  m_IgnoreReversedGraphics: 1
-  m_BlockingObjects: 0
-  m_BlockingMask:
-    serializedVersion: 2
-    m_Bits: 131063
 --- !u!114 &6754525618838062772
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -4079,8 +4062,23 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e764bcedf7854024fa78d28f6bc0706f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Ui::UI.PlayerInfosUi
+  canvas: {fileID: 7732165188750401425}
   playerState: {fileID: 315419889962386199}
   playerNameText: {fileID: 3845502120376923188}
+--- !u!114 &2937707713325302409
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4884003861088983894}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 39e44427a4e576644a875f44625cb49f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Components::LookAtCamera
+  mode: 1
+  canvasTransform: {fileID: 3079235408304551161}
 --- !u!1 &5208610659961973362
 GameObject:
   m_ObjectHideFlags: 0

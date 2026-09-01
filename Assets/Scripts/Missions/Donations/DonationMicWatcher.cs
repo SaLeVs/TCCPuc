@@ -15,7 +15,7 @@ namespace Missions.Donations
             if (!IsServer) return;
             if (!_isSpeaking) return;
 
-            DonationManager.Instance?.ReportMicSpeech(micActionId, Time.deltaTime);
+            DonationManager.Instance?.ReportMicSpeech(OwnerClientId, micActionId, Time.deltaTime);
         }
 
         public void NotifySpeaking(bool isSpeaking)

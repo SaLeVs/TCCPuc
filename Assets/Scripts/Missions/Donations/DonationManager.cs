@@ -34,7 +34,6 @@ namespace Missions.Donations
         private readonly NetworkVariable<int> _manualViewerCount = new(0);
         private float _currentEvaluationInterval;
         private float _evaluationTimer;
-        private List<DonationInstance> completed = null;
         
         public int ViewerCount => _manualViewerCount.Value > 0 ? _manualViewerCount.Value : (NetworkManager.Singleton != null ? NetworkManager.Singleton.ConnectedClientsIds.Count : 0);
 
@@ -224,12 +223,14 @@ namespace Missions.Donations
         public void ReportRecordingProgress(ulong clientId, RecordableTarget target, float deltaSeconds)
         {
             if (!IsServer) return;
-
+            
+            List<DonationInstance> completedNow = null;
+            
             foreach (var instance in _activeInstances.Values)
             {
                 if (instance.State != DonationState.Active) continue;
                 if (instance.Definition.category != DonationCategory.Recording) continue;
-                if (instance.Definition.recordingTarget != target) continue;
+                if (instance.Definition.targetType != target) continue;
 
                 float step = instance.Definition.requiredRecordingSeconds > 0f
                     ? deltaSeconds / instance.Definition.requiredRecordingSeconds
@@ -240,13 +241,13 @@ namespace Missions.Donations
 
                 if (instance.Progress >= 1f)
                 {
-                    (completed ??= new List<DonationInstance>()).Add(instance);
+                    (completedNow ??= new List<DonationInstance>()).Add(instance);
                 }
             }
 
-            if (completed != null)
+            if (completedNow != null)
             {
-                foreach (var instance in completed)
+                foreach (var instance in completedNow)
                 {
                     CompleteDonation(instance);
                 }
@@ -254,9 +255,11 @@ namespace Missions.Donations
         }
 
         /// <summary>Call this from your microphone speech detection system (see DonationMicWatcher).</summary>
-        public void ReportMicSpeech(string micActionId, float deltaSeconds)
+        public void ReportMicSpeech(ulong clientId, string micActionId, float deltaSeconds)
         {
             if (!IsServer) return;
+            
+            List<DonationInstance> completedNow = null;
 
             foreach (var instance in _activeInstances.Values)
             {
@@ -264,12 +267,27 @@ namespace Missions.Donations
                 if (instance.Definition.category != DonationCategory.MicSpeech) continue;
                 if (instance.Definition.micActionId != micActionId) continue;
 
+                if(instance.Definition.targetType != RecordableTarget.None)
+                {
+                    bool isWatchingTarget = _recordingWatchers.TryGetValue(instance.Definition.targetType, out var watchers)
+                                                                    && watchers.Contains(clientId);
+                    if (!isWatchingTarget) continue;
+                }
+                
                 float step = instance.Definition.requiredSpeechSeconds > 0f ? deltaSeconds / instance.Definition.requiredSpeechSeconds : 1f;
 
                 instance.Progress = Mathf.Clamp01(instance.Progress + step);
                 PushNetworkState(instance);
 
                 if (instance.Progress >= 1f)
+                {
+                    (completedNow ??= new List<DonationInstance>()).Add(instance);
+                }
+            }
+
+            if (completedNow != null)
+            {
+                foreach (var instance in completedNow)
                 {
                     CompleteDonation(instance);
                 }

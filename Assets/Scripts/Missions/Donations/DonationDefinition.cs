@@ -15,8 +15,9 @@ namespace Missions.Donations
         [Header("Category")]
         public DonationCategory category;
         
-        [Header("Target (used only if category = Recording)")]
-        public RecordableTarget recordingTarget;
+        [Header("Target")]
+        [Tooltip("Recording: required. MicSpeech: optional — None means the scream can happen anywhere (old behavior); any other value requires the player to also be looking at/near a target of that type.")]
+        public RecordableTarget targetType;
         
         [Tooltip("Time (seconds) that some player needs to keep filming the target to complete")]
         public float requiredRecordingSeconds = 5f;

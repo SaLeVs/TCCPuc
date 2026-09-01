@@ -8438,6 +8438,12 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 37c386933ed65d64bb4a2438c8acbfbf, type: 3}
       insertIndex: -1
       addedObject: {fileID: 9001772810478597928}
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 37c386933ed65d64bb4a2438c8acbfbf, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 9144792236639197796}
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 37c386933ed65d64bb4a2438c8acbfbf, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 142547236030377213}
   m_SourcePrefab: {fileID: 100100000, guid: 37c386933ed65d64bb4a2438c8acbfbf, type: 3}
 --- !u!4 &1332281208470505733 stripped
 Transform:
@@ -8564,6 +8570,35 @@ MonoBehaviour:
   m_EditorClassIdentifier: Audio::Audio.RemoteVoiceFilter
   voiceIdentity: {fileID: 5911442021877570890}
   zoneState: {fileID: 1872326034872167580}
+--- !u!114 &9144792236639197796
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1816892524021699519}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e3d13879df74b0744a662979943d7e5e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Missions::Missions.Donations.DonationMicWatcher
+  ShowTopMostFoldoutHeaderGroup: 1
+  micActionId: default
+--- !u!114 &142547236030377213
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1816892524021699519}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e717c7995ee2b034a85ce9f10b017117, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Player::Player.PlayerMicReporter
+  ShowTopMostFoldoutHeaderGroup: 1
+  micWatcherBehaviour: {fileID: 9144792236639197796}
+  audioEnergyThreshold: 0.6
 --- !u!4 &3764744458408356686 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 2434337355144988064, guid: 37c386933ed65d64bb4a2438c8acbfbf, type: 3}

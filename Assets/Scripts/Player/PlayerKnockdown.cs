@@ -143,17 +143,22 @@ namespace Player
         {
             if (_spawnedRagdoll != null) return;
 
+            // Lock before freezing: PlayerMovement.StopMovement zeroes the velocities, and writing
+            // those on an already-kinematic body is not allowed.
+            if (IsOwner)
+            {
+                playerState.SetInputLocked(true);
+            }
+
             SpawnRagdoll(impulse);
             HideLivingBody();
             FreezeBody(true);
 
             if (!IsOwner) return;
 
-            playerState.SetInputLocked(true);
-
             if (playerCameraOffset != null && _ragdoll != null)
             {
-                playerCameraOffset.AttachCameraTo(_ragdoll.HeadBone);
+                playerCameraOffset.FollowRagdollBone(_ragdoll.HeadBone);
             }
         }
 
@@ -166,7 +171,7 @@ namespace Player
 
                 if (playerCameraOffset != null)
                 {
-                    playerCameraOffset.DetachCamera();
+                    playerCameraOffset.StopFollowingRagdollBone();
                 }
             }
 
@@ -204,8 +209,13 @@ namespace Player
         {
             if (playerRigidbody != null)
             {
-                playerRigidbody.linearVelocity = Vector3.zero;
-                playerRigidbody.angularVelocity = Vector3.zero;
+                // A kinematic body refuses velocity writes; position still teleports it.
+                if (!playerRigidbody.isKinematic)
+                {
+                    playerRigidbody.linearVelocity = Vector3.zero;
+                    playerRigidbody.angularVelocity = Vector3.zero;
+                }
+
                 playerRigidbody.position = position;
             }
 
@@ -319,6 +329,12 @@ namespace Player
             // PlayerDead owns the body now: it has already hidden it and spawned its own ragdoll.
             // Drop ours and forget the restore lists so getting up can never undo the death state.
             StopRecovering();
+
+            if (IsOwner && playerCameraOffset != null)
+            {
+                playerCameraOffset.StopFollowingRagdollBone();
+            }
+
             DestroyRagdoll();
 
             _bodyHidden = false;

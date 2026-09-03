@@ -22,6 +22,8 @@ namespace Player
         private bool _isCrouching;
         private bool _isDead;
         private Transform _deathCameraBone;
+        private Transform _followBone;
+        private Quaternion _followRotationOffset = Quaternion.identity;
         
         
         public override void OnNetworkSpawn()
@@ -41,10 +43,38 @@ namespace Player
 
         private void LateUpdate()
         {
-            if (IsOwner)
+            if (!IsOwner) return;
+
+            if (_followBone != null)
             {
-                cameraRoot.localPosition = Vector3.Lerp(cameraRoot.localPosition, _targetCameraOffset, cameraMoveSpeed * Time.deltaTime);
+                // Follow in world space instead of parenting: the rig's Armature is scaled 100x, so
+                // parenting under a bone drags that scale into cameraRoot (and into the flashlight
+                // hanging off it) and turns the offset below into a 100x lever.
+                cameraRoot.SetPositionAndRotation(_followBone.position, _followBone.rotation * _followRotationOffset);
+                return;
             }
+
+            cameraRoot.localPosition = Vector3.Lerp(cameraRoot.localPosition, _targetCameraOffset, cameraMoveSpeed * Time.deltaTime);
+        }
+
+        /// <summary>Rides a ragdoll bone without reparenting, so no bone scale leaks into the camera.</summary>
+        public void FollowRagdollBone(Transform bone)
+        {
+            if (!IsOwner || bone == null) return;
+
+            // Keep the rotation we already had relative to the bone, so the view tumbles with the
+            // body instead of snapping to whatever axis the rig gave that bone.
+            _followRotationOffset = Quaternion.Inverse(bone.rotation) * cameraRoot.rotation;
+            _followBone = bone;
+        }
+
+        /// <summary>Hands the camera back to the player body; LateUpdate eases it home from there.</summary>
+        public void StopFollowingRagdollBone()
+        {
+            if (!IsOwner || _followBone == null) return;
+
+            _followBone = null;
+            cameraRoot.localRotation = Quaternion.identity;
         }
 
         private void PlayerState_OnRunEvent(bool isRunning)

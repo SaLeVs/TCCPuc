@@ -5,11 +5,16 @@ namespace Player
     public class PlayerRagdoll : MonoBehaviour
     {
         [SerializeField] private Transform headBone;
+        [SerializeField] private Transform eyesForward;
         [SerializeField] private Transform hipsBone;
         [SerializeField] private Rigidbody[] rigidbodies;
         [SerializeField] private Collider[] colliders;
 
         public Transform HeadBone => headBone;
+
+        /// <summary>A point sitting in front of the eyes. The camera aims at it, so the view always
+        /// looks wherever the head is looking without depending on the rig's bone axes.</summary>
+        public Transform EyesForward => eyesForward;
         public Transform HipsBone => hipsBone;
 
         public void InitializeFrom(Transform sourceRoot)

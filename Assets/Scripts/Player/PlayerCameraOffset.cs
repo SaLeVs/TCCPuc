@@ -15,15 +15,16 @@ namespace Player
         [SerializeField] private Vector3 crouchOffset;
         [SerializeField] private Vector3 runOffset;
         [SerializeField] private Vector3 deadOffset;
-        
+
         private Vector3 _targetCameraOffset;
         private Transform _originalParent;
         private bool _isRunning;
         private bool _isCrouching;
         private bool _isDead;
         private Transform _deathCameraBone;
-        private Transform _followBone;
-        private Quaternion _followRotationOffset = Quaternion.identity;
+
+        private bool _ragdollAttached;
+        private Quaternion _ragdollLookRotation = Quaternion.identity;
         
         
         public override void OnNetworkSpawn()
@@ -45,36 +46,53 @@ namespace Player
         {
             if (!IsOwner) return;
 
-            if (_followBone != null)
+            float t = cameraMoveSpeed * Time.deltaTime;
+
+            if (_ragdollAttached)
             {
-                // Follow in world space instead of parenting: the rig's Armature is scaled 100x, so
-                // parenting under a bone drags that scale into cameraRoot (and into the flashlight
-                // hanging off it) and turns the offset below into a 100x lever.
-                cameraRoot.SetPositionAndRotation(_followBone.position, _followBone.rotation * _followRotationOffset);
+                // Parented to the head bone, so both of these are in bone space. The offset has to
+                // ease to zero and not to standingOffset: the Armature is scaled 100x, and one
+                // metre of offset expressed in bone space is a hundred metres of camera.
+                cameraRoot.localPosition = Vector3.Lerp(cameraRoot.localPosition, Vector3.zero, t);
+                cameraRoot.localRotation = Quaternion.Slerp(cameraRoot.localRotation, _ragdollLookRotation, t);
                 return;
             }
 
-            cameraRoot.localPosition = Vector3.Lerp(cameraRoot.localPosition, _targetCameraOffset, cameraMoveSpeed * Time.deltaTime);
+            cameraRoot.localPosition = Vector3.Lerp(cameraRoot.localPosition, _targetCameraOffset, t);
+            cameraRoot.localRotation = Quaternion.Slerp(cameraRoot.localRotation, Quaternion.identity, t);
         }
 
-        /// <summary>Rides a ragdoll bone without reparenting, so no bone scale leaks into the camera.</summary>
-        public void FollowRagdollBone(Transform bone)
+        /// <summary>
+        /// Parents the camera to the ragdoll's head, exactly like the death camera, and aims it
+        /// down the character's gaze. <paramref name="eyesForward"/> is a point in front of the
+        /// eyes parented to the same bone, so its local position IS the gaze direction in bone
+        /// space — which makes the look rotation a constant, not per-frame work.
+        ///
+        /// The rotation only reaches the view because PlayerCamera flips PanTilt to ParentObject
+        /// with zeroed axes for the duration; in World it would be ignored.
+        /// </summary>
+        public void AttachRagdollCamera(Transform headBone, Transform eyesForward)
         {
-            if (!IsOwner || bone == null) return;
+            if (!IsOwner || headBone == null) return;
 
-            // Keep the rotation we already had relative to the bone, so the view tumbles with the
-            // body instead of snapping to whatever axis the rig gave that bone.
-            _followRotationOffset = Quaternion.Inverse(bone.rotation) * cameraRoot.rotation;
-            _followBone = bone;
+            // worldPositionStays keeps the camera where it is for the ease-in, and it is also what
+            // compensates the Armature's 100x scale into cameraRoot's localScale.
+            cameraRoot.SetParent(headBone, worldPositionStays: true);
+            _ragdollAttached = true;
+
+            _ragdollLookRotation = eyesForward != null && eyesForward.localPosition.sqrMagnitude > 0.000001f
+                ? Quaternion.LookRotation(eyesForward.localPosition, Vector3.up)
+                : Quaternion.identity;
         }
 
-        /// <summary>Hands the camera back to the player body; LateUpdate eases it home from there.</summary>
-        public void StopFollowingRagdollBone()
+        public void DetachRagdollCamera()
         {
-            if (!IsOwner || _followBone == null) return;
+            if (!IsOwner || !_ragdollAttached) return;
 
-            _followBone = null;
-            cameraRoot.localRotation = Quaternion.identity;
+            _ragdollAttached = false;
+
+            cameraRoot.SetParent(_originalParent, worldPositionStays: true);
+            cameraRoot.localScale = Vector3.one;
         }
 
         private void PlayerState_OnRunEvent(bool isRunning)

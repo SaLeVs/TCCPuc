@@ -29,6 +29,10 @@ namespace Player
         private bool _isDead;
         private bool _isLocked;
         private bool _isPaused;
+        private bool _isKnockedDown;
+        private CinemachinePanTilt.ReferenceFrames _savedReferenceFrame;
+        private float _savedPan;
+        private float _savedTilt;
         private const string SENSIBILITY_KEY = "MouseSensibility";
         
         private float _baseLookXGain;
@@ -86,10 +90,43 @@ namespace Player
 
         private void PlayerState_OnPlayerDead(bool isDead) => _isDead = isDead;
 
+        /// <summary>
+        /// A knockdown locks input the same way a menu does, but it is not a menu: the player is
+        /// still looking at the world, so the cursor stays captured and this camera stays live.
+        /// </summary>
+        public void SetKnockedDown(bool knockedDown)
+        {
+            if (_isKnockedDown == knockedDown) return;
+
+            _isKnockedDown = knockedDown;
+
+            if (knockedDown)
+            {
+                // PanTilt aims in World, which means CameraRoot's rotation never reaches the view.
+                // Point it at the parent and zero the axes instead: the camera then looks exactly
+                // down CameraRoot's forward, which is what lets PlayerCameraOffset aim it along
+                // the ragdoll's gaze.
+                _savedReferenceFrame = panTilt.ReferenceFrame;
+                _savedPan = panTilt.PanAxis.Value;
+                _savedTilt = panTilt.TiltAxis.Value;
+
+                panTilt.ReferenceFrame = CinemachinePanTilt.ReferenceFrames.ParentObject;
+                panTilt.PanAxis.Value = 0f;
+                panTilt.TiltAxis.Value = 0f;
+                return;
+            }
+
+            panTilt.ReferenceFrame = _savedReferenceFrame;
+            panTilt.PanAxis.Value = _savedPan;
+            panTilt.TiltAxis.Value = _savedTilt;
+        }
+
         private void PlayerState_OnPlayerLocked(bool locked)
         {
             _isLocked = locked;
             inputAxisController.enabled = !locked && !_isPaused && !_isDead;
+
+            if (_isKnockedDown) return;
 
             if (locked)
             {

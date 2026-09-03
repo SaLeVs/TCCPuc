@@ -5337,6 +5337,11 @@ MonoBehaviour:
   crouchOffset: {x: 0, y: 0.7, z: 0.45}
   runOffset: {x: 0, y: 0.9, z: 0.5}
   deadOffset: {x: 0, y: 0, z: 0}
+  ragdollCameraPullback: 0.25
+  ragdollCameraProbeRadius: 0.2
+  ragdollCameraBlockingMask:
+    serializedVersion: 2
+    m_Bits: 66688
 --- !u!114 &6388113009287079804
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -5562,6 +5567,7 @@ MonoBehaviour:
   playerState: {fileID: 315419889962386199}
   playerDead: {fileID: 3147938662615095034}
   playerCameraOffset: {fileID: 229846428463956236}
+  playerCamera: {fileID: 9106684494112449477}
   playerHealth: {fileID: 411051831112395948}
   playerAnimator: {fileID: 4944136999074124671}
   playerRigidbody: {fileID: 3158690138509095668}

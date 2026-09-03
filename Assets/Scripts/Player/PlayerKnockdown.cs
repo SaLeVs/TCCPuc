@@ -30,6 +30,7 @@ namespace Player
         [SerializeField] private PlayerState playerState;
         [SerializeField] private PlayerDead playerDead;
         [SerializeField] private PlayerCameraOffset playerCameraOffset;
+        [SerializeField] private PlayerCamera playerCamera;
         [SerializeField] private Health playerHealth;
         [SerializeField] private Animator playerAnimator;
         [SerializeField] private Rigidbody playerRigidbody;
@@ -143,6 +144,13 @@ namespace Player
         {
             if (_spawnedRagdoll != null) return;
 
+            // Flag the camera first: the input lock below is the same one menus use, and without
+            // this it would show the cursor and demote this camera out of the way.
+            if (IsOwner && playerCamera != null)
+            {
+                playerCamera.SetKnockedDown(true);
+            }
+
             // Lock before freezing: PlayerMovement.StopMovement zeroes the velocities, and writing
             // those on an already-kinematic body is not allowed.
             if (IsOwner)
@@ -154,11 +162,11 @@ namespace Player
             HideLivingBody();
             FreezeBody(true);
 
-            if (!IsOwner) return;
+            if (!IsOwner || _ragdoll == null) return;
 
-            if (playerCameraOffset != null && _ragdoll != null)
+            if (playerCameraOffset != null)
             {
-                playerCameraOffset.FollowRagdollBone(_ragdoll.HeadBone);
+                playerCameraOffset.AttachRagdollCamera(_ragdoll.HeadBone, _ragdoll.EyesForward);
             }
         }
 
@@ -171,7 +179,7 @@ namespace Player
 
                 if (playerCameraOffset != null)
                 {
-                    playerCameraOffset.StopFollowingRagdollBone();
+                    playerCameraOffset.DetachRagdollCamera();
                 }
             }
 
@@ -179,10 +187,16 @@ namespace Player
             RestoreLivingBody();
             DestroyRagdoll();
 
-            if (IsOwner)
+            if (!IsOwner) return;
+
+            // Clear the flag before unlocking, so PlayerCamera runs its normal restore path and
+            // recaptures the cursor and the camera priority.
+            if (playerCamera != null)
             {
-                playerState.SetInputLocked(false);
+                playerCamera.SetKnockedDown(false);
             }
+
+            playerState.SetInputLocked(false);
         }
 
         private void MoveToStandingSpot()
@@ -330,9 +344,10 @@ namespace Player
             // Drop ours and forget the restore lists so getting up can never undo the death state.
             StopRecovering();
 
-            if (IsOwner && playerCameraOffset != null)
+            if (IsOwner)
             {
-                playerCameraOffset.StopFollowingRagdollBone();
+                if (playerCameraOffset != null) playerCameraOffset.DetachRagdollCamera();
+                if (playerCamera != null) playerCamera.SetKnockedDown(false);
             }
 
             DestroyRagdoll();

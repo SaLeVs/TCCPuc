@@ -1,9 +1,11 @@
 using System.Collections;
+using Enums;
 using Interfaces;
 using Player;
 using Unity.Netcode;
 using UnityEngine;
 using UnityEngine.AI;
+using UnityEngine.Serialization;
 
 namespace Objects
 {
@@ -15,32 +17,34 @@ namespace Objects
         [SerializeField] private Rigidbody doorRigidbody;
         [SerializeField] private NavMeshObstacle navMeshObstacle;
 
-        [Header("Settings")]
-        [SerializeField] private float openAngle = 100f;
-        [SerializeField] private float openSpeed = 3f;
+        [Header("Angles")]
+        [SerializeField] private float closedAngle;
+        [FormerlySerializedAs("openAngle")]
+        [SerializeField] private float openSideAAngle = 100f;
+        [SerializeField] private float openSideBAngle = -100f;
 
-        private readonly NetworkVariable<bool> _isOpen = new NetworkVariable<bool>(false);
-        private readonly NetworkVariable<float> _openSign = new NetworkVariable<float>(1f);
+        [Header("Settings")]
+        [SerializeField] private float openDegreesPerSecond = 300f;
+
+        private readonly NetworkVariable<DoorState> _state = new NetworkVariable<DoorState>(DoorState.Closed);
 
         private Coroutine _rotateRoutine;
 
+        // Source of truth for the swing. Reading the start angle back off a Transform is what broke
+        // closing: the server only ever drove the Rigidbody, so the Transform stayed at rest.
+        private float _currentAngle;
+
         public override void OnNetworkSpawn()
         {
-            _isOpen.OnValueChanged += OnIsOpenChanged;
+            _state.OnValueChanged += OnStateChanged;
 
-            navMeshObstacle.carving = !_isOpen.Value;
-            Quaternion snapRotation = Quaternion.Euler(0f, _isOpen.Value ? openAngle * _openSign.Value : 0f, 0f);
-            doorPivot.localRotation = snapRotation;
-
-            if (IsServer)
-            {
-                doorRigidbody.MoveRotation(transform.rotation * snapRotation);
-            }
+            navMeshObstacle.carving = _state.Value == DoorState.Closed;
+            ApplyAngle(AngleFor(_state.Value), snap: true);
         }
 
         public override void OnNetworkDespawn()
         {
-            _isOpen.OnValueChanged -= OnIsOpenChanged;
+            _state.OnValueChanged -= OnStateChanged;
 
             if (_rotateRoutine != null)
             {
@@ -61,68 +65,91 @@ namespace Objects
         [Rpc(SendTo.Server)]
         private void RequestToggleServerRpc(Vector3 playerPosition)
         {
-            if (!_isOpen.Value)
+            if (_state.Value != DoorState.Closed)
             {
-                Vector3 toPlayer = playerPosition - doorPivot.position;
-                toPlayer.y = 0f;
-                float side = Mathf.Sign(Vector3.Dot(doorPivot.forward, toPlayer.normalized));
-                
-                _openSign.Value = -side;
-
-                navMeshObstacle.carving = false;
-            }
-            else
-            {
-                navMeshObstacle.carving = true;
+                _state.Value = DoorState.Closed;
+                return;
             }
 
-            _isOpen.Value = !_isOpen.Value;
+            Vector3 toPlayer = playerPosition - doorPivot.position;
+            toPlayer.y = 0f;
+
+            // Swing away from whoever opened it.
+            float side = Vector3.Dot(doorPivot.forward, toPlayer.normalized);
+
+            _state.Value = side > 0f ? DoorState.OpenSideB : DoorState.OpenSideA;
         }
 
-        private void OnIsOpenChanged(bool previous, bool current)
+        private float AngleFor(DoorState state)
         {
+            switch (state)
+            {
+                case DoorState.OpenSideA: return openSideAAngle;
+                case DoorState.OpenSideB: return openSideBAngle;
+                default: return closedAngle;
+            }
+        }
+
+        private void OnStateChanged(DoorState previous, DoorState current)
+        {
+            navMeshObstacle.carving = current == DoorState.Closed;
+
             if (_rotateRoutine != null)
             {
                 StopCoroutine(_rotateRoutine);
             }
 
-            _rotateRoutine = StartCoroutine(RotateDoor(current));
+            _rotateRoutine = StartCoroutine(RotateDoor(AngleFor(current)));
         }
 
-        private IEnumerator RotateDoor(bool open)
+        private IEnumerator RotateDoor(float targetAngle)
         {
-            Quaternion startRot = doorPivot.localRotation;
-            Quaternion targetRot = Quaternion.Euler(0f, open ? openAngle * _openSign.Value : 0f, 0f);
-            float duration = Mathf.Max(0.01f, 1f / openSpeed);
-            float elapsed = 0f;
+            float startAngle = _currentAngle;
+            float distance = Mathf.Abs(targetAngle - startAngle);
 
-            while (elapsed < duration)
+            if (distance > 0f)
             {
-                elapsed += Time.deltaTime;
-                Quaternion next = Quaternion.Slerp(startRot, targetRot, elapsed / duration);
+                // Time scales with how far this particular swing travels, so every angle moves at
+                // the configured speed instead of every swing taking the same fixed duration.
+                float duration = distance / Mathf.Max(1f, openDegreesPerSecond);
+                float elapsed = 0f;
 
-                if (IsServer)
+                while (elapsed < duration)
                 {
-                    doorRigidbody.MoveRotation(transform.rotation * next);
-                    yield return new WaitForFixedUpdate();
-                }
-                else
-                {
-                    doorPivot.localRotation = next;
-                    yield return null;
+                    // The server moves a kinematic Rigidbody, so it advances on the physics step.
+                    elapsed += IsServer ? Time.fixedDeltaTime : Time.deltaTime;
+
+                    ApplyAngle(Mathf.Lerp(startAngle, targetAngle, elapsed / duration));
+
+                    if (IsServer)
+                    {
+                        yield return new WaitForFixedUpdate();
+                    }
+                    else
+                    {
+                        yield return null;
+                    }
                 }
             }
 
-            if (IsServer)
+            ApplyAngle(targetAngle);
+            _rotateRoutine = null;
+        }
+
+        private void ApplyAngle(float angle, bool snap = false)
+        {
+            _currentAngle = angle;
+
+            Quaternion localRotation = Quaternion.Euler(0f, angle, 0f);
+
+            if (IsServer && !snap)
             {
-                doorRigidbody.MoveRotation(transform.rotation * targetRot);
+                doorRigidbody.MoveRotation(transform.rotation * localRotation);
             }
             else
             {
-                doorPivot.localRotation = targetRot;
+                doorRigidbody.transform.localRotation = localRotation;
             }
-
-            _rotateRoutine = null;
         }
 
         private void OnCollisionEnter(Collision collision)

@@ -5,7 +5,7 @@ using Unity.Netcode;
 using UnityEngine;
 using UnityEngine.AI;
 
-namespace Environment
+namespace Objects
 {
     [RequireComponent(typeof(NavMeshObstacle))]
     public class Door : NetworkBehaviour, IInteractable
@@ -53,11 +53,12 @@ namespace Environment
 
         public bool Interact(GameObject playerInteractor)
         {
+            Debug.Log($"Door interacted by {playerInteractor.name} at position {playerInteractor.transform.position}");
             RequestToggleServerRpc(playerInteractor.transform.position);
             return true;
         }
 
-        [ServerRpc(RequireOwnership = false)]
+        [Rpc(SendTo.Server)]
         private void RequestToggleServerRpc(Vector3 playerPosition)
         {
             if (!_isOpen.Value)

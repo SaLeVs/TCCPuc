@@ -74,16 +74,13 @@ namespace Player
         private void OnParticipantAdded(VivoxParticipant participant)
         {
             if (!participant.IsSelf) return;
-
-            Debug.Log("Local Vivox participant connected");
+            
             _localParticipant = participant;
         }
 
         private void OnParticipantRemoved(VivoxParticipant participant)
         {
             if (_localParticipant != participant) return;
-
-            Debug.Log("Local Vivox participant disconnected");
 
             _localParticipant = null;
             _isReportingSpeech = false;
@@ -102,7 +99,6 @@ namespace Player
 
                 _isReportingSpeech = isSpeaking;
                 NotifySpeakingServerRpc(isSpeaking);
-                Debug.Log($"Reporting scream state: {isSpeaking}");
             }
             catch (System.NullReferenceException)
             {

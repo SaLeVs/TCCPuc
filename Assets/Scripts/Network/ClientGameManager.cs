@@ -1,5 +1,6 @@
 using System;
 using System.Threading.Tasks;
+using Components;
 using Systems;
 using Unity.Netcode;
 using Unity.Netcode.Transports.UTP;
@@ -45,37 +46,47 @@ namespace Network
 
         public async Task StartClientAsync(string joinCode)
         {
+            // Clear any leftover session first — a previous LAN/online attempt that is still
+            // listening makes StartClient() return false.
+            await NetworkSession.EnsureStoppedAsync();
+
+            MultiplayerModeManager.SetOnline();
+
             try
-            { 
+            {
                 _allocation = await RelayService.Instance.JoinAllocationAsync(joinCode);
             }
             catch (Exception e)
             {
                 Debug.Log(e);
+                ConnectionFeedback.Report("Código de sala inválido ou serviço indisponível.");
                 return;
             }
-            
+
             if (NetworkManager.Singleton.TryGetComponent(out UnityTransport transport))
             {
                 transport.SetRelayServerData(AllocationUtils.ToRelayServerData(_allocation, "dtls"));
-                
+
             }
-            
+
             ConnectionPayload.ApplyTo(NetworkManager.Singleton);
 
             if (!NetworkManager.Singleton.StartClient())
             {
-                Debug.LogError("ClientGameManager: StartClient failed.");
+                Debug.LogError($"ClientGameManager: StartClient failed. {NetworkSession.DescribeState()}");
+                ConnectionFeedback.Report("Não foi possível iniciar a conexão. Feche e reabra a sessão e tente de novo.");
             }
         }
 
-        public bool StartLanClient()
+        public async Task<bool> StartLanClientAsync()
         {
+            await NetworkSession.EnsureStoppedAsync();
+
             ConnectionPayload.ApplyTo(NetworkManager.Singleton);
 
             if (!NetworkManager.Singleton.StartClient())
             {
-                Debug.LogError("ClientGameManager: StartLanClient failed — check the IP, the port and the firewall.");
+                Debug.LogError($"ClientGameManager: StartLanClient failed. {NetworkSession.DescribeState()}");
                 return false;
             }
 

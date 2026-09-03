@@ -288,6 +288,13 @@ namespace Network
             if (!AreAllPlayersReady()) return;
             
             string joinCode = await HostSingleton.instance.gameManager.StartHostAsync();
+
+            if (string.IsNullOrEmpty(joinCode))
+            {
+                Debug.LogError("Lobby: host did not start, aborting StartGame.");
+                return;
+            }
+
             PlayerTracker.Instance.SetExpectedPlayerCount(_joinedLobby.Players.Count);
             
             

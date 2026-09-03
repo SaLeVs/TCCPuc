@@ -1,5 +1,6 @@
 using System;
 using System.Threading.Tasks;
+using Components;
 using Systems;
 using Unity.Netcode;
 using Unity.Netcode.Transports.UTP;
@@ -25,7 +26,12 @@ namespace Network
                 NetworkServer.Dispose();
                 NetworkServer = null;
             }
-            
+
+            // A leftover session (LAN or a previous online attempt) makes StartHost() fail.
+            await NetworkSession.EnsureStoppedAsync();
+
+            MultiplayerModeManager.SetOnline();
+
             try
             {
                 _allocation = await RelayService.Instance.CreateAllocationAsync(MAX_CONNECTIONS);
@@ -33,6 +39,8 @@ namespace Network
             catch (Exception e)
             {
                 Debug.LogError(e);
+                ConnectionFeedback.Report("Não foi possível criar a sala no Relay. Verifique a conexão com a internet.");
+                return null;
             }
 
             try
@@ -43,6 +51,8 @@ namespace Network
             catch (Exception e)
             {
                 Debug.LogError(e);
+                ConnectionFeedback.Report("Não foi possível obter o código da sala.");
+                return null;
             }
 
             if (NetworkManager.Singleton.TryGetComponent(out UnityTransport transport))
@@ -65,18 +75,24 @@ namespace Network
             return _joinCode;
         }
 
-        public bool StartLanHost()
+        public async Task<bool> StartLanHostAsync()
         {
-            if (NetworkServer == null)
+            await NetworkSession.EnsureStoppedAsync();
+
+            if (NetworkServer != null)
             {
-                NetworkServer = new NetworkServer(NetworkManager.Singleton);
+                NetworkServer.Dispose();
             }
+
+            // Registers the ConnectionApprovalCallback — without it NGO drops every remote
+            // client on approval timeout.
+            NetworkServer = new NetworkServer(NetworkManager.Singleton);
 
             ConnectionPayload.ApplyTo(NetworkManager.Singleton);
 
             if (!NetworkManager.Singleton.StartHost())
             {
-                Debug.LogError("HostGameManager: StartLanHost failed — check that the port is free and not blocked by the firewall.");
+                Debug.LogError($"HostGameManager: StartLanHost failed. {NetworkSession.DescribeState()}");
                 return false;
             }
 

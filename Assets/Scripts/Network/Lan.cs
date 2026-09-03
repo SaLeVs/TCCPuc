@@ -47,44 +47,51 @@ namespace Network
             Debug.Log($"port changed to {_port}");
         }
 
-        public void StartSessionLan()
+        public async void StartSessionLan()
         {
             if (!TryReadPort(out ushort portNumber)) return;
 
             MultiplayerModeManager.SetLan();
 
+            // Tear down any leftover session BEFORE writing the transport config, so the
+            // shutdown can't race with the values we're about to set.
+            await NetworkSession.EnsureStoppedAsync();
+
             UnityTransport transport = NetworkManager.Singleton.GetComponent<UnityTransport>();
-            
+
+            // "0.0.0.0" as listen address = accept on every interface (Wi-Fi, Ethernet, Radmin VPN).
             transport.SetConnectionData("0.0.0.0", portNumber, "0.0.0.0");
 
             Debug.Log($"Lan: hosting on 0.0.0.0:{portNumber}");
 
-            if (!HostSingleton.instance.gameManager.StartLanHost())
+            if (!await HostSingleton.instance.gameManager.StartLanHostAsync())
             {
-                ConnectionFeedback.Report($"Not possible on port {portNumber}. It may be in use or blocked by the firewall.");
+                ConnectionFeedback.Report($"Não foi possível hospedar na porta {portNumber}. Ela pode estar em uso ou bloqueada pelo firewall.");
             }
         }
 
-        public void JoinSessionLan()
+        public async void JoinSessionLan()
         {
             if (!TryReadPort(out ushort portNumber)) return;
 
             if (!IsValidIPv4(_ip))
             {
-                ConnectionFeedback.Report($"Invalid IP: '{_ip}'. Use the format 0.0.0.0 (e.g., 192.168.0.10).");
+                ConnectionFeedback.Report($"IP inválido: '{_ip}'. Use o formato 0.0.0.0 (ex.: 192.168.0.10).");
                 return;
             }
 
             MultiplayerModeManager.SetLan();
+
+            await NetworkSession.EnsureStoppedAsync();
 
             UnityTransport transport = NetworkManager.Singleton.GetComponent<UnityTransport>();
             transport.SetConnectionData(_ip, portNumber);
 
             Debug.Log($"Lan: connecting to {_ip}:{portNumber}");
 
-            if (!ClientSingleton.instance.gameManager.StartLanClient())
+            if (!await ClientSingleton.instance.gameManager.StartLanClientAsync())
             {
-                ConnectionFeedback.Report($"Not possible to start the connection with {_ip}:{portNumber}.");
+                ConnectionFeedback.Report($"Não foi possível conectar a {_ip}:{portNumber}. Verifique o IP, a porta e o firewall do host.");
             }
         }
 

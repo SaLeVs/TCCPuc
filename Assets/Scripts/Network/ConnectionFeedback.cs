@@ -62,7 +62,10 @@ namespace Network
         {
             NetworkManager networkManager = NetworkManager.Singleton;
             if (networkManager == null) return;
-            
+
+            // Restarting a session tears the old one down on purpose — not a connection failure.
+            if (NetworkSession.IsTransitioning) return;
+
             bool isSelf = !networkManager.IsServer || clientId == networkManager.LocalClientId;
             if (!isSelf) return;
 

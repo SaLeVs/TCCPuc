@@ -77,15 +77,18 @@ namespace Network
 
         public async Task<bool> StartLanHostAsync()
         {
-            await NetworkSession.EnsureStoppedAsync();
-
+            // Dispose before EnsureStoppedAsync: NetworkServer.Dispose() shuts the NetworkManager
+            // down when it is still listening, and that shutdown has to happen inside the wait
+            // below so its disconnect callback is seen as part of this restart.
             if (NetworkServer != null)
             {
                 NetworkServer.Dispose();
+                NetworkServer = null;
             }
 
-            // Registers the ConnectionApprovalCallback — without it NGO drops every remote
-            // client on approval timeout.
+            // A leftover session (LAN or a previous online attempt) makes StartHost() fail.
+            await NetworkSession.EnsureStoppedAsync();
+
             NetworkServer = new NetworkServer(NetworkManager.Singleton);
 
             ConnectionPayload.ApplyTo(NetworkManager.Singleton);

@@ -13,25 +13,17 @@ namespace Network
         private readonly List<SpawnPoint> _availableSpawns = new List<SpawnPoint>();
 
         
-        private readonly HashSet<ulong> _spawnedClients = new HashSet<ulong>();
-
         public override void OnNetworkSpawn()
         {
             if (!IsServer) return;
 
             InitializeSpawnPool();
             NetworkManager.SceneManager.OnSceneEvent += NetworkManager_OnSceneEvent;
-            
-            foreach (ulong clientId in NetworkManager.ConnectedClientsIds)
-            {
-                SpawnClient(clientId);
-            }
         }
 
         
         private void InitializeSpawnPool()
         {
-            _spawnedClients.Clear();
             _availableSpawns.Clear();
             _availableSpawns.AddRange(spawnPoints);
             ShuffleSpawns();
@@ -45,8 +37,6 @@ namespace Network
 
         private void SpawnClient(ulong clientId)
         {
-            if (!_spawnedClients.Add(clientId)) return;
-
             if (_availableSpawns.Count == 0)
             {
                 Debug.LogWarning($"SpawnManager: No spawns remaining for client: {clientId}");

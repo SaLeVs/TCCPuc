@@ -295,6 +295,10 @@ namespace Network
                 return;
             }
 
+            // We are in the game from here on. Set this before publishing StartGame below, or the
+            // next lobby poll reads our own "1" back and makes us join our own session as a client.
+            _hasJoinedGame = true;
+
             PlayerTracker.Instance.SetExpectedPlayerCount(_joinedLobby.Players.Count);
             
             
@@ -316,7 +320,11 @@ namespace Network
         private async void CheckIfGameStarted()
         {
             if (_hasJoinedGame) return;
-            
+
+            // The host already runs the session it created in StartGame(); connecting to its own
+            // relay code as a client would shut that session down.
+            if (IsHost()) return;
+
             if (!_joinedLobby.Data.ContainsKey("StartGame")) return;
 
             if (_joinedLobby.Data["StartGame"].Value == "1")

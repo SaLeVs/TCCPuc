@@ -5056,6 +5056,7 @@ GameObject:
   - component: {fileID: 411051831112395948}
   - component: {fileID: 9208966139642712754}
   - component: {fileID: 2780229638514770557}
+  - component: {fileID: 2757436302559510102}
   - component: {fileID: 1740412110358022840}
   - component: {fileID: 3916989616377195318}
   - component: {fileID: 1861191804149879818}
@@ -5386,8 +5387,8 @@ MonoBehaviour:
   playerState: {fileID: 315419889962386199}
   inputReader: {fileID: 11400000, guid: b8967103b22990e4685e914ae00843a6, type: 2}
   playerView: {fileID: 5036788259409135564}
-  playerCamera: {fileID: 0}
-  rayOriginOverride: {fileID: 0}
+  playerCamera: {fileID: 9106684494112449477}
+  rayOriginOverride: {fileID: 7631988926882076908}
   interactDistance: 1
   checkInterval: 0.2
   layerMask:
@@ -5545,6 +5546,35 @@ MonoBehaviour:
         byte0027: 0
         byte0028: 0
         byte0029: 0
+--- !u!114 &2757436302559510102
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6252520807053122715}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 261e254e86c39fd49a5f97af5b10ac55, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Player::Player.PlayerKnockdown
+  ShowTopMostFoldoutHeaderGroup: 1
+  playerState: {fileID: 315419889962386199}
+  playerDead: {fileID: 3147938662615095034}
+  playerCameraOffset: {fileID: 229846428463956236}
+  playerHealth: {fileID: 411051831112395948}
+  playerAnimator: {fileID: 4944136999074124671}
+  playerRigidbody: {fileID: 3158690138509095668}
+  playerCapsule: {fileID: 2207057075489463036}
+  ragdollSpawnRoot: {fileID: 5790530428844984641}
+  ragdollPrefab: {fileID: 7429760074917165057, guid: bc083590359f6df45ae8d806d5735b69, type: 3}
+  standingBlockingMask:
+    serializedVersion: 2
+    m_Bits: 94080
+  searchMaxDistance: 4
+  searchStepSize: 0.5
+  searchAngleStep: 20
+  groundOffset: 0
 --- !u!114 &1740412110358022840
 MonoBehaviour:
   m_ObjectHideFlags: 0

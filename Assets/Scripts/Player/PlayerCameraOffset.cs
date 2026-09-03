@@ -65,21 +65,37 @@ namespace Player
 
             if (_isDead && _deathCameraBone != null)
             {
-                cameraRoot.SetParent(_deathCameraBone, worldPositionStays: true);
+                AttachCameraTo(_deathCameraBone);
             }
         }
-        
+
+        /// <summary>Rides a ragdoll bone instead of the player body. Used by death and by knockdowns.</summary>
+        public void AttachCameraTo(Transform bone)
+        {
+            if (!IsOwner || bone == null) return;
+
+            cameraRoot.SetParent(bone, worldPositionStays: true);
+        }
+
+        /// <summary>Puts the camera back on the player body.</summary>
+        public void DetachCamera()
+        {
+            if (!IsOwner) return;
+
+            cameraRoot.SetParent(_originalParent, worldPositionStays: true);
+        }
+
         private void PlayerState_OnPlayerDead(bool isDead)
         {
             _isDead = isDead;
 
             if (_isDead && _deathCameraBone != null)
             {
-                cameraRoot.SetParent(_deathCameraBone, worldPositionStays: true);
+                AttachCameraTo(_deathCameraBone);
             }
             else
             {
-                cameraRoot.SetParent(_originalParent, worldPositionStays: true);
+                DetachCamera();
                 _deathCameraBone = null;
             }
 

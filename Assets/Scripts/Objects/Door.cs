@@ -2,6 +2,7 @@ using System.Collections;
 using Enums;
 using Interfaces;
 using Player;
+using ScriptableObjects;
 using Unity.Netcode;
 using UnityEngine;
 using UnityEngine.AI;
@@ -16,6 +17,11 @@ namespace Objects
         [SerializeField] private Transform doorPivot;
         [SerializeField] private Rigidbody doorRigidbody;
         [SerializeField] private NavMeshObstacle navMeshObstacle;
+        [SerializeField] private DoorLeafCollisionRelay leafCollisionRelay;
+
+        [Header("Impact")]
+        [Tooltip("What this door does to a player it hits while swinging. Leave empty for a door that never knocks anyone over.")]
+        [SerializeField] private ImpactProfileSO impactProfile;
 
         [Header("Angles")]
         [SerializeField] private float closedAngle;
@@ -34,17 +40,31 @@ namespace Objects
         // closing: the server only ever drove the Rigidbody, so the Transform stayed at rest.
         private float _currentAngle;
 
+        // +1 / -1 while swinging, so an impact knows which way the leaf is travelling.
+        private float _swingSign;
+
         public override void OnNetworkSpawn()
         {
             _state.OnValueChanged += OnStateChanged;
 
             navMeshObstacle.carving = _state.Value == DoorState.Closed;
             ApplyAngle(AngleFor(_state.Value), snap: true);
+
+            // The root has no Collider — the leaf does — so hits arrive through the relay.
+            if (IsServer && leafCollisionRelay != null)
+            {
+                leafCollisionRelay.OnLeafCollisionEnter += LeafCollisionRelay_OnLeafCollisionEnter;
+            }
         }
 
         public override void OnNetworkDespawn()
         {
             _state.OnValueChanged -= OnStateChanged;
+
+            if (IsServer && leafCollisionRelay != null)
+            {
+                leafCollisionRelay.OnLeafCollisionEnter -= LeafCollisionRelay_OnLeafCollisionEnter;
+            }
 
             if (_rotateRoutine != null)
             {
@@ -107,6 +127,8 @@ namespace Objects
             float startAngle = _currentAngle;
             float distance = Mathf.Abs(targetAngle - startAngle);
 
+            _swingSign = Mathf.Sign(targetAngle - startAngle);
+
             if (distance > 0f)
             {
                 // Time scales with how far this particular swing travels, so every angle moves at
@@ -133,6 +155,8 @@ namespace Objects
             }
 
             ApplyAngle(targetAngle);
+
+            _swingSign = 0f;
             _rotateRoutine = null;
         }
 
@@ -152,14 +176,29 @@ namespace Objects
             }
         }
 
-        private void OnCollisionEnter(Collision collision)
+        private void LeafCollisionRelay_OnLeafCollisionEnter(Collision collision)
         {
-            if (!IsServer) return;
+            if (!IsServer || impactProfile == null) return;
 
-            if (collision.gameObject.TryGetComponent(out PlayerState playerState))
-            {
-                // TODO: Player ragdoll
-            }
+            // A door standing still is just scenery to walk into.
+            if (_rotateRoutine == null || _swingSign == 0f) return;
+
+            if (!collision.gameObject.TryGetComponent(out PlayerKnockdown knockdown)) return;
+
+            Vector3 hinge = doorRigidbody.transform.position;
+            Vector3 radial = collision.GetContact(0).point - hinge;
+            radial.y = 0f;
+
+            if (radial.sqrMagnitude < 0.0001f) return;
+
+            // Linear speed of the leaf at the contact point: angular speed times the lever arm.
+            float leafSpeed = openDegreesPerSecond * Mathf.Deg2Rad * radial.magnitude;
+            if (leafSpeed < impactProfile.minimumSpeed) return;
+
+            // The leaf sweeps perpendicular to the lever arm, so that is where it throws the player.
+            Vector3 direction = Vector3.Cross(Vector3.up * _swingSign, radial).normalized;
+
+            knockdown.ApplyImpact(impactProfile, direction);
         }
     }
 }

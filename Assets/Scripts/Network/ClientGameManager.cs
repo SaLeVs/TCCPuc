@@ -61,23 +61,25 @@ namespace Network
                 
             }
             
-            UserData userData = new UserData
+            ConnectionPayload.ApplyTo(NetworkManager.Singleton);
+
+            if (!NetworkManager.Singleton.StartClient())
             {
-                playerName = PlayerPrefs.GetString(NameSelector.PLAYER_NAME_KEY, "Error"),
-                userAuthId = AuthenticationService.Instance.PlayerId
-            };
-            
-            string payload = JsonUtility.ToJson(userData);
-            byte[] payloadBytes = System.Text.Encoding.UTF8.GetBytes(payload);
-            
-            NetworkManager.Singleton.NetworkConfig.ConnectionData = payloadBytes;
-            
-            NetworkManager.Singleton.StartClient();
+                Debug.LogError("ClientGameManager: StartClient failed.");
+            }
         }
-        
-        public void StartLanClient()
+
+        public bool StartLanClient()
         {
-            NetworkManager.Singleton.StartClient();
+            ConnectionPayload.ApplyTo(NetworkManager.Singleton);
+
+            if (!NetworkManager.Singleton.StartClient())
+            {
+                Debug.LogError("ClientGameManager: StartLanClient failed — check the IP, the port and the firewall.");
+                return false;
+            }
+
+            return true;
         }
 
         public void Dispose()

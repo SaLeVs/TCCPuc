@@ -17,6 +17,7 @@ namespace Player
         [SerializeField] private Transform cameraRoot;
         [SerializeField] private InputReader inputReader;
         [SerializeField] private Transform orientation;
+        [SerializeField] private Rigidbody rb;
         [SerializeField] private Renderer[] occlusionRenderers;
 
         [SerializeField] private int ownerCameraPriority = 10;
@@ -32,8 +33,9 @@ namespace Player
         
         private float _baseLookXGain;
         private float _baseLookYGain;
-        
-        
+        private float _yaw;
+
+
         public override void OnNetworkSpawn()
         {
             if (IsOwner)
@@ -130,15 +132,25 @@ namespace Player
         {
             if (IsOwner && !_isDead && !_isLocked)
             {
-                SyncBodyRotationWithCamera();
+                _yaw = panTilt.PanAxis.Value;
+                orientation.rotation = Quaternion.Euler(0f, _yaw, 0f);
             }
         }
-        
-        private void SyncBodyRotationWithCamera()
+
+        private void FixedUpdate()
         {
-            float yaw = panTilt.PanAxis.Value;
-            orientation.rotation = Quaternion.Euler(0f, yaw, 0f);
-            transform.rotation = Quaternion.Euler(0f, yaw, 0f);
+            if (!IsOwner || _isDead || _isLocked) return;
+
+            Quaternion bodyRotation = Quaternion.Euler(0f, _yaw, 0f);
+            
+            if (rb != null)
+            {
+                rb.MoveRotation(bodyRotation);
+            }
+            else
+            {
+                transform.rotation = bodyRotation;
+            }
         }
         
         private void CacheBaseSensitivityGains()
@@ -174,5 +186,6 @@ namespace Player
                 cinemachineCamera.Priority = 0;
             }
         }
+        
     }
 }

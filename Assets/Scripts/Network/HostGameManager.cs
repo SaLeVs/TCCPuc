@@ -3,7 +3,6 @@ using System.Threading.Tasks;
 using Systems;
 using Unity.Netcode;
 using Unity.Netcode.Transports.UTP;
-using Unity.Services.Authentication;
 using Unity.Services.Relay;
 using Unity.Services.Relay.Models;
 using UnityEngine;
@@ -53,27 +52,36 @@ namespace Network
             
             NetworkServer = new NetworkServer(NetworkManager.Singleton);
 
-            UserData userData = new UserData
+            ConnectionPayload.ApplyTo(NetworkManager.Singleton);
+
+            if (!NetworkManager.Singleton.StartHost())
             {
-                playerName = PlayerPrefs.GetString(NameSelector.PLAYER_NAME_KEY, "Error"),
-                userAuthId = AuthenticationService.Instance.PlayerId
-            };
-            
-            string payload = JsonUtility.ToJson(userData);
-            byte[] payloadBytes = System.Text.Encoding.UTF8.GetBytes(payload);
-            
-            NetworkManager.Singleton.NetworkConfig.ConnectionData = payloadBytes;
-            
-            NetworkManager.Singleton.StartHost();
+                Debug.LogError("HostGameManager: StartHost failed.");
+                return null;
+            }
+
             Loader.LoadNetwork(Loader.Scene.Lobby);
-            
+
             return _joinCode;
         }
-        
-        public void StartLanHost()
+
+        public bool StartLanHost()
         {
-            NetworkManager.Singleton.StartHost();
+            if (NetworkServer == null)
+            {
+                NetworkServer = new NetworkServer(NetworkManager.Singleton);
+            }
+
+            ConnectionPayload.ApplyTo(NetworkManager.Singleton);
+
+            if (!NetworkManager.Singleton.StartHost())
+            {
+                Debug.LogError("HostGameManager: StartLanHost failed — check that the port is free and not blocked by the firewall.");
+                return false;
+            }
+
             Loader.LoadNetwork(Loader.Scene.Lobby);
+            return true;
         }
 
         public void Dispose()

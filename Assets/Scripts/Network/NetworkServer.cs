@@ -22,13 +22,15 @@ namespace Network
 
         private void NetworkManager_ApprovalCheck(NetworkManager.ConnectionApprovalRequest request, NetworkManager.ConnectionApprovalResponse response)
         {
-            string payload = System.Text.Encoding.UTF8.GetString(request.Payload);
-            UserData userData = JsonUtility.FromJson<UserData>(payload);
-            
+            UserData userData = ConnectionPayload.Parse(request.Payload);
+
             _clientIdToAuth[request.ClientNetworkId] = userData.userAuthId;
             _authIdToUserData[userData.userAuthId] = userData;
-            
+
             response.Approved = true;
+            response.CreatePlayerObject = false;
+
+            Debug.Log($"NetworkServer: Approved client {request.ClientNetworkId} as '{userData.playerName}'");
         }
         
         private void NetworkManager_OnServerStarted()

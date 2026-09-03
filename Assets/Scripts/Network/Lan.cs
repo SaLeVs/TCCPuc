@@ -49,26 +49,29 @@ namespace Network
 
         public void StartSessionLan()
         {
-            if (!ushort.TryParse(_port, out ushort portNumber))
-            {
-                Debug.LogError("Port number is not valid!");
-                return;
-            }
+            if (!TryReadPort(out ushort portNumber)) return;
 
             MultiplayerModeManager.SetLan();
 
             UnityTransport transport = NetworkManager.Singleton.GetComponent<UnityTransport>();
-            transport.SetConnectionData("0.0.0.0", portNumber);
+            
+            transport.SetConnectionData("0.0.0.0", portNumber, "0.0.0.0");
 
-            Debug.Log($"Set connection data: port - {portNumber}, ip - {_ip}");
-            HostSingleton.instance.gameManager.StartLanHost();
+            Debug.Log($"Lan: hosting on 0.0.0.0:{portNumber}");
+
+            if (!HostSingleton.instance.gameManager.StartLanHost())
+            {
+                ConnectionFeedback.Report($"Not possible on port {portNumber}. It may be in use or blocked by the firewall.");
+            }
         }
 
         public void JoinSessionLan()
         {
-            if (!ushort.TryParse(_port, out ushort portNumber))
+            if (!TryReadPort(out ushort portNumber)) return;
+
+            if (!IsValidIPv4(_ip))
             {
-                Debug.LogError("Port number is not valid!");
+                ConnectionFeedback.Report($"Invalid IP: '{_ip}'. Use the format 0.0.0.0 (e.g., 192.168.0.10).");
                 return;
             }
 
@@ -77,9 +80,39 @@ namespace Network
             UnityTransport transport = NetworkManager.Singleton.GetComponent<UnityTransport>();
             transport.SetConnectionData(_ip, portNumber);
 
-            Debug.Log($"Set connection data: port - {portNumber}, ip - {_ip}");
+            Debug.Log($"Lan: connecting to {_ip}:{portNumber}");
 
-            ClientSingleton.instance.gameManager.StartLanClient();
+            if (!ClientSingleton.instance.gameManager.StartLanClient())
+            {
+                ConnectionFeedback.Report($"Not possible to start the connection with {_ip}:{portNumber}.");
+            }
+        }
+
+        private bool TryReadPort(out ushort portNumber)
+        {
+            if (!ushort.TryParse(_port, out portNumber) || portNumber == 0)
+            {
+                ConnectionFeedback.Report($"Invalid port: '{_port}'. Use a number between 1 and 65535.");
+                return false;
+            }
+
+            return true;
+        }
+
+        private static bool IsValidIPv4(string value)
+        {
+            if (string.IsNullOrWhiteSpace(value)) return false;
+
+            string[] parts = value.Split('.');
+            if (parts.Length != 4) return false;
+
+            foreach (string part in parts)
+            {
+                if (part.Length == 0 || part.Length > 3) return false;
+                if (!byte.TryParse(part, out _)) return false;
+            }
+
+            return true;
         }
     }
 }

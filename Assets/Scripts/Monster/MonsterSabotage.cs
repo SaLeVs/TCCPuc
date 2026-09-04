@@ -110,18 +110,109 @@ namespace Monster
 
         public void Execute(List<ISabotageable> targets)
         {
+            bool hitRegistered = false;
+
             foreach (ISabotageable target in targets)
             {
                 target.Sabotage();
-                
+
                 int index = _sabotageTargets.IndexOf(target);
-                if (index < 0) continue;
+
+                if (index < 0)
+                {
+                    hitRegistered = true;
+                    continue;
+                }
 
                 SabotageClientRpc(index);
             }
 
+            // Registered targets have no index that means the same thing on every peer, so they
+            // replicate by type instead: everyone spawns the same rooms, so the sets match.
+            if (hitRegistered)
+            {
+                SabotageRegisteredRpc(_currentSabotageType);
+            }
+
             OnSabotageSound?.Invoke(transform.position);
             OnSabotageStartedAnimation?.Invoke();
+        }
+
+        /// <summary>
+        /// Puts every sabotaged target of a type back. Server-side — the electric circuit is what
+        /// calls this for the lights. Returns how many were actually restored.
+        /// </summary>
+        public int RestoreAll(SabotageType type)
+        {
+            if (!IsServer) return 0;
+
+            int restored = 0;
+
+            for (int i = 0; i < _sabotageTargets.Count; i++)
+            {
+                ISabotageable target = _sabotageTargets[i];
+                if (target.SabotageType != type || !target.IsSabotaged) continue;
+
+                target.Restore();
+                RestoreClientRpc(i);
+                restored++;
+            }
+
+            bool hitRegistered = false;
+
+            foreach (ISabotageable target in SabotageRegistry.All)
+            {
+                if (target.SabotageType != type || !target.IsSabotaged) continue;
+
+                target.Restore();
+                hitRegistered = true;
+                restored++;
+            }
+
+            if (hitRegistered)
+            {
+                RestoreRegisteredRpc(type);
+            }
+
+            return restored;
+        }
+
+        /// <summary>Is anything of this type currently broken? Gates the circuit's interaction.</summary>
+        public bool HasSabotagedOfType(SabotageType type)
+        {
+            foreach (ISabotageable target in _sabotageTargets)
+            {
+                if (target.SabotageType == type && target.IsSabotaged) return true;
+            }
+
+            foreach (ISabotageable target in SabotageRegistry.All)
+            {
+                if (target.SabotageType == type && target.IsSabotaged) return true;
+            }
+
+            return false;
+        }
+
+        [Rpc(SendTo.ClientsAndHost)]
+        private void SabotageRegisteredRpc(SabotageType type)
+        {
+            if (IsServer) return;
+
+            foreach (ISabotageable target in SabotageRegistry.All)
+            {
+                if (target.SabotageType == type && !target.IsSabotaged) target.Sabotage();
+            }
+        }
+
+        [Rpc(SendTo.ClientsAndHost)]
+        private void RestoreRegisteredRpc(SabotageType type)
+        {
+            if (IsServer) return;
+
+            foreach (ISabotageable target in SabotageRegistry.All)
+            {
+                if (target.SabotageType == type && target.IsSabotaged) target.Restore();
+            }
         }
 
         public void Restore(ISabotageable target)

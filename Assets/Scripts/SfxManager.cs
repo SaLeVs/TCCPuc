@@ -4,6 +4,7 @@ using Enums;
 using Missions;
 using Monster;
 using Objects;
+using Systems;
 using Player;
 using ScriptableObjects;
 using UnityEngine;
@@ -38,6 +39,7 @@ public class SfxManager : MonoBehaviour
         MonsterDoorForcer.OnDoorHitSound += MonsterDoorForcer_OnDoorHitSound;
 
         Door.OnDoorBlockedSound += Door_OnDoorBlockedSound;
+        ElectricCircuit.OnCircuitRestoredSound += ElectricCircuit_OnCircuitRestoredSound;
     }
 
 
@@ -97,6 +99,11 @@ public class SfxManager : MonoBehaviour
     private void Door_OnDoorBlockedSound(Vector3 position)
     {
         PlaySound(audioClipRefsSO.doorBlocked, position);
+    }
+
+    private void ElectricCircuit_OnCircuitRestoredSound(Vector3 position)
+    {
+        PlaySound(audioClipRefsSO.circuitRestored, position);
     }
     
 
@@ -166,6 +173,7 @@ public class SfxManager : MonoBehaviour
         MonsterDoorForcer.OnDoorHitSound -= MonsterDoorForcer_OnDoorHitSound;
 
         Door.OnDoorBlockedSound -= Door_OnDoorBlockedSound;
+        ElectricCircuit.OnCircuitRestoredSound -= ElectricCircuit_OnCircuitRestoredSound;
     }
     
 }

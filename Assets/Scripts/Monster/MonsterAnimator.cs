@@ -38,6 +38,13 @@ namespace Monster
             
             _monsterBrain.MonsterSearch.OnSearchStartedAnimation += PlaySearch;
             _monsterBrain.MonsterSearch.OnSearchEndedAnimation += PlayIdleCombat;
+
+            if (_monsterBrain.MonsterDoorForcer != null)
+            {
+                // Forcing a door reuses the attack swipe.
+                _monsterBrain.MonsterDoorForcer.OnDoorHitAnimation += PlayAttack;
+                _monsterBrain.MonsterDoorForcer.OnDoorHitEndedAnimation += PlayIdleCombat;
+            }
         }
 
         
@@ -67,7 +74,13 @@ namespace Monster
             
             _monsterBrain.MonsterSearch.OnSearchStartedAnimation -= PlaySearch;
             _monsterBrain.MonsterSearch.OnSearchEndedAnimation -= PlayIdleCombat;
-            
+
+            if (_monsterBrain.MonsterDoorForcer != null)
+            {
+                _monsterBrain.MonsterDoorForcer.OnDoorHitAnimation -= PlayAttack;
+                _monsterBrain.MonsterDoorForcer.OnDoorHitEndedAnimation -= PlayIdleCombat;
+            }
+
             _monsterBrain = null;
         }
     }

@@ -42,6 +42,7 @@ GameObject:
   - component: {fileID: 368035229322626974}
   - component: {fileID: 6845968548665118180}
   - component: {fileID: 3039877723308933725}
+  - component: {fileID: 8450190924544048729}
   m_Layer: 8
   m_Name: Door_Exit
   m_TagString: Untagged
@@ -73,14 +74,14 @@ NavMeshObstacle:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 5154175870565505241}
-  m_Enabled: 1
+  m_Enabled: 0
   serializedVersion: 3
   m_Shape: 1
-  m_Extents: {x: 0.5, y: 1.05, z: 0.125}
+  m_Extents: {x: 0.4991162, y: 1.05, z: 0.125}
   m_MoveThreshold: 0.1
-  m_Carve: 1
+  m_Carve: 0
   m_CarveOnlyStationary: 1
-  m_Center: {x: -0.46, y: 1, z: -0.05}
+  m_Center: {x: -0.4691162, y: 1, z: -0.05}
   m_TimeToStationary: 0.5
 --- !u!114 &3039877723308933725
 MonoBehaviour:
@@ -104,6 +105,27 @@ MonoBehaviour:
   openSideAAngle: 120
   openSideBAngle: -120
   openDegreesPerSecond: 250
+  monsterLockSeconds: 3
+--- !u!114 &8450190924544048729
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5154175870565505241}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1e3fdca004f2d45fe8abbed571a8abd5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Unity.AI.Navigation::Unity.AI.Navigation.NavMeshModifier
+  m_SerializedVersion: 0
+  m_OverrideArea: 0
+  m_Area: 0
+  m_OverrideGenerateLinks: 0
+  m_GenerateLinks: 0
+  m_IgnoreFromBuild: 1
+  m_ApplyToChildren: 1
+  m_AffectedAgents: ffffffff
 --- !u!1 &7462114213329178385
 GameObject:
   m_ObjectHideFlags: 0

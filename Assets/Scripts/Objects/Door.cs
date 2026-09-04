@@ -1,4 +1,5 @@
 using System.Collections;
+
 using Enums;
 using Interfaces;
 using Player;
@@ -11,7 +12,7 @@ using UnityEngine.Serialization;
 namespace Objects
 {
     [RequireComponent(typeof(NavMeshObstacle))]
-    public class Door : NetworkBehaviour, IInteractable
+    public class Door : NetworkBehaviour, IInteractable, IForceableDoor
     {
         [Header("References")]
         [SerializeField] private Transform doorPivot;
@@ -32,6 +33,16 @@ namespace Objects
         [Header("Settings")]
         [SerializeField] private float openDegreesPerSecond = 300f;
 
+        [Tooltip("How long the door refuses to be touched after the monster forces it, so nobody can shut it back in its face on a loop.")]
+        [SerializeField] private float monsterLockSeconds = 3f;
+
+        public Vector3 Position => transform.position;
+        public bool IsClosed => _state.Value == DoorState.Closed;
+        public bool IsSwinging => _rotateRoutine != null;
+
+        /// <summary>Server-side: the door was just forced and will not answer interaction yet.</summary>
+        public bool IsLockedByMonster => Time.time < _lockedUntilTime;
+
         private readonly NetworkVariable<DoorState> _state = new NetworkVariable<DoorState>(DoorState.Closed);
 
         private Coroutine _rotateRoutine;
@@ -43,15 +54,22 @@ namespace Objects
         // +1 / -1 while swinging, so an impact knows which way the leaf is travelling.
         private float _swingSign;
 
+        private float _lockedUntilTime;
+
         public override void OnNetworkSpawn()
         {
             _state.OnValueChanged += OnStateChanged;
 
-            navMeshObstacle.carving = _state.Value == DoorState.Closed;
+            // The doorway always stays on the navmesh. Carving it away is what used to make a
+            // closed door unreachable — the monster now walks up to it and forces it open instead.
+            navMeshObstacle.enabled = false;
+
             ApplyAngle(AngleFor(_state.Value), snap: true);
 
+            if (!IsServer) return;
+
             // The root has no Collider — the leaf does — so hits arrive through the relay.
-            if (IsServer && leafCollisionRelay != null)
+            if (leafCollisionRelay != null)
             {
                 leafCollisionRelay.OnLeafCollisionEnter += LeafCollisionRelay_OnLeafCollisionEnter;
             }
@@ -61,9 +79,12 @@ namespace Objects
         {
             _state.OnValueChanged -= OnStateChanged;
 
-            if (IsServer && leafCollisionRelay != null)
+            if (IsServer)
             {
-                leafCollisionRelay.OnLeafCollisionEnter -= LeafCollisionRelay_OnLeafCollisionEnter;
+                if (leafCollisionRelay != null)
+                {
+                    leafCollisionRelay.OnLeafCollisionEnter -= LeafCollisionRelay_OnLeafCollisionEnter;
+                }
             }
 
             if (_rotateRoutine != null)
@@ -85,17 +106,43 @@ namespace Objects
         [Rpc(SendTo.Server)]
         private void RequestToggleServerRpc(Vector3 playerPosition)
         {
+            // The monster just put its weight through this door. Shutting it straight back in its
+            // face would turn the encounter into a door-slamming contest.
+            if (IsLockedByMonster) return;
+
             if (_state.Value != DoorState.Closed)
             {
                 _state.Value = DoorState.Closed;
                 return;
             }
 
-            Vector3 toPlayer = playerPosition - doorPivot.position;
-            toPlayer.y = 0f;
+            OpenAwayFrom(playerPosition);
+        }
+
+        /// <summary>
+        /// Server-side open with no interactor behind it — what the monster uses after shouldering
+        /// the door. Never closes: forcing a door only ever opens it.
+        /// </summary>
+        public void ForceOpenFrom(Vector3 fromPosition)
+        {
+            if (!IsServer) return;
+
+            // Hold the door shut to interaction whether or not it was already open: the monster is
+            // right there either way.
+            _lockedUntilTime = Time.time + monsterLockSeconds;
+
+            OpenAwayFrom(fromPosition);
+        }
+
+        private void OpenAwayFrom(Vector3 fromPosition)
+        {
+            if (!IsServer || _state.Value != DoorState.Closed) return;
+
+            Vector3 toOpener = fromPosition - doorPivot.position;
+            toOpener.y = 0f;
 
             // Swing away from whoever opened it.
-            float side = Vector3.Dot(doorPivot.forward, toPlayer.normalized);
+            float side = Vector3.Dot(doorPivot.forward, toOpener.normalized);
 
             _state.Value = side > 0f ? DoorState.OpenSideB : DoorState.OpenSideA;
         }
@@ -112,8 +159,6 @@ namespace Objects
 
         private void OnStateChanged(DoorState previous, DoorState current)
         {
-            navMeshObstacle.carving = current == DoorState.Closed;
-
             if (_rotateRoutine != null)
             {
                 StopCoroutine(_rotateRoutine);

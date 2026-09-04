@@ -44,6 +44,9 @@ namespace Monster
         public bool ShouldEnterAlert { get; set; }
         
         public bool IsTrackingLostTarget => _trackingTimer > 0f && LastKnownTarget != null;
+
+        /// <summary>Sees someone, or still holds a fix on someone it just lost.</summary>
+        public bool IsHunting => _playersInVision.Count > 0 || IsTrackingLostTarget;
         public bool IsForcingDoor => monsterDoorForcer != null && monsterDoorForcer.IsForcingDoor;
 
         private StateMachine _stateMachine;

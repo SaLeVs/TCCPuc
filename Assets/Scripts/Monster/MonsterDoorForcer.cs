@@ -6,12 +6,6 @@ using UnityEngine.AI;
 
 namespace Monster
 {
-    /// <summary>
-    /// Gets the monster through a shut door. Doors never cut the navmesh, so the monster simply
-    /// walks the doorway; when a closed one turns up in front of it, it stops, swipes at it with
-    /// the attack animation, and carries on once the leaf is clear. Those seconds are the head
-    /// start the player bought by closing it.
-    /// </summary>
     public class MonsterDoorForcer : NetworkBehaviour
     {
         public static Action<Vector3> OnDoorHitSound;
@@ -37,7 +31,6 @@ namespace Monster
         [Tooltip("Layers the door leaves live on.")]
         [SerializeField] private LayerMask doorLayers;
 
-        /// <summary>True while the monster is busy at a door — movement states must hold off.</summary>
         public bool IsForcingDoor => _door != null;
 
         private NavMeshAgent _agent;

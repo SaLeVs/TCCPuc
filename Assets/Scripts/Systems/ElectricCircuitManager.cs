@@ -7,11 +7,6 @@ using Random = UnityEngine.Random;
 
 namespace Systems
 {
-    /// <summary>
-    /// Places the electric circuit once the rooms exist. Implements IMissionSpawnable, so
-    /// MissionManager.OnRoomsSpawned already calls it — the same hook the mission props use, which
-    /// is the only moment the room spawn points are guaranteed to be in the scene.
-    /// </summary>
     public class ElectricCircuitManager : NetworkBehaviour, IMissionSpawnable
     {
         public event Action OnSpawnCompleted;
@@ -59,8 +54,7 @@ namespace Systems
         private CircuitSpawnPoint PickSpawnPoint()
         {
             List<CircuitSpawnPoint> candidates = new List<CircuitSpawnPoint>();
-
-            // Rooms are instantiated moments before this runs, so their points only exist now.
+            
             candidates.AddRange(FindObjectsByType<CircuitSpawnPoint>(FindObjectsSortMode.None));
 
             foreach (CircuitSpawnPoint point in fallbackSpawnPoints)

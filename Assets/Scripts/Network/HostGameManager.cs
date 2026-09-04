@@ -1,9 +1,9 @@
 using System;
 using System.Threading.Tasks;
+using Components;
 using Systems;
 using Unity.Netcode;
 using Unity.Netcode.Transports.UTP;
-using Unity.Services.Authentication;
 using Unity.Services.Relay;
 using Unity.Services.Relay.Models;
 using UnityEngine;
@@ -26,7 +26,12 @@ namespace Network
                 NetworkServer.Dispose();
                 NetworkServer = null;
             }
-            
+
+            // A leftover session (LAN or a previous online attempt) makes StartHost() fail.
+            await NetworkSession.EnsureStoppedAsync();
+
+            MultiplayerModeManager.SetOnline();
+
             try
             {
                 _allocation = await RelayService.Instance.CreateAllocationAsync(MAX_CONNECTIONS);
@@ -34,6 +39,8 @@ namespace Network
             catch (Exception e)
             {
                 Debug.LogError(e);
+                ConnectionFeedback.Report("Não foi possível criar a sala no Relay. Verifique a conexão com a internet.");
+                return null;
             }
 
             try
@@ -44,6 +51,8 @@ namespace Network
             catch (Exception e)
             {
                 Debug.LogError(e);
+                ConnectionFeedback.Report("Não foi possível obter o código da sala.");
+                return null;
             }
 
             if (NetworkManager.Singleton.TryGetComponent(out UnityTransport transport))
@@ -53,27 +62,45 @@ namespace Network
             
             NetworkServer = new NetworkServer(NetworkManager.Singleton);
 
-            UserData userData = new UserData
+            ConnectionPayload.ApplyTo(NetworkManager.Singleton);
+
+            if (!NetworkManager.Singleton.StartHost())
             {
-                playerName = PlayerPrefs.GetString(NameSelector.PLAYER_NAME_KEY, "Error"),
-                userAuthId = AuthenticationService.Instance.PlayerId
-            };
-            
-            string payload = JsonUtility.ToJson(userData);
-            byte[] payloadBytes = System.Text.Encoding.UTF8.GetBytes(payload);
-            
-            NetworkManager.Singleton.NetworkConfig.ConnectionData = payloadBytes;
-            
-            NetworkManager.Singleton.StartHost();
+                Debug.LogError("HostGameManager: StartHost failed.");
+                return null;
+            }
+
             Loader.LoadNetwork(Loader.Scene.Lobby);
-            
+
             return _joinCode;
         }
-        
-        public void StartLanHost()
+
+        public async Task<bool> StartLanHostAsync()
         {
-            NetworkManager.Singleton.StartHost();
+            // Dispose before EnsureStoppedAsync: NetworkServer.Dispose() shuts the NetworkManager
+            // down when it is still listening, and that shutdown has to happen inside the wait
+            // below so its disconnect callback is seen as part of this restart.
+            if (NetworkServer != null)
+            {
+                NetworkServer.Dispose();
+                NetworkServer = null;
+            }
+
+            // A leftover session (LAN or a previous online attempt) makes StartHost() fail.
+            await NetworkSession.EnsureStoppedAsync();
+
+            NetworkServer = new NetworkServer(NetworkManager.Singleton);
+
+            ConnectionPayload.ApplyTo(NetworkManager.Singleton);
+
+            if (!NetworkManager.Singleton.StartHost())
+            {
+                Debug.LogError($"HostGameManager: StartLanHost failed. {NetworkSession.DescribeState()}");
+                return false;
+            }
+
             Loader.LoadNetwork(Loader.Scene.Lobby);
+            return true;
         }
 
         public void Dispose()

@@ -13,14 +13,24 @@ namespace Monster
         private Vector3 randomDirection;
         
         
-        public Vector3 GetRandomPointInSector()
+        /// <summary>
+        /// A failed SamplePosition leaves hit.position at infinity, and feeding that to the agent
+        /// is what produced the "setting destination to infinity is ignored" spam — the monster
+        /// then kept its old path and stuttered. Returns false instead of a garbage point.
+        /// </summary>
+        public bool TryGetRandomPointInSector(out Vector3 point)
         {
             randomDirection = Random.insideUnitSphere * patrolSectorRadius;
             randomDirection += transform.position;
-            
-            NavMesh.SamplePosition(randomDirection, out NavMeshHit hit, patrolSectorRadius, 1);
 
-            return hit.position;
+            if (NavMesh.SamplePosition(randomDirection, out NavMeshHit hit, patrolSectorRadius, 1))
+            {
+                point = hit.position;
+                return true;
+            }
+
+            point = transform.position;
+            return false;
         }
         
         private void OnDrawGizmos()

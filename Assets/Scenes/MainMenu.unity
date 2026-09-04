@@ -38300,6 +38300,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1902624049}
   - component: {fileID: 1902624050}
+  - component: {fileID: 1902624051}
   m_Layer: 0
   m_Name: LanManager
   m_TagString: Untagged
@@ -38337,6 +38338,20 @@ MonoBehaviour:
   ipInput: {fileID: 767551902}
   portInput: {fileID: 1946227091}
   port: 7777
+--- !u!114 &1902624051
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1902624048}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6fdf48f6e680dad49a07042056f20d47, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Network::Network.ConnectionFeedback
+  messageLabel: {fileID: 0}
+  messageDuration: 8
 --- !u!1001 &1917208672
 PrefabInstance:
   m_ObjectHideFlags: 0

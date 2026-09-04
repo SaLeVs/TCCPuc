@@ -11,7 +11,7 @@ GameObject:
   - component: {fileID: 4774272786008008996}
   - component: {fileID: 5447018069642328415}
   - component: {fileID: 3564816938215361566}
-  m_Layer: 9
+  m_Layer: 8
   m_Name: GFX
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -103,7 +103,7 @@ GameObject:
   - component: {fileID: 7081086976419277610}
   - component: {fileID: 587608046940699343}
   - component: {fileID: 4523274771507174324}
-  m_Layer: 9
+  m_Layer: 8
   m_Name: LeafRight
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -208,7 +208,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 7257680344211552655}
-  m_Layer: 9
+  m_Layer: 8
   m_Name: DoorFacing
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -288,7 +288,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 919132149155446097, guid: cef564be14493164db27d15ca13b66fd, type: 3}
       propertyPath: m_Layer
-      value: 9
+      value: 8
       objectReference: {fileID: 0}
     m_RemovedComponents:
     - {fileID: -7511558181221131132, guid: cef564be14493164db27d15ca13b66fd, type: 3}
@@ -308,6 +308,12 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: cef564be14493164db27d15ca13b66fd, type: 3}
       insertIndex: -1
       addedObject: {fileID: 7409972186935927049}
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: cef564be14493164db27d15ca13b66fd, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 4452018765605467386}
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: cef564be14493164db27d15ca13b66fd, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 4919010405281757955}
   m_SourcePrefab: {fileID: 100100000, guid: cef564be14493164db27d15ca13b66fd, type: 3}
 --- !u!1 &3759366471055911744 stripped
 GameObject:
@@ -330,8 +336,13 @@ MonoBehaviour:
   doorPivot: {fileID: 7257680344211552655}
   doorRigidbody: {fileID: 1721929873816632866}
   navMeshObstacle: {fileID: 7409972186935927049}
-  openAngle: 100
-  openSpeed: 3
+  leafCollisionRelay: {fileID: 587608046940699343}
+  impactProfile: {fileID: 11400000, guid: c1eef1fa3b196444284896d4bae14c64, type: 2}
+  closedAngle: 0
+  openSideAAngle: 120
+  openSideBAngle: -120
+  openDegreesPerSecond: 250
+  monsterLockSeconds: 3
 --- !u!208 &7409972186935927049
 NavMeshObstacle:
   m_ObjectHideFlags: 0
@@ -339,15 +350,48 @@ NavMeshObstacle:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 3759366471055911744}
-  m_Enabled: 1
+  m_Enabled: 0
   serializedVersion: 3
   m_Shape: 1
-  m_Extents: {x: 0.469, y: 1.0430001, z: 0.102000006}
+  m_Extents: {x: 0.49921793, y: 1.0430001, z: 0.102000006}
   m_MoveThreshold: 0.1
-  m_Carve: 1
+  m_Carve: 0
   m_CarveOnlyStationary: 1
-  m_Center: {x: -0.469, y: 1.0430001, z: 0}
+  m_Center: {x: -0.46921793, y: 1.0430001, z: 0}
   m_TimeToStationary: 0.5
+--- !u!114 &4452018765605467386
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3759366471055911744}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1e3fdca004f2d45fe8abbed571a8abd5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Unity.AI.Navigation::Unity.AI.Navigation.NavMeshModifier
+  m_SerializedVersion: 0
+  m_OverrideArea: 0
+  m_Area: 0
+  m_OverrideGenerateLinks: 0
+  m_GenerateLinks: 0
+  m_IgnoreFromBuild: 1
+  m_ApplyToChildren: 1
+  m_AffectedAgents: ffffffff
+--- !u!114 &4919010405281757955
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3759366471055911744}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3fd913f3c6d65a84893ec65d9f4d7507, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Monster::Monster.MonsterSabotages.DoorSabotage
+  blockSeconds: 12
 --- !u!4 &4566688847407968762 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: cef564be14493164db27d15ca13b66fd, type: 3}

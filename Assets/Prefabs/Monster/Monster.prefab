@@ -41,6 +41,7 @@ GameObject:
   m_Component:
   - component: {fileID: 2931985732990858266}
   - component: {fileID: 2554784949663478114}
+  - component: {fileID: 6437471457276487740}
   - component: {fileID: 2471495703422557301}
   - component: {fileID: 7177534589021983017}
   - component: {fileID: 5801510265212588046}
@@ -55,6 +56,7 @@ GameObject:
   - component: {fileID: 8220886843260042270}
   - component: {fileID: 9158156660860726962}
   - component: {fileID: 7437886285449800429}
+  - component: {fileID: 7054409550993874800}
   m_Layer: 9
   m_Name: Monster
   m_TagString: Untagged
@@ -104,6 +106,23 @@ MonoBehaviour:
   AutoObjectParentSync: 1
   SyncOwnerTransformWhenParented: 1
   AllowOwnerToParent: 0
+--- !u!114 &6437471457276487740
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2397166377357422809}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f6c0be61502bb534f922ebb746851216, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Unity.Netcode.Runtime::Unity.Netcode.Components.NetworkRigidbody
+  ShowTopMostFoldoutHeaderGroup: 1
+  NetworkRigidbodyBaseExpanded: 0
+  UseRigidBodyForMotion: 0
+  AutoUpdateKinematicState: 1
+  AutoSetKinematicOnDespawn: 1
 --- !u!114 &2471495703422557301
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -171,6 +190,8 @@ MonoBehaviour:
   monsterAttack: {fileID: 3757600163404236341}
   monsterAnimator: {fileID: 8840795157782606983}
   monsterSearch: {fileID: 5948121288489261731}
+  monsterDoorForcer: {fileID: 7054409550993874800}
+  trackingGraceSeconds: 3
 --- !u!114 &5801510265212588046
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -576,8 +597,8 @@ Rigidbody:
   m_UseGravity: 0
   m_IsKinematic: 1
   m_Interpolate: 1
-  m_Constraints: 80
-  m_CollisionDetection: 0
+  m_Constraints: 126
+  m_CollisionDetection: 3
 --- !u!195 &9158156660860726962
 NavMeshAgent:
   m_ObjectHideFlags: 0
@@ -587,7 +608,7 @@ NavMeshAgent:
   m_GameObject: {fileID: 2397166377357422809}
   m_Enabled: 1
   m_AgentTypeID: 0
-  m_Radius: 0.5
+  m_Radius: 0.25
   m_Speed: 2
   m_Acceleration: 8
   avoidancePriority: 50
@@ -623,6 +644,27 @@ CapsuleCollider:
   m_Height: 1.8005927
   m_Direction: 1
   m_Center: {x: 0.00034868717, y: 0.92244256, z: 0}
+--- !u!114 &7054409550993874800
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2397166377357422809}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7c44fd89128cb814c9d551cd05c2621a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Monster::Monster.MonsterDoorForcer
+  ShowTopMostFoldoutHeaderGroup: 1
+  detectDistance: 1.3
+  probeHeight: 1
+  attackSeconds: 0.9
+  faceDoorSpeed: 8
+  retryCooldown: 0.6
+  doorLayers:
+    serializedVersion: 2
+    m_Bits: 256
 --- !u!1 &8968525623132493308
 GameObject:
   m_ObjectHideFlags: 0

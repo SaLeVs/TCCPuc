@@ -4,20 +4,15 @@ using UnityEngine;
 public class Highlight : MonoBehaviour, IHighlighted
 {
     [SerializeField] private Outline outline;
-    
-    public void Disable()
-    {
-        if (outline != null)
-        {
-            outline.enabled = false;
-        }
-    }
 
-    public void Enable()
+    public void Enable() => SetOutlineVisible(true);
+
+    public void Disable() => SetOutlineVisible(false);
+
+    private void SetOutlineVisible(bool visible)
     {
-        if (outline != null)
-        {
-            outline.enabled = true;
-        }
+        if (outline == null) return;
+
+        outline.enabled = visible;
     }
 }

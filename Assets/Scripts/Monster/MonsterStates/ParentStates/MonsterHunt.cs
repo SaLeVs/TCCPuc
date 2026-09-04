@@ -25,12 +25,21 @@ namespace Monster.MonsterStates.ParentStates
 
         protected override void OnUpdate(float deltaTime)
         {
+            // Held at a door: the forcer already owns the agent and the attack animation. Letting
+            // the chase/attack swap run on top of it drives both at once and makes it stutter.
+            if (_monsterBrain.IsForcingDoor) return;
+
             _monsterBrain.MonsterChase.UpdateDistanceFromTarget();
-            
+
             distanceToTarget = _monsterBrain.MonsterChase.DistanceFromTarget;
             distanceToAttack = _monsterBrain.MonsterAttack.DistanceToAttack;
-            
-            if (distanceToTarget <= distanceToAttack)
+
+            // Only swing at something it can actually see. While it is coasting on a lost target's
+            // last fix the distance is still real, and without this it attacks through the wall it
+            // is chasing you around — stopping, swinging, stopping again instead of running.
+            bool canSeeTarget = _monsterBrain._playersInVision.Count > 0;
+
+            if (canSeeTarget && distanceToTarget <= distanceToAttack)
             {
                 if (ActiveChild != attackState)
                 {

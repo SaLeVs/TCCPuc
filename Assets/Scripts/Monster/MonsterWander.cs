@@ -137,12 +137,20 @@ namespace Monster
 
                 if (_wanderTimer >= _currentWanderInterval)
                 {
+                    // No point on the navmesh this time: stay put and try again next interval
+                    // rather than handing the agent an invalid destination.
+                    if (!_currentSector.TryGetRandomPointInSector(out Vector3 destination))
+                    {
+                        _wanderTimer = 0f;
+                        return;
+                    }
+
                     _waitingAtPoint = false;
                     _wanderTimer = 0f;
                     _currentWanderInterval = Random.Range(minWanderIntervalForEachPoint, maxWanderIntervalForEachPoint);
                     _agent.isStopped = false;
-                    _agent.SetDestination(_currentSector.GetRandomPointInSector());
-                    
+                    _agent.SetDestination(destination);
+
                     OnStartedMovingAnimation?.Invoke();
                 }
             }

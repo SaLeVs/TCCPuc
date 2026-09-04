@@ -24,22 +24,35 @@ namespace Monster
         [SerializeField] private MonsterAttack monsterAttack;
         [SerializeField] private MonsterAnimator monsterAnimator;
         [SerializeField] private MonsterSearch monsterSearch;
+        [SerializeField] private MonsterDoorForcer monsterDoorForcer;
         
+        [Tooltip("Seconds the monster keeps a perfect fix on a target after losing sight of it.")]
+        [SerializeField] private float trackingGraceSeconds = 3f;
+
         public MonsterWander MonsterWander => monsterWander;
         public MonsterSabotage MonsterSabotage => monsterSabotage;
         public MonsterChase MonsterChase => monsterChase;
         public MonsterAttack MonsterAttack => monsterAttack;
         public MonsterAnimator MonsterAnimator => monsterAnimator;
         public MonsterSearch MonsterSearch => monsterSearch;
+        public MonsterDoorForcer MonsterDoorForcer => monsterDoorForcer;
+        
         
         public readonly List<Transform> _playersInVision = new();
         public Vector3 LastKnownTargetPosition { get; private set; }
         public Transform LastKnownTarget { get; private set; }
         public bool ShouldEnterAlert { get; set; }
         
+        public bool IsTrackingLostTarget => _trackingTimer > 0f && LastKnownTarget != null;
+
+        /// <summary>Sees someone, or still holds a fix on someone it just lost.</summary>
+        public bool IsHunting => _playersInVision.Count > 0 || IsTrackingLostTarget;
+        public bool IsForcingDoor => monsterDoorForcer != null && monsterDoorForcer.IsForcingDoor;
+
         private StateMachine _stateMachine;
         private State _rootState;
         private string _lastPath;
+        private float _trackingTimer;
 
         
         private void Awake()
@@ -58,6 +71,11 @@ namespace Monster
             MonsterSabotage.Initialize();
             MonsterSearch.Initialize(navMeshAgent);
             MonsterAttack.Initialize(navMeshAgent);
+
+            if (monsterDoorForcer != null)
+            {
+                monsterDoorForcer.Initialize(navMeshAgent);
+            }
             
             if (!IsServer) return;
             
@@ -70,9 +88,13 @@ namespace Monster
         private void VisionSensor_OnTargetEnter(GameObject player)
         {
             _playersInVision.Add(player.transform);
+            
+            _trackingTimer = 0f;
+            ShouldEnterAlert = false;
+
             OnPlayerEnterInVision?.Invoke(player.transform);
         }
-        
+
         private void VisionSensor_OnTargetExit(GameObject player)
         {
             _playersInVision.Remove(player.transform);
@@ -82,16 +104,49 @@ namespace Monster
                 LastKnownTargetPosition = player.transform.position;
                 LastKnownTarget = player.transform;
 
-                ShouldEnterAlert = true;
+                _trackingTimer = trackingGraceSeconds;
             }
 
             OnPlayerExitInVision?.Invoke(player.transform);
         }
-        
+
+        private void TickTracking(float deltaTime)
+        {
+            if (_trackingTimer <= 0f) return;
+
+            if (LastKnownTarget == null)
+            {
+                GoCold();
+                return;
+            }
+            
+            LastKnownTargetPosition = LastKnownTarget.position;
+
+            _trackingTimer -= deltaTime;
+            if (_trackingTimer > 0f) return;
+
+            GoCold();
+        }
+
+        private void GoCold()
+        {
+            _trackingTimer = 0f;
+            ShouldEnterAlert = true;
+
+            MonsterChase.ForgetTarget();
+        }
+
         private void Update()
         {
             if (!IsServer) return;
+
+            TickTracking(Time.deltaTime);
             
+            if (monsterDoorForcer != null)
+            {
+                monsterDoorForcer.Tick(Time.deltaTime);
+            }
+
             _stateMachine.Tick(Time.deltaTime);
             
             string statePath = StatePath(_stateMachine.Root.Leaf());

@@ -23,6 +23,7 @@ namespace Monster
         private float _timer;
         private bool _isAttacking;
         private NavMeshAgent _agent;
+        private ObstacleAvoidanceType _defaultAvoidance = ObstacleAvoidanceType.HighQualityObstacleAvoidance;
 
 
         public override void OnNetworkSpawn()
@@ -31,9 +32,10 @@ namespace Monster
             hitbox.DisableHitbox();
         }
 
-        public void Initialize(NavMeshAgent agent) 
+        public void Initialize(NavMeshAgent agent)
         {
             _agent = agent;
+            _defaultAvoidance = agent.obstacleAvoidanceType;
         }
         
         public void StartAttack()
@@ -68,7 +70,11 @@ namespace Monster
             OnAttackEndedAnimation?.Invoke();
             _isAttacking = false;
             _agent.isStopped = false;
-            _agent.obstacleAvoidanceType = ObstacleAvoidanceType.NoObstacleAvoidance;
+
+            // Was setting NoObstacleAvoidance again, same as StartAttack — so the first attack
+            // switched avoidance off for good and the monster stopped steering around anything.
+            _agent.obstacleAvoidanceType = _defaultAvoidance;
+
             hitbox.DisableHitbox();
         }
         
@@ -77,6 +83,7 @@ namespace Monster
             _isAttacking = false;
             hitbox.DisableHitbox();
             _agent.isStopped = false;
+            _agent.obstacleAvoidanceType = _defaultAvoidance;
         }
         
     } 

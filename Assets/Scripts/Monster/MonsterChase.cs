@@ -23,6 +23,7 @@ namespace Monster
         public float ChaseSpeed => chaseSpeed;
         
         private NavMeshAgent _agent;
+        private MonsterBrain _monsterBrain;
         private List<Transform> _monsterTargets;
         private Transform _currentTarget;
         private float _currentDistanceFromTarget = float.MaxValue;
@@ -32,8 +33,10 @@ namespace Monster
         public void Initialize(List<Transform> monsterTargetsList, NavMeshAgent agent, MonsterBrain monsterBrain)
         {
             monsterTargets = monsterTargetsList;
+            _monsterTargets = monsterTargetsList;
             _agent = agent;
-            
+            _monsterBrain = monsterBrain;
+
             if (monsterBrain != null)
             {
                 monsterBrain.OnPlayerEnterInVision += MonsterBrain_OnPlayerEnterInVision;
@@ -68,12 +71,15 @@ namespace Monster
             if (nextTarget != null)
             {
                 SetTarget(nextTarget);
+                return;
             }
-            else
-            {
-                ClearTarget();
-            }
+            
+            if (_monsterBrain != null && _monsterBrain.IsTrackingLostTarget) return;
+
+            ClearTarget();
         }
+        
+        public void ForgetTarget() => ClearTarget();
         
         private Transform GetBestAvailableTarget(Transform excludeTarget = null)
         {

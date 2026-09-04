@@ -25,6 +25,9 @@ namespace Monster.MonsterStates.AlertStates
                 return;
             }
 
+            // Held up at a door: let the forcer finish before advancing the search.
+            if (_monsterBrain.IsForcingDoor) return;
+
             _monsterBrain.MonsterSearch.Tick(deltaTime);
 
             if (_monsterBrain.MonsterSearch.IsFinished)

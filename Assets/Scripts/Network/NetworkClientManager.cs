@@ -18,6 +18,10 @@ namespace Network
 
         private void NetworkManager_OnClientDisconnect(ulong clientId)
         {
+            // A session we tore down on purpose to start another one also raises this callback.
+            // Reacting to it would load the main menu on top of the session being started.
+            if (NetworkSession.IsTransitioning) return;
+
             if (clientId != 0 && clientId != _networkManager.LocalClientId) return;
 
             if (Loader.GetCurrentScene() != Loader.GetSceneByName(Loader.Scene.MainMenu))

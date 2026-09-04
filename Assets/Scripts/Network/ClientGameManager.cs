@@ -1,5 +1,6 @@
 using System;
 using System.Threading.Tasks;
+using Components;
 using Systems;
 using Unity.Netcode;
 using Unity.Netcode.Transports.UTP;
@@ -45,39 +46,51 @@ namespace Network
 
         public async Task StartClientAsync(string joinCode)
         {
+            // Clear any leftover session first — a previous LAN/online attempt that is still
+            // listening makes StartClient() return false.
+            await NetworkSession.EnsureStoppedAsync();
+
+            MultiplayerModeManager.SetOnline();
+
             try
-            { 
+            {
                 _allocation = await RelayService.Instance.JoinAllocationAsync(joinCode);
             }
             catch (Exception e)
             {
                 Debug.Log(e);
+                ConnectionFeedback.Report("Código de sala inválido ou serviço indisponível.");
                 return;
             }
-            
+
             if (NetworkManager.Singleton.TryGetComponent(out UnityTransport transport))
             {
                 transport.SetRelayServerData(AllocationUtils.ToRelayServerData(_allocation, "dtls"));
-                
+
             }
-            
-            UserData userData = new UserData
+
+            ConnectionPayload.ApplyTo(NetworkManager.Singleton);
+
+            if (!NetworkManager.Singleton.StartClient())
             {
-                playerName = PlayerPrefs.GetString(NameSelector.PLAYER_NAME_KEY, "Error"),
-                userAuthId = AuthenticationService.Instance.PlayerId
-            };
-            
-            string payload = JsonUtility.ToJson(userData);
-            byte[] payloadBytes = System.Text.Encoding.UTF8.GetBytes(payload);
-            
-            NetworkManager.Singleton.NetworkConfig.ConnectionData = payloadBytes;
-            
-            NetworkManager.Singleton.StartClient();
+                Debug.LogError($"ClientGameManager: StartClient failed. {NetworkSession.DescribeState()}");
+                ConnectionFeedback.Report("Não foi possível iniciar a conexão. Feche e reabra a sessão e tente de novo.");
+            }
         }
-        
-        public void StartLanClient()
+
+        public async Task<bool> StartLanClientAsync()
         {
-            NetworkManager.Singleton.StartClient();
+            await NetworkSession.EnsureStoppedAsync();
+
+            ConnectionPayload.ApplyTo(NetworkManager.Singleton);
+
+            if (!NetworkManager.Singleton.StartClient())
+            {
+                Debug.LogError($"ClientGameManager: StartLanClient failed. {NetworkSession.DescribeState()}");
+                return false;
+            }
+
+            return true;
         }
 
         public void Dispose()

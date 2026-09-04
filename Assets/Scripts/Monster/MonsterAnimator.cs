@@ -38,6 +38,13 @@ namespace Monster
             
             _monsterBrain.MonsterSearch.OnSearchStartedAnimation += PlaySearch;
             _monsterBrain.MonsterSearch.OnSearchEndedAnimation += PlayIdleCombat;
+
+            if (_monsterBrain.MonsterDoorForcer != null)
+            {
+                // Forcing a door reuses the attack swipe.
+                _monsterBrain.MonsterDoorForcer.OnDoorHitAnimation += PlayAttack;
+                _monsterBrain.MonsterDoorForcer.OnDoorHitEndedAnimation += PlayAfterDoorHit;
+            }
         }
 
         
@@ -49,6 +56,16 @@ namespace Monster
         private void PlayIdleCombat() => animator.CrossFade(_idleCombat, transitionDuration);
         private void PlaySabotage() => animator.CrossFade(_sabotageState, transitionDuration);
         private void PlaySearch(int direction) => animator.CrossFade(direction == 1 ? _searchStateLeft : _searchStateRight, transitionDuration);
+
+        /// <summary>
+        /// The door forcer runs outside the state machine, so no state re-enters afterwards to
+        /// reassert its animation — without this the monster walks off still stuck on the swipe.
+        /// </summary>
+        private void PlayAfterDoorHit()
+        {
+            if (_monsterBrain.IsHunting) PlayChase();
+            else PlayWander();
+        }
         
         
         public void Uninitialize(MonsterBrain brain)
@@ -67,7 +84,13 @@ namespace Monster
             
             _monsterBrain.MonsterSearch.OnSearchStartedAnimation -= PlaySearch;
             _monsterBrain.MonsterSearch.OnSearchEndedAnimation -= PlayIdleCombat;
-            
+
+            if (_monsterBrain.MonsterDoorForcer != null)
+            {
+                _monsterBrain.MonsterDoorForcer.OnDoorHitAnimation -= PlayAttack;
+                _monsterBrain.MonsterDoorForcer.OnDoorHitEndedAnimation -= PlayAfterDoorHit;
+            }
+
             _monsterBrain = null;
         }
     }

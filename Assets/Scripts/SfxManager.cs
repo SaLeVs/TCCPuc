@@ -3,6 +3,7 @@ using Components;
 using Enums;
 using Missions;
 using Monster;
+using Objects;
 using Player;
 using ScriptableObjects;
 using UnityEngine;
@@ -34,6 +35,9 @@ public class SfxManager : MonoBehaviour
         MonsterAttack.OnMonsterAttackSound += MonsterAttack_OnMonsterAttack;
         MonsterSabotage.OnSabotageSound += MonsterSabotage_OnSabotageSound;
         MonsterChase.OnMonsterSeeTargetSound += MonsterChase_OnMonsterSeeTargetSound;
+        MonsterDoorForcer.OnDoorHitSound += MonsterDoorForcer_OnDoorHitSound;
+
+        Door.OnDoorBlockedSound += Door_OnDoorBlockedSound;
     }
 
 
@@ -83,6 +87,16 @@ public class SfxManager : MonoBehaviour
     private void MonsterChase_OnMonsterSeeTargetSound(Vector3 position)
     {
         PlaySound(audioClipRefsSO.monsterSeeTarget, position);
+    }
+
+    private void MonsterDoorForcer_OnDoorHitSound(Vector3 position)
+    {
+        PlaySound(audioClipRefsSO.monsterDoorHit, position);
+    }
+
+    private void Door_OnDoorBlockedSound(Vector3 position)
+    {
+        PlaySound(audioClipRefsSO.doorBlocked, position);
     }
     
 
@@ -149,6 +163,9 @@ public class SfxManager : MonoBehaviour
         MonsterAttack.OnMonsterAttackSound -= MonsterAttack_OnMonsterAttack;
         MonsterSabotage.OnSabotageSound -= MonsterSabotage_OnSabotageSound;
         MonsterChase.OnMonsterSeeTargetSound -= MonsterChase_OnMonsterSeeTargetSound;
+        MonsterDoorForcer.OnDoorHitSound -= MonsterDoorForcer_OnDoorHitSound;
+
+        Door.OnDoorBlockedSound -= Door_OnDoorBlockedSound;
     }
     
 }

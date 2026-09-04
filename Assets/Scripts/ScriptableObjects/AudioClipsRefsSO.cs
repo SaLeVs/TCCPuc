@@ -14,6 +14,9 @@ namespace ScriptableObjects
         public AudioClip[] monsterAttack;
         public AudioClip[] monsterSabotage;
         public AudioClip[] monsterSeeTarget;
+        public AudioClip[] monsterDoorHit;
+
+        public AudioClip[] doorBlocked;
         
         public AudioClip[] missionSuccess;
         public AudioClip[] missionReceived;

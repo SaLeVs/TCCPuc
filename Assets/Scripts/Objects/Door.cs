@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 
 using Enums;
@@ -14,6 +15,8 @@ namespace Objects
     [RequireComponent(typeof(NavMeshObstacle))]
     public class Door : NetworkBehaviour, IInteractable, IForceableDoor
     {
+        public static Action<Vector3> OnDoorBlockedSound;
+
         [Header("References")]
         [SerializeField] private Transform doorPivot;
         [SerializeField] private Rigidbody doorRigidbody;
@@ -40,8 +43,8 @@ namespace Objects
         public bool IsClosed => _state.Value == DoorState.Closed;
         public bool IsSwinging => _rotateRoutine != null;
 
-        /// <summary>Server-side: the door was just forced and will not answer interaction yet.</summary>
-        public bool IsLockedByMonster => Time.time < _lockedUntilTime;
+        /// <summary>Server-side: the monster is holding this door and it will not answer players yet.</summary>
+        public bool IsLocked => Time.time < _lockedUntilTime;
 
         private readonly NetworkVariable<DoorState> _state = new NetworkVariable<DoorState>(DoorState.Closed);
 
@@ -106,9 +109,14 @@ namespace Objects
         [Rpc(SendTo.Server)]
         private void RequestToggleServerRpc(Vector3 playerPosition)
         {
-            // The monster just put its weight through this door. Shutting it straight back in its
-            // face would turn the encounter into a door-slamming contest.
-            if (IsLockedByMonster) return;
+            // The monster is holding this door — either it just forced it and shutting it straight
+            // back would be a door-slamming contest, or it sabotaged the whole floor. Rattle it so
+            // the refusal reads as the door being held, not as the input being dropped.
+            if (IsLocked)
+            {
+                PlayBlockedSoundRpc();
+                return;
+            }
 
             if (_state.Value != DoorState.Closed)
             {
@@ -132,6 +140,36 @@ namespace Objects
             _lockedUntilTime = Time.time + monsterLockSeconds;
 
             OpenAwayFrom(fromPosition);
+        }
+
+        /// <summary>
+        /// The monster's door sabotage: slam it shut and hold it. Nothing calls Restore on a
+        /// timer, so the hold has to expire by itself — players get the door back when it does.
+        /// </summary>
+        public void CloseAndLock(float seconds)
+        {
+            if (!IsServer) return;
+
+            _lockedUntilTime = Time.time + seconds;
+
+            if (_state.Value != DoorState.Closed)
+            {
+                _state.Value = DoorState.Closed;
+            }
+        }
+
+        public void ClearLock()
+        {
+            if (!IsServer) return;
+
+            _lockedUntilTime = 0f;
+        }
+
+        [Rpc(SendTo.ClientsAndHost)]
+        private void PlayBlockedSoundRpc()
+        {
+            // Positional, so anyone nearby hears someone failing to get through.
+            OnDoorBlockedSound?.Invoke(transform.position);
         }
 
         private void OpenAwayFrom(Vector3 fromPosition)

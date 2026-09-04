@@ -67,7 +67,7 @@ namespace Monster
         public List<ISabotageable> GetAvailableTargets()
         {
             List<ISabotageable> available = new List<ISabotageable>();
-    
+
             foreach (ISabotageable target in _sabotageTargets)
             {
                 if (target.SabotageType == _currentSabotageType && !target.IsSabotaged)
@@ -75,10 +75,18 @@ namespace Monster
                     available.Add(target);
                 }
             }
-    
+            
+            foreach (ISabotageable target in SabotageRegistry.All)
+            {
+                if (target.SabotageType == _currentSabotageType && !target.IsSabotaged)
+                {
+                    available.Add(target);
+                }
+            }
+
             return available;
         }
-        
+
         public ISabotageable GetSabotagedTargets()
         {
             foreach (ISabotageable target in _sabotageTargets)
@@ -88,6 +96,15 @@ namespace Monster
                     return target;
                 }
             }
+
+            foreach (ISabotageable target in SabotageRegistry.All)
+            {
+                if (target.SabotageType == _currentSabotageType && target.IsSabotaged)
+                {
+                    return target;
+                }
+            }
+
             return null;
         }
 
@@ -95,13 +112,14 @@ namespace Monster
         {
             foreach (ISabotageable target in targets)
             {
+                target.Sabotage();
+                
                 int index = _sabotageTargets.IndexOf(target);
                 if (index < 0) continue;
 
-                target.Sabotage();
                 SabotageClientRpc(index);
             }
-            
+
             OnSabotageSound?.Invoke(transform.position);
             OnSabotageStartedAnimation?.Invoke();
         }

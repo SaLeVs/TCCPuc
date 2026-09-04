@@ -16,7 +16,16 @@ namespace Interfaces
         /// <summary>True while the leaf is still moving, so nothing walks through it mid-swing.</summary>
         bool IsSwinging { get; }
 
+        /// <summary>True while players cannot touch it. Expires on its own.</summary>
+        bool IsLocked { get; }
+
         /// <summary>Opens the door away from whoever forced it. Server-side; never closes.</summary>
         void ForceOpenFrom(Vector3 fromPosition);
+
+        /// <summary>Slams it shut and holds it that way. Server-side; the monster's sabotage.</summary>
+        void CloseAndLock(float seconds);
+
+        /// <summary>Drops the hold early.</summary>
+        void ClearLock();
     }
 }

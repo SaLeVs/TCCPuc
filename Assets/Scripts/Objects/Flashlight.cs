@@ -12,7 +12,6 @@ namespace Objects
 
         [SerializeField] private InputReader inputReader;
         [SerializeField] private Light flashlight;
-        [SerializeField] private GameObject lightBeam;
         [SerializeField] private PlayerState playerState;
 
         [SerializeField] private int batteryPercentMax = 100;
@@ -79,7 +78,6 @@ namespace Objects
         private void UpdateFlashlightVisual(bool state)
         {
             flashlight.enabled = state;
-            lightBeam.SetActive(state);
         }
         
         private void Update()

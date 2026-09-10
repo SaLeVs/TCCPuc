@@ -44,6 +44,7 @@ GameObject:
   - component: {fileID: 3039877723308933725}
   - component: {fileID: 1100352403245107897}
   - component: {fileID: 6509525733707087252}
+  - component: {fileID: 6040404984995840463}
   m_Layer: 8
   m_Name: Door_Double_Red
   m_TagString: Untagged
@@ -102,6 +103,7 @@ MonoBehaviour:
   doorRigidbody: {fileID: 5000072927107982651}
   navMeshObstacle: {fileID: 6845968548665118180}
   leafCollisionRelay: {fileID: 8339847382613564467}
+  useNoise: {fileID: 6040404984995840463}
   impactProfile: {fileID: 11400000, guid: c1eef1fa3b196444284896d4bae14c64, type: 2}
   closedAngle: 0
   openSideAAngle: 120
@@ -141,6 +143,22 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Monster::Monster.MonsterSabotages.DoorSabotage
   blockSeconds: 12
+--- !u!114 &6040404984995840463
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5154175870565505241}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e9948bcfcc217db43a2a03b12f6e637f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Components::Components.Perception.NoiseEmitter
+  type: 5
+  loudness: 16
+  cooldown: 0.4
+  origin: {fileID: 0}
 --- !u!1 &5380929468958873504
 GameObject:
   m_ObjectHideFlags: 0

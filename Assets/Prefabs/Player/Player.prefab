@@ -236,6 +236,7 @@ GameObject:
   - component: {fileID: 136951641080088674}
   - component: {fileID: 2087882945893029092}
   - component: {fileID: 1081674600101143416}
+  - component: {fileID: 7565777945021881719}
   m_Layer: 11
   m_Name: Flashlight
   m_TagString: Untagged
@@ -368,9 +369,25 @@ MonoBehaviour:
   inputReader: {fileID: 11400000, guid: b8967103b22990e4685e914ae00843a6, type: 2}
   flashlight: {fileID: 136951641080088674}
   playerState: {fileID: 315419889962386199}
-  clickNoise: {fileID: 0}
+  clickNoise: {fileID: 7565777945021881719}
   batteryPercentMax: 400
   batteryPercentDecreasePerSecond: 4
+--- !u!114 &7565777945021881719
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 256771491213197926}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e9948bcfcc217db43a2a03b12f6e637f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Components::Components.Perception.NoiseEmitter
+  type: 2
+  loudness: 4
+  cooldown: 0.2
+  origin: {fileID: 0}
 --- !u!1 &317605345587534326
 GameObject:
   m_ObjectHideFlags: 0
@@ -8567,8 +8584,10 @@ MonoBehaviour:
   micWatcherBehaviour: {fileID: 9144792236639197796}
   audioEnergyThreshold: 0.65
   voiceMakesNoise: 1
-  whisperLoudness: 6
-  shoutLoudness: 22
+  speechEnergyThreshold: 0.35
+  shoutEnergyThreshold: 0.72
+  speechLoudness: 10
+  shoutLoudness: 24
   voiceReportInterval: 0.35
 --- !u!4 &3764744458408356686 stripped
 Transform:

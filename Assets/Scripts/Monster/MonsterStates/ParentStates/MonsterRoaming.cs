@@ -50,6 +50,16 @@ namespace Monster.MonsterStates.ParentStates
             if (ActiveChild == wanderState && _timer >= _currentCooldown)
             {
                 _timer = 0f;
+
+                // Nothing intact left to break: reschedule and keep wandering. Entering the
+                // state anyway would park the monster for the full sabotage duration playing
+                // the animation and the sound over an empty target list.
+                if (!_monsterBrain.MonsterSabotage.TryChooseSabotageType())
+                {
+                    _currentCooldown = Random.Range(_minSabotageCooldown, _maxSabotageCooldown);
+                    return;
+                }
+
                 _currentSabotageDuration = Random.Range(_minSabotageStateDuration, _maxSabotageStateDuration);
                 StateMachine.Sequencer.RequestTransition(wanderState, sabotageState);
             }

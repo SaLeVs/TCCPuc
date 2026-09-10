@@ -31,6 +31,7 @@ namespace Monster
         
         
         private List<ISabotageable> _sabotageTargets;
+        private readonly List<SabotageType> _typesWithTargets = new List<SabotageType>();
         private SabotageType _currentSabotageType;
         private bool _sabotageUnlocked;
         private IAudienceProvider _audienceProvider;
@@ -70,10 +71,44 @@ namespace Monster
             _sabotageUnlocked = _audienceProvider.NormalizedAudience > sabotageUnlockThreshold;
         }
         
-        public void ChooseSabotageType()
+        /// <summary>
+        /// Picks a sabotage type that actually has something left to break, and reports whether
+        /// one exists at all.
+        ///
+        /// <para>It used to draw from every type blindly. With only Light and Door in the enum,
+        /// once the lights were all out that was a coin flip on doing nothing — the monster would
+        /// still stand still for the full sabotage duration playing the animation over an empty
+        /// target list. Choosing from the types that have targets removes the wasted half.</para>
+        /// </summary>
+        public bool TryChooseSabotageType()
         {
-            SabotageType[] allTypes = (SabotageType[])Enum.GetValues(typeof(SabotageType));
-            _currentSabotageType = allTypes[Random.Range(0, allTypes.Length)];
+            _typesWithTargets.Clear();
+
+            foreach (SabotageType type in (SabotageType[])Enum.GetValues(typeof(SabotageType)))
+            {
+                if (HasAvailableOfType(type)) _typesWithTargets.Add(type);
+            }
+
+            if (_typesWithTargets.Count == 0) return false;
+
+            _currentSabotageType = _typesWithTargets[Random.Range(0, _typesWithTargets.Count)];
+            return true;
+        }
+
+        /// <summary>Is there anything of this type still intact? Mirror of <see cref="HasSabotagedOfType"/>.</summary>
+        public bool HasAvailableOfType(SabotageType type)
+        {
+            foreach (ISabotageable target in _sabotageTargets)
+            {
+                if (target.SabotageType == type && !target.IsSabotaged) return true;
+            }
+
+            foreach (ISabotageable target in SabotageRegistry.All)
+            {
+                if (target.SabotageType == type && !target.IsSabotaged) return true;
+            }
+
+            return false;
         }
         
         public List<ISabotageable> GetAvailableTargets()
@@ -122,6 +157,15 @@ namespace Monster
 
         public void Execute(List<ISabotageable> targets)
         {
+            // Belt and braces: MonsterRoaming already refuses to enter the state without a
+            // target. If we somehow get here empty, stay silent rather than announcing a
+            // sabotage that breaks nothing.
+            if (targets == null || targets.Count == 0)
+            {
+                Debug.LogWarning($"{name}: Execute called with no targets for {_currentSabotageType}.", this);
+                return;
+            }
+
             bool hitRegistered = false;
 
             foreach (ISabotageable target in targets)

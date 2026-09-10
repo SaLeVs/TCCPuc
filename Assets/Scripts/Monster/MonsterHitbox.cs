@@ -58,6 +58,16 @@ namespace Monster
 
         private void OnTriggerEnter(Collider other)
         {
+            // Who got hit is the server's call. The collider is enabled on every peer (the
+            // NetworkVariable replicates the swing timing), so without this every client also
+            // ran this handler against its own interpolated copy of the player — allocating,
+            // diverging _hitTargets from the server's, and reporting hits the server never saw.
+            //
+            // This guard is load-bearing for the fix in Health.TakeDamageServerRpc: that RPC
+            // used to return unconditionally, which is the only reason those client-side reports
+            // never landed as extra damage. Do not remove one without the other.
+            if (!IsServer) return;
+
             NetworkObject netObj = other.GetComponentInParent<NetworkObject>();
             if (netObj == null || _hitTargets.Contains(netObj)) return;
 

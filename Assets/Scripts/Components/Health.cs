@@ -37,20 +37,19 @@ namespace Components
             if (IsServer)
             {
                 ModifyHealth(damage);
-                Debug.Log($"TakeDamage, {IsServer} on {gameObject.name}");
+                return;
             }
-            else
-            {
-                TakeDamageServerRpc(damage);
-                Debug.Log($"TakeDamage, {IsServer} on {gameObject.name}");
-            }
+
+            TakeDamageServerRpc(damage);
         }
 
         [Rpc(SendTo.Server)]
         private void TakeDamageServerRpc(float damage)
         {
-            if (IsServer) return;
-            
+            // Used to open with `if (IsServer) return;`. SendTo.Server only ever delivers to the
+            // server, so IsServer was always true here and the method never did anything —
+            // damage reported by a client was silently thrown away. Note that RestoreHealth had
+            // no such guard, so healing from a client worked while damage did not.
             ModifyHealth(damage);
         }
 
@@ -85,8 +84,6 @@ namespace Components
             {
                 DamageClientRpc();
             }
-            
-            Debug.Log($"ModifyHealth on {gameObject.name}, new health: {currentHealth.Value}");
 
             if (currentHealth.Value <= 0f)
             {

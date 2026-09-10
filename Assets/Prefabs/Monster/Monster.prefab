@@ -54,11 +54,11 @@ GameObject:
   - component: {fileID: 6796257646358809532}
   - component: {fileID: 8580716177634354972}
   - component: {fileID: 7054409550993874800}
+  - component: {fileID: 7632488262795768361}
+  - component: {fileID: 5320133689007995861}
   - component: {fileID: 8220886843260042270}
   - component: {fileID: 9158156660860726962}
   - component: {fileID: 7437886285449800429}
-  - component: {fileID: 7632488262795768361}
-  - component: {fileID: 5320133689007995861}
   m_Layer: 9
   m_Name: Monster
   m_TagString: Untagged
@@ -597,6 +597,46 @@ MonoBehaviour:
   doorLayers:
     serializedVersion: 2
     m_Bits: 256
+--- !u!114 &7632488262795768361
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2397166377357422809}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4c0e3f8ec6323f7499f342ded5ef28be, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Components::Components.Perception.HearingSensor
+  ShowTopMostFoldoutHeaderGroup: 1
+  ear: {fileID: 5585497228665570251}
+  sensitivity: 1
+  audibilityFloor: 0.5
+  maxHearingRange: 40
+  occlusionLayers:
+    serializedVersion: 2
+    m_Bits: 95617
+  lossPerWall: 6
+  maxWallsCounted: 4
+  maxPositionError: 6
+--- !u!114 &5320133689007995861
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2397166377357422809}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2906b3805b5ccfd478660e19ba93c10f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Monster::Monster.MonsterAwareness
+  ShowTopMostFoldoutHeaderGroup: 1
+  awarenessPerNoise: 0.45
+  decayPerSecond: 0.12
+  suspiciousThreshold: 0.25
+  alertedThreshold: 0.6
 --- !u!54 &8220886843260042270
 Rigidbody:
   m_ObjectHideFlags: 0
@@ -669,46 +709,6 @@ CapsuleCollider:
   m_Height: 1.8005927
   m_Direction: 1
   m_Center: {x: 0.00034868717, y: 0.92244256, z: 0}
---- !u!114 &7632488262795768361
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2397166377357422809}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 4c0e3f8ec6323f7499f342ded5ef28be, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Components::Components.Perception.HearingSensor
-  ShowTopMostFoldoutHeaderGroup: 1
-  ear: {fileID: 5585497228665570251}
-  sensitivity: 1
-  audibilityFloor: 0.5
-  maxHearingRange: 40
-  occlusionLayers:
-    serializedVersion: 2
-    m_Bits: 95617
-  lossPerWall: 6
-  maxWallsCounted: 4
-  maxPositionError: 6
---- !u!114 &5320133689007995861
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2397166377357422809}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 2906b3805b5ccfd478660e19ba93c10f, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Monster::Monster.MonsterAwareness
-  ShowTopMostFoldoutHeaderGroup: 1
-  awarenessPerNoise: 0.45
-  decayPerSecond: 0.12
-  suspiciousThreshold: 0.25
-  alertedThreshold: 0.6
 --- !u!1 &8968525623132493308
 GameObject:
   m_ObjectHideFlags: 0

@@ -4,14 +4,6 @@ using UnityEngine;
 
 namespace Player
 {
-    /// <summary>
-    /// Turns how the player is moving into how loud their footsteps are.
-    ///
-    /// <para>This is where the stealth loop actually lives: crouching buys you silence at the
-    /// cost of speed, sprinting buys you speed at the cost of being heard across the floor.
-    /// Keeping the mapping here means <see cref="FootstepEmitter"/> never has to know that
-    /// crouching or sprinting exist.</para>
-    /// </summary>
     public class PlayerNoiseProfile : NetworkBehaviour
     {
         [Header("References")]
@@ -33,8 +25,6 @@ namespace Player
 
         public override void OnNetworkSpawn()
         {
-            // Movement events only fire on the owner, and the multiplier only matters there —
-            // it travels to the server attached to each footstep.
             if (!IsOwner)
             {
                 enabled = false;
@@ -70,12 +60,8 @@ namespace Player
         private void Apply()
         {
             if (footstepEmitter == null) return;
-
-            // Crouching wins: a crouch-sprint should be quiet, not loud.
-            footstepEmitter.LoudnessMultiplier =
-                _isCrouching ? crouchingMultiplier
-                : _isRunning ? runningMultiplier
-                : walkingMultiplier;
+            
+            footstepEmitter.LoudnessMultiplier = _isCrouching ? crouchingMultiplier : _isRunning ? runningMultiplier : walkingMultiplier;
         }
     }
 }

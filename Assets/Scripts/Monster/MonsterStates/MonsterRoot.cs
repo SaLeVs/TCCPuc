@@ -1,5 +1,4 @@
-﻿using System.Linq;
-using Monster.HSM;
+﻿using Monster.HSM;
 using Monster.MonsterStates.ParentStates;
 
 namespace Monster.MonsterStates
@@ -24,29 +23,34 @@ namespace Monster.MonsterStates
 
         protected override State GetTransitionState()
         {
-            bool hasTargets = _monsterBrain._playersInVision.Any();
-            
-            bool hunting = hasTargets || _monsterBrain.IsTrackingLostTarget;
+            bool hunting = _monsterBrain._playersInVision.Count > 0 || _monsterBrain.IsTrackingLostTarget;
 
-            if (hunting && ActiveChild != HuntState)
+            if (hunting)
             {
-                return HuntState;
+                return ActiveChild != HuntState ? HuntState : null;
             }
 
-            if (!hunting && _monsterBrain.MonsterAwareness.ShouldInvestigate && ActiveChild != AlertState)
-            {
-                MonsterHunt hunt = (MonsterHunt)HuntState;
+            // A swing already in progress finishes. Nothing below this line is urgent enough to
+            // justify cutting one short, and cutting it strands the hitbox and the animation
+            // half-applied. The guard used to sit inside the Alert branch only, so losing the
+            // target and the suspicion in the same frame still yanked the monster into Roaming
+            // mid-attack.
+            if (IsAttacking()) return null;
 
-                if (ActiveChild == HuntState && hunt.ActiveChild == hunt.attackState) return null;
-                return AlertState;
+            if (_monsterBrain.MonsterAwareness.ShouldInvestigate)
+            {
+                return ActiveChild != AlertState ? AlertState : null;
             }
 
-            if (!hunting && !_monsterBrain.MonsterAwareness.ShouldInvestigate && ActiveChild != RoamingState)
-            {
-                return RoamingState;
-            }
+            return ActiveChild != RoamingState ? RoamingState : null;
+        }
 
-            return null;
+        private bool IsAttacking()
+        {
+            if (ActiveChild != HuntState) return false;
+
+            MonsterHunt hunt = (MonsterHunt)HuntState;
+            return hunt.ActiveChild == hunt.attackState;
         }
     }
 }

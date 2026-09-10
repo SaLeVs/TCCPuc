@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using Unity.Netcode;
 using UnityEngine;
 using UnityEngine.AI;
@@ -85,13 +84,37 @@ namespace Monster
         
         public void ForgetTarget() => ClearTarget();
         
+        /// <summary>
+        /// Nearest live target. Hand-rolled rather than LINQ because this runs on the
+        /// reevaluation tick during every chase, and OrderBy allocated a sorted copy of the list
+        /// just to read its first element.
+        /// </summary>
         private Transform GetBestAvailableTarget(Transform excludeTarget = null)
         {
             if (_monsterTargets == null || _monsterTargets.Count == 0) return null;
+            if (_agent == null) return null;
 
-            return _monsterTargets.Where(t => t != null && t != excludeTarget)
-                .OrderBy(t => Vector3.Distance(_agent.transform.position, t.position))
-                .FirstOrDefault();
+            Vector3 origin = _agent.transform.position;
+
+            Transform best = null;
+            float bestSqrDistance = float.MaxValue;
+
+            for (int i = 0; i < _monsterTargets.Count; i++)
+            {
+                Transform candidate = _monsterTargets[i];
+
+                if (candidate == null || candidate == excludeTarget) continue;
+
+                // Squared: only the ordering matters here, so the square root is wasted work.
+                float sqrDistance = (candidate.position - origin).sqrMagnitude;
+
+                if (sqrDistance >= bestSqrDistance) continue;
+
+                bestSqrDistance = sqrDistance;
+                best = candidate;
+            }
+
+            return best;
         }
 
         private void ReevaluateTarget()
@@ -104,10 +127,17 @@ namespace Monster
             }
         }
         
+        /// <summary>
+        /// Records who to chase. Deliberately touches nothing on the agent: this is reached
+        /// straight from the vision event, which fires a frame or more before the state machine
+        /// has actually entered Hunt — so it used to un-stop the agent and set chase speed while
+        /// Wander, Sabotage or Investigate still owned it. StartChase does that, when the state
+        /// really begins.
+        /// </summary>
         private void SetTarget(Transform target)
         {
-            if (!target || !_agent) return;
-            
+            if (!target) return;
+
             bool wasWithoutTarget = _currentTarget == null;
 
             _currentTarget = target;
@@ -116,9 +146,6 @@ namespace Monster
             {
                 PlaySpottedSoundClientRpc();
             }
-
-            _agent.isStopped = false;
-            _agent.speed = chaseSpeed;
         }
         
         [Rpc(SendTo.ClientsAndHost)]

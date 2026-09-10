@@ -1,10 +1,16 @@
 using Components.Perception;
-using Unity.Netcode;
 using UnityEngine;
 
 namespace Monster
 {
-    public class MonsterAwareness : NetworkBehaviour
+    /// <summary>
+    /// A plain MonoBehaviour, not a NetworkBehaviour: nothing here is replicated. The meter is
+    /// written only by the server (the brain gates every call behind IsServer) and read only by
+    /// the state machine, which also runs server-side. Registering it with NGO bought nothing
+    /// and left every client carrying a copy permanently stuck at zero — a trap for the first
+    /// UI or client-side effect that tried to read the suspicion level.
+    /// </summary>
+    public class MonsterAwareness : MonoBehaviour
     {
         [Tooltip("Awareness a fully-clear noise adds. Fainter noises add proportionally less, so one distant footstep is never enough on its own")]
         [SerializeField, Range(0f, 1f)] private float awarenessPerNoise = 0.45f;

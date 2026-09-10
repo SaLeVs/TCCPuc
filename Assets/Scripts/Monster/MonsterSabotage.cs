@@ -40,16 +40,28 @@ namespace Monster
             _audienceProvider = audienceProviderSource as IAudienceProvider;
 
             _sabotageTargets = new List<ISabotageable>();
-            
+
             foreach (GameObject obj in allSabotageObjects)
             {
                 if (obj.TryGetComponent(out ISabotageable sabotageable))
                     _sabotageTargets.Add(sabotageable);
             }
 
+            // The cast returns null for an empty field or a component that does not implement
+            // the interface, and the next line used to dereference it — a NullReferenceException
+            // here aborts the rest of the monster's OnNetworkSpawn, so the whole AI comes up
+            // half-initialised over one unassigned inspector slot.
+            if (_audienceProvider == null)
+            {
+                Debug.LogError(
+                    $"{name}: audienceProviderSource is empty or does not implement IAudienceProvider. " +
+                    "Sabotage will stay locked for the whole match.", this);
+                return;
+            }
+
             _sabotageUnlocked = _audienceProvider.NormalizedAudience > sabotageUnlockThreshold;
 
-            _audienceProvider.OnAudienceChanged += AudienceManager_OnAudienceChanged;;
+            _audienceProvider.OnAudienceChanged += AudienceManager_OnAudienceChanged;
         }
 
 

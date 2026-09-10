@@ -1,3 +1,4 @@
+using System;
 using Unity.Netcode;
 using UnityEngine;
 using UnityEngine.AI;
@@ -15,6 +16,11 @@ namespace Monster
     /// </summary>
     public class MonsterInvestigate : NetworkBehaviour
     {
+        /// <summary>Carries the intended speed so the animator can pick walk or run.</summary>
+        public event Action<float> OnStartedMovingAnimation;
+
+        public event Action OnStoppedMovingAnimation;
+
         [Tooltip("Speed while walking over to a noise. Should sit above the wander speed and " +
                  "below the chase speed.")]
         [SerializeField, Min(0f)] private float investigateSpeed = 3.5f;
@@ -60,6 +66,8 @@ namespace Monster
             _agent.speed = investigateSpeed;
             _agent.updateRotation = false;
             _agent.SetDestination(point);
+
+            OnStartedMovingAnimation?.Invoke(investigateSpeed);
         }
 
         /// <summary>
@@ -105,6 +113,8 @@ namespace Monster
 
             _phase = InvestigatePhase.LookingAround;
             _lookTimer = 0f;
+
+            OnStoppedMovingAnimation?.Invoke();
         }
 
         private void RotateTowardsMovement()

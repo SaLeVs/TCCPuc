@@ -167,7 +167,13 @@ namespace Monster
         
         private bool ReachedDestination()
         {
-            return !_agent.pathPending && _agent.remainingDistance <= waypointReachedDistance;
-        } 
+            if (_agent.pathPending) return false;
+            if (_agent.remainingDistance > waypointReachedDistance) return false;
+
+            // remainingDistance also reads 0 when the agent has no path at all, so without the
+            // hasPath check the very first frame of a wander counts as "arrived" and the monster
+            // hitches into idle before it has taken a step.
+            return !_agent.hasPath || _agent.velocity.sqrMagnitude < 0.01f;
+        }
     }
 }

@@ -70,6 +70,15 @@ namespace Monster
         
         public override void OnNetworkSpawn()
         {
+            // Only the server drives the agent. Left enabled on a client it keeps snapping the
+            // transform onto the local navmesh while NetworkTransform writes the server's
+            // position into the same transform — the two fight every frame, which reads as the
+            // monster being shoved around and never quite moving at its own speed.
+            if (!IsServer && navMeshAgent != null)
+            {
+                navMeshAgent.enabled = false;
+            }
+
             MonsterWander.Initialize(navMeshAgent);
             MonsterChase.Initialize(_playersInVision, navMeshAgent, this);
             MonsterAnimator.Initialize(this);

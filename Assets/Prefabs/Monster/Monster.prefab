@@ -246,7 +246,7 @@ MonoBehaviour:
   maxWanderIntervalForEachPoint: 2.5
   minTimeInSector: 25
   maxTimeInSector: 60
-  waypointReachedDistance: 0.15
+  waypointReachedDistance: 0.5
   allSectors:
   - {fileID: 0}
   - {fileID: 0}
@@ -546,6 +546,10 @@ MonoBehaviour:
   AnimatorParametersExpanded: 0
   animator: {fileID: 3811006942233549706}
   transitionDuration: 0.1
+  walkClipSpeed: 1.5
+  runClipSpeed: 4
+  runThreshold: 2.5
+  speedScaleClamp: {x: 0.6, y: 1.8}
 --- !u!114 &6796257646358809532
 MonoBehaviour:
   m_ObjectHideFlags: 0

@@ -96,7 +96,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Unity.Netcode.Runtime::Unity.Netcode.NetworkObject
-  GlobalObjectIdHash: 3265427313
+  GlobalObjectIdHash: 3148608675
   InScenePlacedSourceGlobalObjectIdHash: 3265427313
   DeferredDespawnTick: 0
   Ownership: 1
@@ -197,7 +197,7 @@ MonoBehaviour:
   monsterDoorForcer: {fileID: 7054409550993874800}
   monsterAwareness: {fileID: 5320133689007995861}
   monsterInvestigate: {fileID: 6105359185430086693}
-  trackingGraceSeconds: 3
+  trackingGraceSeconds: 4
   logMovementJumps: 1
   jumpSpeedThreshold: 12
   logRapidStateChanges: 1
@@ -245,12 +245,12 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Monster::MonsterWander
   ShowTopMostFoldoutHeaderGroup: 1
-  walkSpeed: 1.5
+  walkSpeed: 2
   wanderRadius: 20
-  minWanderIntervalForEachPoint: 0.5
-  maxWanderIntervalForEachPoint: 2.5
-  minTimeInSector: 25
-  maxTimeInSector: 60
+  minWanderIntervalForEachPoint: 1
+  maxWanderIntervalForEachPoint: 3
+  minTimeInSector: 20
+  maxTimeInSector: 45
   waypointReachedDistance: 0.5
   allSectors:
   - {fileID: 0}
@@ -268,7 +268,11 @@ MonoBehaviour:
   - {fileID: 0}
   - {fileID: 0}
   - {fileID: 0}
-  - {fileID: 0}
+  playerProximityWeight: 2
+  coverageWeight: 1
+  proximityFalloff: 30
+  fullyStaleSeconds: 180
+  maxFailedPointDraws: 3
   logWanderLegs: 1
   shortLegMeters: 3
 --- !u!114 &8380299532564787982
@@ -626,15 +630,15 @@ MonoBehaviour:
   m_EditorClassIdentifier: Components::Components.Perception.HearingSensor
   ShowTopMostFoldoutHeaderGroup: 1
   ear: {fileID: 5585497228665570251}
-  sensitivity: 1
+  sensitivity: 2
   audibilityFloor: 0.5
-  maxHearingRange: 40
+  maxHearingRange: 60
   occlusionLayers:
     serializedVersion: 2
     m_Bits: 95617
-  lossPerWall: 6
-  maxWallsCounted: 4
-  maxPositionError: 6
+  lossPerWall: 4
+  maxWallsCounted: 6
+  maxPositionError: 2
 --- !u!114 &5320133689007995861
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -647,11 +651,23 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2906b3805b5ccfd478660e19ba93c10f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Monster::Monster.MonsterAwareness
-  ShowTopMostFoldoutHeaderGroup: 1
   awarenessPerNoise: 0.45
   decayPerSecond: 0.12
   suspiciousThreshold: 0.25
   alertedThreshold: 0.6
+  noiseWeights:
+  - type: 0
+    multiplier: 1
+  - type: 1
+    multiplier: 1.4
+  - type: 2
+    multiplier: 0.7
+  - type: 3
+    multiplier: 1
+  - type: 4
+    multiplier: 1.6
+  - type: 5
+    multiplier: 1.3
 --- !u!114 &6105359185430086693
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -677,7 +693,7 @@ Rigidbody:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2397166377357422809}
   serializedVersion: 5
-  m_Mass: 1
+  m_Mass: 100
   m_LinearDamping: 0
   m_AngularDamping: 0.05
   m_CenterOfMass: {x: 0, y: 0, z: 0}
@@ -714,8 +730,8 @@ NavMeshAgent:
   m_AutoTraverseOffMeshLink: 1
   m_AutoBraking: 1
   m_AutoRepath: 1
-  m_Height: 1.8
-  m_BaseOffset: 0
+  m_Height: 1.6
+  m_BaseOffset: -0.05
   m_WalkableMask: 4294967295
   m_ObstacleAvoidanceType: 4
 --- !u!136 &7437886285449800429
@@ -738,9 +754,9 @@ CapsuleCollider:
   m_Enabled: 1
   serializedVersion: 2
   m_Radius: 0.37173223
-  m_Height: 1.8412094
+  m_Height: 1.6961818
   m_Direction: 1
-  m_Center: {x: 0.048435867, y: 0.8162403, z: 0.07}
+  m_Center: {x: 0.048435867, y: 0.8887541, z: 0.06999999}
 --- !u!1 &8968525623132493308
 GameObject:
   m_ObjectHideFlags: 0

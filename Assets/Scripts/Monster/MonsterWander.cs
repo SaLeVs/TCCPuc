@@ -14,7 +14,6 @@ namespace Monster
         public event Action OnStartedMovingAnimation;
         public event Action OnStoppedMovingAnimation;
         
-        
         [SerializeField] private float walkSpeed;
         [SerializeField] private float wanderRadius;
         [SerializeField] private float minWanderIntervalForEachPoint;
@@ -42,16 +41,6 @@ namespace Monster
         [Tooltip("How many times a sector may fail to produce a walkable point before the monster " +
                  "gives up and migrates early, instead of standing still for the whole sector timer.")]
         [SerializeField, Min(1)] private int maxFailedPointDraws = 3;
-
-        [Header("Debug")]
-        [Tooltip("Logs every wander leg: how far the point was, how long it took, and how long " +
-                 "it then stood still. Short legs back to back are what reads as the monster " +
-                 "twitching instead of patrolling.")]
-        [SerializeField] private bool logWanderLegs;
-
-        [Tooltip("A leg shorter than this many metres is flagged as suspicious.")]
-        [SerializeField, Min(0f)] private float shortLegMeters = 3f;
-
         
         private float _footstepTimer;
         
@@ -164,7 +153,6 @@ namespace Monster
                 if (roll > 0f) continue;
 
                 _sectorLastVisitTime[i] = Time.time;
-                LogSectorChoice(i);
                 return allSectors[i];
             }
 
@@ -217,31 +205,6 @@ namespace Monster
                 _huntablePositions.Add(huntable.HuntablePosition);
             }
         }
-
-        private void LogDeadSector()
-        {
-            if (!logWanderLegs) return;
-
-            Debug.Log($"Wander: setor '{(_currentSector == null ? "?" : _currentSector.name)}' nao " +
-                      $"produziu ponto caminhavel em {maxFailedPointDraws} tentativas — migrando cedo. " +
-                      "Se for um SpawnRoom, a sala provavelmente ainda nao nasceu.");
-        }
-
-        private void LogSectorChoice(int chosen)
-        {
-            if (!logWanderLegs) return;
-
-            Debug.Log($"Wander: setor -> '{allSectors[chosen].name}' " +
-                      $"(peso {_sectorWeights[chosen]:0.00} de {SumWeights():0.00}, " +
-                      $"{_huntablePositions.Count} jogador(es) vivo(s))");
-        }
-
-        private float SumWeights()
-        {
-            float total = 0f;
-            foreach (float weight in _sectorWeights) total += weight;
-            return total;
-        }
         
         public void UpdateWander(float deltaTime)
         {
@@ -257,8 +220,6 @@ namespace Monster
                 _waitingAtPoint = true;
                 _wanderTimer = 0f;
                 _agent.isStopped = true;
-
-                LogLegFinished();
 
                 OnStoppedMovingAnimation?.Invoke();
             }
@@ -283,7 +244,6 @@ namespace Monster
                         // real window early in the match where these sectors are empty ground.
                         if (_failedPointDraws >= maxFailedPointDraws)
                         {
-                            LogDeadSector();
                             MigrateToNewSector();
                         }
 
@@ -296,9 +256,7 @@ namespace Monster
                     _currentWanderInterval = Random.Range(minWanderIntervalForEachPoint, maxWanderIntervalForEachPoint);
                     _agent.isStopped = false;
                     _agent.SetDestination(destination);
-
-                    LogLegStarted(destination);
-
+                    
                     OnStartedMovingAnimation?.Invoke();
                 }
             }
@@ -311,42 +269,6 @@ namespace Monster
 
             _sectorTimer = 0f;
             _wanderTimer = 0f;
-        }
-        
-        private void LogLegStarted(Vector3 destination)
-        {
-            if (!logWanderLegs) return;
-
-            float waited = _waitStartTime > 0f ? Time.time - _waitStartTime : 0f;
-
-            _legIndex++;
-            _legStartTime = Time.time;
-            _legStartPosition = transform.position;
-            _legPlannedDistance = Vector3.Distance(_legStartPosition, destination);
-
-            string flag = _legPlannedDistance < shortLegMeters ? "  <<< PERNA CURTA" : "";
-
-            Debug.Log($"Wander leg #{_legIndex}: parado por {waited:0.00}s, novo ponto a " +
-                      $"{_legPlannedDistance:0.0}m (setor {(_currentSector == null ? "?" : _currentSector.name)}){flag}");
-        }
-
-        private void LogLegFinished()
-        {
-            _waitStartTime = Time.time;
-
-            if (!logWanderLegs) return;
-            if (_legStartTime <= 0f) return;
-
-            float duration = Time.time - _legStartTime;
-            float travelled = Vector3.Distance(_legStartPosition, transform.position);
-            float averageSpeed = duration > 0.001f ? travelled / duration : 0f;
-
-            // A leg that ends far short of its planned distance means the agent gave up or the
-            // point was unreachable — that repathing is what shows up as twitching.
-            string flag = travelled < _legPlannedDistance * 0.6f ? "  <<< NAO CHEGOU PERTO DO PONTO" : "";
-
-            Debug.Log($"Wander leg #{_legIndex} fim: andou {travelled:0.0}m de {_legPlannedDistance:0.0}m " +
-                      $"em {duration:0.00}s (media {averageSpeed:0.0} m/s, esperado {walkSpeed:0.0}){flag}");
         }
 
         private bool ReachedDestination()

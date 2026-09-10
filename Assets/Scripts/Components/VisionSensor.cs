@@ -233,8 +233,7 @@ namespace Components
 
             if (directDistance <= closeProximityRadius)
             {
-                if (Physics.Linecast(orientation.position, _destination, occlusionLayers)) return false;
-                return true;
+                return HasLineOfSight(colliderBound);
             }
 
             Vector3 localPos = orientation.InverseTransformPoint(_destination);
@@ -244,9 +243,34 @@ namespace Components
             float minDot = Mathf.Cos(angle * 0.5f * Mathf.Deg2Rad);
             if (dot < minDot) return false;
 
-            if (Physics.Linecast(orientation.position, _destination, occlusionLayers)) return false;
+            return HasLineOfSight(colliderBound);
+        }
 
-            return true;
+        /// <summary>
+        /// Line of sight against several points on the target instead of just its center.
+        ///
+        /// <para>A single linecast to <c>bounds.center</c> is what made the monster miss players
+        /// it obviously should see: crouched behind a waist-high crate, or peeking a corner with
+        /// only the head exposed, the torso point is blocked while the target is plainly visible.
+        /// The reverse happened too — a sliver of gap at chest height read as full visibility.
+        /// Any unobstructed sample counts as seen.</para>
+        /// </summary>
+        private bool HasLineOfSight(Collider targetCollider)
+        {
+            Bounds bounds = targetCollider.bounds;
+            Vector3 center = bounds.center;
+
+            // Pull in from the very tip so a sample never sits exactly on the collider surface,
+            // where it can graze the geometry it belongs to.
+            float verticalReach = bounds.extents.y * 0.8f;
+
+            Vector3 origin = orientation.position;
+
+            if (!Physics.Linecast(origin, center, occlusionLayers)) return true;
+            if (!Physics.Linecast(origin, center + Vector3.up * verticalReach, occlusionLayers)) return true;
+            if (!Physics.Linecast(origin, center - Vector3.up * verticalReach, occlusionLayers)) return true;
+
+            return false;
         }
 
         private Mesh CreateMesh()
@@ -265,8 +289,13 @@ namespace Components
             Vector3 bottomCenter = Vector3.down * halfHeight;
             Vector3 topCenter = Vector3.up * halfHeight;
 
-            Vector3 bottomLeft = Quaternion.Euler(0, -angle, 0) * Vector3.forward * distance + Vector3.down * halfHeight;
-            Vector3 bottomRight = Quaternion.Euler(0, angle, 0) * Vector3.forward * distance + Vector3.down * halfHeight;
+            // Half-angle each side. Detection tests against Cos(angle * 0.5), so drawing the full
+            // 'angle' to each side rendered a cone twice as wide as the one that actually sees —
+            // which made the monster look like it was ignoring players standing inside the gizmo.
+            float halfAngle = angle * 0.5f;
+
+            Vector3 bottomLeft = Quaternion.Euler(0, -halfAngle, 0) * Vector3.forward * distance + Vector3.down * halfHeight;
+            Vector3 bottomRight = Quaternion.Euler(0, halfAngle, 0) * Vector3.forward * distance + Vector3.down * halfHeight;
             Vector3 topLeft = bottomLeft + Vector3.up * height;
             Vector3 topRight = bottomRight + Vector3.up * height;
 
@@ -288,8 +317,8 @@ namespace Components
             totalVertices[vertexCount++] = bottomRight;
             totalVertices[vertexCount++] = bottomCenter;
 
-            float currentAngle = -angle;
-            float deltaAngle = (angle * 2) / segments;
+            float currentAngle = -halfAngle;
+            float deltaAngle = angle / segments;
 
             for (int i = 0; i < segments; ++i)
             {

@@ -1,21 +1,19 @@
 using Monster.HSM;
-using UnityEngine;
-using UnityEngine.AI;
 
 namespace Monster.MonsterStates.AlertStates
 {
+    /// <summary>
+    /// "I think I heard something." The low half of Alert.
+    ///
+    /// <para>Walks over to where the noise seemed to come from and keeps listening on the way.
+    /// It is the state that gives players a chance: you hear it coming, and you get to decide
+    /// whether to freeze or move. If more noise arrives while it walks, awareness climbs and
+    /// <see cref="ParentStates.MonsterAlert"/> promotes it to <see cref="SearchState"/>; if the
+    /// walk finishes quietly, it gives up and goes back to roaming.</para>
+    /// </summary>
     public class InvestigateState : State
     {
         private readonly MonsterBrain _monsterBrain;
-
-        private NavMeshAgent _agent;
-        private float _idleTimer;
-        private bool _arrived;
-
-        private const float ARRIVAL_TOLERANCE = 0.75f;
-        private const float LOOK_AROUND_SECONDS = 1.5f;
-        
-        private const float WALK_SPEED_FACTOR = 0.45f;
 
         public InvestigateState(StateMachine stateMachine, State parentState, MonsterBrain monsterBrain) : base(stateMachine, parentState)
         {
@@ -24,57 +22,38 @@ namespace Monster.MonsterStates.AlertStates
 
         protected override void OnEnter()
         {
-            _arrived = false;
-            _idleTimer = 0f;
-
-            _agent = _monsterBrain.NavMeshAgent;
-            if (_agent == null) return;
-
-            _agent.isStopped = false;
-            _agent.speed = _monsterBrain.MonsterChase.ChaseSpeed * WALK_SPEED_FACTOR;
-            _agent.SetDestination(_monsterBrain.MonsterAwareness.InvestigationPoint);
+            _monsterBrain.MonsterInvestigate.Begin(_monsterBrain.MonsterAwareness.InvestigationPoint);
         }
 
         protected override void OnUpdate(float deltaTime)
         {
+            // Anything it can actually see beats anything it thinks it heard.
             if (_monsterBrain._playersInVision.Count > 0)
             {
                 StateMachine.Sequencer.RequestTransition(this, ((MonsterRoot)ParentState.ParentState).HuntState);
                 return;
             }
 
+            // Held up at a door: let the forcer finish before advancing.
             if (_monsterBrain.IsForcingDoor) return;
-            if (_agent == null) return;
 
-            if (!_arrived)
-            {
-                if (Vector3.Distance(_agent.destination, _monsterBrain.MonsterAwareness.InvestigationPoint) > ARRIVAL_TOLERANCE)
-                {
-                    _agent.SetDestination(_monsterBrain.MonsterAwareness.InvestigationPoint);
-                }
+            // A fresher noise moves the goalposts — walk to where the sound is now, not to the
+            // stale point it started from.
+            _monsterBrain.MonsterInvestigate.Retarget(_monsterBrain.MonsterAwareness.InvestigationPoint);
 
-                if (_agent.pathPending) return;
-                if (_agent.remainingDistance > Mathf.Max(_agent.stoppingDistance, ARRIVAL_TOLERANCE)) return;
+            _monsterBrain.MonsterInvestigate.Tick(deltaTime);
 
-                _arrived = true;
-                _agent.isStopped = true;
-                _agent.ResetPath();
-                return;
-            }
+            if (!_monsterBrain.MonsterInvestigate.IsFinished) return;
 
-            _idleTimer += deltaTime;
-            if (_idleTimer < LOOK_AROUND_SECONDS) return;
-            
+            // Nothing here. Settle down rather than bouncing straight back into Alert.
             _monsterBrain.MonsterAwareness.Clear();
             StateMachine.Sequencer.RequestTransition(this, ((MonsterRoot)ParentState.ParentState).RoamingState);
         }
 
         protected override void OnExit()
         {
-            if (_agent == null) return;
-
-            _agent.isStopped = false;
+            _monsterBrain.MonsterInvestigate.Stop();
         }
-        
+
     }
 }

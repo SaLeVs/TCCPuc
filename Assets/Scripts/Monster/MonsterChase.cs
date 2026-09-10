@@ -15,7 +15,11 @@ namespace Monster
         
         [SerializeField] private float chaseSpeed = 8f;
         [SerializeField] private float targetReevaluationInterval = 1f;
-        [SerializeField] private float rotationSpeed = 10f; 
+        [SerializeField] private float rotationSpeed = 10f;
+
+        [Tooltip("Within this distance the monster turns to face the target directly instead of " +
+                 "following the path. Keep it around attack range so the swing lands square.")]
+        [SerializeField, Min(0f)] private float faceTargetDistance = 3f;
         
         public List<Transform> monsterTargets;
         public float DistanceFromTarget => _currentDistanceFromTarget;
@@ -112,8 +116,7 @@ namespace Monster
             {
                 PlaySpottedSoundClientRpc();
             }
-            
-            _currentTarget = target;
+
             _agent.isStopped = false;
             _agent.speed = chaseSpeed;
         }
@@ -150,25 +153,25 @@ namespace Monster
         public void ChaseUpdate(float deltaTime)
         {
             if (_agent == null) return;
-    
-            if (_currentTarget != null && !_currentTarget)
+
+            // Was `_currentTarget != null && !_currentTarget`, which can never both hold — the
+            // destroyed-target fallback below had been unreachable. A disconnecting player left
+            // the monster pathing at a dead Transform until the next reevaluation tick.
+            if (!_currentTarget)
             {
                 _currentTarget = null;
+
                 Transform fallback = GetBestAvailableTarget();
-                
-                if (fallback != null)
+
+                if (fallback == null)
                 {
-                    SetTarget(fallback);
-                }
-                else
-                {
-                    ClearTarget(); 
+                    ClearTarget();
                     return;
                 }
+
+                SetTarget(fallback);
             }
 
-            if (_currentTarget == null) return;
-    
             _reevaluationTimer += deltaTime;
             if (_reevaluationTimer >= targetReevaluationInterval)
             {
@@ -177,15 +180,37 @@ namespace Monster
             }
 
             _agent.SetDestination(_currentTarget.position);
-            RotateTowardsTarget(deltaTime);
+
+            UpdateDistanceFromTarget();
+            RotateTowardsMovement(deltaTime);
         }
         
-        private void RotateTowardsTarget(float deltaTime)
+        /// <summary>
+        /// Faces where the monster is actually going, not where the target is.
+        ///
+        /// <para>Chasing runs with <c>updateRotation = false</c>, so this is the only thing
+        /// steering the body. Pointing it straight at the target meant that whenever the path
+        /// wrapped around a wall the monster ran sideways along the corridor while staring
+        /// through the wall at the player — which is what read as scraping and flickering
+        /// against the geometry. The path direction is the honest answer while travelling;
+        /// only up close, where the attack has to land square, is the target itself right.</para>
+        /// </summary>
+        private void RotateTowardsMovement(float deltaTime)
         {
             if (_currentTarget == null) return;
 
-            Vector3 direction = _currentTarget.position - _agent.transform.position;
+            Vector3 direction = _agent.desiredVelocity;
             direction.y = 0f;
+
+            bool closeEnoughToFaceTarget = _currentDistanceFromTarget <= faceTargetDistance;
+
+            // desiredVelocity collapses to nothing when the agent is stopped or has arrived,
+            // and there is no path direction to read then either.
+            if (closeEnoughToFaceTarget || direction.sqrMagnitude < 0.05f)
+            {
+                direction = _currentTarget.position - _agent.transform.position;
+                direction.y = 0f;
+            }
 
             if (direction.sqrMagnitude < 0.01f) return;
 
@@ -217,6 +242,9 @@ namespace Monster
         public void Uninitialize(List<Transform> monsterTargetsList, NavMeshAgent agent, MonsterBrain monsterBrain)
         {
             monsterTargets = null;
+            _monsterTargets = null;
+            _currentTarget = null;
+            _currentDistanceFromTarget = float.MaxValue;
             _agent = null;
 
             if (monsterBrain != null)

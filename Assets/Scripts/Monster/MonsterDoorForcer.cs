@@ -38,6 +38,7 @@ namespace Monster
         private float _timer;
         private float _cooldown;
         private bool _opened;
+        private bool _rotationBeforeForcing;
 
         public void Initialize(NavMeshAgent agent)
         {
@@ -91,6 +92,14 @@ namespace Monster
             _agent.isStopped = true;
             _agent.velocity = Vector3.zero;
 
+            // FaceDoor steers the transform by hand, so the agent must not also be turning it.
+            // Wander leaves updateRotation on, and the agent keeps a desiredVelocity from the
+            // path it was following even while stopped — the two would fight over the rotation.
+            // Saved rather than forced to a constant: forcing a door interrupts a state without
+            // ever re-entering it, so nothing else would put the old value back.
+            _rotationBeforeForcing = _agent.updateRotation;
+            _agent.updateRotation = false;
+
             OnDoorHitAnimation?.Invoke();
             PlayHitSoundRpc();
         }
@@ -129,6 +138,7 @@ namespace Monster
         private void EndForcing()
         {
             _agent.isStopped = false;
+            _agent.updateRotation = _rotationBeforeForcing;
 
             _door = null;
             _timer = 0f;

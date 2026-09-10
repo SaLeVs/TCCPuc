@@ -91,6 +91,13 @@ namespace Monster
         {
             _agent.isStopped = false;
             _agent.speed = walkSpeed;
+
+            // Wander has no rotation code of its own — it relies on the agent turning itself.
+            // Chase, Search and Investigate all switch this off while they steer manually, so
+            // asserting it here is what makes wander correct no matter which of them ran last,
+            // instead of depending on every one of them having tidied up on the way out.
+            _agent.updateRotation = true;
+
             OnStartedMovingAnimation?.Invoke();
 
             MigrateToNewSector();

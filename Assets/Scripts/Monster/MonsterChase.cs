@@ -132,11 +132,15 @@ namespace Monster
             _currentTarget = null;
             _currentDistanceFromTarget = float.MaxValue;
 
-            if (_agent != null)
-            {
-                _agent.isStopped = true;
-                _agent.ResetPath();
-            }
+            if (_agent == null) return;
+
+            _agent.isStopped = true;
+            _agent.ResetPath();
+
+            // Giving up on a target can happen without ChaseState ever exiting — ForgetTarget()
+            // reaches this straight from the brain when tracking goes cold. StopChase() would
+            // have restored the rotation; this path used to leave the agent unable to turn.
+            _agent.updateRotation = true;
         }
 
         public void StartChase()

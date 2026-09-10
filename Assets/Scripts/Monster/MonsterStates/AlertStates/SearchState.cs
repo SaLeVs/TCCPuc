@@ -14,7 +14,7 @@ namespace Monster.MonsterStates.AlertStates
 
         protected override void OnEnter()
         {
-            _monsterBrain.MonsterSearch.Begin(_monsterBrain.LastKnownTargetPosition, _monsterBrain.MonsterChase.ChaseSpeed);
+            _monsterBrain.MonsterSearch.Begin(_monsterBrain.InvestigationPoint, _monsterBrain.MonsterChase.ChaseSpeed);
         }
 
         protected override void OnUpdate(float deltaTime)
@@ -24,15 +24,14 @@ namespace Monster.MonsterStates.AlertStates
                 StateMachine.Sequencer.RequestTransition(this, ((MonsterRoot)ParentState.ParentState).HuntState);
                 return;
             }
-
-            // Held up at a door: let the forcer finish before advancing the search.
+            
             if (_monsterBrain.IsForcingDoor) return;
 
             _monsterBrain.MonsterSearch.Tick(deltaTime);
 
             if (_monsterBrain.MonsterSearch.IsFinished)
             {
-                _monsterBrain.ShouldEnterAlert = false;
+                _monsterBrain.ClearAlert();
                 StateMachine.Sequencer.RequestTransition(this, ((MonsterRoot)ParentState.ParentState).RoamingState);
             }
         }
@@ -41,5 +40,6 @@ namespace Monster.MonsterStates.AlertStates
         {
             _monsterBrain.MonsterSearch.Stop();
         }
+        
     }
 }

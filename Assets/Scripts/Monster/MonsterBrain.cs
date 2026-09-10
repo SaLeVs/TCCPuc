@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using Components;
+using Components.Perception;
 using Monster.HSM;
 using Monster.MonsterStates;
 using Unity.Netcode;
@@ -18,6 +19,7 @@ namespace Monster
         [SerializeField] private NavMeshAgent navMeshAgent;
         
         [SerializeField] private VisionSensor visionSensor;
+        [SerializeField] private HearingSensor hearingSensor;
         [SerializeField] private MonsterWander monsterWander;
         [SerializeField] private MonsterSabotage monsterSabotage;
         [SerializeField] private MonsterChase monsterChase;
@@ -29,6 +31,21 @@ namespace Monster
         [Tooltip("Seconds the monster keeps a perfect fix on a target after losing sight of it.")]
         [SerializeField] private float trackingGraceSeconds = 3f;
 
+        [Header("Awareness")]
+        [Tooltip("Awareness a fully-clear noise adds. Fainter noises add proportionally less, " +
+                 "so one distant footstep is never enough on its own.")]
+        [SerializeField, Range(0f, 1f)] private float awarenessPerNoise = 0.45f;
+
+        [Tooltip("Awareness lost per second while nothing is heard.")]
+        [SerializeField, Min(0f)] private float awarenessDecayPerSecond = 0.12f;
+
+        [Tooltip("Above this, the monster walks over to look (Investigate).")]
+        [SerializeField, Range(0f, 1f)] private float suspiciousThreshold = 0.25f;
+
+        [Tooltip("Above this, the monster moves fast to the spot and sweeps it (Search).")]
+        [SerializeField, Range(0f, 1f)] private float alertedThreshold = 0.6f;
+
+        public NavMeshAgent NavMeshAgent => navMeshAgent;
         public MonsterWander MonsterWander => monsterWander;
         public MonsterSabotage MonsterSabotage => monsterSabotage;
         public MonsterChase MonsterChase => monsterChase;
@@ -43,9 +60,15 @@ namespace Monster
         public Transform LastKnownTarget { get; private set; }
         public bool ShouldEnterAlert { get; set; }
         
-        public bool IsTrackingLostTarget => _trackingTimer > 0f && LastKnownTarget != null;
+        public Vector3 InvestigationPoint { get; private set; }
+        public NoiseType LastHeardNoiseType { get; private set; }
 
-        /// <summary>Sees someone, or still holds a fix on someone it just lost.</summary>
+        public float AwarenessValue => _awareness;
+
+        public AwarenessLevel Awareness => _awareness >= alertedThreshold ? AwarenessLevel.Alerted : _awareness >= suspiciousThreshold ? AwarenessLevel.Suspicious : AwarenessLevel.Unaware;
+        
+        public bool IsTrackingLostTarget => _trackingTimer > 0f && LastKnownTarget != null;
+        
         public bool IsHunting => _playersInVision.Count > 0 || IsTrackingLostTarget;
         public bool IsForcingDoor => monsterDoorForcer != null && monsterDoorForcer.IsForcingDoor;
 
@@ -53,6 +76,7 @@ namespace Monster
         private State _rootState;
         private string _lastPath;
         private float _trackingTimer;
+        private float _awareness;
 
         
         private void Awake()
@@ -82,6 +106,46 @@ namespace Monster
             _stateMachine.Start();
             visionSensor.OnTargetEnter += VisionSensor_OnTargetEnter;
             visionSensor.OnTargetExit += VisionSensor_OnTargetExit;
+
+            if (hearingSensor != null)
+            {
+                hearingSensor.OnNoiseHeard += HearingSensor_OnNoiseHeard;
+            }
+        }
+
+
+        private void HearingSensor_OnNoiseHeard(HeardNoise heard)
+        {
+            if (IsHunting) return;
+
+            _awareness = Mathf.Clamp01(_awareness + heard.Confidence * awarenessPerNoise);
+            
+            InvestigationPoint = heard.Position;
+            LastHeardNoiseType = heard.Type;
+
+            if (_awareness >= suspiciousThreshold)
+            {
+                ShouldEnterAlert = true;
+            }
+        }
+
+        private void TickAwareness(float deltaTime)
+        {
+            if (IsHunting)
+            {
+                _awareness = 1f;
+                return;
+            }
+
+            if (_awareness <= 0f) return;
+
+            _awareness = Mathf.MoveTowards(_awareness, 0f, awarenessDecayPerSecond * deltaTime);
+        }
+        
+        public void ClearAlert()
+        {
+            _awareness = Mathf.Min(_awareness, suspiciousThreshold * 0.5f);
+            ShouldEnterAlert = false;
         }
         
         
@@ -132,6 +196,9 @@ namespace Monster
         {
             _trackingTimer = 0f;
             ShouldEnterAlert = true;
+            
+            _awareness = 1f;
+            InvestigationPoint = LastKnownTargetPosition;
 
             MonsterChase.ForgetTarget();
         }
@@ -141,6 +208,7 @@ namespace Monster
             if (!IsServer) return;
 
             TickTracking(Time.deltaTime);
+            TickAwareness(Time.deltaTime);
             
             if (monsterDoorForcer != null)
             {
@@ -173,6 +241,11 @@ namespace Monster
             
             visionSensor.OnTargetEnter -= VisionSensor_OnTargetEnter;
             visionSensor.OnTargetExit -= VisionSensor_OnTargetExit;
+
+            if (hearingSensor != null)
+            {
+                hearingSensor.OnNoiseHeard -= HearingSensor_OnNoiseHeard;
+            }
         }
         
     }

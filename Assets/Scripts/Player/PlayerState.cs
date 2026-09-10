@@ -6,7 +6,7 @@ using UnityEngine;
 
 namespace Player
 {
-    public class PlayerState : NetworkBehaviour, IInputLockable
+    public class PlayerState : NetworkBehaviour, IInputLockable, IHuntable
     {
         public event Action<Vector2> OnPlayerMovement;
         public event Action<Vector2> OnPlayerMovementInput;
@@ -37,6 +37,10 @@ namespace Player
         public bool HasWon { get; private set; }
         
         public PlayerInfos PlayerInfos => playerInfos;
+
+        // Same test PlayerSpectator already uses to decide who is still worth watching.
+        public bool IsHuntable => !IsDead && !HasWon;
+        public Vector3 HuntablePosition => transform.position;
         
         private bool _isInputLocked;
         private Vector2 _movementInput;

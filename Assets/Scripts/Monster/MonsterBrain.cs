@@ -33,6 +33,28 @@ namespace Monster
         [Tooltip("Seconds the monster keeps a perfect fix on a target after losing sight of it.")]
         [SerializeField] private float trackingGraceSeconds = 3f;
 
+        [Header("Debug")]
+        [Tooltip("Logs any frame where the monster moves further than it physically could. " +
+                 "Runs on every peer — turn it on as a LAN client to tell a network problem " +
+                 "(client logs jumps, host does not) from a local one (both log them).")]
+        [SerializeField] private bool logMovementJumps;
+
+        [Tooltip("A jump is anything faster than this, in metres per second.")]
+        [SerializeField, Min(1f)] private float jumpSpeedThreshold = 12f;
+
+        [Tooltip("Warns when the state machine changes state again too soon after the last one. " +
+                 "Rapid back-and-forth here is the usual cause of the monster twitching in place.")]
+        [SerializeField] private bool logRapidStateChanges = true;
+
+        [Tooltip("A state that lasts less than this many seconds is flagged.")]
+        [SerializeField, Min(0.05f)] private float rapidStateSeconds = 0.75f;
+
+        [Tooltip("Warns when the monster swings its facing further than it should in one frame.")]
+        [SerializeField] private bool logFacingFlips;
+
+        [Tooltip("Degrees of turn in a single frame that counts as a flip.")]
+        [SerializeField, Min(1f)] private float facingFlipDegrees = 40f;
+
         public NavMeshAgent NavMeshAgent => navMeshAgent;
         public MonsterAwareness MonsterAwareness => monsterAwareness;
         public MonsterInvestigate MonsterInvestigate => monsterInvestigate;
@@ -204,19 +226,86 @@ namespace Monster
             string statePath = StatePath(_stateMachine.Root.Leaf());
             if (statePath == _lastPath) return;
 
+            float heldFor = _lastStateChangeTime > 0f ? Time.time - _lastStateChangeTime : 0f;
+
             _lastPath = statePath;
-            OnStateChanged?.Invoke(statePath);
+            _lastStateChangeTime = Time.time;
+
+            // Server-only: the state machine does not run anywhere else. If you are testing as a
+            // LAN client and see nothing here, that is expected — run as host to read the AI.
+            Debug.Log($"Monster: State: {statePath}  (awareness {monsterAwareness.Value:0.00} / {monsterAwareness.Level}, anterior durou {heldFor:0.00}s)");
+
+            if (!logRapidStateChanges) return;
+
+            bool wasRapid = heldFor > 0f && heldFor < rapidStateSeconds;
+
+            if (!wasRapid)
+            {
+                _rapidChangeStreak = 0;
+                return;
+            }
+
+            _rapidChangeStreak++;
+
+            Debug.LogWarning($"Monster: TROCA RAPIDA DE ESTADO — durou so {heldFor:0.00}s " +
+                             $"({_rapidChangeStreak} seguidas). Agora: {statePath}", this);
+        }
+        
+        /// <summary>
+        /// Runs on every peer, unlike <see cref="Update"/>. On a client the transform is written
+        /// by NetworkTransform interpolation, so a jump logged here and not on the host means the
+        /// updates are arriving late or dropping — a network problem, not an AI one.
+        /// </summary>
+        private void LateUpdate()
+        {
+            if (!logMovementJumps && !logFacingFlips) return;
+
+            Vector3 position = transform.position;
+            Vector3 forward = transform.forward;
+
+            if (!_hasLastLoggedPosition)
+            {
+                _lastLoggedPosition = position;
+                _lastLoggedForward = forward;
+                _hasLastLoggedPosition = true;
+                return;
+            }
+
+            float travelled = Vector3.Distance(_lastLoggedPosition, position);
+            float turned = Vector3.Angle(_lastLoggedForward, forward);
+
+            _lastLoggedPosition = position;
+            _lastLoggedForward = forward;
+
+            if (Time.deltaTime <= 0f) return;
+
+            string peer = IsServer ? "HOST" : "CLIENT";
+
+            if (logMovementJumps)
+            {
+                float speed = travelled / Time.deltaTime;
+
+                if (speed >= jumpSpeedThreshold)
+                {
+                    Debug.Log($"Monster: {peer} SALTO de {travelled:0.00}m num frame ({speed:0} m/s)");
+                }
+            }
+
+            if (!logFacingFlips) return;
+            if (turned < facingFlipDegrees) return;
+
+            // A big turn in one frame is either the rotation code fighting itself or a path that
+            // doubled back — both look identical on screen, but only the second moves the agent.
+            Debug.LogWarning($"Monster: {peer} GIROU {turned:0}graus num frame " +
+                             $"(andou {travelled:0.00}m) — estado {_lastPath}", this);
         }
 
-        /// <summary>Current "Root &gt; Parent &gt; Leaf" path. Empty before the machine starts.</summary>
-        public string CurrentStatePath => _lastPath;
+        private Vector3 _lastLoggedPosition;
+        private bool _hasLastLoggedPosition;
+        private Vector3 _lastLoggedForward;
+        private float _lastStateChangeTime;
+        private int _rapidChangeStreak;
 
-        /// <summary>
-        /// Server-side, fires when the leaf state changes. <see cref="MonsterDebugger"/> listens
-        /// so the brain no longer logs to the console on its own.
-        /// </summary>
-        public event Action<string> OnStateChanged;
-        
         private static string StatePath(State state)
         {
             return string.Join(" > ", state.PathToRoot().Reverse().Select(node => node.GetType().Name));

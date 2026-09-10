@@ -23,6 +23,15 @@ namespace Monster
         [SerializeField] private float waypointReachedDistance;
         [SerializeField] private PatrolSector[] allSectors;
 
+        [Header("Debug")]
+        [Tooltip("Logs every wander leg: how far the point was, how long it took, and how long " +
+                 "it then stood still. Short legs back to back are what reads as the monster " +
+                 "twitching instead of patrolling.")]
+        [SerializeField] private bool logWanderLegs;
+
+        [Tooltip("A leg shorter than this many metres is flagged as suspicious.")]
+        [SerializeField, Min(0f)] private float shortLegMeters = 3f;
+
         
         private float _footstepTimer;
         
@@ -35,6 +44,12 @@ namespace Monster
         private float _currentWanderInterval;
 
         private bool _waitingAtPoint;
+
+        private float _legStartTime;
+        private Vector3 _legStartPosition;
+        private float _legPlannedDistance;
+        private float _waitStartTime;
+        private int _legIndex;
         
         
         public void Initialize(NavMeshAgent monsterAgent)
@@ -127,7 +142,9 @@ namespace Monster
                 _waitingAtPoint = true;
                 _wanderTimer = 0f;
                 _agent.isStopped = true;
-                
+
+                LogLegFinished();
+
                 OnStoppedMovingAnimation?.Invoke();
             }
 
@@ -151,6 +168,8 @@ namespace Monster
                     _agent.isStopped = false;
                     _agent.SetDestination(destination);
 
+                    LogLegStarted(destination);
+
                     OnStartedMovingAnimation?.Invoke();
                 }
             }
@@ -165,6 +184,42 @@ namespace Monster
             _wanderTimer = 0f;
         }
         
+        private void LogLegStarted(Vector3 destination)
+        {
+            if (!logWanderLegs) return;
+
+            float waited = _waitStartTime > 0f ? Time.time - _waitStartTime : 0f;
+
+            _legIndex++;
+            _legStartTime = Time.time;
+            _legStartPosition = transform.position;
+            _legPlannedDistance = Vector3.Distance(_legStartPosition, destination);
+
+            string flag = _legPlannedDistance < shortLegMeters ? "  <<< PERNA CURTA" : "";
+
+            Debug.Log($"Wander leg #{_legIndex}: parado por {waited:0.00}s, novo ponto a " +
+                      $"{_legPlannedDistance:0.0}m (setor {(_currentSector == null ? "?" : _currentSector.name)}){flag}");
+        }
+
+        private void LogLegFinished()
+        {
+            _waitStartTime = Time.time;
+
+            if (!logWanderLegs) return;
+            if (_legStartTime <= 0f) return;
+
+            float duration = Time.time - _legStartTime;
+            float travelled = Vector3.Distance(_legStartPosition, transform.position);
+            float averageSpeed = duration > 0.001f ? travelled / duration : 0f;
+
+            // A leg that ends far short of its planned distance means the agent gave up or the
+            // point was unreachable — that repathing is what shows up as twitching.
+            string flag = travelled < _legPlannedDistance * 0.6f ? "  <<< NAO CHEGOU PERTO DO PONTO" : "";
+
+            Debug.Log($"Wander leg #{_legIndex} fim: andou {travelled:0.0}m de {_legPlannedDistance:0.0}m " +
+                      $"em {duration:0.00}s (media {averageSpeed:0.0} m/s, esperado {walkSpeed:0.0}){flag}");
+        }
+
         private bool ReachedDestination()
         {
             if (_agent.pathPending) return false;

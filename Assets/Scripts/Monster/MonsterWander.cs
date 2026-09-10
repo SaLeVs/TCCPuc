@@ -39,6 +39,10 @@ namespace Monster
         [Tooltip("Seconds unvisited after which a sector reaches its maximum coverage score.")]
         [SerializeField, Min(1f)] private float fullyStaleSeconds = 180f;
 
+        [Tooltip("How many times a sector may fail to produce a walkable point before the monster " +
+                 "gives up and migrates early, instead of standing still for the whole sector timer.")]
+        [SerializeField, Min(1)] private int maxFailedPointDraws = 3;
+
         [Header("Debug")]
         [Tooltip("Logs every wander leg: how far the point was, how long it took, and how long " +
                  "it then stood still. Short legs back to back are what reads as the monster " +
@@ -64,6 +68,8 @@ namespace Monster
         private float[] _sectorWeights;
         private float[] _sectorLastVisitTime;
         private readonly List<Vector3> _huntablePositions = new();
+
+        private int _failedPointDraws;
 
         private float _legStartTime;
         private Vector3 _legStartPosition;
@@ -212,6 +218,15 @@ namespace Monster
             }
         }
 
+        private void LogDeadSector()
+        {
+            if (!logWanderLegs) return;
+
+            Debug.Log($"Wander: setor '{(_currentSector == null ? "?" : _currentSector.name)}' nao " +
+                      $"produziu ponto caminhavel em {maxFailedPointDraws} tentativas — migrando cedo. " +
+                      "Se for um SpawnRoom, a sala provavelmente ainda nao nasceu.");
+        }
+
         private void LogSectorChoice(int chosen)
         {
             if (!logWanderLegs) return;
@@ -259,9 +274,23 @@ namespace Monster
                     if (!_currentSector.TryGetRandomPointInSector(out Vector3 destination))
                     {
                         _wanderTimer = 0f;
+                        _failedPointDraws++;
+
+                        // A sector with no walkable floor at all would otherwise pin the monster
+                        // in place for the whole sector duration. The mission-room slots are
+                        // exactly this until SpawnRooms has built them and rebuilt the navmesh,
+                        // and that happens only once every player has connected — so there is a
+                        // real window early in the match where these sectors are empty ground.
+                        if (_failedPointDraws >= maxFailedPointDraws)
+                        {
+                            LogDeadSector();
+                            MigrateToNewSector();
+                        }
+
                         return;
                     }
 
+                    _failedPointDraws = 0;
                     _waitingAtPoint = false;
                     _wanderTimer = 0f;
                     _currentWanderInterval = Random.Range(minWanderIntervalForEachPoint, maxWanderIntervalForEachPoint);

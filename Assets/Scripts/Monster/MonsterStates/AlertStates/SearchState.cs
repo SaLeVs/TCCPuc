@@ -14,7 +14,7 @@ namespace Monster.MonsterStates.AlertStates
 
         protected override void OnEnter()
         {
-            _monsterBrain.MonsterSearch.Begin(_monsterBrain.InvestigationPoint, _monsterBrain.MonsterChase.ChaseSpeed);
+            _monsterBrain.MonsterSearch.Begin(_monsterBrain.MonsterAwareness.InvestigationPoint, _monsterBrain.MonsterChase.ChaseSpeed);
         }
 
         protected override void OnUpdate(float deltaTime)
@@ -31,7 +31,7 @@ namespace Monster.MonsterStates.AlertStates
 
             if (_monsterBrain.MonsterSearch.IsFinished)
             {
-                _monsterBrain.ClearAlert();
+                _monsterBrain.MonsterAwareness.Clear();
                 StateMachine.Sequencer.RequestTransition(this, ((MonsterRoot)ParentState.ParentState).RoamingState);
             }
         }

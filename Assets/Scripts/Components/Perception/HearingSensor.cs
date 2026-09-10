@@ -44,6 +44,14 @@ namespace Components.Perception
 
         private Transform Ear => ear != null ? ear : transform;
 
+        /// <summary>Last few noises that got through. Read by <see cref="NoiseDebugger"/>.</summary>
+        public IReadOnlyList<HeardNoise> RecentlyHeard => _recentlyHeard;
+
+        /// <summary>Where the monster hears from. Read by <see cref="NoiseDebugger"/>.</summary>
+        public Vector3 EarPosition => Ear.position;
+
+        public float MaxHearingRange => maxHearingRange;
+
         
         public override void OnNetworkSpawn()
         {

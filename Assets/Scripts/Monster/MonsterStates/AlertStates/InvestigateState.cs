@@ -32,7 +32,7 @@ namespace Monster.MonsterStates.AlertStates
 
             _agent.isStopped = false;
             _agent.speed = _monsterBrain.MonsterChase.ChaseSpeed * WALK_SPEED_FACTOR;
-            _agent.SetDestination(_monsterBrain.InvestigationPoint);
+            _agent.SetDestination(_monsterBrain.MonsterAwareness.InvestigationPoint);
         }
 
         protected override void OnUpdate(float deltaTime)
@@ -48,9 +48,9 @@ namespace Monster.MonsterStates.AlertStates
 
             if (!_arrived)
             {
-                if (Vector3.Distance(_agent.destination, _monsterBrain.InvestigationPoint) > ARRIVAL_TOLERANCE)
+                if (Vector3.Distance(_agent.destination, _monsterBrain.MonsterAwareness.InvestigationPoint) > ARRIVAL_TOLERANCE)
                 {
-                    _agent.SetDestination(_monsterBrain.InvestigationPoint);
+                    _agent.SetDestination(_monsterBrain.MonsterAwareness.InvestigationPoint);
                 }
 
                 if (_agent.pathPending) return;
@@ -65,7 +65,7 @@ namespace Monster.MonsterStates.AlertStates
             _idleTimer += deltaTime;
             if (_idleTimer < LOOK_AROUND_SECONDS) return;
             
-            _monsterBrain.ClearAlert();
+            _monsterBrain.MonsterAwareness.Clear();
             StateMachine.Sequencer.RequestTransition(this, ((MonsterRoot)ParentState.ParentState).RoamingState);
         }
 

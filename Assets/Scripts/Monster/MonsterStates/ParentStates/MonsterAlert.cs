@@ -19,12 +19,12 @@ namespace Monster.MonsterStates.ParentStates
 
         protected override State GetInitialState()
         {
-            return _monsterBrain.Awareness == AwarenessLevel.Alerted ? searchState : investigateState;
+            return _monsterBrain.MonsterAwareness.Level == AwarenessLevel.Alerted ? searchState : investigateState;
         }
 
         protected override void OnUpdate(float deltaTime)
         {
-            if (ActiveChild == investigateState && _monsterBrain.Awareness == AwarenessLevel.Alerted)
+            if (ActiveChild == investigateState && _monsterBrain.MonsterAwareness.Level == AwarenessLevel.Alerted)
             {
                 StateMachine.Sequencer.RequestTransition(investigateState, searchState);
             }

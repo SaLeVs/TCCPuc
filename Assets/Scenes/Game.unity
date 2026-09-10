@@ -19350,6 +19350,54 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 4436942330475129209, guid: 46f5d0acdfcf0f441a3e8b27f5a8e247, type: 3}
   m_PrefabInstance: {fileID: 930332574}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &932895645
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 932895646}
+  - component: {fileID: 932895647}
+  m_Layer: 0
+  m_Name: NoiseDebugger
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &932895646
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 932895645}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &932895647
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 932895645}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3e0310dca795aaa4f9f1593d7aa0ddc4, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Components::Components.Perception.NoiseDebugger
+  logEveryNoise: 0
+  sensor: {fileID: 1071231245}
+  drawHearingRange: 1
+  drawHeardNoises: 1
 --- !u!1001 &933135691
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -23547,6 +23595,17 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: df83281545a37654988173f7c89e3785, type: 3}
+--- !u!114 &1071231245 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 7632488262795768361, guid: df83281545a37654988173f7c89e3785, type: 3}
+  m_PrefabInstance: {fileID: 1071231244}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4c0e3f8ec6323f7499f342ded5ef28be, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Components::Components.Perception.HearingSensor
 --- !u!1001 &1075376896
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -47013,3 +47072,4 @@ SceneRoots:
   - {fileID: 1815884469}
   - {fileID: 2046256002}
   - {fileID: 957713355}
+  - {fileID: 932895646}

@@ -27,25 +27,13 @@ namespace Monster
         [SerializeField] private MonsterAnimator monsterAnimator;
         [SerializeField] private MonsterSearch monsterSearch;
         [SerializeField] private MonsterDoorForcer monsterDoorForcer;
+        [SerializeField] private MonsterAwareness monsterAwareness;
         
         [Tooltip("Seconds the monster keeps a perfect fix on a target after losing sight of it.")]
         [SerializeField] private float trackingGraceSeconds = 3f;
 
-        [Header("Awareness")]
-        [Tooltip("Awareness a fully-clear noise adds. Fainter noises add proportionally less, " +
-                 "so one distant footstep is never enough on its own.")]
-        [SerializeField, Range(0f, 1f)] private float awarenessPerNoise = 0.45f;
-
-        [Tooltip("Awareness lost per second while nothing is heard.")]
-        [SerializeField, Min(0f)] private float awarenessDecayPerSecond = 0.12f;
-
-        [Tooltip("Above this, the monster walks over to look (Investigate).")]
-        [SerializeField, Range(0f, 1f)] private float suspiciousThreshold = 0.25f;
-
-        [Tooltip("Above this, the monster moves fast to the spot and sweeps it (Search).")]
-        [SerializeField, Range(0f, 1f)] private float alertedThreshold = 0.6f;
-
         public NavMeshAgent NavMeshAgent => navMeshAgent;
+        public MonsterAwareness MonsterAwareness => monsterAwareness;
         public MonsterWander MonsterWander => monsterWander;
         public MonsterSabotage MonsterSabotage => monsterSabotage;
         public MonsterChase MonsterChase => monsterChase;
@@ -58,15 +46,7 @@ namespace Monster
         public readonly List<Transform> _playersInVision = new();
         public Vector3 LastKnownTargetPosition { get; private set; }
         public Transform LastKnownTarget { get; private set; }
-        public bool ShouldEnterAlert { get; set; }
-        
-        public Vector3 InvestigationPoint { get; private set; }
-        public NoiseType LastHeardNoiseType { get; private set; }
 
-        public float AwarenessValue => _awareness;
-
-        public AwarenessLevel Awareness => _awareness >= alertedThreshold ? AwarenessLevel.Alerted : _awareness >= suspiciousThreshold ? AwarenessLevel.Suspicious : AwarenessLevel.Unaware;
-        
         public bool IsTrackingLostTarget => _trackingTimer > 0f && LastKnownTarget != null;
         
         public bool IsHunting => _playersInVision.Count > 0 || IsTrackingLostTarget;
@@ -76,7 +56,6 @@ namespace Monster
         private State _rootState;
         private string _lastPath;
         private float _trackingTimer;
-        private float _awareness;
 
         
         private void Awake()
@@ -102,7 +81,15 @@ namespace Monster
             }
             
             if (!IsServer) return;
-            
+
+            // Awareness is not optional the way the door forcer is — every Alert transition
+            // reads it. Fail here with a clear message instead of a null ref mid-chase.
+            if (monsterAwareness == null)
+            {
+                Debug.LogError($"{name}: MonsterAwareness is not assigned on MonsterBrain. The monster will not react to anything it hears.", this);
+                return;
+            }
+
             _stateMachine.Start();
             visionSensor.OnTargetEnter += VisionSensor_OnTargetEnter;
             visionSensor.OnTargetExit += VisionSensor_OnTargetExit;
@@ -116,45 +103,28 @@ namespace Monster
 
         private void HearingSensor_OnNoiseHeard(HeardNoise heard)
         {
+            // Vision outranks hearing. While it can see you — or is still coasting on a fix it
+            // just lost — a noise tells it nothing it does not already know, and letting sound
+            // rewrite the destination would pull it off an active chase.
             if (IsHunting) return;
 
-            _awareness = Mathf.Clamp01(_awareness + heard.Confidence * awarenessPerNoise);
-            
-            InvestigationPoint = heard.Position;
-            LastHeardNoiseType = heard.Type;
-
-            if (_awareness >= suspiciousThreshold)
-            {
-                ShouldEnterAlert = true;
-            }
+            monsterAwareness.RegisterNoise(heard);
         }
 
         private void TickAwareness(float deltaTime)
         {
-            if (IsHunting)
-            {
-                _awareness = 1f;
-                return;
-            }
-
-            if (_awareness <= 0f) return;
-
-            _awareness = Mathf.MoveTowards(_awareness, 0f, awarenessDecayPerSecond * deltaTime);
+            // Seeing someone pins the meter, so losing them drops straight into Alerted
+            // rather than into a lazy Investigate.
+            if (IsHunting) monsterAwareness.PinToMax();
+            else monsterAwareness.Tick(deltaTime);
         }
-        
-        public void ClearAlert()
-        {
-            _awareness = Mathf.Min(_awareness, suspiciousThreshold * 0.5f);
-            ShouldEnterAlert = false;
-        }
-        
-        
+
+
         private void VisionSensor_OnTargetEnter(GameObject player)
         {
             _playersInVision.Add(player.transform);
-            
+
             _trackingTimer = 0f;
-            ShouldEnterAlert = false;
 
             OnPlayerEnterInVision?.Invoke(player.transform);
         }
@@ -195,10 +165,8 @@ namespace Monster
         private void GoCold()
         {
             _trackingTimer = 0f;
-            ShouldEnterAlert = true;
-            
-            _awareness = 1f;
-            InvestigationPoint = LastKnownTargetPosition;
+
+            monsterAwareness.RegisterLostSight(LastKnownTargetPosition);
 
             MonsterChase.ForgetTarget();
         }

@@ -58,6 +58,7 @@ GameObject:
   - component: {fileID: 9158156660860726962}
   - component: {fileID: 7437886285449800429}
   - component: {fileID: 7632488262795768361}
+  - component: {fileID: 5320133689007995861}
   m_Layer: 9
   m_Name: Monster
   m_TagString: Untagged
@@ -193,11 +194,8 @@ MonoBehaviour:
   monsterAnimator: {fileID: 8840795157782606983}
   monsterSearch: {fileID: 5948121288489261731}
   monsterDoorForcer: {fileID: 7054409550993874800}
+  monsterAwareness: {fileID: 5320133689007995861}
   trackingGraceSeconds: 3
-  awarenessPerNoise: 0.45
-  awarenessDecayPerSecond: 0.12
-  suspiciousThreshold: 0.25
-  alertedThreshold: 0.6
 --- !u!114 &5801510265212588046
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -694,8 +692,23 @@ MonoBehaviour:
   lossPerWall: 6
   maxWallsCounted: 4
   maxPositionError: 6
-  drawGizmos: 1
-  gizmoColor: {r: 1, g: 0.85, b: 0.2, a: 0.25}
+--- !u!114 &5320133689007995861
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2397166377357422809}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2906b3805b5ccfd478660e19ba93c10f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Monster::Monster.MonsterAwareness
+  ShowTopMostFoldoutHeaderGroup: 1
+  awarenessPerNoise: 0.45
+  decayPerSecond: 0.12
+  suspiciousThreshold: 0.25
+  alertedThreshold: 0.6
 --- !u!1 &8968525623132493308
 GameObject:
   m_ObjectHideFlags: 0

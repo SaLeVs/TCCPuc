@@ -1,4 +1,5 @@
 using System;
+using Components.Perception;
 using Inputs;
 using Player;
 using Unity.Netcode;
@@ -13,6 +14,9 @@ namespace Objects
         [SerializeField] private InputReader inputReader;
         [SerializeField] private Light flashlight;
         [SerializeField] private PlayerState playerState;
+
+        [Tooltip("Optional. The click the monster can hear when this is switched on or off.")]
+        [SerializeField] private NoiseEmitter clickNoise;
 
         [SerializeField] private int batteryPercentMax = 100;
         [SerializeField] private int batteryPercentDecreasePerSecond = 10;
@@ -73,6 +77,10 @@ namespace Objects
             if (_batteryDead) return;
 
             _isFlashlightOn.Value = !_isFlashlightOn.Value;
+
+            // Emitted server-side, where the toggle is authoritative — a client that spams the
+            // input while the battery is dead never produces a sound the monster can chase.
+            if (clickNoise != null) clickNoise.Emit();
         }
         
         private void UpdateFlashlightVisual(bool state)

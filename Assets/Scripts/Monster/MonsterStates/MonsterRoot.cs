@@ -33,7 +33,7 @@ namespace Monster.MonsterStates
                 return HuntState;
             }
 
-            if (!hunting && _monsterBrain.ShouldEnterAlert && ActiveChild != AlertState)
+            if (!hunting && _monsterBrain.MonsterAwareness.ShouldInvestigate && ActiveChild != AlertState)
             {
                 MonsterHunt hunt = (MonsterHunt)HuntState;
 
@@ -41,7 +41,7 @@ namespace Monster.MonsterStates
                 return AlertState;
             }
 
-            if (!hunting && !_monsterBrain.ShouldEnterAlert && ActiveChild != RoamingState)
+            if (!hunting && !_monsterBrain.MonsterAwareness.ShouldInvestigate && ActiveChild != RoamingState)
             {
                 return RoamingState;
             }

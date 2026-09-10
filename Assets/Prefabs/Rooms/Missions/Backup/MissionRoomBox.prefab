@@ -6973,13 +6973,55 @@ PrefabInstance:
     - {fileID: 6487451595244587881, guid: 30c50a96f46e931479d066d1d8665a88, type: 3}
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 8992202985658534705, guid: 30c50a96f46e931479d066d1d8665a88, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 627812281741382709}
+    - targetCorrespondingSourceObject: {fileID: 8992202985658534705, guid: 30c50a96f46e931479d066d1d8665a88, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 2272931401385429159}
   m_SourcePrefab: {fileID: 100100000, guid: 30c50a96f46e931479d066d1d8665a88, type: 3}
 --- !u!4 &2729543292517162583 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 4566688847407968762, guid: 30c50a96f46e931479d066d1d8665a88, type: 3}
   m_PrefabInstance: {fileID: 1909924703719681965}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &7371216795943183516 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 8992202985658534705, guid: 30c50a96f46e931479d066d1d8665a88, type: 3}
+  m_PrefabInstance: {fileID: 1909924703719681965}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &627812281741382709
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7371216795943183516}
+  m_Enabled: 0
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5fea29bb7c508c244a1f805a5fd3fc4d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Components::Outline
+  outlineMode: 0
+  outlineColor: {r: 0.36, g: 0.54, b: 0.17, a: 1}
+  outlineWidth: 8
+  precomputeOutline: 0
+  bakeKeys: []
+  bakeValues: []
+--- !u!114 &2272931401385429159
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7371216795943183516}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2a3dc5ad84c923546b6745c8a52386a9, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Components::Highlight
+  outline: {fileID: 627812281741382709}
 --- !u!1001 &1922193448785516361
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -24000,8 +24042,50 @@ PrefabInstance:
     - {fileID: 6487451595244587881, guid: 30c50a96f46e931479d066d1d8665a88, type: 3}
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 8992202985658534705, guid: 30c50a96f46e931479d066d1d8665a88, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 8455884414026326242}
+    - targetCorrespondingSourceObject: {fileID: 8992202985658534705, guid: 30c50a96f46e931479d066d1d8665a88, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 9059161133677565657}
   m_SourcePrefab: {fileID: 100100000, guid: 30c50a96f46e931479d066d1d8665a88, type: 3}
+--- !u!1 &358198440486601543 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 8992202985658534705, guid: 30c50a96f46e931479d066d1d8665a88, type: 3}
+  m_PrefabInstance: {fileID: 8661032778125527158}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &8455884414026326242
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 358198440486601543}
+  m_Enabled: 0
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5fea29bb7c508c244a1f805a5fd3fc4d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Components::Outline
+  outlineMode: 0
+  outlineColor: {r: 0.36, g: 0.54, b: 0.17, a: 1}
+  outlineWidth: 8
+  precomputeOutline: 0
+  bakeKeys: []
+  bakeValues: []
+--- !u!114 &9059161133677565657
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 358198440486601543}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2a3dc5ad84c923546b6745c8a52386a9, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Components::Highlight
+  outline: {fileID: 8455884414026326242}
 --- !u!4 &5139179074510567820 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 4566688847407968762, guid: 30c50a96f46e931479d066d1d8665a88, type: 3}

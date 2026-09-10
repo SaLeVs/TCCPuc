@@ -18536,8 +18536,50 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 8992202985658534705, guid: 30c50a96f46e931479d066d1d8665a88, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 6457126331457982808}
+    - targetCorrespondingSourceObject: {fileID: 8992202985658534705, guid: 30c50a96f46e931479d066d1d8665a88, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 2602951658611932433}
   m_SourcePrefab: {fileID: 100100000, guid: 30c50a96f46e931479d066d1d8665a88, type: 3}
+--- !u!1 &1260438034046895927 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 8992202985658534705, guid: 30c50a96f46e931479d066d1d8665a88, type: 3}
+  m_PrefabInstance: {fileID: 7905859481729469446}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &6457126331457982808
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1260438034046895927}
+  m_Enabled: 0
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5fea29bb7c508c244a1f805a5fd3fc4d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Components::Outline
+  outlineMode: 0
+  outlineColor: {r: 0.36, g: 0.54, b: 0.17, a: 1}
+  outlineWidth: 8
+  precomputeOutline: 0
+  bakeKeys: []
+  bakeValues: []
+--- !u!114 &2602951658611932433
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1260438034046895927}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2a3dc5ad84c923546b6745c8a52386a9, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Components::Highlight
+  outline: {fileID: 6457126331457982808}
 --- !u!4 &5969347585152843260 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 4566688847407968762, guid: 30c50a96f46e931479d066d1d8665a88, type: 3}
@@ -18788,8 +18830,50 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 8992202985658534705, guid: 30c50a96f46e931479d066d1d8665a88, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 2892956338028419387}
+    - targetCorrespondingSourceObject: {fileID: 8992202985658534705, guid: 30c50a96f46e931479d066d1d8665a88, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 7382576418804448393}
   m_SourcePrefab: {fileID: 100100000, guid: 30c50a96f46e931479d066d1d8665a88, type: 3}
+--- !u!1 &1372777580510173049 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 8992202985658534705, guid: 30c50a96f46e931479d066d1d8665a88, type: 3}
+  m_PrefabInstance: {fileID: 8054596771488177224}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &2892956338028419387
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1372777580510173049}
+  m_Enabled: 0
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5fea29bb7c508c244a1f805a5fd3fc4d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Components::Outline
+  outlineMode: 0
+  outlineColor: {r: 0.36, g: 0.54, b: 0.17, a: 1}
+  outlineWidth: 8
+  precomputeOutline: 0
+  bakeKeys: []
+  bakeValues: []
+--- !u!114 &7382576418804448393
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1372777580510173049}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2a3dc5ad84c923546b6745c8a52386a9, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Components::Highlight
+  outline: {fileID: 2892956338028419387}
 --- !u!4 &5811770357466721714 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 4566688847407968762, guid: 30c50a96f46e931479d066d1d8665a88, type: 3}

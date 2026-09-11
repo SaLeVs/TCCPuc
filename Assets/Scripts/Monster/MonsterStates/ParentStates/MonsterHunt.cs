@@ -39,7 +39,14 @@ namespace Monster.MonsterStates.ParentStates
             // is chasing you around — stopping, swinging, stopping again instead of running.
             bool canSeeTarget = _monsterBrain._playersInVision.Count > 0;
 
-            if (canSeeTarget && distanceToTarget <= distanceToAttack)
+            // Chase again while recovering, instead of standing in the target's face doing
+            // nothing. Waiting out the cooldown at arm's length used to be safer than running,
+            // which is backwards for a horror game — now backing off keeps it coming.
+            // Note IsOnCooldown is false *during* a swing (it starts when the swing ends), so
+            // this never interrupts an attack in progress.
+            bool readyToSwing = !_monsterBrain.MonsterAttack.IsOnCooldown;
+
+            if (canSeeTarget && readyToSwing && distanceToTarget <= distanceToAttack)
             {
                 if (ActiveChild != attackState)
                 {

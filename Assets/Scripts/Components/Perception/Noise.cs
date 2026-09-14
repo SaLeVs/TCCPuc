@@ -39,13 +39,25 @@ namespace Components.Perception
         /// <summary>Who made it. Null for world noises. Used so a listener can ignore itself.</summary>
         public readonly Transform Source;
 
-        public HeardNoise(Vector3 position, Vector3 truePosition, float confidence, NoiseType type, Transform source)
+        /// <summary>
+        /// <see cref="UnityEngine.Time.time"/> when this came through. Debug-only, like
+        /// <see cref="TruePosition"/>.
+        ///
+        /// <para>It is what lets a marker pop the instant a noise lands and fade out afterwards.
+        /// Without it every entry in the sensor's rolling buffer looks equally fresh, so the
+        /// footstep you just took is indistinguishable from one from a minute ago — which is
+        /// exactly the question you are asking when you drop a gizmo on it.</para>
+        /// </summary>
+        public readonly float HeardAtTime;
+
+        public HeardNoise(Vector3 position, Vector3 truePosition, float confidence, NoiseType type, Transform source, float heardAtTime)
         {
             Position = position;
             TruePosition = truePosition;
             Confidence = confidence;
             Type = type;
             Source = source;
+            HeardAtTime = heardAtTime;
         }
     }
 }

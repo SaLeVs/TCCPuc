@@ -95,7 +95,7 @@ namespace Components.Perception
             
             float confidence = Mathf.Clamp01(remaining / reach);
 
-            heard = new HeardNoise(Scatter(noise.Position, confidence), noise.Position, confidence, noise.Type, noise.Source);
+            heard = new HeardNoise(Scatter(noise.Position, confidence), noise.Position, confidence, noise.Type, noise.Source, Time.time);
             return true;
         }
 

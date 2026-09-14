@@ -10,6 +10,15 @@ namespace Components.Perception
     /// it can be turned on, and it draws what a <see cref="HearingSensor"/> actually heard —
     /// which is the fastest way to feel whether the position error is too forgiving or too
     /// cruel.</para>
+    ///
+    /// <para>The markers answer one question: <i>did the monster hear that?</i> A solid blob
+    /// appears exactly where a noise it heard was made. No blob means the noise never got
+    /// through — too quiet, too far, or too many walls — and the sound is the thing to fix, not
+    /// the AI. Where it decides to walk is drawn by <c>MonsterAwareness</c> instead.</para>
+    ///
+    /// <para>Server-side only: <see cref="HearingSensor"/> subscribes to the bus only on the
+    /// server, so run as Host to see anything. A pure LAN client draws nothing, and that is
+    /// expected rather than a bug.</para>
     /// </summary>
     public class NoiseDebugger : MonoBehaviour
     {
@@ -22,6 +31,23 @@ namespace Components.Perception
 
         [SerializeField] private bool drawHearingRange = true;
         [SerializeField] private bool drawHeardNoises = true;
+
+        [Header("Heard noise marker")]
+        [Tooltip("Solid blob dropped exactly where a noise the monster heard was made.")]
+        [SerializeField] private Color heardNoiseColor = new Color(1f, 0f, 0.9f);
+
+        [SerializeField, Min(0.05f)] private float heardNoiseRadius = 0.55f;
+
+        [Tooltip("Seconds a marker stays up. It fades over this time so the noise you just made " +
+                 "is obvious next to the ones before it. 0 keeps every marker the sensor still holds.")]
+        [SerializeField, Min(0f)] private float heardNoiseLifetime = 5f;
+
+        [Tooltip("Also draw the monster's guess — the scattered point it will actually walk to — " +
+                 "and the error between guess and truth. The gap is the whole design of the hearing system.")]
+        [SerializeField] private bool drawGuessedPosition = true;
+
+        [Tooltip("Label each marker with its type and how clearly it came through (0..1).")]
+        [SerializeField] private bool drawLabels = true;
 
         private void OnEnable() => NoiseBus.IsVerboseLogging = logEveryNoise;
 
@@ -55,15 +81,61 @@ namespace Components.Perception
 
             foreach (HeardNoise heard in target.RecentlyHeard)
             {
-                // Yellow = barely made it out, red = came through clearly.
-                Gizmos.color = Color.Lerp(Color.yellow, Color.red, heard.Confidence);
+                float fade = FadeFor(heard);
+                if (fade <= 0f) continue;
 
-                Gizmos.DrawSphere(heard.TruePosition, 0.25f);
-                Gizmos.DrawWireSphere(heard.Position, 0.4f);
-
-                // The gap between the two is the monster's error — the whole design in one line.
-                Gizmos.DrawLine(heard.TruePosition, heard.Position);
+                DrawHeardNoise(heard, fade);
             }
         }
+
+        /// <summary>
+        /// 1 the frame a noise lands, falling to 0 over <c>heardNoiseLifetime</c>. Drives alpha so
+        /// a marker announces itself and then gets out of the way, instead of the buffer's last
+        /// twelve entries all sitting there at full strength with no way to tell them apart.
+        /// </summary>
+        private float FadeFor(HeardNoise heard)
+        {
+            if (heardNoiseLifetime <= 0f) return 1f;
+
+            float age = Time.time - heard.HeardAtTime;
+
+            return Mathf.Clamp01(1f - age / heardNoiseLifetime);
+        }
+
+        private void DrawHeardNoise(HeardNoise heard, float fade)
+        {
+            Color color = heardNoiseColor;
+            color.a *= fade;
+
+            Gizmos.color = color;
+            Gizmos.DrawSphere(heard.TruePosition, heardNoiseRadius);
+
+            if (drawGuessedPosition)
+            {
+                // Hollow, so the solid blob stays the thing your eye lands on: that one is the
+                // truth, this one is only where the monster thinks it came from.
+                Gizmos.DrawWireSphere(heard.Position, heardNoiseRadius * 1.6f);
+                Gizmos.DrawLine(heard.TruePosition, heard.Position);
+            }
+
+            if (!drawLabels) return;
+
+            DrawLabel(heard.TruePosition + Vector3.up * (heardNoiseRadius + 0.35f),
+                $"{heard.Type} {heard.Confidence:0.00}", color);
+        }
+
+        private static void DrawLabel(Vector3 position, string text, Color color)
+        {
+#if UNITY_EDITOR
+            _labelStyle ??= new GUIStyle { fontStyle = FontStyle.Bold, alignment = TextAnchor.MiddleCenter };
+            _labelStyle.normal.textColor = color;
+
+            UnityEditor.Handles.Label(position, text, _labelStyle);
+#endif
+        }
+
+#if UNITY_EDITOR
+        private static GUIStyle _labelStyle;
+#endif
     }
 }

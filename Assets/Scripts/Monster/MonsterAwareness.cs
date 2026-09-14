@@ -39,6 +39,24 @@ namespace Monster
             new NoiseWeight { type = NoiseType.Door,        multiplier = 1.3f },
         };
 
+        [Header("Debug gizmos")]
+        [Tooltip("Draw the spot the monster is on its way to check, for as long as it is actually " +
+                 "committed to checking it. Pairs with the solid markers NoiseDebugger drops where " +
+                 "a noise was heard: a marker with no target means it heard you but stayed put.")]
+        [SerializeField] private bool drawInvestigationGizmo = true;
+
+        [Tooltip("Suspicious - walking over to look (InvestigateState).")]
+        [SerializeField] private Color investigateColor = new Color(0.15f, 1f, 0.35f);
+
+        [Tooltip("Alerted - moving fast to the spot and sweeping it (SearchState).")]
+        [SerializeField] private Color searchColor = new Color(1f, 0.45f, 0f);
+
+        [SerializeField, Min(0.05f)] private float investigationGizmoSize = 0.8f;
+
+        [Tooltip("Height of the beam standing on the target, so you can find it from across the " +
+                 "map and through geometry.")]
+        [SerializeField, Min(0f)] private float investigationBeamHeight = 4f;
+
         [System.Serializable]
         private struct NoiseWeight
         {
@@ -123,5 +141,59 @@ namespace Monster
         {
             _awareness = Mathf.Min(_awareness, suspiciousThreshold * 0.5f);
         }
+
+
+        /// <summary>
+        /// Draws where the monster is headed and how seriously it is taking it.
+        ///
+        /// <para>Gated on <see cref="IsHeld"/> rather than on <see cref="ShouldInvestigate"/>,
+        /// because only <see cref="MonsterStates.ParentStates.MonsterAlert"/> sets it — on the way
+        /// in, cleared on the way out. That makes it exactly "committed to going and looking".
+        /// The level is already over the threshold for the frame or two before the transition
+        /// actually runs, so drawing on that would flash a target the monster never went to.</para>
+        ///
+        /// <para>Server-only, like everything else here: the state machine runs nowhere else, so
+        /// a LAN client draws nothing. Run as Host.</para>
+        /// </summary>
+        private void OnDrawGizmos()
+        {
+            if (!drawInvestigationGizmo) return;
+            if (!Application.isPlaying) return;
+            if (!IsHeld) return;
+
+            bool isAlerted = Level == AwarenessLevel.Alerted;
+            Color color = isAlerted ? searchColor : investigateColor;
+
+            Vector3 point = InvestigationPoint;
+
+            Gizmos.color = color;
+
+            // A cube, where a heard noise is a sphere: the two are told apart by shape first, so
+            // they still read correctly when they overlap or when the colours get retuned.
+            Gizmos.DrawCube(point, Vector3.one * investigationGizmoSize);
+            Gizmos.DrawLine(point, point + Vector3.up * investigationBeamHeight);
+            Gizmos.DrawLine(transform.position, point);
+
+            Gizmos.color = new Color(color.r, color.g, color.b, color.a * 0.3f);
+            Gizmos.DrawWireSphere(point, investigationGizmoSize * 2f);
+
+            DrawLabel(point + Vector3.up * (investigationBeamHeight + 0.3f),
+                $"{(isAlerted ? "Search" : "Investigate")} | {LastHeardNoiseType} | {_awareness:0.00}",
+                color);
+        }
+
+        private static void DrawLabel(Vector3 position, string text, Color color)
+        {
+#if UNITY_EDITOR
+            _labelStyle ??= new GUIStyle { fontStyle = FontStyle.Bold, alignment = TextAnchor.MiddleCenter };
+            _labelStyle.normal.textColor = color;
+
+            UnityEditor.Handles.Label(position, text, _labelStyle);
+#endif
+        }
+
+#if UNITY_EDITOR
+        private static GUIStyle _labelStyle;
+#endif
     }
 }

@@ -11,6 +11,9 @@ namespace Monster
         public event Action<int> OnSearchStartedAnimation;
         public event Action OnSearchEndedAnimation;
 
+        /// <summary>Carries the intended speed so the animator can pick walk or run.</summary>
+        public event Action<float> OnStartedMovingAnimation;
+
         [Header("Look Around")]
         [SerializeField] private float minLookDuration = 2f;
         [SerializeField] private float maxLookDuration = 3f;
@@ -54,6 +57,10 @@ namespace Monster
 
             _lookTimer = 0f;
             _lookDuration = Random.Range(minLookDuration, maxLookDuration);
+
+            // Without this the run to the last known position kept whatever clip the previous
+            // state left playing — usually an idle, so it slid there on frozen feet.
+            OnStartedMovingAnimation?.Invoke(chaseSpeed);
         }
 
         public void Tick(float deltaTime)

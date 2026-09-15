@@ -2,13 +2,17 @@
 
 namespace Monster.MonsterStates.HuntStates
 {
+    /// <summary>
+    /// Swinging at someone in range.
+    ///
+    /// <para>The rhythm belongs to <see cref="MonsterAttack"/>, not to this state. This state is
+    /// entered and left every time the player crosses the attack range, so anything stored here
+    /// is wiped by a single step backwards — which is exactly how the cooldown used to be reset.
+    /// It just asks to attack; the component decides whether it is allowed.</para>
+    /// </summary>
     public class AttackState : State
     {
         private readonly MonsterBrain _monsterBrain;
-
-        private float _cooldownTimer;
-        private float _attackCooldown;
-        private bool _waitingForCooldown;
 
         public AttackState(StateMachine stateMachine, State parentState, MonsterBrain monsterBrain) : base(stateMachine, parentState)
         {
@@ -17,39 +21,18 @@ namespace Monster.MonsterStates.HuntStates
 
         protected override void OnEnter()
         {
-            _attackCooldown = _monsterBrain.MonsterAttack.AttackCooldown;
-            _cooldownTimer = 0f;
-            _waitingForCooldown = false;
-            
-            _monsterBrain.MonsterAttack.OnAttackEndedAnimation += OnAttackEnded;
-            _monsterBrain.MonsterAttack.StartAttack();
-        }
-        
-        private void OnAttackEnded()
-        {
-            _waitingForCooldown = true;
-            _cooldownTimer = 0f;
+            _monsterBrain.MonsterAttack.TryStartAttack();
         }
 
         protected override void OnUpdate(float deltaTime)
         {
-            if (!_waitingForCooldown) return;
-
-            _cooldownTimer += deltaTime;
-
-            if (_cooldownTimer >= _attackCooldown)
-            {
-                _waitingForCooldown = false;
-                _monsterBrain.MonsterAttack.StartAttack();
-            }
+            // Cheap to ask every frame — refused while a swing is running or the cooldown is up.
+            _monsterBrain.MonsterAttack.TryStartAttack();
         }
 
         protected override void OnExit()
         {
-            _monsterBrain.MonsterAttack.OnAttackEndedAnimation -= OnAttackEnded;
             _monsterBrain.MonsterAttack.CancelAttack();
         }
-
-        // protected override State GetTransitionState() { } 
     }
 }

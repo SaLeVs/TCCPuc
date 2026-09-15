@@ -103,6 +103,8 @@ GameObject:
   - component: {fileID: 7081086976419277610}
   - component: {fileID: 587608046940699343}
   - component: {fileID: 4523274771507174324}
+  - component: {fileID: 6773264135420492356}
+  - component: {fileID: 3867573451082726814}
   m_Layer: 8
   m_Name: LeafRight
   m_TagString: Untagged
@@ -199,6 +201,37 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Objects::DoorLeafInteractable
   door: {fileID: 8770861388661062843}
+--- !u!114 &6773264135420492356
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8992202985658534705}
+  m_Enabled: 0
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5fea29bb7c508c244a1f805a5fd3fc4d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Components::Outline
+  outlineMode: 0
+  outlineColor: {r: 0.36, g: 0.54, b: 0.17, a: 1}
+  outlineWidth: 8
+  precomputeOutline: 0
+  bakeKeys: []
+  bakeValues: []
+--- !u!114 &3867573451082726814
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8992202985658534705}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2a3dc5ad84c923546b6745c8a52386a9, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Components::Highlight
+  outline: {fileID: 6773264135420492356}
 --- !u!1 &9054779414766999573
 GameObject:
   m_ObjectHideFlags: 0
@@ -337,6 +370,7 @@ MonoBehaviour:
   doorRigidbody: {fileID: 1721929873816632866}
   navMeshObstacle: {fileID: 7409972186935927049}
   leafCollisionRelay: {fileID: 587608046940699343}
+  useNoise: {fileID: 0}
   impactProfile: {fileID: 11400000, guid: c1eef1fa3b196444284896d4bae14c64, type: 2}
   closedAngle: 0
   openSideAAngle: 120

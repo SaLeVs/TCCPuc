@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 
+using Components.Perception;
 using Enums;
 using Interfaces;
 using Player;
@@ -22,6 +23,10 @@ namespace Objects
         [SerializeField] private Rigidbody doorRigidbody;
         [SerializeField] private NavMeshObstacle navMeshObstacle;
         [SerializeField] private DoorLeafCollisionRelay leafCollisionRelay;
+
+        [Tooltip("Optional. The noise a player makes opening or closing this door. Deliberately " +
+                 "not emitted when the monster forces the door — it would chase its own racket.")]
+        [SerializeField] private NoiseEmitter useNoise;
 
         [Header("Impact")]
         [Tooltip("What this door does to a player it hits while swinging. Leave empty for a door that never knocks anyone over.")]
@@ -117,6 +122,8 @@ namespace Objects
                 PlayBlockedSoundRpc();
                 return;
             }
+
+            if (useNoise != null) useNoise.Emit();
 
             if (_state.Value != DoorState.Closed)
             {

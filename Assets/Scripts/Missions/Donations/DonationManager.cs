@@ -19,9 +19,13 @@ namespace Missions.Donations
 
         [Header("Timing")]
         [Tooltip("Every how many seconds the server tries to roll new donations")]
-        [Header("Timing")]
         [SerializeField] private float minEvaluationInterval = 3f;
         [SerializeField] private float maxEvaluationInterval = 10f;
+
+        [Tooltip("Quiet period after any donation before the pool may be rolled again. This is " +
+                 "what stops two donations landing seconds apart — the per-type cooldown only " +
+                 "ever spaced a type from itself, never one type from another.")]
+        [SerializeField, Min(0f)] private float minSecondsBetweenDonations = 90f;
         
         public NetworkList<DonationNetworkState> NetworkStates => _networkStates;
         
@@ -34,6 +38,11 @@ namespace Missions.Donations
         private readonly NetworkVariable<int> _manualViewerCount = new(0);
         private float _currentEvaluationInterval;
         private float _evaluationTimer;
+        private float _timeSinceLastSpawn = float.MaxValue;
+
+        /// <summary>Seconds left in the quiet period. 0 when the pool may be rolled.</summary>
+        public float QuietSecondsRemaining =>
+            Mathf.Max(0f, minSecondsBetweenDonations - _timeSinceLastSpawn);
         
         public int ViewerCount => _manualViewerCount.Value > 0 ? _manualViewerCount.Value : (NetworkManager.Singleton != null ? NetworkManager.Singleton.ConnectedClientsIds.Count : 0);
 
@@ -69,11 +78,14 @@ namespace Missions.Donations
             TickExpirations();
             TickRecordingWatchers(Time.deltaTime);
 
+            if (_timeSinceLastSpawn < float.MaxValue) _timeSinceLastSpawn += Time.deltaTime;
+
             _evaluationTimer += Time.deltaTime;
 
             if (_evaluationTimer >= _currentEvaluationInterval)
             {
                 _evaluationTimer = 0f;
+                RollNextEvaluationInterval();
 
                 EvaluateSpawns();
             }
@@ -154,9 +166,19 @@ namespace Missions.Donations
             }
         }
 
+        /// <summary>
+        /// One pass over the pool. Every definition is rolled independently, so more than one can
+        /// land together when the dice say so — but the whole pass is gated behind the quiet
+        /// period, so a burst is followed by real silence instead of another burst.
+        /// </summary>
         private void EvaluateSpawns()
         {
             if (donationPool == null) return;
+
+            if (_timeSinceLastSpawn < minSecondsBetweenDonations) return;
+
+            int viewers = ViewerCount;
+            bool spawnedAny = false;
 
             foreach (var definition in donationPool)
             {
@@ -168,12 +190,18 @@ namespace Missions.Donations
                 if (definition.stackingMode == DonationStackingMode.Exclusive && HasActiveInstanceOf(definition.donationId))
                     continue;
 
-                float chance = definition.triggerRule.EvaluateChance(ViewerCount);
-                if (UnityEngine.Random.value <= chance)
-                {
-                    SpawnDonation(definition);
-                }
+                float chance = definition.triggerRule.EvaluateChance(viewers);
+
+                // Strictly less-than: Random.value can return exactly 0, so `<=` would let a
+                // chance of 0 through — which now happens on purpose whenever the audience is
+                // below a rule's minViewersRequired.
+                if (UnityEngine.Random.value >= chance) continue;
+
+                SpawnDonation(definition);
+                spawnedAny = true;
             }
+
+            if (spawnedAny) _timeSinceLastSpawn = 0f;
         }
 
         private bool HasActiveInstanceOf(string donationId)
@@ -187,8 +215,6 @@ namespace Missions.Donations
 
         private void SpawnDonation(DonationDefinition definition)
         {
-            RollNextEvaluationInterval();
-            
             _cooldownTimers[definition.donationId] = definition.triggerRule.cooldownSeconds;
 
             double now = NetworkManager.Singleton.ServerTime.TimeAsFloat;

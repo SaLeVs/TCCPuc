@@ -19,6 +19,12 @@ namespace Monster.MonsterStates.RoamingStates
 
         protected override void OnUpdate(float deltaTime)
         {
+            // Held up at a door: the forcer owns the agent and is driving the rotation itself.
+            // Without this the wander timer could hand the agent a new destination mid-swipe and
+            // walk the monster away from a door the forcer still thinks it is holding.
+            // ChaseState, SearchState and InvestigateState all guard the same way.
+            if (_monsterBrain.IsForcingDoor) return;
+
             _monsterBrain.MonsterWander.UpdateWander(deltaTime);
         }
         

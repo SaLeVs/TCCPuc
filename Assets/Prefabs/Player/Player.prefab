@@ -236,6 +236,7 @@ GameObject:
   - component: {fileID: 136951641080088674}
   - component: {fileID: 2087882945893029092}
   - component: {fileID: 1081674600101143416}
+  - component: {fileID: 7565777945021881719}
   m_Layer: 11
   m_Name: Flashlight
   m_TagString: Untagged
@@ -367,10 +368,26 @@ MonoBehaviour:
   ShowTopMostFoldoutHeaderGroup: 1
   inputReader: {fileID: 11400000, guid: b8967103b22990e4685e914ae00843a6, type: 2}
   flashlight: {fileID: 136951641080088674}
-  lightBeam: {fileID: 0}
   playerState: {fileID: 315419889962386199}
+  clickNoise: {fileID: 7565777945021881719}
   batteryPercentMax: 400
   batteryPercentDecreasePerSecond: 4
+--- !u!114 &7565777945021881719
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 256771491213197926}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e9948bcfcc217db43a2a03b12f6e637f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Components::Components.Perception.NoiseEmitter
+  type: 2
+  loudness: 4
+  cooldown: 0.2
+  origin: {fileID: 0}
 --- !u!1 &317605345587534326
 GameObject:
   m_ObjectHideFlags: 0
@@ -5058,6 +5075,7 @@ GameObject:
   - component: {fileID: 1740412110358022840}
   - component: {fileID: 3916989616377195318}
   - component: {fileID: 1861191804149879818}
+  - component: {fileID: 274594114697578275}
   - component: {fileID: 3158690138509095668}
   - component: {fileID: 2207057075489463036}
   m_Layer: 11
@@ -5100,7 +5118,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Unity.Netcode.Runtime::Unity.Netcode.NetworkObject
-  GlobalObjectIdHash: 3919488120
+  GlobalObjectIdHash: 282796449
   InScenePlacedSourceGlobalObjectIdHash: 0
   DeferredDespawnTick: 0
   Ownership: 1
@@ -5287,7 +5305,7 @@ MonoBehaviour:
   ceilingCheckDistance: 0.5
   ceilingMask:
     serializedVersion: 2
-    m_Bits: 128
+    m_Bits: 1000576
 --- !u!114 &9106684494112449477
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -5391,7 +5409,7 @@ MonoBehaviour:
   checkInterval: 0.2
   layerMask:
     serializedVersion: 2
-    m_Bits: 256
+    m_Bits: 262400
 --- !u!114 &1377124246796650101
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -5569,7 +5587,7 @@ MonoBehaviour:
   ragdollPrefab: {fileID: 7429760074917165057, guid: bc083590359f6df45ae8d806d5735b69, type: 3}
   standingBlockingMask:
     serializedVersion: 2
-    m_Bits: 94080
+    m_Bits: 1011584
   searchMaxDistance: 4
   searchStepSize: 0.5
   searchAngleStep: 20
@@ -5633,9 +5651,28 @@ MonoBehaviour:
     m_Bits: 25344
   occlusionLayers:
     serializedVersion: 2
-    m_Bits: 65664
+    m_Bits: 984448
   detectedObjects: []
   previousDetectedObjects: []
+--- !u!114 &274594114697578275
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6252520807053122715}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a566c09604f68ee44ab8a08094d20bd2, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Player::Player.PlayerNoiseProfile
+  ShowTopMostFoldoutHeaderGroup: 1
+  footstepEmitter: {fileID: 1300374042160880593}
+  playerCrouch: {fileID: 2747145024143162000}
+  playerRun: {fileID: 4084110916807435523}
+  crouchingMultiplier: 0.3
+  walkingMultiplier: 1
+  runningMultiplier: 1.8
 --- !u!54 &3158690138509095668
 Rigidbody:
   m_ObjectHideFlags: 0
@@ -8462,6 +8499,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Components::Components.FootstepSound
   ShowTopMostFoldoutHeaderGroup: 1
   source: 0
+  footstepLoudness: 9
+  reportsNoise: 1
 --- !u!114 &3543101474296564965
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -8544,6 +8583,12 @@ MonoBehaviour:
   ShowTopMostFoldoutHeaderGroup: 1
   micWatcherBehaviour: {fileID: 9144792236639197796}
   audioEnergyThreshold: 0.65
+  voiceMakesNoise: 1
+  speechEnergyThreshold: 0.25
+  shoutEnergyThreshold: 0.65
+  speechLoudness: 10
+  shoutLoudness: 24
+  voiceReportInterval: 0.35
 --- !u!4 &3764744458408356686 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 2434337355144988064, guid: 37c386933ed65d64bb4a2438c8acbfbf, type: 3}
@@ -8714,7 +8759,7 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 4872851973958549206, guid: 3bc24c2d5845869428982f72dbf96afd, type: 3}
       propertyPath: m_SizeDelta.y
-      value: 0
+      value: 3
       objectReference: {fileID: 0}
     - target: {fileID: 5714232411238863896, guid: 3bc24c2d5845869428982f72dbf96afd, type: 3}
       propertyPath: m_Name
@@ -9229,7 +9274,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7928477944169878567, guid: 69d3eb0e15e37624a88d642f46096351, type: 3}
       propertyPath: m_SizeDelta.y
-      value: 0
+      value: 3
       objectReference: {fileID: 0}
     - target: {fileID: 9024786202233854397, guid: 69d3eb0e15e37624a88d642f46096351, type: 3}
       propertyPath: visionSensor

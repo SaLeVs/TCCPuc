@@ -14,7 +14,8 @@ namespace Monster.MonsterStates.RoamingStates
 
         protected override void OnEnter()
         {
-            _monsterBrain.MonsterSabotage.ChooseSabotageType();
+            // The type was already chosen by MonsterRoaming — it only requests this transition
+            // once it knows something of that type is still intact.
             _monsterBrain.MonsterSabotage.Execute(_monsterBrain.MonsterSabotage.GetAvailableTargets());
         }
 

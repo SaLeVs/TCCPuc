@@ -1906,39 +1906,62 @@ MonoBehaviour:
   m_GameObject: {fileID: 3074954106666584623}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 8861715bb19c3c6c0ee5d3329ad96df4, type: 3}
+  m_Script: {fileID: 11500000, guid: 7ff61bdf95ebc5a648f87e3282f6e4c1, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  hiddenOffsetMin: {x: 0, y: 0}
-  hiddenOffsetMax: {x: 0, y: 0}
-  hiddenAlpha: 1
-  duration: 0.25
-  curve:
-    serializedVersion: 2
-    m_Curve:
-    - serializedVersion: 3
-      time: 0
-      value: 0
-      inSlope: 0
-      outSlope: 0
-      tangentMode: 0
-      weightedMode: 0
-      inWeight: 0
-      outWeight: 0
-    - serializedVersion: 3
-      time: 1
-      value: 1
-      inSlope: 0
-      outSlope: 0
-      tangentMode: 0
-      weightedMode: 0
-      inWeight: 0
-      outWeight: 0
-    m_PreInfinity: 2
-    m_PostInfinity: 2
-    m_RotationOrder: 4
+  moves:
+  - target: {fileID: 6770888074168595940}
+    left: -900
+    right: -900
+    bottom: -550
+    top: -550
+    duration: 0.25
+    curve:
+      serializedVersion: 2
+      m_Curve:
+      - serializedVersion: 3
+        time: 0
+        value: 0
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      - serializedVersion: 3
+        time: 1
+        value: 1
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      m_PreInfinity: 2
+      m_PostInfinity: 2
+      m_RotationOrder: 4
+    delay: 0
+    authoredShownMin: {x: 0, y: 0}
+    authoredShownMax: {x: 0, y: 0}
+  hideWhenHidden: []
+  showWhenHidden: []
   visibleOnStart: 1
-  feed: {fileID: 743201818277662392}
+  onVisibilityChanged:
+    m_PersistentCalls:
+      m_Calls:
+      - m_Target: {fileID: 743201818277662392}
+        m_TargetAssemblyTypeName: Missions.Donations.DonationUIController, Missions
+        m_MethodName: SetCompact
+        m_Mode: 0
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
+  hasAuthoredShown: 0
 --- !u!1 &3114184444502032822
 GameObject:
   m_ObjectHideFlags: 0
@@ -2162,9 +2185,13 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   ShowTopMostFoldoutHeaderGroup: 1
   inputReader: {fileID: 11400000, guid: b8967103b22990e4685e914ae00843a6, type: 2}
-  missionsPanel: {fileID: 3453422083681834470}
-  chatPanel: {fileID: 6133469758939233601}
-  donationPanel: {fileID: 3344556677889900112}
+  bindings:
+  - action: 0
+    panel: {fileID: 6133469758939233601}
+  - action: 1
+    panel: {fileID: 3453422083681834470}
+  - action: 2
+    panel: {fileID: 3344556677889900112}
 --- !u!1 &3422627000945351281
 GameObject:
   m_ObjectHideFlags: 0
@@ -7622,7 +7649,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 7b362572433d81667b725eebe2c44a44, type: 3}
+  m_Script: {fileID: 11500000, guid: 7ff61bdf95ebc5a648f87e3282f6e4c1, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
 --- !u!224 &6438123381884880176 stripped
@@ -8039,12 +8066,40 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 4901976383760165173, guid: 69d3eb0e15e37624a88d642f46096351, type: 3}
+      propertyPath: m_AnchorMax.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4901976383760165173, guid: 69d3eb0e15e37624a88d642f46096351, type: 3}
+      propertyPath: m_AnchorMin.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4901976383760165173, guid: 69d3eb0e15e37624a88d642f46096351, type: 3}
+      propertyPath: m_AnchoredPosition.y
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 7359559451380848459, guid: 69d3eb0e15e37624a88d642f46096351, type: 3}
       propertyPath: m_Name
       value: ChatBar
       objectReference: {fileID: 0}
     - target: {fileID: 7928477944169878567, guid: 69d3eb0e15e37624a88d642f46096351, type: 3}
       propertyPath: m_SizeDelta.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8624757506502350310, guid: 69d3eb0e15e37624a88d642f46096351, type: 3}
+      propertyPath: m_AnchorMax.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8624757506502350310, guid: 69d3eb0e15e37624a88d642f46096351, type: 3}
+      propertyPath: m_AnchorMin.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8624757506502350310, guid: 69d3eb0e15e37624a88d642f46096351, type: 3}
+      propertyPath: m_AnchoredPosition.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8624757506502350310, guid: 69d3eb0e15e37624a88d642f46096351, type: 3}
+      propertyPath: m_AnchoredPosition.y
       value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 9024786202233854397, guid: 69d3eb0e15e37624a88d642f46096351, type: 3}
@@ -8064,7 +8119,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 7ab8b54dd5a360c8a0226d4c8ee07e64, type: 3}
+  m_Script: {fileID: 11500000, guid: 7ff61bdf95ebc5a648f87e3282f6e4c1, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
 --- !u!224 &7043918200728617162 stripped

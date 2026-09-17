@@ -122,7 +122,6 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 7694990154129059824}
-  - component: {fileID: 2233445566778899001}
   m_Layer: 11
   m_Name: MissionPanel
   m_TagString: Untagged
@@ -151,47 +150,6 @@ RectTransform:
   m_AnchoredPosition: {x: 0, y: -30}
   m_SizeDelta: {x: 0, y: -60}
   m_Pivot: {x: 0.5, y: 0.5}
---- !u!114 &2233445566778899001
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 4792018222067043151}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 7b362572433d81667b725eebe2c44a44, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  hiddenOffsetMin: {x: 0, y: 500}
-  hiddenOffsetMax: {x: 0, y: 0}
-  hiddenAlpha: 1
-  duration: 0.25
-  curve:
-    serializedVersion: 2
-    m_Curve:
-    - serializedVersion: 3
-      time: 0
-      value: 0
-      inSlope: 0
-      outSlope: 0
-      tangentMode: 0
-      weightedMode: 0
-      inWeight: 0
-      outWeight: 0
-    - serializedVersion: 3
-      time: 1
-      value: 1
-      inSlope: 0
-      outSlope: 0
-      tangentMode: 0
-      weightedMode: 0
-      inWeight: 0
-      outWeight: 0
-    m_PreInfinity: 2
-    m_PostInfinity: 2
-    m_RotationOrder: 4
-  visibleOnStart: 1
 --- !u!1 &4997649814615894917
 GameObject:
   m_ObjectHideFlags: 0
@@ -478,6 +436,7 @@ GameObject:
   m_Component:
   - component: {fileID: 7515101384618552047}
   - component: {fileID: 5629128155027227414}
+  - component: {fileID: 2233445566778899001}
   m_Layer: 11
   m_Name: MissionHolder
   m_TagString: Untagged
@@ -521,6 +480,59 @@ MonoBehaviour:
   missionInstructionsPrefab: {fileID: 1700583303402449833, guid: 982dd79434c3a3a4386d216cb432118b, type: 3}
   content: {fileID: 4872851973958549206}
   messagePrefab: {fileID: 5297674139922480191, guid: 0034e9f3f0939ba48bf14f39a2b66bd6, type: 3}
+--- !u!114 &2233445566778899001
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5714232411238863896}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7ff61bdf95ebc5a648f87e3282f6e4c1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  moves:
+  - target: {fileID: 7694990154129059824}
+    left: 0
+    right: 0
+    bottom: 480
+    top: 0
+    duration: 0.25
+    curve:
+      serializedVersion: 2
+      m_Curve:
+      - serializedVersion: 3
+        time: 0
+        value: 0
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      - serializedVersion: 3
+        time: 1
+        value: 1
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      m_PreInfinity: 2
+      m_PostInfinity: 2
+      m_RotationOrder: 4
+    delay: 0
+    authoredShownMin: {x: 0, y: 0}
+    authoredShownMax: {x: 0, y: 0}
+  hideWhenHidden: []
+  showWhenHidden: []
+  visibleOnStart: 1
+  onVisibilityChanged:
+    m_PersistentCalls:
+      m_Calls: []
+  hasAuthoredShown: 0
 --- !u!1 &6635149740717355876
 GameObject:
   m_ObjectHideFlags: 0

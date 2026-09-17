@@ -1,65 +1,82 @@
+using System;
+using System.Collections.Generic;
 using Inputs;
 using Unity.Netcode;
 using UnityEngine;
 
 namespace Ui
 {
+    /// <summary>Which toggle a binding answers to. Add a value here and a case in Subscribe.</summary>
+    public enum HudToggleAction
+    {
+        Chat,
+        Missions,
+        Donations
+    }
+
     /// <summary>
-    /// The one place that turns input into HUD visibility. The panels know how to hide themselves
-    /// and nothing else; this decides when. Keeping the two apart is what lets the same panel be
-    /// driven by a key, a menu button or a cutscene without any of them knowing about each other.
+    /// The one place that turns input into HUD visibility. The panels know how to fold themselves
+    /// away and nothing else; this decides when. Keeping the two apart is what lets the same panel
+    /// be driven by a key, a menu button or a cutscene without any of them knowing about each other.
     /// </summary>
     public class HudVisibilityController : NetworkBehaviour
     {
+        [Serializable]
+        private class Binding
+        {
+            public HudToggleAction action;
+            public HudAnimationPanel panel;
+        }
+
         [SerializeField] private InputReader inputReader;
 
-        [Header("Panels")]
-        [SerializeField] private HudPanel missionsPanel;
-        [SerializeField] private ChatHudPanel chatPanel;
-        [SerializeField] private DonationHudPanel donationPanel;
+        [Tooltip("One row per panel. Several rows may share an action if two panels should fold " +
+                 "away on the same key.")]
+        [SerializeField] private List<Binding> bindings = new();
 
-        // Owner only: this HUD lives inside the player prefab, and the InputReader is a shared
-        // asset. Without the gate every player in the session would answer the local keystroke.
+        // Owner only: this HUD lives inside the player prefab and the InputReader is a shared
+        // asset, so without the gate every player in the session answers the local keystroke.
         public override void OnNetworkSpawn()
         {
             if (!IsOwner || inputReader == null) return;
 
+            inputReader.OnChatEvent += ToggleChat;
             inputReader.OnHideMissionsEvent += ToggleMissions;
             inputReader.OnHideDonateEvent += ToggleDonations;
-            inputReader.OnChatEvent += ToggleChat;
         }
 
         public override void OnNetworkDespawn()
         {
             if (!IsOwner || inputReader == null) return;
 
+            inputReader.OnChatEvent -= ToggleChat;
             inputReader.OnHideMissionsEvent -= ToggleMissions;
             inputReader.OnHideDonateEvent -= ToggleDonations;
-            inputReader.OnChatEvent -= ToggleChat;
         }
 
-        public void ToggleMissions() => Toggle(missionsPanel);
+        public void ToggleChat() => Toggle(HudToggleAction.Chat);
 
-        public void ToggleChat() => Toggle(chatPanel);
+        public void ToggleMissions() => Toggle(HudToggleAction.Missions);
 
-        public void ToggleDonations() => Toggle(donationPanel);
+        public void ToggleDonations() => Toggle(HudToggleAction.Donations);
 
-        /// <summary>Drives every panel at once, for the fully clean frame.</summary>
+        /// <summary>Drives every bound panel at once, for the fully clean frame.</summary>
         public void SetAllVisible(bool visible)
         {
-            SetVisible(missionsPanel, visible);
-            SetVisible(chatPanel, visible);
-            SetVisible(donationPanel, visible);
+            foreach (Binding binding in bindings)
+            {
+                if (binding?.panel != null) binding.panel.SetVisible(visible);
+            }
         }
 
-        private static void Toggle(HudPanel panel)
+        private void Toggle(HudToggleAction action)
         {
-            if (panel != null) panel.Toggle();
-        }
+            foreach (Binding binding in bindings)
+            {
+                if (binding?.panel == null || binding.action != action) continue;
 
-        private static void SetVisible(HudPanel panel, bool visible)
-        {
-            if (panel != null) panel.SetVisible(visible);
+                binding.panel.Toggle();
+            }
         }
     }
 }

@@ -33,8 +33,8 @@ namespace Ui
             pausePanel.SetActive(isPaused);
             isPanelEnabled = isPaused;
 
-            Cursor.lockState = isPaused ? CursorLockMode.None : CursorLockMode.Locked;
-            Cursor.visible = isPaused;
+            // The cursor is PlayerCamera.s business: it holds the Paused reason and knows about
+            // the other reasons this one never could.
         }
 
         public void ClosePauseMenu()

@@ -1,4 +1,5 @@
 ﻿using System.Collections;
+using Enums;
 using Player;
 using Unity.Netcode;
 using UnityEngine;
@@ -38,8 +39,7 @@ namespace Ui
             yield return new WaitForSeconds(gameOverDelay);
 
             gameOverPanel.SetActive(true);
-            Cursor.lockState = CursorLockMode.None;
-            Cursor.visible = true;
+            CursorState.Hold(CursorReason.GameOver);
         }
 
         private void OnClientDisconnected(ulong clientId)

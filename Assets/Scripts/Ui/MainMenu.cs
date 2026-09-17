@@ -1,3 +1,4 @@
+using Enums;
 using Network;
 using TMPro;
 using UnityEngine;
@@ -17,8 +18,7 @@ namespace UI
 
         private void Start()
         {
-            Cursor.visible = true;
-            Cursor.lockState = CursorLockMode.None;
+            CursorState.Hold(CursorReason.MainMenu);
         }
 
         public async void CreateLobby()

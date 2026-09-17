@@ -1,5 +1,6 @@
 using System;
 using System.Collections;
+using Enums;
 using System.Collections.Generic;
 using Unity.Cinemachine;
 using Unity.Netcode;
@@ -63,8 +64,7 @@ namespace Player
 
             playerState.SetSpectatorMode(true);
             
-            Cursor.visible = true;
-            Cursor.lockState = CursorLockMode.None;
+            CursorState.Hold(CursorReason.Spectating);
 
             RefreshAliveList();
 
@@ -83,8 +83,7 @@ namespace Player
             spectatorCanvas.SetActive(true);
             playerState.SetSpectatorMode(true);
 
-            Cursor.visible = true;
-            Cursor.lockState = CursorLockMode.None;
+            CursorState.Hold(CursorReason.Spectating);
             
             RefreshAliveList();
             

@@ -13,7 +13,6 @@ namespace Audience
         [SerializeField] private Image fillImage;
         [SerializeField] private float fillLerpSpeed = 6f;
         
-        [SerializeField] private TextMeshProUGUI percentageText; 
         [SerializeField] private TextMeshProUGUI audienceText;
         
         private bool _initialized;
@@ -56,7 +55,6 @@ namespace Audience
         
         private void RefreshLabels(float currentAudience, float maxAudience)
         {
-            percentageText.text = $"{AudienceManager.Instance.NormalizedAudience * 100f:F0}%";
             audienceText.text = $"{currentAudience:F0} / {maxAudience:F0}";
         }
         

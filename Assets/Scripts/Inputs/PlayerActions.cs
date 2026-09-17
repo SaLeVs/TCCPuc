@@ -210,15 +210,6 @@ public partial class @PlayerActions: IInputActionCollection2, IDisposable
                     ""initialStateCheck"": false
                 },
                 {
-                    ""name"": ""PlayerList"",
-                    ""type"": ""Button"",
-                    ""id"": ""a95ba4c2-1470-41ac-b251-4157da6f7d68"",
-                    ""expectedControlType"": """",
-                    ""processors"": """",
-                    ""interactions"": """",
-                    ""initialStateCheck"": false
-                },
-                {
                     ""name"": ""Chat"",
                     ""type"": ""Button"",
                     ""id"": ""67505e9e-2503-4633-bc4c-631f32e228cb"",
@@ -473,17 +464,6 @@ public partial class @PlayerActions: IInputActionCollection2, IDisposable
                 },
                 {
                     ""name"": """",
-                    ""id"": ""3e9662cc-01dc-4623-b734-0267c6207da1"",
-                    ""path"": ""<Keyboard>/tab"",
-                    ""interactions"": """",
-                    ""processors"": """",
-                    ""groups"": "";Keyboard & Mouse"",
-                    ""action"": ""PlayerList"",
-                    ""isComposite"": false,
-                    ""isPartOfComposite"": false
-                },
-                {
-                    ""name"": """",
                     ""id"": ""69ad6114-b5c1-437e-8354-d92030d2de97"",
                     ""path"": ""<Keyboard>/c"",
                     ""interactions"": """",
@@ -530,7 +510,6 @@ public partial class @PlayerActions: IInputActionCollection2, IDisposable
         m_Game_Slot3 = m_Game.FindAction("Slot3", throwIfNotFound: true);
         m_Game_Slot4 = m_Game.FindAction("Slot4", throwIfNotFound: true);
         m_Game_Pause = m_Game.FindAction("Pause", throwIfNotFound: true);
-        m_Game_PlayerList = m_Game.FindAction("PlayerList", throwIfNotFound: true);
         m_Game_Chat = m_Game.FindAction("Chat", throwIfNotFound: true);
     }
 
@@ -625,7 +604,6 @@ public partial class @PlayerActions: IInputActionCollection2, IDisposable
     private readonly InputAction m_Game_Slot3;
     private readonly InputAction m_Game_Slot4;
     private readonly InputAction m_Game_Pause;
-    private readonly InputAction m_Game_PlayerList;
     private readonly InputAction m_Game_Chat;
     /// <summary>
     /// Provides access to input actions defined in input action map "Game".
@@ -690,10 +668,6 @@ public partial class @PlayerActions: IInputActionCollection2, IDisposable
         /// Provides access to the underlying input action "Game/Pause".
         /// </summary>
         public InputAction @Pause => m_Wrapper.m_Game_Pause;
-        /// <summary>
-        /// Provides access to the underlying input action "Game/PlayerList".
-        /// </summary>
-        public InputAction @PlayerList => m_Wrapper.m_Game_PlayerList;
         /// <summary>
         /// Provides access to the underlying input action "Game/Chat".
         /// </summary>
@@ -763,9 +737,6 @@ public partial class @PlayerActions: IInputActionCollection2, IDisposable
             @Pause.started += instance.OnPause;
             @Pause.performed += instance.OnPause;
             @Pause.canceled += instance.OnPause;
-            @PlayerList.started += instance.OnPlayerList;
-            @PlayerList.performed += instance.OnPlayerList;
-            @PlayerList.canceled += instance.OnPlayerList;
             @Chat.started += instance.OnChat;
             @Chat.performed += instance.OnChat;
             @Chat.canceled += instance.OnChat;
@@ -819,9 +790,6 @@ public partial class @PlayerActions: IInputActionCollection2, IDisposable
             @Pause.started -= instance.OnPause;
             @Pause.performed -= instance.OnPause;
             @Pause.canceled -= instance.OnPause;
-            @PlayerList.started -= instance.OnPlayerList;
-            @PlayerList.performed -= instance.OnPlayerList;
-            @PlayerList.canceled -= instance.OnPlayerList;
             @Chat.started -= instance.OnChat;
             @Chat.performed -= instance.OnChat;
             @Chat.canceled -= instance.OnChat;
@@ -969,13 +937,6 @@ public partial class @PlayerActions: IInputActionCollection2, IDisposable
         /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
         /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
         void OnPause(InputAction.CallbackContext context);
-        /// <summary>
-        /// Method invoked when associated input action "PlayerList" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
-        /// </summary>
-        /// <seealso cref="UnityEngine.InputSystem.InputAction.started" />
-        /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
-        /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
-        void OnPlayerList(InputAction.CallbackContext context);
         /// <summary>
         /// Method invoked when associated input action "Chat" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
         /// </summary>

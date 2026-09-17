@@ -20,7 +20,6 @@ namespace Inputs
         public event Action<bool> OnMapEvent;
         public event Action<int> OnSlotEvent;
         public event Action OnPauseEvent;
-        public event Action OnPlayerListEvent;
         public event Action OnChatEvent;
         
 
@@ -156,14 +155,6 @@ namespace Inputs
                 OnPauseEvent?.Invoke();
             }
                 
-        }
-
-        public void OnPlayerList(InputAction.CallbackContext context)
-        {
-            if (context.performed)
-            {
-                OnPlayerListEvent?.Invoke();
-            }
         }
 
         public void OnChat(InputAction.CallbackContext context)

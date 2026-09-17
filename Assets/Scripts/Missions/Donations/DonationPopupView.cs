@@ -41,7 +41,7 @@ namespace Missions.Donations
         public void Setup(DonationNetworkState state, Sprite icon = null)
         {
             InstanceId = state.InstanceId.ToString();
-
+            
             if (donationText != null)
             {
                 donationText.text = donationTextFormat.Replace("{donor}", state.DonorName.ToString()).Replace("{amount}", state.Amount.ToString("0.00"));
@@ -81,9 +81,9 @@ namespace Missions.Donations
         }
 
         /// <summary>
-        /// Chamado pelo DonationUiController a cada frame com o quanto falta pra expirar:
-        /// ratio (0..1, pra barra) e remainingSeconds (pro texto de contagem regressiva).
-        /// Passe remainingSeconds &lt; 0 pra donates que nunca expiram (limpa o texto).
+        /// Called by the DonationUiController each frame to update the expiration bar and countdown text.
+        /// ratio (0..1, for bar) and remainingSeconds (for the countdown text).
+        /// Pass remainingSeconds &lt; 0 for donations that never expire (clears the text).
         /// </summary>
         public void SetExpiration(float ratio, float remainingSeconds)
         {
@@ -91,9 +91,7 @@ namespace Missions.Donations
 
             if (expirationText != null)
             {
-                expirationText.text = remainingSeconds >= 0f
-                    ? $"{Mathf.CeilToInt(remainingSeconds)}s"
-                    : string.Empty;
+                expirationText.text = remainingSeconds >= 0f ? $"{Mathf.CeilToInt(remainingSeconds)}s" : string.Empty;
             }
         }
 

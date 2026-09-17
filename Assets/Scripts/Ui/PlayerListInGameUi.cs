@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using Inputs;
 using Network;
 using Unity.Netcode;
 using Unity.Services.Vivox;
@@ -9,22 +8,18 @@ namespace UI
 {
     public class PlayerListInGameUi : NetworkBehaviour
     {
-        [SerializeField] private InputReader inputReader;
-        [SerializeField] private GameObject playerListCanvas;
+        // The roster has no toggle of its own: it lives under the pause menu now, so PauseMenuUi
+        // turning PauseCanvas on and off is what shows and hides it, cursor handling included.
         [SerializeField] private RectTransform playerListContent;
         [SerializeField] private PlayerListItemUi playerListItemUi;
         [SerializeField] private bool includeSelfInList = true;
 
         private readonly Dictionary<string, PlayerListItemUi> _rosterEntries = new Dictionary<string, PlayerListItemUi>();
 
-        private bool _isPlayerListOpen;
-
         
         public override void OnNetworkSpawn()
         {
             if (!IsOwner) return;
-
-            inputReader.OnPlayerListEvent += InputReader_OnPlayerListPressed;
 
             if (VivoxManager.instance == null) return;
 
@@ -32,17 +27,6 @@ namespace UI
             VivoxManager.instance.OnParticipantLeftChannel += VivoxManager_OnParticipantLeft;
 
             RebuildParticipantList();
-        }
-
-        
-        private void InputReader_OnPlayerListPressed()
-        {
-            _isPlayerListOpen = !_isPlayerListOpen;
-
-            Cursor.lockState = _isPlayerListOpen ? CursorLockMode.None : CursorLockMode.Locked;
-            Cursor.visible = _isPlayerListOpen;
-
-            playerListCanvas.SetActive(_isPlayerListOpen);
         }
 
         private void VivoxManager_OnParticipantJoined(VivoxParticipant participant)
@@ -86,8 +70,6 @@ namespace UI
         public override void OnNetworkDespawn()
         {
             if (!IsOwner) return;
-
-            inputReader.OnPlayerListEvent -= InputReader_OnPlayerListPressed;
 
             if (VivoxManager.instance != null)
             {

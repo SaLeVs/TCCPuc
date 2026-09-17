@@ -10,8 +10,7 @@ namespace Ui
     public enum HudToggleAction
     {
         Chat,
-        Missions,
-        Donations
+        Missions
     }
 
     /// <summary>
@@ -33,6 +32,10 @@ namespace Ui
         [Tooltip("One row per panel. Several rows may share an action if two panels should fold " +
                  "away on the same key.")]
         [SerializeField] private List<Binding> bindings = new();
+
+        [Tooltip("The donation tray does not toggle, it cycles through what is pending, so it " +
+                 "gets its own reference instead of a binding row.")]
+        [SerializeField] private Missions.Donations.DonationUIController donations;
 
         // Owner only: this HUD lives inside the player prefab and the InputReader is a shared
         // asset, so without the gate every player in the session answers the local keystroke.
@@ -58,7 +61,10 @@ namespace Ui
 
         public void ToggleMissions() => Toggle(HudToggleAction.Missions);
 
-        public void ToggleDonations() => Toggle(HudToggleAction.Donations);
+        public void ToggleDonations()
+        {
+            if (donations != null) donations.CycleNext();
+        }
 
         /// <summary>Drives every bound panel at once, for the fully clean frame.</summary>
         public void SetAllVisible(bool visible)

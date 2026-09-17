@@ -1880,9 +1880,44 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3db567628fe0e1a41b23e94b4f915608, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Missions::Missions.Donations.DonationUiController
-  feedContainer: {fileID: 6770888074168595940}
-  popupPrefab: {fileID: 6875500556950208623, guid: 21001da37ce1c2841aa5d57d23bd4083, type: 3}
-  maxVisiblePopups: 4
+  cardContainer: {fileID: 6770888074168595940}
+  cardPrefab: {fileID: 6875500556950208623, guid: 21001da37ce1c2841aa5d57d23bd4083, type: 3}
+  trayContainer: {fileID: 1166036970270288549}
+  chipPrefab: {fileID: 6875500556950208623, guid: d9795e9582dd7554284e068da38efc52, type: 3}
+  trayRoot: {fileID: 0}
+  alertBaseSeconds: 1.5
+  alertWordsPerSecond: 2.5
+  alertSecondsRange: {x: 3, y: 12}
+  onCardShown:
+    m_PersistentCalls:
+      m_Calls:
+      - m_Target: {fileID: 3344556677889900112}
+        m_TargetAssemblyTypeName: Ui.HudAnimationPanel, Ui
+        m_MethodName: Show
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
+  onCardHidden:
+    m_PersistentCalls:
+      m_Calls:
+      - m_Target: {fileID: 3344556677889900112}
+        m_TargetAssemblyTypeName: Ui.HudAnimationPanel, Ui
+        m_MethodName: Hide
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
 --- !u!114 &8341404687819227254
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1911,10 +1946,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   moves:
   - target: {fileID: 6770888074168595940}
-    left: -900
-    right: -900
-    bottom: -550
-    top: -550
+    left: 0
+    right: 0
+    bottom: 400
+    top: 400
     duration: 0.25
     curve:
       serializedVersion: 2
@@ -1945,22 +1980,10 @@ MonoBehaviour:
     authoredShownMax: {x: 0, y: 0}
   hideWhenHidden: []
   showWhenHidden: []
-  visibleOnStart: 1
+  visibleOnStart: 0
   onVisibilityChanged:
     m_PersistentCalls:
-      m_Calls:
-      - m_Target: {fileID: 743201818277662392}
-        m_TargetAssemblyTypeName: Missions.Donations.DonationUIController, Missions
-        m_MethodName: SetCompact
-        m_Mode: 0
-        m_Arguments:
-          m_ObjectArgument: {fileID: 0}
-          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
-          m_IntArgument: 0
-          m_FloatArgument: 0
-          m_StringArgument: 
-          m_BoolArgument: 0
-        m_CallState: 2
+      m_Calls: []
   hasAuthoredShown: 0
 --- !u!1 &3114184444502032822
 GameObject:
@@ -2190,8 +2213,7 @@ MonoBehaviour:
     panel: {fileID: 6133469758939233601}
   - action: 1
     panel: {fileID: 3453422083681834470}
-  - action: 2
-    panel: {fileID: 3344556677889900112}
+  donations: {fileID: 743201818277662392}
 --- !u!1 &3422627000945351281
 GameObject:
   m_ObjectHideFlags: 0
@@ -4329,7 +4351,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Unity.Netcode.Runtime::Unity.Netcode.NetworkObject
-  GlobalObjectIdHash: 282796449
+  GlobalObjectIdHash: 3919488120
   InScenePlacedSourceGlobalObjectIdHash: 0
   DeferredDespawnTick: 0
   Ownership: 1
@@ -7552,30 +7574,6 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 1914751107683769131}
     m_Modifications:
-    - target: {fileID: 671226970007814649, guid: 3bc24c2d5845869428982f72dbf96afd, type: 3}
-      propertyPath: m_AnchorMax.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 671226970007814649, guid: 3bc24c2d5845869428982f72dbf96afd, type: 3}
-      propertyPath: m_AnchorMin.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 671226970007814649, guid: 3bc24c2d5845869428982f72dbf96afd, type: 3}
-      propertyPath: m_AnchoredPosition.x
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 671226970007814649, guid: 3bc24c2d5845869428982f72dbf96afd, type: 3}
-      propertyPath: m_AnchoredPosition.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 1198548594242039812, guid: 3bc24c2d5845869428982f72dbf96afd, type: 3}
-      propertyPath: m_AnchorMax.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 1198548594242039812, guid: 3bc24c2d5845869428982f72dbf96afd, type: 3}
-      propertyPath: m_AnchorMin.y
-      value: 0
-      objectReference: {fileID: 0}
     - target: {fileID: 5714232411238863896, guid: 3bc24c2d5845869428982f72dbf96afd, type: 3}
       propertyPath: m_Name
       value: MissionHolder
@@ -7665,6 +7663,11 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 3bc24c2d5845869428982f72dbf96afd, type: 3}
+--- !u!224 &1166036970270288549 stripped
+RectTransform:
+  m_CorrespondingSourceObject: {fileID: 2395166836236764538, guid: 3bc24c2d5845869428982f72dbf96afd, type: 3}
+  m_PrefabInstance: {fileID: 3536398824062758879}
+  m_PrefabAsset: {fileID: 0}
 --- !u!114 &3453422083681834470 stripped
 MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 2233445566778899001, guid: 3bc24c2d5845869428982f72dbf96afd, type: 3}

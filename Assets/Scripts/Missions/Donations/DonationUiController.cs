@@ -14,6 +14,7 @@ namespace Missions.Donations
         private readonly Dictionary<string, DonationPopupView> _activeViews = new();
         private readonly Dictionary<string, DonationNetworkState> _lastKnownState = new();
         private DonationManager _manager;
+        private bool _isCompact;
 
         private void OnEnable()
         {
@@ -37,6 +38,23 @@ namespace Missions.Donations
             }
 
             UpdateExpirationBars();
+        }
+
+
+        /// <summary>
+        /// Collapses every popup down to its expiration icon, or restores them. Remembered so a
+        /// donation arriving while the feed is collapsed comes up compact instead of full size.
+        /// </summary>
+        public void SetCompact(bool compact)
+        {
+            if (_isCompact == compact) return;
+
+            _isCompact = compact;
+
+            foreach (var view in _activeViews.Values)
+            {
+                view.SetCompact(compact);
+            }
         }
 
         private void TryBind()
@@ -112,6 +130,7 @@ namespace Missions.Donations
                 view = Instantiate(popupPrefab, feedContainer);
                 _activeViews[id] = view;
                 view.Setup(state, ResolveIcon(state));
+                view.SetCompact(_isCompact);
             }
             else
             {

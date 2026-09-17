@@ -21,6 +21,16 @@ namespace Missions.Donations
         [Tooltip("Used when the DonationDefinition has no icon assigned. Leave empty and the icon object is hidden instead.")]
         [SerializeField] private Sprite fallbackIcon;
 
+        [Header("Compact mode")]
+        [Tooltip("Turned off while the feed is collapsed, leaving the expiration icon alone as the stub.")]
+        [SerializeField] private GameObject[] detailObjects;
+
+        [Tooltip("Panel background, hidden with the details so the stub is only the expiration icon.")]
+        [SerializeField] private Graphic panelBackground;
+
+        [Tooltip("Size the popup shrinks to while collapsed, so the feed stops holding full-size slots.")]
+        [SerializeField] private Vector2 compactSize = new Vector2(60f, 60f);
+
         [Header("Donate text")]
         [SerializeField] private string donationTextFormat = "{donor} donate R$ {amount} para o chat!";
 
@@ -32,10 +42,12 @@ namespace Missions.Donations
         public string InstanceId { get; private set; }
 
         private RectTransform _rect;
+        private Vector2 _fullSize;
 
         private void Awake()
         {
             _rect = (RectTransform)transform;
+            _fullSize = _rect.sizeDelta;
         }
 
         public void Setup(DonationNetworkState state, Sprite icon = null)
@@ -73,6 +85,26 @@ namespace Missions.Donations
 
             donationIcon.gameObject.SetActive(sprite != null);
             if (sprite != null) donationIcon.sprite = sprite;
+        }
+
+
+        /// <summary>
+        /// Strips the popup down to its expiration icon, or puts it back. Driven by the HUD panel
+        /// that owns the feed, so a popup spawned while collapsed comes up compact too.
+        /// </summary>
+        public void SetCompact(bool compact)
+        {
+            if (detailObjects != null)
+            {
+                foreach (GameObject detail in detailObjects)
+                {
+                    if (detail != null) detail.SetActive(!compact);
+                }
+            }
+
+            if (panelBackground != null) panelBackground.enabled = !compact;
+
+            _rect.sizeDelta = compact ? compactSize : _fullSize;
         }
 
         public void UpdateState(DonationNetworkState state)

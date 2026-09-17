@@ -21,6 +21,8 @@ namespace Inputs
         public event Action<int> OnSlotEvent;
         public event Action OnPauseEvent;
         public event Action OnChatEvent;
+        public event Action OnHideMissionsEvent;
+        public event Action OnHideDonateEvent;
         
 
         private void OnEnable()
@@ -162,6 +164,22 @@ namespace Inputs
             if (context.performed)
             {
                 OnChatEvent?.Invoke();
+            }
+        }
+
+        public void OnHideMissions(InputAction.CallbackContext context)
+        {
+            if (context.performed)
+            {
+                OnHideMissionsEvent?.Invoke();
+            }
+        }
+
+        public void OnHideDonate(InputAction.CallbackContext context)
+        {
+            if (context.performed)
+            {
+                OnHideDonateEvent?.Invoke();
             }
         }
 

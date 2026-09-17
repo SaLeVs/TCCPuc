@@ -217,6 +217,24 @@ public partial class @PlayerActions: IInputActionCollection2, IDisposable
                     ""processors"": """",
                     ""interactions"": """",
                     ""initialStateCheck"": false
+                },
+                {
+                    ""name"": ""HideMissions"",
+                    ""type"": ""Button"",
+                    ""id"": ""b1f0c4a2-7d33-4a51-9e64-2c8f5d017a10"",
+                    ""expectedControlType"": """",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
+                },
+                {
+                    ""name"": ""HideDonate"",
+                    ""type"": ""Button"",
+                    ""id"": ""c27e9b64-15af-4d0e-8b72-6f3a91d4e558"",
+                    ""expectedControlType"": """",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
                 }
             ],
             ""bindings"": [
@@ -472,6 +490,28 @@ public partial class @PlayerActions: IInputActionCollection2, IDisposable
                     ""action"": ""Chat"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""3f8d2a19-64c7-4b0e-9a55-7e1b03c9d264"",
+                    ""path"": ""<Keyboard>/v"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""HideMissions"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""8c4b17e0-92d5-4f36-a1c8-05de6b7f3a91"",
+                    ""path"": ""<Keyboard>/b"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""HideDonate"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
                 }
             ]
         }
@@ -511,6 +551,8 @@ public partial class @PlayerActions: IInputActionCollection2, IDisposable
         m_Game_Slot4 = m_Game.FindAction("Slot4", throwIfNotFound: true);
         m_Game_Pause = m_Game.FindAction("Pause", throwIfNotFound: true);
         m_Game_Chat = m_Game.FindAction("Chat", throwIfNotFound: true);
+        m_Game_HideMissions = m_Game.FindAction("HideMissions", throwIfNotFound: true);
+        m_Game_HideDonate = m_Game.FindAction("HideDonate", throwIfNotFound: true);
     }
 
     ~@PlayerActions()
@@ -605,6 +647,8 @@ public partial class @PlayerActions: IInputActionCollection2, IDisposable
     private readonly InputAction m_Game_Slot4;
     private readonly InputAction m_Game_Pause;
     private readonly InputAction m_Game_Chat;
+    private readonly InputAction m_Game_HideMissions;
+    private readonly InputAction m_Game_HideDonate;
     /// <summary>
     /// Provides access to input actions defined in input action map "Game".
     /// </summary>
@@ -673,6 +717,14 @@ public partial class @PlayerActions: IInputActionCollection2, IDisposable
         /// </summary>
         public InputAction @Chat => m_Wrapper.m_Game_Chat;
         /// <summary>
+        /// Provides access to the underlying input action "Game/HideMissions".
+        /// </summary>
+        public InputAction @HideMissions => m_Wrapper.m_Game_HideMissions;
+        /// <summary>
+        /// Provides access to the underlying input action "Game/HideDonate".
+        /// </summary>
+        public InputAction @HideDonate => m_Wrapper.m_Game_HideDonate;
+        /// <summary>
         /// Provides access to the underlying input action map instance.
         /// </summary>
         public InputActionMap Get() { return m_Wrapper.m_Game; }
@@ -740,6 +792,12 @@ public partial class @PlayerActions: IInputActionCollection2, IDisposable
             @Chat.started += instance.OnChat;
             @Chat.performed += instance.OnChat;
             @Chat.canceled += instance.OnChat;
+            @HideMissions.started += instance.OnHideMissions;
+            @HideMissions.performed += instance.OnHideMissions;
+            @HideMissions.canceled += instance.OnHideMissions;
+            @HideDonate.started += instance.OnHideDonate;
+            @HideDonate.performed += instance.OnHideDonate;
+            @HideDonate.canceled += instance.OnHideDonate;
         }
 
         /// <summary>
@@ -793,6 +851,12 @@ public partial class @PlayerActions: IInputActionCollection2, IDisposable
             @Chat.started -= instance.OnChat;
             @Chat.performed -= instance.OnChat;
             @Chat.canceled -= instance.OnChat;
+            @HideMissions.started -= instance.OnHideMissions;
+            @HideMissions.performed -= instance.OnHideMissions;
+            @HideMissions.canceled -= instance.OnHideMissions;
+            @HideDonate.started -= instance.OnHideDonate;
+            @HideDonate.performed -= instance.OnHideDonate;
+            @HideDonate.canceled -= instance.OnHideDonate;
         }
 
         /// <summary>
@@ -944,5 +1008,19 @@ public partial class @PlayerActions: IInputActionCollection2, IDisposable
         /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
         /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
         void OnChat(InputAction.CallbackContext context);
+        /// <summary>
+        /// Method invoked when associated input action "HideMissions" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
+        /// </summary>
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.started" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
+        void OnHideMissions(InputAction.CallbackContext context);
+        /// <summary>
+        /// Method invoked when associated input action "HideDonate" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
+        /// </summary>
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.started" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
+        void OnHideDonate(InputAction.CallbackContext context);
     }
 }

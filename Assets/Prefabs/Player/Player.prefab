@@ -1882,11 +1882,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: Missions::Missions.Donations.DonationUiController
   cardContainer: {fileID: 6770888074168595940}
   cardPrefab: {fileID: 6875500556950208623, guid: 21001da37ce1c2841aa5d57d23bd4083, type: 3}
-  trayContainer: {fileID: 1166036970270288549}
+  trayContainer: {fileID: 4729836451190431904}
   chipPrefab: {fileID: 6875500556950208623, guid: d9795e9582dd7554284e068da38efc52, type: 3}
-  trayRoot: {fileID: 0}
+  trayRoot: {fileID: 2154159469265663768}
   alertBaseSeconds: 1.5
-  alertWordsPerSecond: 2.5
+  alertWordsPerSecond: 1.25
   alertSecondsRange: {x: 3, y: 12}
   onCardShown:
     m_PersistentCalls:
@@ -1950,6 +1950,39 @@ MonoBehaviour:
     right: 0
     bottom: 400
     top: 400
+    duration: 0.25
+    curve:
+      serializedVersion: 2
+      m_Curve:
+      - serializedVersion: 3
+        time: 0
+        value: 0
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      - serializedVersion: 3
+        time: 1
+        value: 1
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      m_PreInfinity: 2
+      m_PostInfinity: 2
+      m_RotationOrder: 4
+    delay: 0
+    authoredShownMin: {x: 0, y: 0}
+    authoredShownMax: {x: 0, y: 0}
+  - target: {fileID: 4729836451190431904}
+    left: 0
+    right: 0
+    bottom: 480
+    top: 215
     duration: 0.25
     curve:
       serializedVersion: 2
@@ -7663,9 +7696,9 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 3bc24c2d5845869428982f72dbf96afd, type: 3}
---- !u!224 &1166036970270288549 stripped
-RectTransform:
-  m_CorrespondingSourceObject: {fileID: 2395166836236764538, guid: 3bc24c2d5845869428982f72dbf96afd, type: 3}
+--- !u!1 &2154159469265663768 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 3240009398445217991, guid: 3bc24c2d5845869428982f72dbf96afd, type: 3}
   m_PrefabInstance: {fileID: 3536398824062758879}
   m_PrefabAsset: {fileID: 0}
 --- !u!114 &3453422083681834470 stripped
@@ -7679,6 +7712,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7ff61bdf95ebc5a648f87e3282f6e4c1, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+--- !u!224 &4729836451190431904 stripped
+RectTransform:
+  m_CorrespondingSourceObject: {fileID: 8120006410952560511, guid: 3bc24c2d5845869428982f72dbf96afd, type: 3}
+  m_PrefabInstance: {fileID: 3536398824062758879}
+  m_PrefabAsset: {fileID: 0}
 --- !u!224 &6438123381884880176 stripped
 RectTransform:
   m_CorrespondingSourceObject: {fileID: 7515101384618552047, guid: 3bc24c2d5845869428982f72dbf96afd, type: 3}
@@ -8013,6 +8051,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 1914751107683769131}
     m_Modifications:
+    - target: {fileID: 2659167918738307517, guid: 69d3eb0e15e37624a88d642f46096351, type: 3}
+      propertyPath: m_fontSize
+      value: 35
+      objectReference: {fileID: 0}
     - target: {fileID: 4272831150490677557, guid: 69d3eb0e15e37624a88d642f46096351, type: 3}
       propertyPath: m_Pivot.x
       value: 0.5
@@ -8120,6 +8162,10 @@ PrefabInstance:
     - target: {fileID: 8624757506502350310, guid: 69d3eb0e15e37624a88d642f46096351, type: 3}
       propertyPath: m_AnchorMin.y
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8624757506502350310, guid: 69d3eb0e15e37624a88d642f46096351, type: 3}
+      propertyPath: m_SizeDelta.x
+      value: 225
       objectReference: {fileID: 0}
     - target: {fileID: 8624757506502350310, guid: 69d3eb0e15e37624a88d642f46096351, type: 3}
       propertyPath: m_AnchoredPosition.x

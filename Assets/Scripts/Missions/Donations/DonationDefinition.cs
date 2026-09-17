@@ -12,6 +12,10 @@ namespace Missions.Donations
         public string displayName;
         [TextArea] public string message;
 
+        [Header("Visual")]
+        [Tooltip("Icon shown in the donation popup. Leave empty to fall back to the popup's own icon.")]
+        public Sprite icon;
+
         [Header("Category")]
         public DonationCategory category;
         

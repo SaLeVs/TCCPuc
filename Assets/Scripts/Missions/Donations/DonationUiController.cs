@@ -111,12 +111,24 @@ namespace Missions.Donations
 
                 view = Instantiate(popupPrefab, feedContainer);
                 _activeViews[id] = view;
-                view.Setup(state);
+                view.Setup(state, ResolveIcon(state));
             }
             else
             {
                 view.UpdateState(state);
             }
+        }
+
+        /// <summary>
+        /// The network state only carries the donation id, so the sprite comes from the authored
+        /// DonationDefinition, looked up on this client through the manager's pool.
+        /// </summary>
+        private Sprite ResolveIcon(DonationNetworkState state)
+        {
+            if (_manager == null) return null;
+
+            DonationDefinition definition = _manager.GetDefinition(state.DonationId.ToString());
+            return definition != null ? definition.icon : null;
         }
 
         private void RemoveView(string instanceId)

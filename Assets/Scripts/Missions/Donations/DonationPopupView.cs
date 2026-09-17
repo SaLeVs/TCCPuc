@@ -15,8 +15,13 @@ namespace Missions.Donations
         [SerializeField] private Image progressFill;
         [SerializeField] private Image expirationFill;
         [SerializeField] private TMP_Text expirationText;
+        [SerializeField] private Image donationIcon;
 
-        [Header("Texto do donate")]
+        [Header("Icon")]
+        [Tooltip("Used when the DonationDefinition has no icon assigned. Leave empty and the icon object is hidden instead.")]
+        [SerializeField] private Sprite fallbackIcon;
+
+        [Header("Donate text")]
         [SerializeField] private string donationTextFormat = "{donor} donate R$ {amount} para o chat!";
 
         [Header("Animation")]
@@ -33,7 +38,7 @@ namespace Missions.Donations
             _rect = (RectTransform)transform;
         }
 
-        public void Setup(DonationNetworkState state)
+        public void Setup(DonationNetworkState state, Sprite icon = null)
         {
             InstanceId = state.InstanceId.ToString();
 
@@ -47,11 +52,27 @@ namespace Missions.Donations
             if (expirationFill != null) expirationFill.fillAmount = 1f;
             if (expirationText != null) expirationText.text = string.Empty;
 
+            ApplyIcon(icon);
+
             gameObject.SetActive(true);
             canvasGroup.alpha = 0f;
             _rect.localScale = Vector3.one * 0.85f;
             StopAllCoroutines();
             StartCoroutine(AnimateEnter());
+        }
+
+        /// <summary>
+        /// Shows the sprite authored on the DonationDefinition, falling back to <see cref="fallbackIcon"/>.
+        /// With neither, the icon object is turned off so the layout doesn't keep a blank square.
+        /// </summary>
+        private void ApplyIcon(Sprite icon)
+        {
+            if (donationIcon == null) return;
+
+            Sprite sprite = icon != null ? icon : fallbackIcon;
+
+            donationIcon.gameObject.SetActive(sprite != null);
+            if (sprite != null) donationIcon.sprite = sprite;
         }
 
         public void UpdateState(DonationNetworkState state)

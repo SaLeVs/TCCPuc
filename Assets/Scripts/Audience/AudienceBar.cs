@@ -42,20 +42,20 @@ namespace Audience
             _initialized = true;
             fillImage.fillAmount = AudienceManager.Instance.NormalizedAudience;
 
-            RefreshLabels(AudienceManager.Instance.CurrentAudience, AudienceManager.Instance.MaxAudience);
+            RefreshLabels(AudienceManager.Instance.CurrentAudience);
 
             AudienceManager.Instance.OnAudienceChanged += AudienceManager_OnAudienceChanged;
         }
         
         private void AudienceManager_OnAudienceChanged(float newAudience)
         {
-            RefreshLabels(newAudience, AudienceManager.Instance.MaxAudience);
+            RefreshLabels(newAudience);
             AnimateFill(AudienceManager.Instance.NormalizedAudience);
         }
         
-        private void RefreshLabels(float currentAudience, float maxAudience)
+        private void RefreshLabels(float currentAudience)
         {
-            audienceText.text = $"{currentAudience:F0} / {maxAudience:F0}";
+            audienceText.text = $"{currentAudience:F0}";
         }
         
         private void AnimateFill(float targetFill)

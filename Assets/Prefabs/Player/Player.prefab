@@ -2511,6 +2511,23 @@ MonoBehaviour:
   playerState: {fileID: 315419889962386199}
   gameplayCanvas: {fileID: 3205022582486267336}
   playerCamera: {fileID: 9106684494112449477}
+--- !u!114 &1569534064109195317
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3631855709488682452}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5256439375cf32e4ca9782ca1db1150b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Ui::PlayerListInGameUi
+  ShowTopMostFoldoutHeaderGroup: 1
+  playerListContent: {fileID: 120767050987645966}
+  playerListItemUi: {fileID: 6310481338815305956, guid: b926741fd7d8c05488ecae884c12d908, type: 3}
+  includeSelfInList: 1
+  playerCamera: {fileID: 9106684494112449477}
 --- !u!1 &3651877571896663881
 GameObject:
   m_ObjectHideFlags: 0
@@ -5241,23 +5258,6 @@ RectTransform:
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 500, y: 600}
   m_Pivot: {x: 1, y: 1}
---- !u!114 &1569534064109195317
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 3631855709488682452}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 5256439375cf32e4ca9782ca1db1150b, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Ui::PlayerListInGameUi
-  ShowTopMostFoldoutHeaderGroup: 1
-  playerListContent: {fileID: 120767050987645966}
-  playerListItemUi: {fileID: 6310481338815305956, guid: b926741fd7d8c05488ecae884c12d908, type: 3}
-  includeSelfInList: 1
-  playerCamera: {fileID: 9106684494112449477}
 --- !u!1 &6947200956648386887
 GameObject:
   m_ObjectHideFlags: 0
@@ -7707,6 +7707,10 @@ PrefabInstance:
     - target: {fileID: 7515101384618552047, guid: 3bc24c2d5845869428982f72dbf96afd, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7694990154129059824, guid: 3bc24c2d5845869428982f72dbf96afd, type: 3}
+      propertyPath: m_AnchoredPosition.y
+      value: 2.393921
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []

@@ -79,7 +79,7 @@ para mudar qualquer coisa.
 | `ambientEnabled` | Liga a conversa de fundo. Desligar deixa o chat mudo quando nada acontece. |
 | `spamWaveThreshold` | Intensidade pra virar onda de spam (0.75). |
 | `spamWaveMin` / `Max` / `Gap` | Tamanho e velocidade da onda (3–6 falas, 0.12s entre elas). |
-| `maxQueued` | Falas esperando na fila (14). Passou disso, as de menor prioridade caem. |
+| `maxQueued` | Falas esperando na fila (14). Passou disso, abre espaço descartando a **mais antiga da faixa de menor prioridade**. |
 | `maxLineAge` | Segundos que uma fala pode esperar antes de ser descartada (12s). |
 | `speakerAttempts` | Tentativas de achar um viewer com a personalidade certa (4). |
 
@@ -97,6 +97,20 @@ para mudar qualquer coisa.
 
 > O jogo começa com `startingAudience: 0` e o contrato vai até `maxAudience: 1200`. A curva cobre
 > exatamente essa faixa. É o mesmo número que a HUD imprime na barra de audiência.
+
+#### Como uma fala some da fila
+
+São **dois caminhos diferentes**, e eles usam critérios diferentes de propósito:
+
+| Caminho | Quando | Critério |
+|---|---|---|
+| **Idade** (`DropStaleLines`) | Toda fala, `maxLineAge` segundos depois de entrar | **Só ordem de chegada.** Prioridade não é lida. Quem entrou antes morre antes, sempre — uma dica de prioridade 60 não vive um segundo a mais que conversa fiada. |
+| **Lotação** (`TryMakeRoom`) | A fila chega em `maxQueued` | **Prioridade escolhe a faixa, idade escolhe quem.** A vítima é a mais antiga da faixa de menor prioridade. Se a fala nova for mais fraca que toda a fila, ela é que não entra. |
+
+A divisão é intencional: prioridade serve pra **uma enxurrada de conversa fiada não expulsar uma
+dica**, não pra dar sobrevida a quem já está velho. Por isso, dentro da mesma faixa, quem sai é
+sempre a mais antiga — fila cheia continua reagindo ao *agora* em vez de guardar coisa velha e
+recusar coisa fresca.
 
 ### 2.3 `ChatUi` — mesmo prefab
 

@@ -75,8 +75,9 @@ namespace Player.Chat
 
         [Header("Limits")]
         [SerializeField, Min(1)]
-        [Tooltip("Lines allowed to wait in the queue. Past this the lowest-priority ones are " +
-                 "dropped, so a flood never pushes a hint out of the way.")]
+        [Tooltip("Lines allowed to wait in the queue. Past this, room is made by dropping the " +
+                 "oldest line of the lowest-priority band - so a flood never pushes a hint out of " +
+                 "the way, and a full queue never holds stale lines over fresh ones.")]
         private int maxQueued = 14;
 
         [SerializeField, Min(1f)]
@@ -422,14 +423,7 @@ namespace Player.Chat
         {
             if (string.IsNullOrEmpty(viewer) || string.IsNullOrEmpty(text)) return;
 
-            if (_queue.Count >= maxQueued)
-            {
-                // Full. The new line only gets in by outranking something already waiting,
-                // otherwise chat simply never gets around to saying it.
-                if (priority <= _queue[^1].Priority) return;
-
-                _queue.RemoveAt(_queue.Count - 1);
-            }
+            if (_queue.Count >= maxQueued && !TryMakeRoom(priority)) return;
 
             int index = _queue.Count;
 
@@ -442,6 +436,34 @@ namespace Player.Chat
             }
 
             _queue.Insert(index, new PendingLine(viewer, text, priority, gapOverride, ignoreViewerFloor));
+        }
+
+        /// <summary>
+        /// Evicts one line so a new one of <paramref name="priority"/> can take its place, or
+        /// returns false if the new line is the weakest thing in play and should be dropped instead.
+        ///
+        /// <para>The victim is the oldest member of the lowest-priority band. Priority decides
+        /// which band gets sacrificed, so a flood of small talk still cannot push a hint out; age
+        /// decides who inside that band goes, so a full queue keeps reacting to now instead of
+        /// holding stale lines and turning fresh ones away.</para>
+        /// </summary>
+        private bool TryMakeRoom(int priority)
+        {
+            int victim = _queue.Count - 1;
+            int lowest = _queue[victim].Priority;
+
+            // Priority-descending with arrival order kept inside each band, so the lowest band sits
+            // at the end and its oldest member is that band's first entry.
+            while (victim > 0 && _queue[victim - 1].Priority == lowest)
+            {
+                victim--;
+            }
+
+            if (priority < lowest) return false;
+
+            _queue.RemoveAt(victim);
+
+            return true;
         }
 
         private static string Format(string message, string subject)

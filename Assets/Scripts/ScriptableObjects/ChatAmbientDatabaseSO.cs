@@ -11,14 +11,11 @@ namespace ScriptableObjects
     {
         public ChatMood mood;
 
-        [Tooltip("Small talk for this mood. Nothing here that reacts to a specific event - these " +
-                 "fire when nothing is happening.")]
+        [Tooltip("Small talk for this mood, nothing here that reacts to a specific event - these fire when nothing is happening")]
         public TargetChatData data = new();
 
         [Min(0f)]
-        [Tooltip("Seconds between ambient lines in this mood, before the audience multiplier. " +
-                 "Bored chat talks more, not less - an empty chat is the one thing a real stream " +
-                 "never has.")]
+        [Tooltip("Seconds between ambient lines in this mood, before the audience multiplier applies.")]
         public float secondsBetweenLines = 9f;
     }
 

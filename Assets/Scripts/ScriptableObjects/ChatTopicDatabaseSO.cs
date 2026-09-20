@@ -9,10 +9,10 @@ namespace ScriptableObjects
     [Serializable]
     public class ChatTopicEntry
     {
-        [Tooltip("Id used to raise this topic, must be unique.")]
+        [Tooltip("Id used to raise this topic, must be unique")]
         public string id;
 
-        [Tooltip("What chat says about this topic.")]
+        [Tooltip("What chat says about this topic")]
         public TargetChatData data = new();
 
         [Header("Volume")]
@@ -24,7 +24,7 @@ namespace ScriptableObjects
         [Tooltip("How intense the moment is when this topic fires")]
         public float intensity = 0.5f;
 
-        [Tooltip("Control which ambient pool fills the silence and which weight multipliers apply to reactions.")]
+        [Tooltip("Control which ambient pool fills the silence and which weight multipliers apply to reactions")]
         public ChatMood mood = ChatMood.Idle;
 
         [Min(0f)]
@@ -38,7 +38,7 @@ namespace ScriptableObjects
         [Tooltip("Allow a spam wave - several viewers posting the same short line at once")]
         public bool allowSpamWave;
 
-        [Tooltip("Say it even when nobody is watching.")]
+        [Tooltip("Say it even when nobody is watching")]
         public bool ignoreViewerFloor;
     }
 

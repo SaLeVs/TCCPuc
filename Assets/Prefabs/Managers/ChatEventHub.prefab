@@ -48,15 +48,11 @@ MonoBehaviour:
     topicId: hint.mission_idle
     idleSeconds: 90
     repeatSeconds: 60
-    improveIntensityWhenIgnored: 1
-    startIntensity: 0.3
-    maxIntensity: 0.7
-    escalationSteps: 3
   lightsNudge:
     topicId: hint.lights_out
     idleSeconds: 12
     repeatSeconds: 25
-    improveIntensityWhenIgnored: 1
-    startIntensity: 0.4
-    maxIntensity: 0.85
-    escalationSteps: 3
+  explorationNudge:
+    topicId: hint.exploration_idle
+    idleSeconds: 75
+    repeatSeconds: 50

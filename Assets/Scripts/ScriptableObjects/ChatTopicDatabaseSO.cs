@@ -34,8 +34,6 @@ namespace ScriptableObjects
         [Tooltip("Lines with a higher priority jump ahead of lower ones in the queue")]
         public int priority;
 
-        [Tooltip("Allow a spam wave - several viewers posting the same short line at once")]
-        public bool allowSpamWave;
 
         [Tooltip("Say it even when nobody is watching")]
         public bool ignoreViewerFloor;

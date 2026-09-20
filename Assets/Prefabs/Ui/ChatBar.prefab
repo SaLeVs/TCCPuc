@@ -724,6 +724,7 @@ GameObject:
   m_Component:
   - component: {fileID: 4272831150490677557}
   - component: {fileID: 9024786202233854397}
+  - component: {fileID: 5561238904471093226}
   - component: {fileID: 1923424697358133469}
   - component: {fileID: 1122334455667788990}
   m_Layer: 11
@@ -775,102 +776,100 @@ MonoBehaviour:
   viewerPopulation: {fileID: 11400000, guid: 1fa2401af5784f2eccbfc3bb7d7d813c, type: 2}
   minMessages: 1
   maxMessages: 3
-  sightingIntensity: 0.25
-  monsterSightingIntensity: 0.8
-  pendingViewMemory: 12
+  normalIntensity: 0.25
+  monsterIntensity: 0.8
   hurtThreshold: 0.08
   noveltyWindow: 120
-  explorationNudge:
-    topicId: hint.exploration_idle
-    idleSeconds: 75
-    repeatSeconds: 50
-    escalate: 1
-    startIntensity: 0.3
-    maxIntensity: 0.65
-    escalationSteps: 3
-  director:
-    linesPerMinuteByViewers:
-      serializedVersion: 2
-      m_Curve:
-      - serializedVersion: 3
-        time: 0
-        value: 0
-        inSlope: 0.15
-        outSlope: 0.15
-        tangentMode: 0
-        weightedMode: 0
-        inWeight: 0
-        outWeight: 0.33333334
-      - serializedVersion: 3
-        time: 10
-        value: 1.5
-        inSlope: 0.10625
-        outSlope: 0.10625
-        tangentMode: 0
-        weightedMode: 0
-        inWeight: 0.33333334
-        outWeight: 0.33333334
-      - serializedVersion: 3
-        time: 50
-        value: 4
-        inSlope: 0.05125
-        outSlope: 0.05125
-        tangentMode: 0
-        weightedMode: 0
-        inWeight: 0.33333334
-        outWeight: 0.33333334
-      - serializedVersion: 3
-        time: 150
-        value: 8
-        inSlope: 0.036
-        outSlope: 0.036
-        tangentMode: 0
-        weightedMode: 0
-        inWeight: 0.33333334
-        outWeight: 0.33333334
-      - serializedVersion: 3
-        time: 400
-        value: 16
-        inSlope: 0.027250001
-        outSlope: 0.027250001
-        tangentMode: 0
-        weightedMode: 0
-        inWeight: 0.33333334
-        outWeight: 0.33333334
-      - serializedVersion: 3
-        time: 800
-        value: 25
-        inSlope: 0.0225
-        outSlope: 0.0225
-        tangentMode: 0
-        weightedMode: 0
-        inWeight: 0.33333334
-        outWeight: 0.33333334
-      - serializedVersion: 3
-        time: 1200
-        value: 34
-        inSlope: 0.0225
-        outSlope: 0.0225
-        tangentMode: 0
-        weightedMode: 0
-        inWeight: 0.33333334
-        outWeight: 0
-      m_PreInfinity: 2
-      m_PostInfinity: 2
-      m_RotationOrder: 4
-    peakIntensityMultiplier: 6
-    minViewersToTalk: 1
-    minGap: 0.35
-    maxGap: 20
-    intensityDecayPerSecond: 0.12
-    ambientEnabled: 1
-    spamWaveThreshold: 0.75
-    spamWaveMin: 3
-    spamWaveMax: 6
-    spamWaveGap: 0.12
-    maxQueued: 14
-    maxLineAge: 12
-    speakerAttempts: 4
+  director: {fileID: 5561238904471093226}
+--- !u!114 &5561238904471093226
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7359559451380848459}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c9593f01f898cd53296077df6b0efb4d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  linesPerMinuteByViewers:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 0
+      inSlope: 0.15
+      outSlope: 0.15
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0.33333334
+    - serializedVersion: 3
+      time: 10
+      value: 1.5
+      inSlope: 0.10625
+      outSlope: 0.10625
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    - serializedVersion: 3
+      time: 50
+      value: 4
+      inSlope: 0.05125
+      outSlope: 0.05125
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    - serializedVersion: 3
+      time: 150
+      value: 8
+      inSlope: 0.036
+      outSlope: 0.036
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    - serializedVersion: 3
+      time: 400
+      value: 16
+      inSlope: 0.027250001
+      outSlope: 0.027250001
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    - serializedVersion: 3
+      time: 800
+      value: 25
+      inSlope: 0.0225
+      outSlope: 0.0225
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    - serializedVersion: 3
+      time: 1200
+      value: 34
+      inSlope: 0.0225
+      outSlope: 0.0225
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  peakIntensityMultiplier: 4
+  minViewersToTalk: 1
+  minGapBetweenMessage: 0.35
+  maxGapBetweenMessage: 20
+  intensityDecayPerSecond: 0.12
+  ambientEnabled: 1
+  maxQueuedMessages: 14
+  maxLineAge: 12
 --- !u!114 &1923424697358133469
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -888,7 +887,7 @@ MonoBehaviour:
   chatMessagePrefab: {fileID: 4147502887697041019, guid: 23795c47f111e744f82d0e583735fd62, type: 3}
   activeMessagesCount: 9
   messageFormat: '{icon}<b><color={color}>{viewer}:</color></b> {message}'
-  iconAppearChance: 0.35
+  iconAppearChance: 0.65
   iconPerViewer: 1
   iconPool: 
   nameColors: {fileID: 11400000, guid: 7ea03dc87501f667723bc260a5a773d8, type: 2}

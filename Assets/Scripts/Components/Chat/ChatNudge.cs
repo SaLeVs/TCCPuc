@@ -7,9 +7,15 @@ namespace Chat
     /// A clock that makes the chat help when nothing has happened for too long.
     ///
     /// <para>Every "the player seems stuck" hint has the same shape: something resets a timer, and
-    /// when it runs out the chat says something - louder each time it goes unanswered. This holds
-    /// that shape in one place so the exploration hint, the mission hint and anything a tutorial
-    /// adds later behave identically and are tuned the same way.</para>
+    /// when it runs out the chat says something. This holds that shape in one place so the
+    /// exploration hint, the mission hint and anything a tutorial adds later behave identically and
+    /// are tuned the same way.</para>
+    ///
+    /// <para>Deliberately only four knobs. An earlier version escalated the intensity with each
+    /// unanswered nudge, across four more fields - but intensity only changes how fast the chat
+    /// talks afterwards, never what it says, so the whole thing bought a difference nobody could
+    /// see. A hint that should get blunter earns a second topic with blunter lines, which is data
+    /// rather than dials.</para>
     ///
     /// <para>Serializable rather than a component so it can sit as a field on whatever already owns
     /// the state that resets it, instead of forcing that state to be exposed.</para>
@@ -26,19 +32,17 @@ namespace Chat
         private float idleSeconds = 60f;
 
         [SerializeField, Min(0f)]
-        [Tooltip("Seconds between repeats while the player is still stuck")]
+        [Tooltip("Seconds between repeats while the player is still stuck. 0 nudges once and then " +
+                 "waits for progress. This is the throttle for a hint - the topic's own cooldown is " +
+                 "only a safety net for topics raised from several places at once.")]
         private float repeatSeconds = 45f;
 
-        [SerializeField]
-        [Tooltip("Push harder the longer it goes unanswered")]
-        private bool improveIntensityWhenIgnored = true;
-
-        [SerializeField, Range(0f, 1f)] private float startIntensity = 0.3f;
-        [SerializeField, Range(0f, 1f)] private float maxIntensity = 0.7f;
-
-        [SerializeField, Min(1)]
-        [Tooltip("Unanswered nudges it takes to reach the maximum intensity.")]
-        private int escalationSteps = 3;
+        /// <summary>
+        /// Nominal. Raising at 0.5 lands exactly on whatever the topic entry's own intensity is
+        /// set to, which is why there is no intensity field here: a second number would only have
+        /// multiplied into the first one, and "how big a deal is this" already has an owner.
+        /// </summary>
+        private const float NominalIntensity = 0.5f;
 
         private bool _armed = true;
         private float _timer;
@@ -54,13 +58,11 @@ namespace Chat
         /// at runtime, so their timings have to come from code. A component that a person places in
         /// a scene should use the empty constructor and be filled in the inspector instead.
         /// </summary>
-        public ChatNudge(string topicId, float idleSeconds, float repeatSeconds, float startIntensity = 0.3f, float maxIntensity = 0.7f)
+        public ChatNudge(string topicId, float idleSeconds, float repeatSeconds)
         {
             this.topicId = topicId;
             this.idleSeconds = Mathf.Max(1f, idleSeconds);
             this.repeatSeconds = Mathf.Max(0f, repeatSeconds);
-            this.startIntensity = Mathf.Clamp01(startIntensity);
-            this.maxIntensity = Mathf.Clamp01(maxIntensity);
         }
 
         /// <summary>How many nudges have gone unanswered. Zero means the player is doing fine.</summary>
@@ -103,16 +105,11 @@ namespace Chat
 
             _timer = 0f;
 
-            ChatStimulusBus.Raise(topicId, CurrentIntensity(), subject);
+            // Nominal intensity on purpose: the topic entry already says how big a deal it is, and
+            // a second number here only multiplied into the first one.
+            ChatStimulusBus.Raise(topicId, NominalIntensity, subject);
 
             _nudges++;
-        }
-
-        private float CurrentIntensity()
-        {
-            if (!improveIntensityWhenIgnored) return startIntensity;
-
-            return Mathf.Lerp(startIntensity, maxIntensity, Mathf.Clamp01(_nudges / (float)escalationSteps));
         }
     }
 }

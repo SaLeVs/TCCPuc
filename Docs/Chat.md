@@ -57,17 +57,18 @@ para mudar qualquer coisa.
 | `ambientDatabase` | Conversa de fundo por humor. |
 | `viewerPopulation` | Quem está assistindo. |
 | `minMessages` / `maxMessages` | Quantas falas cada avistamento gera (1 a 3). |
-| `sightingIntensity` | Quanto o chat se agita ao olhar algo comum (0.25). |
-| `monsterSightingIntensity` | Idem, pro monstro (0.8) — é isso que deixa a sala tensa. |
-| `pendingViewMemory` | Quanto tempo guarda progresso de visão pela metade (12s). |
+| `normalIntensity` | Quanto o chat se agita ao olhar algo comum (0.25). |
+| `monsterIntensity` | Idem, pro monstro (0.8) — é isso que deixa a sala tensa. |
 | `hurtThreshold` | Fração da vida perdida de uma vez pra virar assunto (0.08). |
 | `noveltyWindow` | Quanto tempo até um alvo contar como "novo" de novo (120s). |
-| `explorationNudge` | A cutucada de "vai explorar". Ver §2.7. |
-| `director` | Bloco aninhado, abaixo. |
+| `director` | Referência ao componente `ChatDirector`, no mesmo objeto. Ver §2.2. |
 
-### 2.2 `ChatDirector` — bloco dentro do `ChatManager`
+### 2.2 `ChatDirector` — componente separado, no mesmo objeto do `ChatManager`
 
-**O controle mais importante do sistema inteiro:**
+**O controle mais importante do sistema inteiro.** Era um bloco aninhado dentro do `ChatManager`;
+virou componente próprio porque nove valores de tuning atrás de um foldout dentro de outro
+componente é onde ninguém acha. O `ChatManager` tem `[RequireComponent]` dele, então o Unity
+garante que os dois andam juntos.
 
 | Campo | O que faz |
 |---|---|
@@ -77,11 +78,8 @@ para mudar qualquer coisa.
 | `minGap` / `maxGap` | Piso e teto do intervalo entre falas (0.35s / 20s). |
 | `intensityDecayPerSecond` | Quão rápido a agitação baixa (0.12 ≈ 8s pra voltar ao normal). |
 | `ambientEnabled` | Liga a conversa de fundo. Desligar deixa o chat mudo quando nada acontece. |
-| `spamWaveThreshold` | Intensidade pra virar onda de spam (0.75). |
-| `spamWaveMin` / `Max` / `Gap` | Tamanho e velocidade da onda (3–6 falas, 0.12s entre elas). |
 | `maxQueued` | Falas esperando na fila (14). Passou disso, abre espaço descartando a **mais antiga da faixa de menor prioridade**. |
 | `maxLineAge` | Segundos que uma fala pode esperar antes de ser descartada (12s). |
-| `speakerAttempts` | Tentativas de achar um viewer com a personalidade certa (4). |
 
 **Curva padrão** (0 viewers → silêncio total):
 
@@ -128,8 +126,6 @@ recusar coisa fresca.
 Por `RecordableTarget`. Cada entrada:
 
 - `messages[]` — a lista de falas
-- `recencyWindow` — segundos pra uma fala recuperar o peso total depois de dita (45s)
-- `recencyFloor` — pra quanto o peso cai na hora que é dita (0.1 = 10%)
 
 Cada fala (`ChatMessage`):
 
@@ -138,7 +134,6 @@ Cada fala (`ChatMessage`):
 | `message` | O texto. Pode usar `{subject}`. |
 | `weight` | Chance relativa dentro do pool. **0 desabilita.** |
 | `allowedArchetypes` | Quais personalidades podem dizer isso (flags). |
-| `spammable` | Curta o bastante pra virar onda de spam. |
 
 ### 2.5 `ChatTopicDatabase.asset` — falas de acontecimento
 
@@ -150,9 +145,8 @@ Por ID de texto. Além do `data` (igual acima):
 | `minMessages` / `maxMessages` | Volume da reação. |
 | `intensity` | **Teto** de agitação do tópico. O emissor escala isso. |
 | `mood` | Humor que empurra na sala. |
-| `cooldown` | Segundos até o tópico poder repetir. É o freio de quem emite repetido. |
+| `cooldown` | Segundos até o tópico poder repetir. Rede de segurança pra quem dispara repetido (ex.: `player.hurt` com tick de dano). **Em dica, o freio de verdade é o `repeatSeconds` do nudge** — ver §2.7. |
 | `priority` | Quem fura fila. Ver tabela abaixo. |
-| `allowSpamWave` | Permite onda de spam. |
 | `ignoreViewerFloor` | Fala mesmo com ninguém assistindo. **Ligado nas dicas.** |
 
 **Escala de prioridade em uso:**
@@ -171,37 +165,57 @@ então chat pequeno também conversa menos de fundo.
 
 | Humor | Quando | Intervalo padrão |
 |---|---|---|
-| `Idle` | Nada acontecendo, audiência saudável | 9s |
+| `Idle` | Padrão. Nada acontecendo | 9s |
 | `Bored` | Audiência caindo (`IsDecaying`) | 7s — chat entediado reclama **mais** |
-| `Hype` | Algo bom aconteceu | 5s |
-| `Tense` | Perigo por perto | 6s |
-| `Panic` | Aconteceu | 4s |
+| `Panic` | Monstro em cena ou perseguindo | 4s |
 
-### 2.7 `ChatNudge` — a cutucada com escalada
+> Eram cinco. `Hype` e `Tense` saíram: ambiente só dispara com a fila vazia, e nesses dois humores
+> a fila tinha acabado de encher de reação — eram pools que quase ninguém veria.
 
-Usado em três lugares: exploração (no `ChatManager`), missão (na ponte de missões) e luz (na ponte
-de sabotagem). Mesmos campos nos três:
+### 2.7 `ChatNudge` — a cutucada
+
+O relógio que faz o chat ajudar quando nada acontece há tempo demais. Usado em três lugares:
+exploração (no `ChatManager`), missão e luz (no `ChatEventHub`). **Três campos, só:**
 
 | Campo | O que faz |
 |---|---|
 | `topicId` | Tópico que dispara. |
 | `idleSeconds` | Segundos de nada até a primeira cutucada. |
 | `repeatSeconds` | Intervalo das repetições. **0 = cutuca uma vez só.** |
-| `escalate` | Aumenta a intensidade a cada cutucada ignorada. |
-| `startIntensity` / `maxIntensity` | Faixa da escalada. |
-| `escalationSteps` | Cutucadas até chegar no máximo (3). |
 
-**Presets atuais** (as pontes nascem em runtime, então os valores vêm do código):
+**Presets atuais** — todos no `ChatEventHub.prefab`, editáveis no inspector:
 
-| Dica | idle | repeat | intensidade |
-|---|---|---|---|
-| Exploração | 75s | 50s | 0.30 → 0.65 |
-| Missão | 90s | 60s | 0.30 → 0.70 |
-| Luz apagada | 12s | 25s | 0.40 → 0.85 |
+| Dica | idle | repeat |
+|---|---|---|
+| Exploração | 75s | 50s |
+| Missão | 90s | 60s |
+| Luz apagada | 12s | 25s |
 
-> A de exploração fica no `ChatManager`, que está num prefab — essa dá pra editar no inspector. As
-> outras duas são campos do `ChatEventHub`, que se cria em runtime, então os valores vêm dos
-> presets no construtor (`ChatEventHub.cs`, bloco `[Header("Hints")]`).
+> **As três ficam no mesmo lugar:** o `ChatEventHub` na cena, sob `Hints`. A de exploração morava
+> no `ChatManager` porque é ele que enxerga os avistamentos — hoje ele só avisa
+> (`OnExploredSomethingNew`) e quem decide cutucar é o hub, junto das outras duas.
+
+#### Qual freio mexer
+
+Duas coisas controlam o intervalo de uma dica, e é fácil mexer na errada:
+
+| Controle | Onde | Quando usar |
+|---|---|---|
+| **`repeatSeconds`** do nudge | prefab | **É este.** É o que define de quanto em quanto tempo a dica volta. |
+| `cooldown` do tópico | `ChatTopicDatabase` | Rede de segurança pra tópicos disparados de vários lugares (ex.: `player.hurt`, que leva tick de dano). Se for menor que o `repeatSeconds`, **não faz absolutamente nada**. |
+
+#### Por que não tem intensidade nem escalada
+
+Duas rodadas de corte passaram por aqui. Primeiro saiu a escalada (`escalate`, `startIntensity`,
+`maxIntensity`, `escalationSteps`), depois o próprio `intensity`. O motivo é o mesmo nos dois casos:
+**intensidade só muda a velocidade do chat depois da fala, nunca o que é dito.**
+
+Hoje a cutucada dispara sempre no nominal (0.5), o que cai exatamente no `intensity` do tópico. Um
+número só no sistema inteiro, no lugar onde faz sentido.
+
+> Se você quiser escalada de verdade um dia, o caminho é **um segundo tópico com texto mais direto**
+> (`hint.lights_out` → `hint.lights_out_urgente`), disparado por um segundo nudge com `idleSeconds`
+> maior. Aí muda o que está escrito, que é o que dá pra notar. E é dado, não campo novo.
 
 ### 2.8 `ViewerPopulation.asset` — quem assiste
 
@@ -210,8 +224,6 @@ de sabotagem). Mesmos campos nos três:
 | `viewers[].name` | Nome que aparece. |
 | `viewers[].archetype` | Personalidade (uma só por viewer). |
 | `viewers[].chattiness` | Quanto fala. **É o que separa regular de figurante.** |
-| `recentMemory` | Quantos últimos falantes são penalizados (5). |
-| `recentPenalty` | Multiplicador de quem falou há pouco (0.15). |
 
 > **Fonte única.** As doações também tiram o nome do doador daqui, via `TryPickName`
 > (`DonationDefinition.fakeDonorNames`). É o mesmo `chattiness` que decide, então os regulares
@@ -313,10 +325,11 @@ O arquivo é dividido em quatro blocos, nessa ordem, cada um com o comentário e
 | **Donations and missions** | `NetworkStates` (lista replicada) e eventos estáticos do `PlayerMissionHolder` | `donation.received`, `donation.expired`, `mission.completed`, `hint.mission_idle` |
 | **Doors** | `Door.OnDoorBlockedSound` (estático) | `hint.door_locked` |
 | **Lights** | `MonsterSabotage.HasSabotagedOfType(Light)` por polling | `lights.out`, `hint.lights_out`, `lights.restored` |
+| **Exploration** | `ChatManager.OnExploredSomethingNew` do player local | `hint.exploration_idle` |
 
 > **Luz apagando são dois tópicos, não um.** `lights.out` é a reação imediata — o chat surtando no
 > instante em que o mundo escurece. `hint.lights_out` é a dica do gerador, e só aparece 12 segundos
-> depois, repetindo a cada 25s com escalada. Separados porque servem a coisas diferentes: uma é
+> depois, repetindo a cada 25s. Separados porque servem a coisas diferentes: uma é
 > susto, a outra é ajuda, e ajuda entregue rápido demais tira o susto do jogador.
 
 > **A porta trancada só existe por causa do monstro.** Rastreei tudo que pode deixar
@@ -390,7 +403,6 @@ Se o problema é só **nos picos**, mexa em `peakIntensityMultiplier` em vez da 
 2. Adicione uma linha em `messages`.
 3. Escreva o texto, escolha `weight` (1 = comum, 5 = frequente).
 4. Marque `allowedArchetypes` — é aqui que a população ganha cara.
-5. Se for curta tipo `pega pega pega`, marque `spammable`.
 
 ### 3.3 "Quero um evento novo — por exemplo, tutorial"
 
@@ -419,7 +431,7 @@ Uma linha. Sem referência, sem interface, sem asmdef.
    - `ignoreViewerFloor`: **ligado** (a dica precisa chegar mesmo sem audiência)
    - `cooldown`: 30
 2. Na cena, adicione **`ChatIdleWatcher`** no objeto que sabe do estado:
-   - preencha o `nudge` (topicId, idleSeconds, repeatSeconds, escalada)
+   - preencha o `nudge` (topicId, idleSeconds, repeatSeconds, intensity)
 3. Chame `Notify()` sempre que houver progresso — dá pra ligar direto num UnityEvent.
 4. Chame `Disarm()` quando a etapa acabar.
 
@@ -428,8 +440,7 @@ Uma linha. Sem referência, sem interface, sem asmdef.
 Três opções, da mais suave pra mais dura:
 
 1. Baixe o `weight` dela.
-2. Aumente o `recencyWindow` do pool (demora mais pra ela voltar a valer o peso cheio).
-3. Baixe o `recencyFloor` (ela despenca mais quando é dita).
+2. Escreva mais falas para o pool - abaixo de 6 a supressao por recencia nao tem de onde escolher.
 
 ### 3.6 "Quero mudar a personalidade de um viewer"
 
@@ -449,14 +460,6 @@ Na ordem:
 4. **Referências.** `topicDatabase`, `ambientDatabase` e `viewerPopulation` estão atribuídos?
 5. **Pool vazio.** Tópico sem falas fica em silêncio por definição.
 
-### 3.8 "Quero que uma fala vire onda de spam"
-
-Precisa das três coisas juntas:
-
-1. A fala marcada como `spammable`.
-2. O tópico com `allowSpamWave` ligado.
-3. A intensidade do momento passando de `spamWaveThreshold` (0.75).
-
 ---
 
 ## 4. Mapa de arquivos
@@ -464,7 +467,7 @@ Precisa das três coisas juntas:
 | Arquivo | Assembly | Papel |
 |---|---|---|
 | `Components/Chat/ChatStimulus.cs` | Components | Barramento, `ChatTopics`, estado de audiência |
-| `Components/Chat/ChatNudge.cs` | Components | Cutucada com escalada |
+| `Components/Chat/ChatNudge.cs` | Components | Cutucada: relogio de "o jogador travou" |
 | `Components/Chat/ChatTrigger.cs` | Components | Disparo por inspector |
 | `Components/Chat/ChatIdleWatcher.cs` | Components | "Travou" por inspector |
 | `Components/TargetChatData.cs` | Components | Pool, sorteio por peso, recência, arquétipo |

@@ -5,6 +5,7 @@ using Missions.Donations;
 using Monster;
 using Monster.MonsterSabotages;
 using Objects;
+using Player.Chat;
 using Unity.Netcode;
 using UnityEngine;
 
@@ -74,16 +75,22 @@ public class ChatEventHub : MonoBehaviour
     [SerializeField]
     [Tooltip("Nudges the player when no mission has been picked up or finished for a while. " +
              "Reset by any mission event.")]
-    private ChatNudge missionNudge = new(ChatTopics.HintMissionIdle, 90f, 60f, 0.3f, 0.7f);
+    private ChatNudge missionNudge = new(ChatTopics.HintMissionIdle, 90f, 60f);
 
     [SerializeField]
     [Tooltip("Keeps reminding the player where the lights come back on. Armed while the lights " +
              "are out, reset the moment they come back.")]
-    private ChatNudge lightsNudge = new(ChatTopics.HintLightsOut, 12f, 25f, 0.4f, 0.85f);
+    private ChatNudge lightsNudge = new(ChatTopics.HintLightsOut, 12f, 25f);
+
+    [SerializeField]
+    [Tooltip("Nudges the player to go look at something new. Reset whenever the chat reacts to a " +
+             "target it has not covered recently.")]
+    private ChatNudge explorationNudge = new(ChatTopics.HintExplorationIdle, 75f, 50f);
 
     private AudienceManager _audience;
     private DonationManager _donations;
     private MonsterSabotage _sabotage;
+    private ChatManager _chat;
     private Transform _localPlayer;
 
     private float _bindTimer;
@@ -118,8 +125,15 @@ public class ChatEventHub : MonoBehaviour
             _donations = null;
         }
 
+        if (_chat != null)
+        {
+            _chat.OnExploredSomethingNew -= Chat_OnExploredSomethingNew;
+            _chat = null;
+        }
+
         missionNudge.Disarm();
         lightsNudge.Disarm();
+        explorationNudge.Disarm();
 
         _sabotage = null;
         _lightsOut = false;
@@ -136,13 +150,14 @@ public class ChatEventHub : MonoBehaviour
         TickBinding(deltaTime);
         TickAudience(deltaTime);
         TickMissions(deltaTime);
+        TickExploration(deltaTime);
         TickLights(deltaTime);
     }
 
     /// <summary>Hunts for the managers that only exist once a match is running.</summary>
     private void TickBinding(float deltaTime)
     {
-        if (_audience != null && _donations != null) return;
+        if (_audience != null && _donations != null && _chat != null) return;
 
         _bindTimer -= deltaTime;
 
@@ -152,7 +167,35 @@ public class ChatEventHub : MonoBehaviour
 
         if (_audience == null) TryBindAudience();
         if (_donations == null) TryBindDonations();
+        if (_chat == null) TryBindChat();
     }
+
+    /// <summary>
+    /// Hooks the local player's chat so the exploration hint can live here with the other two.
+    ///
+    /// <para>The chat itself only reports that the player looked at something new; deciding to nag
+    /// about it is a hint decision, and all three hints belong in one inspector.</para>
+    /// </summary>
+    private void TryBindChat()
+    {
+        NetworkManager manager = NetworkManager.Singleton;
+
+        if (manager == null || manager.SpawnManager == null) return;
+
+        NetworkObject playerObject = manager.SpawnManager.GetPlayerNetworkObject(manager.LocalClientId);
+
+        if (playerObject == null) return;
+
+        _chat = playerObject.GetComponentInChildren<ChatManager>(true);
+
+        if (_chat == null) return;
+
+        _chat.OnExploredSomethingNew += Chat_OnExploredSomethingNew;
+
+        explorationNudge.ReportProgress();
+    }
+
+    private void Chat_OnExploredSomethingNew() => explorationNudge.ReportProgress();
 
 
     // ------------------------------------------------------------------ Audience
@@ -222,6 +265,14 @@ public class ChatEventHub : MonoBehaviour
     // are raised from inside server-only paths, so subscribing to them would have produced chat on
     // the host and silence on every other client. The NetworkList is the only version of this that
     // every client actually sees.
+
+    /// <summary>Only counts down while a chat is actually listening.</summary>
+    private void TickExploration(float deltaTime)
+    {
+        if (_chat == null) return;
+
+        explorationNudge.Tick(deltaTime);
+    }
 
     private void TickMissions(float deltaTime)
     {

@@ -30,14 +30,16 @@ namespace ScriptableObjects
     {
         [SerializeField] private List<ViewerProfile> viewers = new();
 
-        [SerializeField, Min(0)]
-        [Tooltip("How many of the last speakers get pushed to the back of the queue. Stops the " +
-                 "same regular answering themselves without banning them for long.")]
-        private int recentMemory = 5;
-
-        [SerializeField, Range(0f, 1f)]
-        [Tooltip("Weight multiplier for someone who spoke inside the recent memory.")]
-        private float recentPenalty = 0.15f;
+        /// <summary>
+        /// How many of the last speakers get pushed to the back of the queue, and the weight
+        /// multiplier they keep while they are in there. Stops the same regular answering
+        /// themselves without banning them for long.
+        ///
+        /// <para>Constants rather than fields: they are how the draw avoids an echo, not a
+        /// decision worth a dial. Chattiness is where a person actually tunes who talks.</para>
+        /// </summary>
+        private const int RecentMemory = 5;
+        private const float RecentPenalty = 0.15f;
 
         private readonly Queue<string> _recent = new();
         private readonly HashSet<string> _recentSet = new();
@@ -117,20 +119,18 @@ namespace ScriptableObjects
             if (profile.chattiness <= 0f) return 0f;
 
             return _recentSet.Contains(profile.name)
-                ? profile.chattiness * recentPenalty
+                ? profile.chattiness * RecentPenalty
                 : profile.chattiness;
         }
 
         private void Remember(string name)
         {
-            if (recentMemory <= 0) return;
-
             if (_recentSet.Add(name))
             {
                 _recent.Enqueue(name);
             }
 
-            while (_recent.Count > recentMemory)
+            while (_recent.Count > RecentMemory)
             {
                 _recentSet.Remove(_recent.Dequeue());
             }

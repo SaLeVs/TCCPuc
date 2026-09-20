@@ -22,6 +22,7 @@ namespace Player.Chat
     /// <para>Runs on the owning client only, by construction: the vision sensor RPCs target the
     /// owner, and nothing here writes state anyone else can see.</para>
     /// </summary>
+    [RequireComponent(typeof(ChatDirector))]
     public class ChatManager : MonoBehaviour
     {
         /// <summary>Unchanged on purpose so <see cref="ChatUi"/> keeps working as-is.</summary>
@@ -49,28 +50,32 @@ namespace Player.Chat
         [Tooltip("How much chat cares about the monster being on screen")]
         private float monsterIntensity = 0.8f;
 
-        [SerializeField, Min(0f)]
-        [Tooltip("How long half-finished viewing progress on a target is remembered after looking away")]
-        private float pendingViewMemory = 30f;
-
         [Header("Health reactions")]
         [SerializeField, Min(0f)]
         [Tooltip("Damage in one hit, as a fraction of max health, before chat says anything")]
         private float hurtThreshold = 0.08f;
 
-        [Header("Exploration hint")]
+        /// <summary>
+        /// Chat just reacted to something it had not covered inside <see cref="noveltyWindow"/> -
+        /// the player is actually exploring.
+        ///
+        /// <para>Exposed instead of owning the hint here, so every "the player seems stuck" clock
+        /// lives together on the ChatEventHub rather than one of the three sitting apart in this
+        /// component. What this class owns is the vision bookkeeping; what to do about a player who
+        /// stops exploring is a hint decision.</para>
+        /// </summary>
+        public event Action OnExploredSomethingNew;
+
+        [Header("Exploration")]
         [SerializeField, Min(1f)]
         [Tooltip("Seconds before a target counts as worth noticing again")]
         private float noveltyWindow = 120f;
 
         [SerializeField]
-        [Tooltip("Nudges the player to go look at something new. Reset every time chat reacts to a target it has not covered recently")]
-        private ChatNudge explorationNudge = new(ChatTopics.HintExplorationIdle, 75f, 50f, 0.3f, 0.65f);
-
-        [SerializeField] private ChatDirector director = new();
+        [Tooltip("Paces and releases the lines. Lives on this same object")]
+        private ChatDirector director;
 
         private readonly Dictionary<RecordableIdentifier, float> _activeTargets = new();
-        private readonly Dictionary<RecordableIdentifier, PendingView> _pendingViewTime = new();
         private readonly Dictionary<RecordableIdentifier, float> _lastSentTime = new();
         private readonly Dictionary<string, float> _lastTopicTime = new();
 
@@ -82,18 +87,6 @@ namespace Player.Chat
 
         private bool _subscribed;
 
-        private readonly struct PendingView
-        {
-            public readonly float accumulated;
-            public readonly float stamp;
-
-            public PendingView(float accumulated, float stamp)
-            {
-                this.accumulated = accumulated;
-                this.stamp = stamp;
-            }
-        }
-
 
         private void OnEnable()
         {
@@ -102,6 +95,8 @@ namespace Player.Chat
                 chatUi.SetActive(false);
                 return;
             }
+
+            ResolveDirector();
 
             director.Initialize(viewerPopulation, ambientDatabase);
             director.OnLine += Director_OnLine;
@@ -117,11 +112,32 @@ namespace Player.Chat
 
             _subscribed = true;
 
-            explorationNudge.ReportProgress();
-
             WarnAboutEmptyPools();
 
             chatUi.SetActive(true);
+        }
+
+        /// <summary>
+        /// Finds the director on this object, adding one if it is missing.
+        ///
+        /// <para>The director used to be a plain field inside this component, so an existing prefab
+        /// has serialized data under the old shape and no reference to the new component. Rather
+        /// than fail with a null reference on the first run after that change, it takes whatever is
+        /// on the object and creates one if nothing is - the defaults are usable either way.</para>
+        /// </summary>
+        private void ResolveDirector()
+        {
+            if (director != null) return;
+
+            director = GetComponent<ChatDirector>();
+
+            if (director != null) return;
+
+            director = gameObject.AddComponent<ChatDirector>();
+
+            Debug.LogWarning($"{nameof(ChatManager)}: no {nameof(ChatDirector)} was assigned, so one " +
+                             "was added at runtime with default tuning. Assign it on the prefab to " +
+                             "make the values editable.", this);
         }
 
         /// <summary>
@@ -165,8 +181,6 @@ namespace Player.Chat
             float deltaTime = Time.deltaTime;
 
             TickActiveTargets(deltaTime);
-
-            explorationNudge.Tick(deltaTime);
 
             director.Tick(deltaTime, ChatStimulusBus.ViewerCount, ChatStimulusBus.AudienceDecaying);
         }
@@ -224,30 +238,14 @@ namespace Player.Chat
 
             if (_activeTargets.ContainsKey(identifier)) return;
 
-            float resumedTime = 0f;
-
-            if (_pendingViewTime.TryGetValue(identifier, out PendingView saved))
-            {
-                if (Time.time - saved.stamp <= pendingViewMemory)
-                {
-                    resumedTime = saved.accumulated;
-                }
-
-                _pendingViewTime.Remove(identifier);
-            }
-
-            _activeTargets[identifier] = resumedTime;
+            // Always from zero. An earlier version banked half-finished viewing time and resumed
+            // it on the next glance, which nobody could perceive and which let a player top up a
+            // target across minutes.
+            _activeTargets[identifier] = 0f;
         }
 
         private void HandleTargetExit(RecordableIdentifier identifier)
         {
-            if (!_activeTargets.TryGetValue(identifier, out float accumulated)) return;
-
-            if (accumulated > 0f && accumulated < identifier.minimumViewTime)
-            {
-                _pendingViewTime[identifier] = new PendingView(accumulated, Time.time);
-            }
-
             _activeTargets.Remove(identifier);
         }
 
@@ -290,7 +288,7 @@ namespace Player.Chat
                 // before the stamp below, which is what makes the window mean anything.
                 if (!_lastSentTime.TryGetValue(identifier, out float covered) || now - covered > noveltyWindow)
                 {
-                    explorationNudge.ReportProgress();
+                    OnExploredSomethingNew?.Invoke();
                 }
 
                 TriggerSighting(identifier.targetType);
@@ -298,7 +296,6 @@ namespace Player.Chat
                 _lastSentTime[identifier] = now;
                 
                 _activeTargets[identifier] = 0f;
-                _pendingViewTime.Remove(identifier);
             }
         }
 
@@ -306,7 +303,6 @@ namespace Player.Chat
         private void Forget(RecordableIdentifier identifier)
         {
             _activeTargets.Remove(identifier);
-            _pendingViewTime.Remove(identifier);
             _lastSentTime.Remove(identifier);
         }
 
@@ -318,9 +314,8 @@ namespace Player.Chat
             bool isMonster = target == RecordableTarget.Monster;
 
             director.Enqueue(pool, Random.Range(minMessages, Mathf.Max(minMessages, maxMessages) + 1), isMonster ? monsterIntensity : normalIntensity,
-                isMonster ? ChatMood.Tense : ChatMood.Idle,
-                subject: null,
-                allowSpamWave: isMonster);
+                isMonster ? ChatMood.Panic : ChatMood.Idle,
+                subject: null);
         }
 
 
@@ -400,7 +395,6 @@ namespace Player.Chat
             director.Enqueue(entry.data, Random.Range(entry.minMessages, Mathf.Max(entry.minMessages, entry.maxMessages) + 1), intensity, 
                 entry.mood,
                 stimulus.Subject,
-                entry.allowSpamWave,
                 entry.priority,
                 entry.ignoreViewerFloor);
         }
@@ -430,7 +424,6 @@ namespace Player.Chat
             }
 
             director.Clear();
-            explorationNudge.Disarm();
 
             if (chatUi != null)
             {
@@ -438,7 +431,6 @@ namespace Player.Chat
             }
 
             _activeTargets.Clear();
-            _pendingViewTime.Clear();
             _lastSentTime.Clear();
             _lastTopicTime.Clear();
             _warnedUnknownTopics.Clear();

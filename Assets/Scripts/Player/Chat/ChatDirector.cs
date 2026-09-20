@@ -21,8 +21,12 @@ namespace Player.Chat
     /// delivery is a priority queue rather than a plain one, so a hint telling the player where the
     /// generator is never sits behind six jokes about a chair.</para>
     /// </summary>
-    [Serializable]
-    public class ChatDirector
+    /// <remarks>A component rather than a field inside <see cref="ChatManager"/>: it owns nine
+    /// tuning values, and nesting them buried the whole thing behind a foldout inside another
+    /// component. Driven by ChatManager instead of by its own Update, so it starts, stops and
+    /// clears exactly when the chat does.</remarks>
+    [DisallowMultipleComponent]
+    public class ChatDirector : MonoBehaviour
     {
         /// <summary>Fired for each released line, already formatted. Viewer name, then text.</summary>
         public event Action<string, string> OnLine;
@@ -53,15 +57,6 @@ namespace Player.Chat
         [Tooltip("Keep a trickle of small talk going when nothing is happening")]
         private bool ambientEnabled = true;
 
-        [Header("Spam wave")]
-        [SerializeField, Range(0f, 1f)]
-        [Tooltip("Intensity a topic has to reach before several viewers pile onto the same short line")]
-        private float spamWaveThreshold = 0.75f;
-
-        [SerializeField, Min(2)] private int spamMessageWaveMin = 3;
-        [SerializeField, Min(2)] private int spamMessageWaveMax = 6;
-        [SerializeField, Min(0.02f)] private float spamMessageWaveGap = 0.12f;
-
         [Header("Limits")]
         [SerializeField, Min(1)]
         [Tooltip("Past this, room is made by dropping the oldest line of the lowest-priority band")]
@@ -71,9 +66,12 @@ namespace Player.Chat
         [Tooltip("Seconds a line may wait before it is dropped unsaid")]
         private float maxLineAge = 12f;
 
-        [SerializeField, Min(1)]
-        [Tooltip("Tries at finding a viewer whose personality fits the pool")]
-        private int speakerAttempts = 5;
+        /// <summary>
+        /// Tries at finding a viewer whose personality fits the pool before dropping the filter.
+        /// A constant, not a field: it is a detail of how the draw retries, not a decision anyone
+        /// tuning the chat would ever want to make.
+        /// </summary>
+        private const int SpeakerAttempts = 5;
 
         /// <summary>
         /// Sorted by priority descending, then by insertion order. A List rather than a Queue
@@ -152,13 +150,8 @@ namespace Player.Chat
 
             if (intensityDecayPerSecond <= 0f) intensityDecayPerSecond = 0.12f;
 
-            if (spamMessageWaveMin < 2) spamMessageWaveMin = 3;
-            if (spamMessageWaveMax < spamMessageWaveMin) spamMessageWaveMax = Mathf.Max(spamMessageWaveMin, 6);
-            if (spamMessageWaveGap <= 0f) spamMessageWaveGap = 0.12f;
-
             if (maxQueuedMessages < 1) maxQueuedMessages = 14;
             if (maxLineAge < 1f) maxLineAge = 12f;
-            if (speakerAttempts < 1) speakerAttempts = 4;
         }
 
         /// <summary>
@@ -202,17 +195,11 @@ namespace Player.Chat
         /// repeating the last few speakers applies across a burst instead of only between bursts.
         /// </summary>
         public void Enqueue(TargetChatData pool, int count, float intensity, ChatMood mood,
-            string subject, bool allowSpamWave, int priority = 0, bool ignoreViewerFloor = false)
+            string subject, int priority = 0, bool ignoreViewerFloor = false)
         {
             if (pool == null || pool.Count == 0 || count <= 0) return;
 
             Excite(intensity, mood);
-
-            if (allowSpamWave && intensity >= spamWaveThreshold &&
-                TryQueueSpamWave(pool, subject, priority, ignoreViewerFloor))
-            {
-                return;
-            }
 
             for (int i = 0; i < count; i++)
             {
@@ -350,27 +337,6 @@ namespace Player.Chat
             Push(viewer, Format(line.message, null), 0, -1f, false);
         }
 
-        private bool TryQueueSpamWave(TargetChatData pool, string subject, int priority,
-            bool ignoreViewerFloor)
-        {
-            if (!TryDraw(pool, out string firstViewer, out ChatMessage line)) return false;
-            if (!line.spammable) return false;
-
-            int count = Random.Range(spamMessageWaveMin, spamMessageWaveMax + 1);
-            string text = Format(line.message, subject);
-
-            Push(firstViewer, text, priority, -1f, ignoreViewerFloor);
-
-            for (int i = 1; i < count; i++)
-            {
-                if (_viewers == null || !_viewers.TryPick(out ViewerProfile profile)) break;
-
-                Push(profile.name, text, priority, spamMessageWaveGap, ignoreViewerFloor);
-            }
-
-            return true;
-        }
-
         /// <summary>
         /// Picks a speaker, then a line that speaker's personality is allowed to post. Retries with
         /// other speakers before dropping the personality filter, so a pool written for one
@@ -383,7 +349,7 @@ namespace Player.Chat
 
             if (_viewers == null || pool == null) return false;
 
-            for (int attempt = 0; attempt < speakerAttempts; attempt++)
+            for (int attempt = 0; attempt < SpeakerAttempts; attempt++)
             {
                 if (!_viewers.TryPick(out ViewerProfile profile)) return false;
 

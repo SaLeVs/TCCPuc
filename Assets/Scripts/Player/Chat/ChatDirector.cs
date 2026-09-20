@@ -29,66 +29,51 @@ namespace Player.Chat
 
         [Header("Volume")]
         [SerializeField]
-        [Tooltip("Lines per minute against the number of people watching. This is the main balance " +
-                 "dial for the whole chat: X is the viewer count, Y is how many lines a minute a " +
-                 "crowd that size produces when nothing in particular is happening.")]
+        [Tooltip("Lines per minute against the number of people watching")]
         private AnimationCurve linesPerMinuteByViewers = DefaultViewerCurve();
 
         [SerializeField, Min(1f)]
-        [Tooltip("How much faster chat talks at full intensity than at rest. Multiplies whatever " +
-                 "the viewer curve gave, so a big moment scales with the size of the room instead " +
-                 "of flooding a tiny one.")]
-        private float peakIntensityMultiplier = 6f;
+        [Tooltip("How much faster chat talks at full intensity than at rest")]
+        private float peakIntensityMultiplier = 4f;
 
         [SerializeField, Min(0f)]
-        [Tooltip("Viewers needed before chat says anything at all. Below this only topics marked " +
-                 "Ignore Viewer Floor get through - which is how a hint still reaches a player " +
-                 "whose stream nobody is watching yet.")]
+        [Tooltip("Viewers needed before chat says anything at all")]
         private float minViewersToTalk = 1f;
 
         [Header("Pacing")]
-        [SerializeField, Min(0.05f)] private float minGap = 0.35f;
-        [SerializeField, Min(0.1f)] private float maxGap = 20f;
+        [SerializeField, Min(0.05f)] private float minGapBetweenMessage = 0.35f;
+        [SerializeField, Min(0.1f)] private float maxGapBetweenMessage = 20f;
 
         [SerializeField, Min(0f)]
-        [Tooltip("How much intensity bleeds off per second. 0.12 means a full-blown reaction takes " +
-                 "about eight seconds to settle back down.")]
+        [Tooltip("How much intensity bleeds off per second")]
         private float intensityDecayPerSecond = 0.12f;
 
         [Header("Ambient")]
         [SerializeField]
-        [Tooltip("Keep a trickle of small talk going when nothing is happening. Off means chat goes " +
-                 "silent whenever the player is not looking at anything, which is the single most " +
-                 "obvious tell that it is not real.")]
+        [Tooltip("Keep a trickle of small talk going when nothing is happening")]
         private bool ambientEnabled = true;
 
         [Header("Spam wave")]
         [SerializeField, Range(0f, 1f)]
-        [Tooltip("Intensity a topic has to reach before several viewers pile onto the same short " +
-                 "line. Deliberate repetition reads as a real chat losing it; accidental repetition " +
-                 "reads as a bug.")]
+        [Tooltip("Intensity a topic has to reach before several viewers pile onto the same short line")]
         private float spamWaveThreshold = 0.75f;
 
-        [SerializeField, Min(2)] private int spamWaveMin = 3;
-        [SerializeField, Min(2)] private int spamWaveMax = 6;
-        [SerializeField, Min(0.02f)] private float spamWaveGap = 0.12f;
+        [SerializeField, Min(2)] private int spamMessageWaveMin = 3;
+        [SerializeField, Min(2)] private int spamMessageWaveMax = 6;
+        [SerializeField, Min(0.02f)] private float spamMessageWaveGap = 0.12f;
 
         [Header("Limits")]
         [SerializeField, Min(1)]
-        [Tooltip("Lines allowed to wait in the queue. Past this, room is made by dropping the " +
-                 "oldest line of the lowest-priority band - so a flood never pushes a hint out of " +
-                 "the way, and a full queue never holds stale lines over fresh ones.")]
-        private int maxQueued = 14;
+        [Tooltip("Past this, room is made by dropping the oldest line of the lowest-priority band")]
+        private int maxQueuedMessages = 14;
 
         [SerializeField, Min(1f)]
-        [Tooltip("Seconds a line may wait before it is dropped unsaid. Without this a backed-up " +
-                 "queue has chat still screaming about a death long after the player respawned.")]
+        [Tooltip("Seconds a line may wait before it is dropped unsaid")]
         private float maxLineAge = 12f;
 
         [SerializeField, Min(1)]
-        [Tooltip("Tries at finding a viewer whose personality fits the pool before giving up on " +
-                 "the personality filter for that line.")]
-        private int speakerAttempts = 4;
+        [Tooltip("Tries at finding a viewer whose personality fits the pool")]
+        private int speakerAttempts = 5;
 
         /// <summary>
         /// Sorted by priority descending, then by insertion order. A List rather than a Queue
@@ -112,24 +97,24 @@ namespace Player.Chat
 
         private readonly struct PendingLine
         {
-            public readonly string Viewer;
-            public readonly string Text;
-            public readonly int Priority;
-            public readonly float EnqueuedAt;
-            public readonly bool IgnoreViewerFloor;
+            public readonly string viewer;
+            public readonly string text;
+            public readonly int priority;
+            public readonly float enqueuedAt;
+            public readonly bool ignoreViewerFloor;
 
             /// <summary>Negative means draw a gap from the distribution.</summary>
-            public readonly float GapOverride;
+            public readonly float gapOverride;
 
             public PendingLine(string viewer, string text, int priority, float gapOverride,
                 bool ignoreViewerFloor)
             {
-                Viewer = viewer;
-                Text = text;
-                Priority = priority;
-                GapOverride = gapOverride;
-                IgnoreViewerFloor = ignoreViewerFloor;
-                EnqueuedAt = Time.unscaledTime;
+                this.viewer = viewer;
+                this.text = text;
+                this.priority = priority;
+                this.gapOverride = gapOverride;
+                this.ignoreViewerFloor = ignoreViewerFloor;
+                enqueuedAt = Time.unscaledTime;
             }
         }
 
@@ -162,16 +147,16 @@ namespace Player.Chat
 
             if (peakIntensityMultiplier < 1f) peakIntensityMultiplier = 6f;
 
-            if (minGap <= 0f) minGap = 0.35f;
-            if (maxGap <= minGap) maxGap = Mathf.Max(minGap + 0.1f, 20f);
+            if (minGapBetweenMessage <= 0f) minGapBetweenMessage = 0.35f;
+            if (maxGapBetweenMessage <= minGapBetweenMessage) maxGapBetweenMessage = Mathf.Max(minGapBetweenMessage + 0.1f, 20f);
 
             if (intensityDecayPerSecond <= 0f) intensityDecayPerSecond = 0.12f;
 
-            if (spamWaveMin < 2) spamWaveMin = 3;
-            if (spamWaveMax < spamWaveMin) spamWaveMax = Mathf.Max(spamWaveMin, 6);
-            if (spamWaveGap <= 0f) spamWaveGap = 0.12f;
+            if (spamMessageWaveMin < 2) spamMessageWaveMin = 3;
+            if (spamMessageWaveMax < spamMessageWaveMin) spamMessageWaveMax = Mathf.Max(spamMessageWaveMin, 6);
+            if (spamMessageWaveGap <= 0f) spamMessageWaveGap = 0.12f;
 
-            if (maxQueued < 1) maxQueued = 14;
+            if (maxQueuedMessages < 1) maxQueuedMessages = 14;
             if (maxLineAge < 1f) maxLineAge = 12f;
             if (speakerAttempts < 1) speakerAttempts = 4;
         }
@@ -277,17 +262,17 @@ namespace Player.Chat
             if (index < 0)
             {
                 // Nothing to say, or nobody to say it to. Check again shortly rather than every frame.
-                _gapTimer = minGap;
+                _gapTimer = minGapBetweenMessage;
                 return;
             }
 
             PendingLine next = _queue[index];
             _queue.RemoveAt(index);
 
-            OnLine?.Invoke(next.Viewer, next.Text);
+            OnLine?.Invoke(next.viewer, next.text);
 
             _silence = 0f;
-            _gapTimer = next.GapOverride >= 0f ? next.GapOverride : DrawGap(viewerCount);
+            _gapTimer = next.gapOverride >= 0f ? next.gapOverride : DrawGap(viewerCount);
         }
 
         /// <summary>
@@ -298,7 +283,7 @@ namespace Player.Chat
         {
             for (int i = 0; i < _queue.Count; i++)
             {
-                if (roomIsWatching || _queue[i].IgnoreViewerFloor) return i;
+                if (roomIsWatching || _queue[i].ignoreViewerFloor) return i;
             }
 
             return -1;
@@ -310,7 +295,7 @@ namespace Player.Chat
 
             for (int i = _queue.Count - 1; i >= 0; i--)
             {
-                if (now - _queue[i].EnqueuedAt <= maxLineAge) continue;
+                if (now - _queue[i].enqueuedAt <= maxLineAge) continue;
 
                 _queue.RemoveAt(i);
             }
@@ -344,7 +329,7 @@ namespace Player.Chat
             // Guard the log: Random.value can come back as exactly 1.
             float uniform = Mathf.Max(1e-6f, 1f - Random.value);
 
-            return Mathf.Clamp(-Mathf.Log(uniform) / rate, minGap, maxGap);
+            return Mathf.Clamp(-Mathf.Log(uniform) / rate, minGapBetweenMessage, maxGapBetweenMessage);
         }
 
         private void TryQueueAmbient(float viewerCount)
@@ -371,7 +356,7 @@ namespace Player.Chat
             if (!TryDraw(pool, out string firstViewer, out ChatMessage line)) return false;
             if (!line.spammable) return false;
 
-            int count = Random.Range(spamWaveMin, spamWaveMax + 1);
+            int count = Random.Range(spamMessageWaveMin, spamMessageWaveMax + 1);
             string text = Format(line.message, subject);
 
             Push(firstViewer, text, priority, -1f, ignoreViewerFloor);
@@ -380,7 +365,7 @@ namespace Player.Chat
             {
                 if (_viewers == null || !_viewers.TryPick(out ViewerProfile profile)) break;
 
-                Push(profile.name, text, priority, spamWaveGap, ignoreViewerFloor);
+                Push(profile.name, text, priority, spamMessageWaveGap, ignoreViewerFloor);
             }
 
             return true;
@@ -423,13 +408,13 @@ namespace Player.Chat
         {
             if (string.IsNullOrEmpty(viewer) || string.IsNullOrEmpty(text)) return;
 
-            if (_queue.Count >= maxQueued && !TryMakeRoom(priority)) return;
+            if (_queue.Count >= maxQueuedMessages && !TryMakeRoom(priority)) return;
 
             int index = _queue.Count;
 
             for (int i = 0; i < _queue.Count; i++)
             {
-                if (_queue[i].Priority >= priority) continue;
+                if (_queue[i].priority >= priority) continue;
 
                 index = i;
                 break;
@@ -450,11 +435,11 @@ namespace Player.Chat
         private bool TryMakeRoom(int priority)
         {
             int victim = _queue.Count - 1;
-            int lowest = _queue[victim].Priority;
+            int lowest = _queue[victim].priority;
 
             // Priority-descending with arrival order kept inside each band, so the lowest band sits
             // at the end and its oldest member is that band's first entry.
-            while (victim > 0 && _queue[victim - 1].Priority == lowest)
+            while (victim > 0 && _queue[victim - 1].priority == lowest)
             {
                 victim--;
             }
@@ -469,11 +454,9 @@ namespace Player.Chat
         private static string Format(string message, string subject)
         {
             if (string.IsNullOrEmpty(message)) return message;
-
             if (!message.Contains(ChatMessage.SubjectToken)) return message;
 
-            return message.Replace(ChatMessage.SubjectToken,
-                string.IsNullOrWhiteSpace(subject) ? "alguem" : subject);
+            return message.Replace(ChatMessage.SubjectToken, string.IsNullOrWhiteSpace(subject) ? "Someone" : subject);
         }
     }
 }

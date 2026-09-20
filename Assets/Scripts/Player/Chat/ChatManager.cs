@@ -143,8 +143,7 @@ namespace Player.Chat
                 {
                     string names = string.Join(", ", missing);
 
-                    Debug.LogWarning($"{nameof(ChatManager)}: no chat lines for {names}. Objects carrying those targets will be looked at in silence - which " +
-                                     "only matters for the ones actually placed in the game.", this);
+                    Debug.LogWarning($"{nameof(ChatManager)}: no chat lines for {names}", this);
                 }
             }
 

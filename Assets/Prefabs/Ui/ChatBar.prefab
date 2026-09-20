@@ -768,13 +768,109 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Player::Player.Chat.ChatManager
   visionSensor: {fileID: 0}
-  messageDatabase: {fileID: 11400000, guid: b82b170bbad0dde4eb9f73eafa368881, type: 2}
-  nameDatabase: {fileID: 11400000, guid: e24c0f54490f029478baa9188c78730a, type: 2}
   chatUi: {fileID: 1549728446516631915}
-  maxMessages: 3
+  messageDatabase: {fileID: 11400000, guid: b82b170bbad0dde4eb9f73eafa368881, type: 2}
+  topicDatabase: {fileID: 11400000, guid: 57a3db604159755d88471d23a3a1316d, type: 2}
+  ambientDatabase: {fileID: 11400000, guid: cba64ee069b7b5dc7dc6c4a339f0aa0b, type: 2}
+  viewerPopulation: {fileID: 11400000, guid: 1fa2401af5784f2eccbfc3bb7d7d813c, type: 2}
   minMessages: 1
-  minDelay: 0.5
-  maxDelay: 1.5
+  maxMessages: 3
+  sightingIntensity: 0.25
+  monsterSightingIntensity: 0.8
+  pendingViewMemory: 12
+  hurtThreshold: 0.08
+  noveltyWindow: 120
+  explorationNudge:
+    topicId: hint.exploration_idle
+    idleSeconds: 75
+    repeatSeconds: 50
+    escalate: 1
+    startIntensity: 0.3
+    maxIntensity: 0.65
+    escalationSteps: 3
+  director:
+    linesPerMinuteByViewers:
+      serializedVersion: 2
+      m_Curve:
+      - serializedVersion: 3
+        time: 0
+        value: 0
+        inSlope: 0.15
+        outSlope: 0.15
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0.33333334
+      - serializedVersion: 3
+        time: 10
+        value: 1.5
+        inSlope: 0.10625
+        outSlope: 0.10625
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0.33333334
+        outWeight: 0.33333334
+      - serializedVersion: 3
+        time: 50
+        value: 4
+        inSlope: 0.05125
+        outSlope: 0.05125
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0.33333334
+        outWeight: 0.33333334
+      - serializedVersion: 3
+        time: 150
+        value: 8
+        inSlope: 0.036
+        outSlope: 0.036
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0.33333334
+        outWeight: 0.33333334
+      - serializedVersion: 3
+        time: 400
+        value: 16
+        inSlope: 0.027250001
+        outSlope: 0.027250001
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0.33333334
+        outWeight: 0.33333334
+      - serializedVersion: 3
+        time: 800
+        value: 25
+        inSlope: 0.0225
+        outSlope: 0.0225
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0.33333334
+        outWeight: 0.33333334
+      - serializedVersion: 3
+        time: 1200
+        value: 34
+        inSlope: 0.0225
+        outSlope: 0.0225
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0.33333334
+        outWeight: 0
+      m_PreInfinity: 2
+      m_PostInfinity: 2
+      m_RotationOrder: 4
+    peakIntensityMultiplier: 6
+    minViewersToTalk: 1
+    minGap: 0.35
+    maxGap: 20
+    intensityDecayPerSecond: 0.12
+    ambientEnabled: 1
+    spamWaveThreshold: 0.75
+    spamWaveMin: 3
+    spamWaveMax: 6
+    spamWaveGap: 0.12
+    maxQueued: 14
+    maxLineAge: 12
+    speakerAttempts: 4
 --- !u!114 &1923424697358133469
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -792,7 +888,7 @@ MonoBehaviour:
   chatMessagePrefab: {fileID: 4147502887697041019, guid: 23795c47f111e744f82d0e583735fd62, type: 3}
   activeMessagesCount: 9
   messageFormat: '{icon}<b><color={color}>{viewer}:</color></b> {message}'
-  iconChance: 0.65
+  iconAppearChance: 0.35
   iconPerViewer: 1
   iconPool: 
   nameColors: {fileID: 11400000, guid: 7ea03dc87501f667723bc260a5a773d8, type: 2}

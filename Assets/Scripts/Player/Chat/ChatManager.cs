@@ -37,41 +37,34 @@ namespace Player.Chat
         [SerializeField] private ChatAmbientDatabaseSO ambientDatabase;
         [SerializeField] private ViewerPopulationSO viewerPopulation;
 
-        [Header("Sightings")]
+        [Header("Reaction settings")]
         [SerializeField, Min(0)] private int minMessages = 1;
         [SerializeField, Min(0)] private int maxMessages = 3;
 
         [SerializeField, Range(0f, 1f)]
-        [Tooltip("How much chat cares about the streamer looking at an ordinary thing.")]
-        private float sightingIntensity = 0.25f;
+        [Tooltip("How much chat cares about the streamer looking at an normal thing")]
+        private float normalIntensity = 0.25f;
 
         [SerializeField, Range(0f, 1f)]
-        [Tooltip("How much chat cares about the monster being on screen. Well above the ordinary " +
-                 "sighting value - this is what turns the room tense.")]
-        private float monsterSightingIntensity = 0.8f;
+        [Tooltip("How much chat cares about the monster being on screen")]
+        private float monsterIntensity = 0.8f;
 
         [SerializeField, Min(0f)]
-        [Tooltip("How long half-finished viewing progress on a target is remembered after looking " +
-                 "away. Used to be forever, which let a player bank 1.9 of 2 seconds, leave for ten " +
-                 "minutes and trigger the reaction with a glance.")]
-        private float pendingViewMemory = 12f;
+        [Tooltip("How long half-finished viewing progress on a target is remembered after looking away")]
+        private float pendingViewMemory = 30f;
 
         [Header("Health reactions")]
         [SerializeField, Min(0f)]
-        [Tooltip("Damage in one hit, as a fraction of max health, before chat says anything. Stops " +
-                 "a damage-over-time zone from generating a reaction per tick.")]
+        [Tooltip("Damage in one hit, as a fraction of max health, before chat says anything")]
         private float hurtThreshold = 0.08f;
 
         [Header("Exploration hint")]
         [SerializeField, Min(1f)]
-        [Tooltip("Seconds before a target counts as worth noticing again. A target chat already " +
-                 "talked about inside this window is the same scenery, not something new, so " +
-                 "staring at it does not count as exploring.")]
+        [Tooltip("Seconds before a target counts as worth noticing again")]
         private float noveltyWindow = 120f;
 
         [SerializeField]
-        [Tooltip("Nudges the player to go look at something new. Reset every time chat reacts to a " +
-                 "target it has not covered recently.")]
+        [Tooltip("Nudges the player to go look at something new. Reset every time chat reacts to a target it has not covered recently")]
         private ChatNudge explorationNudge = new(ChatTopics.HintExplorationIdle, 75f, 50f, 0.3f, 0.65f);
 
         [SerializeField] private ChatDirector director = new();
@@ -91,13 +84,13 @@ namespace Player.Chat
 
         private readonly struct PendingView
         {
-            public readonly float Accumulated;
-            public readonly float Stamp;
+            public readonly float accumulated;
+            public readonly float stamp;
 
             public PendingView(float accumulated, float stamp)
             {
-                Accumulated = accumulated;
-                Stamp = stamp;
+                this.accumulated = accumulated;
+                this.stamp = stamp;
             }
         }
 
@@ -140,8 +133,7 @@ namespace Player.Chat
         {
             if (messageDatabase == null)
             {
-                Debug.LogWarning($"{nameof(ChatManager)}: no message database assigned, sightings " +
-                                 "will produce no chat.", this);
+                Debug.LogWarning($"{nameof(ChatManager)}: no message database assigned, sightings will produce no chat.", this);
             }
             else
             {
@@ -151,16 +143,14 @@ namespace Player.Chat
                 {
                     string names = string.Join(", ", missing);
 
-                    Debug.LogWarning($"{nameof(ChatManager)}: no chat lines for {names}. Objects " +
-                                     "carrying those targets will be looked at in silence - which " +
+                    Debug.LogWarning($"{nameof(ChatManager)}: no chat lines for {names}. Objects carrying those targets will be looked at in silence - which " +
                                      "only matters for the ones actually placed in the game.", this);
                 }
             }
 
             if (topicDatabase == null)
             {
-                Debug.LogWarning($"{nameof(ChatManager)}: no topic database assigned, so nothing " +
-                                 "that happens in the match will produce chat.", this);
+                Debug.LogWarning($"{nameof(ChatManager)}: no topic database assigned, so nothing that happens in the match will produce chat.", this);
                 return;
             }
 
@@ -168,8 +158,7 @@ namespace Player.Chat
 
             if (empty.Count == 0) return;
 
-            Debug.LogWarning($"{nameof(ChatManager)}: these topics have no lines and will stay " +
-                             $"silent: {string.Join(", ", empty)}.", this);
+            Debug.LogWarning($"{nameof(ChatManager)}: these topics have no lines and will stay silent: {string.Join(", ", empty)}.", this);
         }
 
         private void Update()
@@ -225,7 +214,7 @@ namespace Player.Chat
         /// <summary>
         /// Starts counting viewing time on a target.
         ///
-        /// <para>The cooldown is deliberately not checked here any more. It used to refuse entry,
+        /// <para>The cooldown is deliberately not checked here anymore. It used to refuse entry,
         /// which meant a target inside its cooldown never started accumulating - so staring at the
         /// monster without blinking produced exactly one reaction and then nothing, no matter how
         /// long the cooldown had since expired. The cooldown now gates the firing instead.</para>
@@ -240,9 +229,9 @@ namespace Player.Chat
 
             if (_pendingViewTime.TryGetValue(identifier, out PendingView saved))
             {
-                if (Time.time - saved.Stamp <= pendingViewMemory)
+                if (Time.time - saved.stamp <= pendingViewMemory)
                 {
-                    resumedTime = saved.Accumulated;
+                    resumedTime = saved.accumulated;
                 }
 
                 _pendingViewTime.Remove(identifier);
@@ -288,8 +277,7 @@ namespace Player.Chat
                     continue;
                 }
 
-                bool onCooldown = _lastSentTime.TryGetValue(identifier, out float lastSent) &&
-                                  now - lastSent < identifier.chatCooldown;
+                bool onCooldown = _lastSentTime.TryGetValue(identifier, out float lastSent) && now - lastSent < identifier.chatCooldown;
 
                 if (onCooldown)
                 {
@@ -309,16 +297,13 @@ namespace Player.Chat
                 TriggerSighting(identifier.targetType);
 
                 _lastSentTime[identifier] = now;
-
-                // Kept active rather than removed: the player is still looking, and if they keep
-                // looking past the cooldown chat should pick the subject back up.
+                
                 _activeTargets[identifier] = 0f;
                 _pendingViewTime.Remove(identifier);
             }
         }
 
-        /// <summary>Drops every trace of a target. The old version only cleared the active map, so
-        /// destroyed objects stayed referenced in the other two for the rest of the match.</summary>
+
         private void Forget(RecordableIdentifier identifier)
         {
             _activeTargets.Remove(identifier);
@@ -333,10 +318,7 @@ namespace Player.Chat
 
             bool isMonster = target == RecordableTarget.Monster;
 
-            director.Enqueue(
-                pool,
-                Random.Range(minMessages, Mathf.Max(minMessages, maxMessages) + 1),
-                isMonster ? monsterSightingIntensity : sightingIntensity,
+            director.Enqueue(pool, Random.Range(minMessages, Mathf.Max(minMessages, maxMessages) + 1), isMonster ? monsterIntensity : normalIntensity,
                 isMonster ? ChatMood.Tense : ChatMood.Idle,
                 subject: null,
                 allowSpamWave: isMonster);
@@ -351,9 +333,6 @@ namespace Player.Chat
 
             if (current <= 0f && previous > 0f)
             {
-                // No subject on purpose. The only name reachable from here is the GameObject's,
-                // which is "Player(Clone)" - worse in a chat line than the generic fallback. Wiring
-                // the real display name means reaching into Network, which this assembly cannot see.
                 Raise(isLocal ? ChatTopics.PlayerDied : ChatTopics.TeammateDied, 1f);
                 return;
             }
@@ -363,8 +342,7 @@ namespace Player.Chat
             float max = Mathf.Max(1f, health.MaxHealth);
 
             if ((previous - current) / max < hurtThreshold) return;
-
-            // A teammate scraping their knee is not chat material; the streamer getting hit is.
+            
             if (!isLocal) return;
 
             Raise(ChatTopics.PlayerHurt, 1f - Mathf.Clamp01(current / max));
@@ -380,11 +358,9 @@ namespace Player.Chat
 
             if (!topicDatabase.TryGet(stimulus.TopicId, out ChatTopicEntry entry))
             {
-                // Once per id: a typo in a ChatTrigger should be findable without burying the console.
                 if (_warnedUnknownTopics.Add(stimulus.TopicId))
                 {
-                    Debug.LogWarning($"{nameof(ChatManager)}: nothing raised '{stimulus.TopicId}' " +
-                                     "in the topic database, so it said nothing.", this);
+                    Debug.LogWarning($"{nameof(ChatManager)}: nothing raised '{stimulus.TopicId}' in the topic database, so it said nothing.", this);
                 }
 
                 return;
@@ -398,15 +374,10 @@ namespace Player.Chat
             }
 
             _lastTopicTime[stimulus.TopicId] = Time.time;
-
-            // The entry sets the ceiling for the topic; the raiser scales it by how big this
-            // particular one was, where 0.5 is a nominal example and lands exactly on the ceiling.
+            
             float intensity = Mathf.Clamp01(entry.intensity * stimulus.Intensity * 2f);
 
-            director.Enqueue(
-                entry.data,
-                Random.Range(entry.minMessages, Mathf.Max(entry.minMessages, entry.maxMessages) + 1),
-                intensity,
+            director.Enqueue(entry.data, Random.Range(entry.minMessages, Mathf.Max(entry.minMessages, entry.maxMessages) + 1), intensity, 
                 entry.mood,
                 stimulus.Subject,
                 entry.allowSpamWave,
@@ -416,7 +387,7 @@ namespace Player.Chat
 
         private float LastTimeFor(string topicId)
         {
-            return _lastTopicTime.TryGetValue(topicId, out float time) ? time : float.NegativeInfinity;
+            return _lastTopicTime.GetValueOrDefault(topicId, float.NegativeInfinity);
         }
 
 
@@ -453,5 +424,6 @@ namespace Player.Chat
             _warnedUnknownTopics.Clear();
             _tickBuffer.Clear();
         }
+        
     }
 }

@@ -10,29 +10,65 @@ namespace ScriptableObjects
     [CreateAssetMenu(fileName = "New chat message List", menuName = "ScriptableObjects/Game/ChatMessageDatabase")]
     public class ChatMessageDatabaseSO : ScriptableObject
     {
-        [SerializeField] private List<TargetChatEntry> entries;
-        
+        [SerializeField] private List<TargetChatEntry> entries = new();
+
         private Dictionary<RecordableTarget, TargetChatData> _lookup;
 
-        
-        private void OnEnable()
-        { 
-            BuildLookup();
-        }
+
+        private void OnEnable() => BuildLookup();
+
+        // Without this, editing the asset during play changed nothing until a domain reload, which
+        // made tuning the pools in play mode look broken.
+        private void OnValidate() => BuildLookup();
 
         private void BuildLookup()
         {
-            _lookup = new();
+            _lookup = new Dictionary<RecordableTarget, TargetChatData>();
 
-            foreach (var entry in entries)
+            if (entries == null) return;
+
+            foreach (TargetChatEntry entry in entries)
             {
-                _lookup[entry.target] = entry.data;
+                if (entry == null) continue;
+
+                if (!_lookup.TryAdd(entry.target, entry.data))
+                {
+                    // Used to overwrite in silence, so a duplicated target quietly discarded a
+                    // whole pool of authored lines.
+                    Debug.LogWarning($"{name}: two entries for {entry.target}. Keeping the first, " +
+                                     "the second is unreachable.", this);
+                    continue;
+                }
+
+                entry.data?.ResetRuntimeState();
             }
         }
 
         public bool TryGetData(RecordableTarget target, out TargetChatData data)
         {
+            _lookup ??= new Dictionary<RecordableTarget, TargetChatData>();
+
             return _lookup.TryGetValue(target, out data);
+        }
+
+        /// <summary>
+        /// Targets that exist in the enum but have no pool here. Called on startup so a target
+        /// wired onto an object with nothing to say shows up once as a warning instead of as
+        /// silence the whole match.
+        /// </summary>
+        public IEnumerable<RecordableTarget> MissingTargets()
+        {
+            _lookup ??= new Dictionary<RecordableTarget, TargetChatData>();
+
+            foreach (RecordableTarget target in Enum.GetValues(typeof(RecordableTarget)))
+            {
+                if (target == RecordableTarget.None) continue;
+
+                if (!_lookup.TryGetValue(target, out TargetChatData data) || data == null || data.Count == 0)
+                {
+                    yield return target;
+                }
+            }
         }
     }
 
@@ -40,7 +76,6 @@ namespace ScriptableObjects
     public class TargetChatEntry
     {
         public RecordableTarget target;
-        public TargetChatData data;
+        public TargetChatData data = new();
     }
 }
-

@@ -10,6 +10,17 @@ namespace Components
         public event Action<Health> OnDie;
         public event Action<float> OnHealthChanged;
         public static Action<Vector3> OnDamageSound;
+
+        /// <summary>
+        /// Every health change on every client, with the old and new value.
+        ///
+        /// <para>OnDie and the damage RPC are raised from ModifyHealth, which only ever runs
+        /// on the server, so neither is usable by client-side systems. The backing
+        /// NetworkVariable does replicate, and this rides its change callback - so a listener
+        /// on any client sees any player getting hurt or dying, not just the host and not just
+        /// its own player. Check IsOwner on the sender to tell yours apart from the rest.</para>
+        /// </summary>
+        public static event Action<Health, float, float> OnAnyHealthChanged;
         
         [field: SerializeField] public float MaxHealth {get; private set;}
         
@@ -30,6 +41,7 @@ namespace Components
         private void CurrentHealth_OnValueChanged(float previousValue, float newValue)
         {
             OnHealthChanged?.Invoke(currentHealth.Value);
+            OnAnyHealthChanged?.Invoke(this, previousValue, newValue);
         }
 
         public void TakeDamage(float damage)

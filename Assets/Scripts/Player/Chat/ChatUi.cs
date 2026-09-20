@@ -15,27 +15,18 @@ namespace Player.Chat
         [SerializeField] private int activeMessagesCount = 5;
         
         [Header("Message format")]
-        [Tooltip("Placeholders: {icon}, {color}, {viewer} and {message}. {icon} turns into an " +
-                 "inline <sprite> tag, or into nothing when the message rolled no icon. {color} " +
-                 "turns into the hex drawn for that viewer.")]
         [SerializeField, TextArea] private string messageFormat = "{icon}<b><color={color}>{viewer}:</color></b> {message}";
 
         [Header("Message icons")]
-        [Tooltip("Chance a message shows an icon at all. Most of a real chat has no badge, so " +
-                 "keeping this well below 1 reads a lot more like the real thing.")]
-        [SerializeField, Range(0f, 1f)] private float iconChance = 0.35f;
+        [SerializeField, Range(0f, 1f)] private float iconAppearChance = 0.35f;
 
-        [Tooltip("On: a viewer always draws the same icon, like a badge they own. Off: every " +
-                 "message rerolls, so the same name flickers between icons.")]
+        [Tooltip("On: a viewer always draws the same icon")]
         [SerializeField] private bool iconPerViewer = true;
 
-        [Tooltip("Sprite indices allowed in the roll. Empty rolls over every sprite in the sprite " +
-                 "asset assigned to the message prefab's TMP component.")]
+        [Tooltip("Sprite indices allowed in the roll")]
         [SerializeField] private List<int> iconPool = new();
 
         [Header("Name colors")]
-        [Tooltip("Palette {color} draws from. Every viewer keeps the same color all session. " +
-                 "Leave empty and names render in the message prefab's own color.")]
         [SerializeField] private ChatColorPaletteSO nameColors;
 
         private List<TextMeshProUGUI> _pool = new();
@@ -44,7 +35,7 @@ namespace Player.Chat
         private int _spriteCount;
 
         /// <summary>FNV offset basis, nudged so the color roll lands elsewhere than the icon roll.</summary>
-        private const uint ColorHashSeed = 2654435769u;
+        private const uint COLOR_HASH_SEED = 2654435769u;
 
 
         private void Awake()
@@ -67,8 +58,7 @@ namespace Player.Chat
         }
 
         /// <summary>
-        /// Reads how many sprites the message prefab's sprite asset holds, so the roll covers the
-        /// whole sheet without anyone keeping a count in sync by hand.
+        /// Reads how many sprites the message prefab's sprite asset holds
         /// </summary>
         private void CacheIconCount()
         {
@@ -77,7 +67,7 @@ namespace Player.Chat
                 _spriteCount = _pool[0].spriteAsset.spriteCharacterTable.Count;
             }
 
-            if (_spriteCount == 0 && iconPool.Count == 0 && iconChance > 0f)
+            if (_spriteCount == 0 && iconPool.Count == 0 && iconAppearChance > 0f)
             {
                 Debug.LogWarning($"{nameof(ChatUi)}: the message prefab's TMP component has no sprite asset, so messages will show no icons.", this);
             }
@@ -93,22 +83,14 @@ namespace Player.Chat
 
         private void ChatManager_OnMessageSent(string viewer, string message)
         {
-            _pool[_currentIndex].text = messageFormat
-                .Replace("{icon}", PickIconTag(viewer))
-                .Replace("{color}", PickNameColor(viewer))
-                .Replace("{viewer}", viewer)
-                .Replace("{message}", message);
+            _pool[_currentIndex].text = messageFormat.Replace("{icon}", PickIconTag(viewer)).Replace("{color}", PickNameColor(viewer)).Replace("{viewer}", viewer).Replace("{message}", message);
 
             _poolRoots[_currentIndex].transform.SetAsLastSibling();
             _poolRoots[_currentIndex].SetActive(true);
 
             _currentIndex = (_currentIndex + 1) % activeMessagesCount;
         }
-
-        /// <summary>
-        /// Rolls the inline sprite tag for one message. Returns an empty string when the message
-        /// draws no icon, so "{icon}" simply disappears from the formatted line.
-        /// </summary>
+        
         private string PickIconTag(string viewer)
         {
             int optionCount = iconPool.Count > 0 ? iconPool.Count : _spriteCount;
@@ -120,18 +102,17 @@ namespace Player.Chat
             if (iconPerViewer)
             {
                 // Both the "does this viewer have an icon" roll and the icon itself come out of the
-                // name, so a viewer keeps the same badge all session without storing anything.
                 uint hash = StableHash(viewer);
                 roll = (hash & 0xFFFF) / (float)0xFFFF;
                 option = (int)((hash >> 16) % (uint)optionCount);
             }
             else
             {
-                roll = UnityEngine.Random.value;
-                option = UnityEngine.Random.Range(0, optionCount);
+                roll = Random.value;
+                option = Random.Range(0, optionCount);
             }
 
-            if (roll >= iconChance) return string.Empty;
+            if (roll >= iconAppearChance) return string.Empty;
 
             return $"<sprite={(iconPool.Count > 0 ? iconPool[option] : option)}> ";
         }
@@ -146,7 +127,7 @@ namespace Player.Chat
 
             // Seeded apart from the icon roll, otherwise name color and badge would move together
             // and every viewer wearing badge N would also be wearing color N.
-            uint hash = StableHash(viewer, ColorHashSeed);
+            uint hash = StableHash(viewer, COLOR_HASH_SEED);
             return nameColors.GetHex((int)(hash % (uint)nameColors.Count)) ?? "#FFFFFF";
         }
 

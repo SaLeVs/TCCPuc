@@ -332,7 +332,7 @@ namespace Player.Chat
 
             if (current <= 0f && previous > 0f)
             {
-                Raise(isLocal ? ChatTopics.PlayerDied : ChatTopics.TeammateDied, 1f);
+                Raise(isLocal ? ChatTopics.PlayerDied : ChatTopics.TeammateDied, 1f, ResolveName(health));
                 return;
             }
 
@@ -341,15 +341,36 @@ namespace Player.Chat
             float max = Mathf.Max(1f, health.MaxHealth);
 
             if ((previous - current) / max < hurtThreshold) return;
-            
+
             if (!isLocal) return;
 
-            Raise(ChatTopics.PlayerHurt, 1f - Mathf.Clamp01(current / max));
+            Raise(ChatTopics.PlayerHurt, 1f - Mathf.Clamp01(current / max), ResolveName(health));
+        }
+
+        /// <summary>
+        /// The name this player chose, for lines using {subject}. Null when it cannot be resolved,
+        /// which leaves the generic fallback in place.
+        ///
+        /// <para>Comes off <see cref="PlayerInfos"/>, which sits on the same object as the health:
+        /// the server reads the name out of UserData on spawn and writes it into a NetworkVariable,
+        /// so every client has every player's name, not just its own. That is what makes naming a
+        /// dead teammate possible from here at all.</para>
+        /// </summary>
+        private static string ResolveName(Health health)
+        {
+            if (!health.TryGetComponent(out PlayerInfos infos)) return null;
+
+            string playerName = infos.PlayerName.Value.ToString();
+
+            return string.IsNullOrWhiteSpace(playerName) ? null : playerName;
         }
 
         private void ChatStimulusBus_OnStimulus(ChatStimulus stimulus) => Handle(stimulus);
 
-        private void Raise(string topicId, float intensity) => Handle(new ChatStimulus(topicId, intensity));
+        private void Raise(string topicId, float intensity, string subject = null)
+        {
+            Handle(new ChatStimulus(topicId, intensity, subject));
+        }
 
         private void Handle(in ChatStimulus stimulus)
         {

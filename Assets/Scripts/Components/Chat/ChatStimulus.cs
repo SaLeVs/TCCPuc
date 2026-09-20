@@ -25,6 +25,7 @@ namespace Chat
         public const string MissionCompleted = "mission.completed";
         public const string AudienceSurge = "audience.surge";
         public const string AudienceDrop = "audience.drop";
+        public const string LightsOut = "lights.out";
         public const string LightsRestored = "lights.restored";
 
         // --- Hints: chat trying to help ---

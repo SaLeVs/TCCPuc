@@ -12,10 +12,10 @@ para mudar qualquer coisa.
                       │                       │
                       ├─ Health ──────────────┤  (dano / morte, de qualquer player)
                       │                       │
-   ChatStimulusBus ◄──┼─ ChatAudienceBridge ──┤  (viewers, pico, queda)
-   (barramento)       ├─ ChatMissionBridge ───┤  (doação, missão, dica de missão)
-                      ├─ ChatDoorBridge ──────┤  (porta trancada)
-                      ├─ ChatSabotageBridge ──┤  (luz apagou, dica do gerador)
+                      │                       │  ┌ viewers, pico, queda
+   ChatStimulusBus ◄──┼─ ChatEventHub ────────┤──┤ doação, missão, dica de missão
+   (barramento)       │  (assembly Game)      │  ├ porta trancada
+                      │                       │  └ luz apagou, dica do gerador
                       ├─ ChatTrigger ─────────┤  (qualquer coisa, no inspector)
                       └─ ChatIdleWatcher ─────┘  (qualquer "travou", no inspector)
                                 │
@@ -200,7 +200,8 @@ de sabotagem). Mesmos campos nos três:
 | Luz apagada | 12s | 25s | 0.40 → 0.85 |
 
 > A de exploração fica no `ChatManager`, que está num prefab — essa dá pra editar no inspector. As
-> outras duas estão em `ChatMissionBridge.cs:28` e `ChatSabotageBridge.cs:27`.
+> outras duas são campos do `ChatEventHub`, que se cria em runtime, então os valores vêm dos
+> presets no construtor (`ChatEventHub.cs`, bloco `[Header("Hints")]`).
 
 ### 2.8 `ViewerPopulation.asset` — quem assiste
 
@@ -234,17 +235,138 @@ Distribuição atual: 6 regulares (6–8), 10 médios (2–3), 14 figurantes (0,
 > ⚠️ O valor "desligado" do enum é `None` (8), mas o default do C# é **0 = `Room`**. Objeto novo
 > sem configurar vira alvo Room silenciosamente.
 
-### 2.10 Pontes — criam a si mesmas, não precisam de cabeamento
+### 2.10 `ChatEventHub` — a ponte entre o jogo e o chat
 
-| Ponte | Assembly | Constantes |
+`Assets/Scripts/ChatEventHub.cs`, assembly **`Game`**, ao lado do `SfxManager`.
+
+#### O que é
+
+O **único** lugar onde o jogo avisa o chat que algo aconteceu. Escuta os quatro sistemas e traduz
+cada evento num tópico no `ChatStimulusBus`. Não sabe o que o chat vai dizer — só anuncia o ID.
+Quem decide as falas é o `ChatTopicDatabase`.
+
+```
+DonationManager (NetworkList muda)
+        ↓  ChatEventHub escuta
+ChatStimulusBus.Raise("donation.received", 0.5f, "caldoDiCana")
+        ↓  ChatManager escuta o barramento
+procura "donation.received" no ChatTopicDatabase → sorteia falas → fila
+```
+
+#### Por que fica no assembly `Game`
+
+Por um **ciclo de assembly**. A cadeia é:
+
+```
+Missions ──referencia──► Player ──onde mora──► ChatManager
+```
+
+Se o `ChatManager` referenciasse `Missions` pra escutar doações, fecharia `Player → Missions →
+Player`, e o Unity **rejeita** isso — nem compila. O mesmo vale pra Audience, Objects e Monster.
+
+`Game` é o único lugar que resolve, porque está no **topo** do grafo: referencia quase todo mundo e
+**ninguém referencia ele**, então adicionar referências lá nunca pode criar ciclo. É exatamente
+onde o `SfxManager` já vive, escutando 13 eventos estáticos de 6 assemblies — o hub segue o mesmo
+padrão.
+
+E o barramento continua em `Components` (o fundo do grafo, que todos enxergam), o que mantém a seta
+apontando numa direção só. Efeito colateral bom: qualquer sistema fala com o chat em **uma linha
+estática, sem referência nenhuma**. É a mesma porta que o tutorial vai usar.
+
+> ⚠️ Não tente centralizar isso em `Components`. Ele é o fundo do grafo — 11 assemblies dependem
+> dele e ele só referencia `Interfaces`, `Enums` e `Unity.Netcode`. Pra enxergar `DonationManager`
+> precisaria de `Components → Missions`, e `Missions → Components` já existe. Ciclo garantido.
+
+#### Como é criado
+
+É um **prefab colocado na cena**: `Assets/Prefabs/Managers/ChatEventHub.prefab`, que deve estar na
+`Game.unity` junto com os outros managers.
+
+Não se cria sozinho de propósito. Um objeto que se instancia por `RuntimeInitializeOnLoadMethod` e
+vive em `DontDestroyOnLoad` não aparece na cena, não dá pra inspecionar, e os dois `ChatNudge` dele
+ficam fora do inspector — presos ao preset do construtor. Como objeto de cena, ele é visível na
+hierarquia, dá pra pôr breakpoint, e **os tempos das dicas viram campos editáveis**.
+
+> ⚠️ Se o hub não estiver na cena, nenhum evento do jogo vira chat: nem doação, nem missão, nem
+> porta, nem luz. Os avistamentos continuam funcionando, porque esses vêm do `ChatManager`, que
+> está no prefab do player. **É o primeiro lugar pra olhar** quando só os avistamentos funcionam.
+
+#### Ciclo de vida
+
+Como é objeto de cena, ele existe exatamente enquanto a partida existe — nenhum relógio dele pode
+correr no menu principal. Mas os managers nascem por netcode um instante *depois* da cena, então
+cada fonte ainda espera achar o que escuta:
+
+| Estado | O que acontece |
+|---|---|
+| **Cena carregou, managers ainda não** | Procura a cada 1s (2s o de sabotagem). Reporta 0 viewers, então o chat fica mudo. Os relógios das dicas ficam congelados. |
+| **Managers apareceram** | Liga nos eventos e reseta os relógios das dicas. |
+| **Saindo da cena** | Desassina tudo e reporta 0 viewers, pra não deixar o barramento achando que ainda tem plateia. |
+
+#### O que ele escuta
+
+O arquivo é dividido em quatro blocos, nessa ordem, cada um com o comentário explicando a decisão:
+
+| Bloco | Escuta | Levanta |
 |---|---|---|
-| `ChatAudienceBridge` | Audience | `NoticeableChange` 12, `BigChange` 60 viewers |
-| `ChatMissionBridge` | Missions | `BigDonation` 100 |
-| `ChatDoorBridge` | Objects | `CommentRange` 14m |
-| `ChatSabotageBridge` | Monster | poll 0.5s (2s fora de partida) |
+| **Audience** | `AudienceManager` | Reporta a contagem de viewers a cada 0,25s (é o que alimenta a curva de volume) + `audience.surge` / `audience.drop` |
+| **Donations and missions** | `NetworkStates` (lista replicada) e eventos estáticos do `PlayerMissionHolder` | `donation.received`, `donation.expired`, `mission.completed`, `hint.mission_idle` |
+| **Doors** | `Door.OnDoorBlockedSound` (estático) | `hint.door_locked` |
+| **Lights** | `MonsterSabotage.HasSabotagedOfType(Light)` por polling | `lights.out`, `hint.lights_out`, `lights.restored` |
 
-Elas moram no assembly de origem justamente porque cada uma precisa enxergar tipos que o `Player`
-não pode referenciar.
+> **Luz apagando são dois tópicos, não um.** `lights.out` é a reação imediata — o chat surtando no
+> instante em que o mundo escurece. `hint.lights_out` é a dica do gerador, e só aparece 12 segundos
+> depois, repetindo a cada 25s com escalada. Separados porque servem a coisas diferentes: uma é
+> susto, a outra é ajuda, e ajuda entregue rápido demais tira o susto do jogador.
+
+> **A porta trancada só existe por causa do monstro.** Rastreei tudo que pode deixar
+> `Door.IsLocked` verdadeiro: `MonsterDoorForcer.ForceOpenFrom` (o monstro arrombou) e
+> `DoorSabotage.CloseAndLock` (o monstro sabotou). O jogo não tem porta com chave nem tranca de
+> puzzle. Então `hint.door_locked` significa sempre "o monstro está segurando essa porta" — vale
+> escrever as falas com esse tom, e não como "procura a chave".
+
+#### Como configurar
+
+Está dividido em dois lugares, de propósito:
+
+| O quê | Onde | Editável no inspector? |
+|---|---|---|
+| **O que o chat diz, volume, humor, prioridade, cooldown** | `ChatTopicDatabase.asset` | ✅ sim — é aqui que você mexe 95% das vezes |
+| **Quando o hub decide levantar o evento** | Constantes no topo do `ChatEventHub.cs` | ❌ não, é um GameObject criado em runtime |
+
+As constantes estão todas agrupadas no início do arquivo:
+
+| Constante | Padrão | Significado |
+|---|---|---|
+| `AudienceReportInterval` | 0,25s | Frequência com que a contagem de viewers é reportada |
+| `NoticeableAudienceChange` | 12 | Viewers ganhos/perdidos de uma vez pro chat comentar |
+| `BigAudienceChange` | 60 | Variação que conta como reação máxima |
+| `BigDonation` | 100 | Valor de doação que conta como reação máxima |
+| `DoorCommentRange` | 14m | Distância máxima da porta pro chat comentar |
+| `SabotagePollInterval` | 0,5s | Frequência do teste da luz |
+| `BindRetryInterval` | 1s | Frequência da procura pelos managers |
+
+Mais os dois presets de `ChatNudge` (ver §2.7), que são `[SerializeField]` — se quiser editá-los no
+inspector, troque o auto-bootstrap por um componente colocado na cena.
+
+#### Como adicionar um evento novo
+
+1. Abra `ChatEventHub.cs`, escolha o bloco (ou crie um novo com o mesmo separador de comentário).
+2. Assine o evento em `OnEnable`, desassine em `OnDisable`. Se for um manager que só existe durante
+   a partida, siga o padrão `TryBind*` + `TickBinding`.
+3. Chame `ChatStimulusBus.Raise("seu.topico", intensidade, assunto)`.
+4. Adicione a linha `seu.topico` no `ChatTopicDatabase` e escreva as falas.
+5. Se o sistema estiver num assembly que `Game` ainda não referencia, adicione no `Game.asmdef` —
+   é sempre seguro, ninguém referencia `Game`.
+
+**Antes de mexer no hub, cheque se você precisa.** Se o evento é client-side e você consegue chamar
+de um MonoBehaviour na cena, `ChatTrigger` ou `ChatIdleWatcher` resolvem sem tocar em código.
+
+> ⚠️ **Armadilha de netcode:** confira se o evento que você vai escutar não está atrás de
+> `if (!IsServer) return`. Foi o que aconteceu com `DonationManager.OnDonationCompleted` e
+> `MissionCompleter.OnMissionCompleted` — assinar eles teria dado chat no host e silêncio em todos
+> os outros clients. Quando o evento for server-only, procure o estado replicado equivalente
+> (`NetworkVariable`, `NetworkList`) ou um RPC `SendTo.ClientsAndHost`.
 
 ---
 
@@ -355,10 +477,8 @@ Precisa das três coisas juntas:
 | `Player/Chat/ChatManager.cs` | Player | Tradução estímulo → pool |
 | `Player/Chat/ChatDirector.cs` | Player | Fila, ritmo, humor, volume |
 | `Player/Chat/ChatUi.cs` | Player | Renderização |
-| `Audience/ChatAudienceBridge.cs` | Audience | Viewers e variação |
-| `Missions/ChatMissionBridge.cs` | Missions | Doação, missão, dica de missão |
-| `Objects/ChatDoorBridge.cs` | Objects | Porta trancada |
-| `Monster/ChatSabotageBridge.cs` | Monster | Luz apagada, dica do gerador |
+| `ChatEventHub.cs` | Game | **Todos** os eventos do jogo → barramento: viewers, doação, missão, porta, luz |
+| `Prefabs/Managers/ChatEventHub.prefab` | — | O hub como objeto de cena. **Precisa estar na `Game.unity`.** |
 
 ---
 
@@ -366,7 +486,16 @@ Precisa das três coisas juntas:
 
 ### Precisa ser feito no Unity
 
-1. **Atribuir `topicDatabase`** no `ChatManager` (`ChatBar.prefab` dentro do `Player.prefab`).
+1. **Arrastar `ChatEventHub.prefab` para a `Game.unity`.** Ele está em
+   `Assets/Prefabs/Managers/`, junto dos outros managers. Posição não importa, é um objeto lógico.
+
+   > Não inseri na cena por você porque o `Library/LastSceneManagerSetup.txt` mostra a `Game.unity`
+   > aberta no editor. Editar o arquivo no disco com a cena carregada faz o Unity sobrescrever a
+   > mudança no próximo save, sem aviso.
+   >
+   > **Enquanto ele não estiver na cena, nenhum evento do jogo vira chat** — só os avistamentos.
+
+2. **Atribuir `topicDatabase`** no `ChatManager` (`ChatBar.prefab` dentro do `Player.prefab`).
 
    | Campo | Asset | Situação |
    |---|---|---|
@@ -380,22 +509,24 @@ Precisa das três coisas juntas:
    > Unity vai descartar o override antigo sozinho. **Sem essa referência, nenhum acontecimento
    > gera chat** — nem reação, nem dica. Os avistamentos continuam funcionando.
 
-2. **Escrever as falas.** Todos os pools novos estão vazios:
+3. **Escrever as falas.** Todos os pools novos estão vazios:
 
    | Asset | Entradas sem falas |
    |---|---|
-   | `ChatTopicDatabase` | 13 (4 dicas + 9 reações) |
+   | `ChatTopicDatabase` | 14 (4 dicas + 10 reações) |
    | `ChatAmbientDatabase` | 5 (um por humor) |
    | `ChatMessageDatabase` | `Lights` |
 
-3. **`Room` tem 1 fala só.** Como cada avistamento gera de 1 a 3 mensagens, olhar uma sala faz três
+4. **`Room` tem 1 fala só.** Como cada avistamento gera de 1 a 3 mensagens, olhar uma sala faz três
    viewers repetirem a mesma frase.
 
-4. **Revisar `allowedArchetypes`** nas 87 falas existentes — todas entraram como `Everyone`.
+5. **Revisar `allowedArchetypes`** nas 87 falas existentes — todas entraram como `Everyone`.
    Funcionam assim, mas a personalidade da população só aparece quando isso for marcado.
 
 ### Decisões de design em aberto
 
 - **`MissionObject` tem 13 falas e zero objetos** com esse `targetType`.
-- **Nome do player morto** não chega no `{subject}`: o único nome alcançável de `Components` é o do
-  GameObject (`Player(Clone)`). Passa `alguem` como fallback.
+> **Resolvido:** o nome do player agora chega no `{subject}`. Vem de `PlayerInfos.PlayerName`, um
+> `NetworkVariable` que o servidor preenche a partir do `UserData` no spawn e que replica pra todos
+> os clients — então dá pra nomear o colega que morreu, não só o próprio jogador. `alguem` continua
+> como fallback se o nome ainda não tiver replicado.

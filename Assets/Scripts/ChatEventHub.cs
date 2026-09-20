@@ -1,0 +1,395 @@
+using Audience;
+using Chat;
+using Missions;
+using Missions.Donations;
+using Monster;
+using Monster.MonsterSabotages;
+using Objects;
+using Unity.Netcode;
+using UnityEngine;
+
+/// <summary>
+/// The one place where the game tells the chat that something happened.
+///
+/// <para>Every system that the chat reacts to is listened to from here and translated into a topic
+/// on the <see cref="ChatStimulusBus"/>. Nothing in this file knows what the chat will actually
+/// say - the lines, the volume, the mood and the priority all live in the topic database, and the
+/// only thing crossing over is a string id.</para>
+///
+/// <para>It lives in the Game assembly for the same reason <see cref="SfxManager"/> does: Game sits
+/// at the top of the dependency graph, referencing nearly everything while nothing references it,
+/// so it is the only place a listener can see Audience, Missions, Monster and Objects at once. The
+/// chat itself lives in Player, which Missions already references - so the chat can never reach
+/// back the other way without closing a cycle. The bus is what keeps that arrow pointing one way.
+/// </para>
+///
+/// <para>Lives as an object in the match scene, not as something spawned behind the scenes. That
+/// keeps it visible in the hierarchy, breakpointable, and - because its hint timings are serialized
+/// fields - tunable in the inspector like everything else. It also means it exists exactly while a
+/// match does, so none of its clocks can run in the main menu.</para>
+///
+/// <para>Each source below still waits for what it listens to: the managers spawn through netcode
+/// a moment after the scene loads, not with it.</para>
+/// </summary>
+public class ChatEventHub : MonoBehaviour
+{
+    // --- Audience ---
+
+    /// <summary>The bar moves constantly; the chat only needs a coarse reading of it.</summary>
+    private const float AudienceReportInterval = 0.25f;
+
+    /// <summary>Viewers gained or lost in one event before chat bothers to mention it.</summary>
+    private const float NoticeableAudienceChange = 12f;
+
+    /// <summary>Audience change that counts as a full-blown reaction.</summary>
+    private const float BigAudienceChange = 60f;
+
+    // --- Donations ---
+
+    /// <summary>Donation size that counts as a full-blown reaction.</summary>
+    private const float BigDonation = 100f;
+
+    // --- Doors ---
+
+    /// <summary>How close the door has to be to the local player to be worth commenting on.</summary>
+    private const float DoorCommentRange = 14f;
+
+    /// <summary>Re-resolving the player object costs a lookup; it does not change often.</summary>
+    private const float PlayerRefreshInterval = 2f;
+
+    // --- Lights ---
+
+    private const float SabotagePollInterval = 0.5f;
+
+    /// <summary>Slower cadence while no match is running and there is nothing to find.</summary>
+    private const float UnboundSabotagePollInterval = 2f;
+
+    // --- Shared ---
+
+    /// <summary>Seconds between attempts to find a manager. They only appear once a match starts.</summary>
+    private const float BindRetryInterval = 1f;
+
+
+    [Header("Hints")]
+    [SerializeField]
+    [Tooltip("Nudges the player when no mission has been picked up or finished for a while. " +
+             "Reset by any mission event.")]
+    private ChatNudge missionNudge = new(ChatTopics.HintMissionIdle, 90f, 60f, 0.3f, 0.7f);
+
+    [SerializeField]
+    [Tooltip("Keeps reminding the player where the lights come back on. Armed while the lights " +
+             "are out, reset the moment they come back.")]
+    private ChatNudge lightsNudge = new(ChatTopics.HintLightsOut, 12f, 25f, 0.4f, 0.85f);
+
+    private AudienceManager _audience;
+    private DonationManager _donations;
+    private MonsterSabotage _sabotage;
+    private Transform _localPlayer;
+
+    private float _bindTimer;
+    private float _audienceReportTimer;
+    private float _sabotageTimer;
+    private float _nextPlayerRefresh;
+    private bool _lightsOut;
+
+
+    private void OnEnable()
+    {
+        // All three are static and already client-side, so they need no manager to be found first.
+        // The two mission ones are raised behind an IsOwner guard, so they arrive exactly once, on
+        // the client whose mission it was.
+        PlayerMissionHolder.OnMissionCompletedSound += PlayerMissionHolder_OnMissionCompleted;
+        PlayerMissionHolder.OnMissionRecievedSound += PlayerMissionHolder_OnMissionReceived;
+        Door.OnDoorBlockedSound += Door_OnBlocked;
+        missionNudge.ReportProgress();
+    }
+
+    private void OnDisable()
+    {
+        PlayerMissionHolder.OnMissionCompletedSound -= PlayerMissionHolder_OnMissionCompleted;
+        PlayerMissionHolder.OnMissionRecievedSound -= PlayerMissionHolder_OnMissionReceived;
+        Door.OnDoorBlockedSound -= Door_OnBlocked;
+
+        UnbindAudience();
+
+        if (_donations != null)
+        {
+            _donations.NetworkStates.OnListChanged -= NetworkStates_OnListChanged;
+            _donations = null;
+        }
+
+        missionNudge.Disarm();
+        lightsNudge.Disarm();
+
+        _sabotage = null;
+        _lightsOut = false;
+
+        // The bus keeps whatever was last reported, and leaving the match should not leave the chat
+        // believing a full house is still watching.
+        ChatStimulusBus.ReportAudience(0f, false);
+    }
+
+    private void Update()
+    {
+        float deltaTime = Time.deltaTime;
+
+        TickBinding(deltaTime);
+        TickAudience(deltaTime);
+        TickMissions(deltaTime);
+        TickLights(deltaTime);
+    }
+
+    /// <summary>Hunts for the managers that only exist once a match is running.</summary>
+    private void TickBinding(float deltaTime)
+    {
+        if (_audience != null && _donations != null) return;
+
+        _bindTimer -= deltaTime;
+
+        if (_bindTimer > 0f) return;
+
+        _bindTimer = BindRetryInterval;
+
+        if (_audience == null) TryBindAudience();
+        if (_donations == null) TryBindDonations();
+    }
+
+
+    // ------------------------------------------------------------------ Audience
+    //
+    // The headcount matters more than anything else here: the chat paces itself off it directly,
+    // so this is what makes ten viewers produce a trickle and a full house produce a wall.
+    // CurrentAudience is the same number the HUD prints, which keeps the bar and the chat telling
+    // the same story.
+
+    private void TickAudience(float deltaTime)
+    {
+        if (_audience == null)
+        {
+            // No match running. Report an empty room so the chat falls silent between matches
+            // instead of pacing itself off whatever the last one ended on.
+            ChatStimulusBus.ReportAudience(0f, false);
+            return;
+        }
+
+        _audienceReportTimer -= deltaTime;
+
+        if (_audienceReportTimer > 0f) return;
+
+        _audienceReportTimer = AudienceReportInterval;
+
+        ChatStimulusBus.ReportAudience(_audience.CurrentAudience, _audience.IsDecaying);
+    }
+
+    private void TryBindAudience()
+    {
+        AudienceManager manager = AudienceManager.Instance;
+
+        if (manager == null) return;
+
+        _audience = manager;
+
+        _audience.OnAudienceGained += Audience_OnGained;
+        _audience.OnAudienceLost += Audience_OnLost;
+    }
+
+    private void UnbindAudience()
+    {
+        if (_audience == null) return;
+
+        _audience.OnAudienceGained -= Audience_OnGained;
+        _audience.OnAudienceLost -= Audience_OnLost;
+        _audience = null;
+    }
+
+    private void Audience_OnGained(float delta) => ReportAudienceChange(ChatTopics.AudienceSurge, delta);
+
+    private void Audience_OnLost(float delta) => ReportAudienceChange(ChatTopics.AudienceDrop, delta);
+
+    private static void ReportAudienceChange(string topicId, float delta)
+    {
+        float amount = Mathf.Abs(delta);
+
+        if (amount < NoticeableAudienceChange) return;
+
+        ChatStimulusBus.Raise(topicId, Mathf.Clamp01(amount / BigAudienceChange));
+    }
+
+
+    // ------------------------------------------------------------------ Donations and missions
+    //
+    // Donations are read off the replicated list rather than DonationManager's own events. Those
+    // are raised from inside server-only paths, so subscribing to them would have produced chat on
+    // the host and silence on every other client. The NetworkList is the only version of this that
+    // every client actually sees.
+
+    private void TickMissions(float deltaTime)
+    {
+        // Unbound means no match is running. The nudge stays frozen rather than counting down in
+        // the main menu and firing a "go find a mission" hint into an empty lobby.
+        if (_donations == null) return;
+
+        missionNudge.Tick(deltaTime);
+    }
+
+    private void TryBindDonations()
+    {
+        DonationManager manager = DonationManager.Instance;
+
+        if (manager == null) return;
+
+        _donations = manager;
+        _donations.NetworkStates.OnListChanged += NetworkStates_OnListChanged;
+
+        // The clock starts when the match does, not when the process did.
+        missionNudge.ReportProgress();
+    }
+
+    private void NetworkStates_OnListChanged(NetworkListEvent<DonationNetworkState> changeEvent)
+    {
+        switch (changeEvent.Type)
+        {
+            case NetworkListEvent<DonationNetworkState>.EventType.Add:
+            case NetworkListEvent<DonationNetworkState>.EventType.Insert:
+                AnnounceDonation(ChatTopics.DonationReceived, changeEvent.Value);
+                break;
+
+            case NetworkListEvent<DonationNetworkState>.EventType.Value:
+                // Only the transition matters. The list also ticks progress through this same
+                // event, and reacting to every tick would bury the chat.
+                if (changeEvent.Value.State == changeEvent.PreviousValue.State) break;
+
+                if (changeEvent.Value.State == DonationState.Expired)
+                {
+                    AnnounceDonation(ChatTopics.DonationExpired, changeEvent.Value);
+                }
+
+                break;
+        }
+    }
+
+    private static void AnnounceDonation(string topicId, DonationNetworkState state)
+    {
+        ChatStimulusBus.Raise(topicId, Mathf.Clamp01(state.Amount / BigDonation),
+            state.DonorName.ToString());
+    }
+
+    private void PlayerMissionHolder_OnMissionCompleted(Vector3 _)
+    {
+        missionNudge.ReportProgress();
+
+        ChatStimulusBus.Raise(ChatTopics.MissionCompleted, 0.7f);
+    }
+
+    // Picking one up counts as progress too - the player is clearly not lost, so the hint should
+    // not be counting down at them while they walk to it.
+    private void PlayerMissionHolder_OnMissionReceived(Vector3 _) => missionNudge.ReportProgress();
+
+
+    // ------------------------------------------------------------------ Doors
+    //
+    // Hooks the blocked-door sound rather than the interaction, because that sound is already
+    // raised on every client through an RPC - the one version of the event reachable from here
+    // without the door needing to know who pressed the key.
+    //
+    // Filtered by distance, not by who interacted, and deliberately so: viewers are watching a
+    // screen. A door rattling in front of the streamer is worth a comment whoever pulled on it,
+    // and one rattling across the map is not.
+
+    private void Door_OnBlocked(Vector3 position)
+    {
+        Transform player = ResolveLocalPlayer();
+
+        if (player == null) return;
+
+        float distance = Vector3.Distance(player.position, position);
+
+        if (distance > DoorCommentRange) return;
+
+        // Closer means more certainly the streamer's own problem, so chat is more sure of itself.
+        float intensity = Mathf.Lerp(0.6f, 0.35f, Mathf.Clamp01(distance / DoorCommentRange));
+
+        ChatStimulusBus.Raise(ChatTopics.HintDoorLocked, intensity);
+    }
+
+    private Transform ResolveLocalPlayer()
+    {
+        if (_localPlayer != null && Time.time < _nextPlayerRefresh) return _localPlayer;
+
+        _nextPlayerRefresh = Time.time + PlayerRefreshInterval;
+
+        NetworkManager manager = NetworkManager.Singleton;
+
+        if (manager == null || manager.SpawnManager == null) return null;
+
+        NetworkObject playerObject = manager.SpawnManager.GetPlayerNetworkObject(manager.LocalClientId);
+
+        _localPlayer = playerObject == null ? null : playerObject.transform;
+
+        return _localPlayer;
+    }
+
+
+    // ------------------------------------------------------------------ Lights
+    //
+    // Polls instead of subscribing, because there is no client-side event to subscribe to. The
+    // sabotage replicates through RPCs that return early on the server, so no single callback fires
+    // on both the host and the clients - but the sabotaged flag itself ends up correct on every
+    // peer. Reading it a couple of times a second gets the transition on all of them with no change
+    // to the sabotage system at all.
+
+    private void TickLights(float deltaTime)
+    {
+        // Only counts down while the player actually has a problem, so the hint cannot fire during
+        // a perfectly lit match.
+        if (_lightsOut)
+        {
+            lightsNudge.Tick(deltaTime);
+        }
+
+        _sabotageTimer -= deltaTime;
+
+        if (_sabotageTimer > 0f) return;
+
+        _sabotageTimer = SabotagePollInterval;
+
+        PollLights();
+    }
+
+    private void PollLights()
+    {
+        if (_sabotage == null)
+        {
+            _lightsOut = false;
+
+            // Outside a match there is nothing to find, and this runs in every scene. Back off so
+            // an idle main menu is not paying for a scene-wide search twice a second.
+            _sabotageTimer = UnboundSabotagePollInterval;
+
+            _sabotage = FindFirstObjectByType<MonsterSabotage>();
+
+            if (_sabotage == null) return;
+        }
+
+        bool lightsOut = _sabotage.HasSabotagedOfType(SabotageType.Light);
+
+        if (lightsOut == _lightsOut) return;
+
+        _lightsOut = lightsOut;
+
+        if (lightsOut)
+        {
+            // Two separate things, on purpose. The reaction is chat losing it the instant the room
+            // goes dark; the hint is chat remembering there is a generator, and it only shows up
+            // once the player has had a moment to work it out for themselves.
+            ChatStimulusBus.Raise(ChatTopics.LightsOut, 0.9f);
+
+            lightsNudge.ReportProgress();
+            return;
+        }
+
+        lightsNudge.Disarm();
+
+        ChatStimulusBus.Raise(ChatTopics.LightsRestored, 0.5f);
+    }
+}

@@ -16,9 +16,6 @@ namespace ScriptableObjects
 
 
         private void OnEnable() => BuildLookup();
-
-        // Without this, editing the asset during play changed nothing until a domain reload, which
-        // made tuning the pools in play mode look broken.
         private void OnValidate() => BuildLookup();
 
         private void BuildLookup()
@@ -33,10 +30,7 @@ namespace ScriptableObjects
 
                 if (!_lookup.TryAdd(entry.target, entry.data))
                 {
-                    // Used to overwrite in silence, so a duplicated target quietly discarded a
-                    // whole pool of authored lines.
-                    Debug.LogWarning($"{name}: two entries for {entry.target}. Keeping the first, " +
-                                     "the second is unreachable.", this);
+                    Debug.LogWarning($"{name}: two entries for {entry.target}. Keeping the first, the second is unreachable.", this);
                     continue;
                 }
 

@@ -9,11 +9,10 @@ namespace ScriptableObjects
     [Serializable]
     public class ChatTopicEntry
     {
-        [Tooltip("Id systems raise to reach this pool. Built-in ones look like hint.door_locked; " +
-                 "a new topic can use any id, for example tutorial.welcome, and needs no code.")]
+        [Tooltip("Id used to raise this topic, must be unique.")]
         public string id;
 
-        [Tooltip("What chat says about this. Empty means the topic is raised but stays silent.")]
+        [Tooltip("What chat says about this topic.")]
         public TargetChatData data = new();
 
         [Header("Volume")]
@@ -22,33 +21,24 @@ namespace ScriptableObjects
 
         [Header("Reaction")]
         [Range(0f, 1f)]
-        [Tooltip("Ceiling for how hard this stirs the chat. The raiser scales it by how big this " +
-                 "particular instance was, where 0.5 means nominal. High values make the following " +
-                 "lines come faster and hold the mood longer.")]
+        [Tooltip("How intense the moment is when this topic fires")]
         public float intensity = 0.5f;
 
-        [Tooltip("Mood this pushes the room into while the reaction lasts.")]
+        [Tooltip("Control which ambient pool fills the silence and which weight multipliers apply to reactions.")]
         public ChatMood mood = ChatMood.Idle;
 
         [Min(0f)]
-        [Tooltip("Seconds before this topic can fire again. This is the throttle for anything that " +
-                 "raises repeatedly, like the lights-out hint that re-raises while the lights are " +
-                 "still off.")]
         public float cooldown = 4f;
 
         [Header("Delivery")]
         [Min(0)]
-        [Tooltip("Lines with a higher priority jump ahead of lower ones in the queue and survive " +
-                 "when the queue overflows. Hints sit above reactions, which sit above small talk, " +
-                 "so advice is never buried under a wall of chatter.")]
+        [Tooltip("Lines with a higher priority jump ahead of lower ones in the queue")]
         public int priority;
 
-        [Tooltip("Allow a spam wave - several viewers posting the same short line at once. Only " +
-                 "fires on lines flagged spammable, and only when the moment is intense.")]
+        [Tooltip("Allow a spam wave - several viewers posting the same short line at once")]
         public bool allowSpamWave;
 
-        [Tooltip("Say it even when nobody is watching. A hint is worth breaking the illusion for; " +
-                 "small talk from an empty chat is not.")]
+        [Tooltip("Say it even when nobody is watching.")]
         public bool ignoreViewerFloor;
     }
 

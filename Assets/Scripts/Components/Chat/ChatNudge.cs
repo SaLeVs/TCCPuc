@@ -18,23 +18,20 @@ namespace Chat
     public class ChatNudge
     {
         [SerializeField]
-        [Tooltip("Topic id raised when the player has been stuck too long.")]
+        [Tooltip("Topic id raised when the player has been stuck too long")]
         private string topicId;
 
         [SerializeField, Min(1f)]
-        [Tooltip("Seconds of no progress before the first nudge.")]
+        [Tooltip("Seconds of no progress before the first nudge")]
         private float idleSeconds = 60f;
 
         [SerializeField, Min(0f)]
-        [Tooltip("Seconds between repeats while the player is still stuck. 0 nudges once and then " +
-                 "waits for progress.")]
+        [Tooltip("Seconds between repeats while the player is still stuck")]
         private float repeatSeconds = 45f;
 
         [SerializeField]
-        [Tooltip("Push harder the longer it goes unanswered. The first nudge is a passing remark, " +
-                 "the third is chat losing patience - which is also what makes it read as people " +
-                 "rather than as a hint system.")]
-        private bool escalate = true;
+        [Tooltip("Push harder the longer it goes unanswered")]
+        private bool improveIntensityWhenIgnored = true;
 
         [SerializeField, Range(0f, 1f)] private float startIntensity = 0.3f;
         [SerializeField, Range(0f, 1f)] private float maxIntensity = 0.7f;
@@ -57,8 +54,7 @@ namespace Chat
         /// at runtime, so their timings have to come from code. A component that a person places in
         /// a scene should use the empty constructor and be filled in the inspector instead.
         /// </summary>
-        public ChatNudge(string topicId, float idleSeconds, float repeatSeconds,
-            float startIntensity = 0.3f, float maxIntensity = 0.7f)
+        public ChatNudge(string topicId, float idleSeconds, float repeatSeconds, float startIntensity = 0.3f, float maxIntensity = 0.7f)
         {
             this.topicId = topicId;
             this.idleSeconds = Mathf.Max(1f, idleSeconds);
@@ -114,7 +110,7 @@ namespace Chat
 
         private float CurrentIntensity()
         {
-            if (!escalate) return startIntensity;
+            if (!improveIntensityWhenIgnored) return startIntensity;
 
             return Mathf.Lerp(startIntensity, maxIntensity, Mathf.Clamp01(_nudges / (float)escalationSteps));
         }

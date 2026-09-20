@@ -95,6 +95,22 @@ namespace ScriptableObjects
             return false;
         }
 
+        /// <summary>
+        /// Same draw, for callers that only need the name - a donation naming its donor, for
+        /// instance. Going through here rather than keeping a second list of names is what makes
+        /// the person who donates and the person who talks the same person.
+        /// </summary>
+        public bool TryPickName(out string name)
+        {
+            name = null;
+
+            if (!TryPick(out ViewerProfile profile)) return false;
+
+            name = profile.name;
+
+            return true;
+        }
+
         private float Weight(ViewerProfile profile)
         {
             if (profile == null || string.IsNullOrWhiteSpace(profile.name)) return 0f;

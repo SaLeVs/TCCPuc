@@ -15,16 +15,14 @@ namespace Chat
         [Tooltip("Relative chance against the other lines in this pool. 0 disables the line.")]
         public float weight = 1f;
 
-        [Tooltip("Which personalities are allowed to post this. A line that only makes sense " +
-                 "screamed should not list Lurker, and a joke should not list Scared.")]
+        [Tooltip("Which personalities are allowed to post this line.")]
         public ViewerArchetype allowedArchetypes = ViewerArchetype.Everyone;
 
-        [Tooltip("Short enough to work as a spam wave - several viewers posting it at once right " +
-                 "after a big moment. Leave off for anything longer than a few words.")]
+        [Tooltip("Short enough to work as a spam wave")]
         public bool spammable;
 
         /// <summary>Placeholder a line can use to name the donor, the player who died, and so on.</summary>
-        public const string SubjectToken = "{subject}";
+        public const string SUBJECT_TOKEN = "{subject}";
     }
 
     /// <summary>
@@ -36,12 +34,10 @@ namespace Chat
         public List<ChatMessage> messages = new();
 
         [Header("Repetition")]
-        [Tooltip("Seconds a line takes to get its full weight back after being posted.")]
+        [Tooltip("Seconds a line takes to get its full weight back after being posted")]
         [Min(0f)] public float recencyWindow = 45f;
 
-        [Tooltip("Weight multiplier a line drops to the instant it is posted. 0.1 means it keeps " +
-                 "a tenth of its chance and climbs back over the window - low enough to stop the " +
-                 "same line twice in a row, high enough that a small pool never runs dry.")]
+        [Tooltip("Weight multiplier a line drops to the instant it is posted")]
         [Range(0f, 1f)] public float recencyFloor = 0.1f;
 
         /// <summary>

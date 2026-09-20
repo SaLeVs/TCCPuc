@@ -9,13 +9,13 @@ namespace ScriptableObjects
     [Serializable]
     public class ChatTopicEntry
     {
+        [Header("Entry name")]
         [Tooltip("Id used to raise this topic, must be unique")]
         public string id;
 
         [Tooltip("What chat says about this topic")]
         public TargetChatData data = new();
-
-        [Header("Volume")]
+        
         [Min(0)] public int minMessages = 1;
         [Min(0)] public int maxMessages = 3;
 
@@ -29,8 +29,7 @@ namespace ScriptableObjects
 
         [Min(0f)]
         public float cooldown = 4f;
-
-        [Header("Delivery")]
+        
         [Min(0)]
         [Tooltip("Lines with a higher priority jump ahead of lower ones in the queue")]
         public int priority;

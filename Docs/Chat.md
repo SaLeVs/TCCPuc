@@ -212,6 +212,11 @@ de sabotagem). Mesmos campos nos três:
 | `recentMemory` | Quantos últimos falantes são penalizados (5). |
 | `recentPenalty` | Multiplicador de quem falou há pouco (0.15). |
 
+> **Fonte única.** As doações também tiram o nome do doador daqui, via `TryPickName`
+> (`DonationDefinition.fakeDonorNames`). É o mesmo `chattiness` que decide, então os regulares
+> que mais falam também são os que mais doam — o que é o comportamento realista pra uma live, e
+> garante que nenhum doador seja um nome que o jogador nunca viu no chat.
+
 **Arquétipos:** `Hype` (1), `Scared` (2), `Troll` (4), `Backseat` (8), `Lurker` (16).
 `Everyone` = 31.
 
@@ -392,8 +397,5 @@ Precisa das três coisas juntas:
 ### Decisões de design em aberto
 
 - **`MissionObject` tem 13 falas e zero objetos** com esse `targetType`.
-- **`DonationDefinition.fakeDonorNames` ainda usa o `ViewerNameDatabaseSO` antigo** — o doador vem
-  de um pool e quem fala no chat vem de outro. Unificar faria a doação do `caldoDiCana` vir do
-  mesmo regular que comenta.
 - **Nome do player morto** não chega no `{subject}`: o único nome alcançável de `Components` é o do
   GameObject (`Player(Clone)`). Passa `alguem` como fallback.

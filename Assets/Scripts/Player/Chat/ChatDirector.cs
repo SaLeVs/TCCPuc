@@ -454,9 +454,9 @@ namespace Player.Chat
         private static string Format(string message, string subject)
         {
             if (string.IsNullOrEmpty(message)) return message;
-            if (!message.Contains(ChatMessage.SubjectToken)) return message;
+            if (!message.Contains(ChatMessage.SUBJECT_TOKEN)) return message;
 
-            return message.Replace(ChatMessage.SubjectToken, string.IsNullOrWhiteSpace(subject) ? "Someone" : subject);
+            return message.Replace(ChatMessage.SUBJECT_TOKEN, string.IsNullOrWhiteSpace(subject) ? "Someone" : subject);
         }
     }
 }

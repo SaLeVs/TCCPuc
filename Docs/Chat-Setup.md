@@ -66,7 +66,6 @@ funcionar de ponta a ponta, sem esperar o monstro cooperar.
 | Campo | Valor |
 |---|---|
 | `Message` | `APAGOU TUDO` |
-| `Weight` | 1 |
 | `Allowed Archetypes` | `Everyone` |
 
 ### 2.2 Disparar na mão
@@ -106,8 +105,10 @@ Chat.ChatStimulusBus.Raise("lights.out", 0.9f);
 
 A parte grande. **17 pools vazios.**
 
-> **Cada fala tem 3 campos:** `Message` (o texto), `Weight` (chance relativa, 1 é o normal) e
-> `Allowed Archetypes` (quem pode dizer). Só isso. Sugestão de ordem, do que mais aparece para o que menos aparece:
+> **Cada fala tem 2 campos:** `Message` (o texto) e `Allowed Archetypes` (quem pode dizer). Só isso —
+> toda fala elegível tem a mesma chance.
+
+Sugestão de ordem, do que mais aparece para o que menos aparece:
 
 ### 3.1 Prioridade alta — o jogador vê muito
 
@@ -153,7 +154,6 @@ A parte grande. **17 pools vazios.**
 |---|---|
 | **Pool com 1 fala repete** | A rajada pede 1–3 falas; com uma só, os três viewers dizem a mesma coisa |
 | **Mínimo 6 falas por pool** | Abaixo disso a supressão por recência não tem de onde escolher |
-| **`Weight` 1 é o normal** | Use 3–5 nas que você quer ouvir mais. A razão atual é 5× e funciona bem |
 | **`{subject}`** | Vira o nome do doador ou do player morto. Sem valor, vira `alguem` |
 
 ---

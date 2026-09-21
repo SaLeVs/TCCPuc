@@ -132,7 +132,6 @@ Cada fala (`ChatMessage`):
 | Campo | O que faz |
 |---|---|
 | `message` | O texto. Pode usar `{subject}`. |
-| `weight` | Chance relativa dentro do pool. **0 desabilita.** |
 | `allowedArchetypes` | Quais personalidades podem dizer isso (flags). |
 
 ### 2.5 `ChatTopicDatabase.asset` — falas de acontecimento
@@ -345,22 +344,33 @@ Está dividido em dois lugares, de propósito:
 | O quê | Onde | Editável no inspector? |
 |---|---|---|
 | **O que o chat diz, volume, humor, prioridade, cooldown** | `ChatTopicDatabase.asset` | ✅ sim — é aqui que você mexe 95% das vezes |
-| **Quando o hub decide levantar o evento** | Constantes no topo do `ChatEventHub.cs` | ❌ não, é um GameObject criado em runtime |
+| **Quão grande algo precisa ser pro chat notar** | `ChatEventHub` na cena, bloco `Thresholds` | ✅ sim |
+| **De quanto em quanto tempo o hub verifica** | Constantes no topo do `ChatEventHub.cs` | ❌ não, é taxa de amostragem |
 
-As constantes estão todas agrupadas no início do arquivo:
+**No inspector**, bloco `Thresholds` — quão grande algo precisa ser:
+
+| Campo | Padrão | Significado |
+|---|---|---|
+| `Noticeable Audience Change` | 12 | Viewers ganhos/perdidos de uma vez pro chat comentar |
+| `Big Audience Change` | 60 | Variação que conta como reação máxima |
+| `Big Donation` | 100 | Valor de doação que conta como reação máxima |
+| `Door Comment Range` | 14m | Distância máxima da porta pro chat comentar |
+
+**No código**, constantes no topo do arquivo — de quanto em quanto tempo verifica:
 
 | Constante | Padrão | Significado |
 |---|---|---|
-| `AudienceReportInterval` | 0,25s | Frequência com que a contagem de viewers é reportada |
-| `NoticeableAudienceChange` | 12 | Viewers ganhos/perdidos de uma vez pro chat comentar |
-| `BigAudienceChange` | 60 | Variação que conta como reação máxima |
-| `BigDonation` | 100 | Valor de doação que conta como reação máxima |
-| `DoorCommentRange` | 14m | Distância máxima da porta pro chat comentar |
-| `SabotagePollInterval` | 0,5s | Frequência do teste da luz |
-| `BindRetryInterval` | 1s | Frequência da procura pelos managers |
+| `AUDIENCE_REPORT_INTERVAL` | 0,25s | Frequência com que a contagem de viewers é reportada |
+| `SABOTAGE_POLL_INTERVAL` | 0,5s | Frequência do teste da luz |
+| `UNBOUND_SABOTAGE_POLL_INTERVAL` | 2s | Backoff fora de partida |
+| `PLAYER_REFRESH_INTERVAL` | 2s | Cache do lookup do player local |
+| `BIND_RETRY_INTERVAL` | 1s | Frequência da procura pelos managers |
 
-Mais os dois presets de `ChatNudge` (ver §2.7), que são `[SerializeField]` — se quiser editá-los no
-inspector, troque o auto-bootstrap por um componente colocado na cena.
+> A divisão é a mesma regra usada no resto do sistema: **decisão de feel vira campo, taxa de
+> amostragem fica constante.** Expor um intervalo de polling no inspector é o mesmo erro que
+> `speakerAttempts` e `recentPenalty` eram antes de virarem constantes.
+
+Os três `ChatNudge` (ver §2.7) também são campos, no bloco `Hints` logo acima.
 
 #### Como adicionar um evento novo
 
@@ -401,7 +411,7 @@ Se o problema é só **nos picos**, mexa em `peakIntensityMultiplier` em vez da 
 1. Abra o asset certo: avistamento → `ChatMessageDatabase`; acontecimento → `ChatTopicDatabase`;
    fundo → `ChatAmbientDatabase`.
 2. Adicione uma linha em `messages`.
-3. Escreva o texto, escolha `weight` (1 = comum, 5 = frequente).
+3. Escreva o texto.
 4. Marque `allowedArchetypes` — é aqui que a população ganha cara.
 
 ### 3.3 "Quero um evento novo — por exemplo, tutorial"
@@ -439,8 +449,8 @@ Uma linha. Sem referência, sem interface, sem asmdef.
 
 Três opções, da mais suave pra mais dura:
 
-1. Baixe o `weight` dela.
-2. Escreva mais falas para o pool - abaixo de 6 a supressao por recencia nao tem de onde escolher.
+1. Escreva mais falas para o pool - abaixo de 6 a supressão por recência não tem de onde escolher.
+2. Confira se o `Allowed Archetypes` dela não está largo demais em relação às outras.
 
 ### 3.6 "Quero mudar a personalidade de um viewer"
 
@@ -470,7 +480,7 @@ Na ordem:
 | `Components/Chat/ChatNudge.cs` | Components | Cutucada: relogio de "o jogador travou" |
 | `Components/Chat/ChatTrigger.cs` | Components | Disparo por inspector |
 | `Components/Chat/ChatIdleWatcher.cs` | Components | "Travou" por inspector |
-| `Components/TargetChatData.cs` | Components | Pool, sorteio por peso, recência, arquétipo |
+| `Components/TargetChatData.cs` | Components | Pool, sorteio, recência, arquétipo |
 | `Components/RecordableIdentifier.cs` | Components | Config por objeto |
 | `Components/Health.cs` | Components | `OnAnyHealthChanged` (client-side) |
 | `ScriptableObjects/ChatMessageDatabaseSO.cs` | ScriptableObjects | Avistamentos |

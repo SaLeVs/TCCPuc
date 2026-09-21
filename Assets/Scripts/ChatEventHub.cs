@@ -25,7 +25,7 @@ using UnityEngine;
 /// </para>
 ///
 /// <para>Lives as an object in the match scene, not as something spawned behind the scenes. That
-/// keeps it visible in the hierarchy, breakpointable, and - because its hint timings are serialized
+/// keeps it visible in the hierarchy, breakpoint, and - because its hint timings are serialized
 /// fields - tunable in the inspector like everything else. It also means it exists exactly while a
 /// match does, so none of its clocks can run in the main menu.</para>
 ///
@@ -34,41 +34,23 @@ using UnityEngine;
 /// </summary>
 public class ChatEventHub : MonoBehaviour
 {
-    // --- Audience ---
+    // Sampling and retry rates. Constants on purpose: they trade CPU against how quickly the chat
+    // notices a change, which is not a decision anyone tuning how the chat feels would ever make.
+    // The values people do tune - how big something has to be before the chat cares - are fields.
 
     /// <summary>The bar moves constantly; the chat only needs a coarse reading of it.</summary>
-    private const float AudienceReportInterval = 0.25f;
-
-    /// <summary>Viewers gained or lost in one event before chat bothers to mention it.</summary>
-    private const float NoticeableAudienceChange = 12f;
-
-    /// <summary>Audience change that counts as a full-blown reaction.</summary>
-    private const float BigAudienceChange = 60f;
-
-    // --- Donations ---
-
-    /// <summary>Donation size that counts as a full-blown reaction.</summary>
-    private const float BigDonation = 100f;
-
-    // --- Doors ---
-
-    /// <summary>How close the door has to be to the local player to be worth commenting on.</summary>
-    private const float DoorCommentRange = 14f;
+    private const float AUDIENCE_REPORT_INTERVAL = 0.25f;
 
     /// <summary>Re-resolving the player object costs a lookup; it does not change often.</summary>
-    private const float PlayerRefreshInterval = 2f;
+    private const float PLAYER_REFRESH_INTERVAL = 2f;
 
-    // --- Lights ---
-
-    private const float SabotagePollInterval = 0.5f;
+    private const float SABOTAGE_POLL_INTERVAL = 0.5f;
 
     /// <summary>Slower cadence while no match is running and there is nothing to find.</summary>
-    private const float UnboundSabotagePollInterval = 2f;
-
-    // --- Shared ---
+    private const float UNBOUND_SABOTAGE_POLL_INTERVAL = 2f;
 
     /// <summary>Seconds between attempts to find a manager. They only appear once a match starts.</summary>
-    private const float BindRetryInterval = 1f;
+    private const float BIND_RETRY_INTERVAL = 1f;
 
 
     [Header("Hints")]
@@ -87,6 +69,28 @@ public class ChatEventHub : MonoBehaviour
              "target it has not covered recently.")]
     private ChatNudge explorationNudge = new(ChatTopics.HintExplorationIdle, 75f, 50f);
 
+    // A [Header] has to sit on a field with no Min/Range, or Odin draws the title twice. Bounds are
+    // enforced in OnValidate, which also keeps the two audience thresholds from crossing.
+
+    [Header("Thresholds")]
+    [SerializeField]
+    [Tooltip("Viewers gained or lost in one event before the chat bothers to mention it")]
+    private float noticeableAudienceChange = 12f;
+
+    [SerializeField]
+    [Tooltip("Audience change that counts as a full-blown reaction. Anything at or above this " +
+             "lands on the topic's maximum intensity")]
+    private float bigAudienceChange = 60f;
+
+    [SerializeField]
+    [Tooltip("Donation amount that counts as a full-blown reaction. Match it to the values in " +
+             "your donation definitions")]
+    private float bigDonation = 100f;
+
+    [SerializeField]
+    [Tooltip("How close a rattling door has to be to the local player to be worth commenting on")]
+    private float doorCommentRange = 14f;
+
     private AudienceManager _audience;
     private DonationManager _donations;
     private MonsterSabotage _sabotage;
@@ -99,6 +103,20 @@ public class ChatEventHub : MonoBehaviour
     private float _nextPlayerRefresh;
     private bool _lightsOut;
 
+
+    /// <summary>
+    /// Keeps the thresholds usable and stops the two audience ones from crossing. With a big change
+    /// below the noticeable one, every reported change would land on maximum intensity; with a zero
+    /// donation, the division that scales it would come back as infinity.
+    /// </summary>
+    private void OnValidate()
+    {
+        noticeableAudienceChange = Mathf.Max(0f, noticeableAudienceChange);
+        bigAudienceChange = Mathf.Max(noticeableAudienceChange + 1f, bigAudienceChange);
+
+        bigDonation = Mathf.Max(1f, bigDonation);
+        doorCommentRange = Mathf.Max(0f, doorCommentRange);
+    }
 
     private void OnEnable()
     {
@@ -163,7 +181,7 @@ public class ChatEventHub : MonoBehaviour
 
         if (_bindTimer > 0f) return;
 
-        _bindTimer = BindRetryInterval;
+        _bindTimer = BIND_RETRY_INTERVAL;
 
         if (_audience == null) TryBindAudience();
         if (_donations == null) TryBindDonations();
@@ -219,7 +237,7 @@ public class ChatEventHub : MonoBehaviour
 
         if (_audienceReportTimer > 0f) return;
 
-        _audienceReportTimer = AudienceReportInterval;
+        _audienceReportTimer = AUDIENCE_REPORT_INTERVAL;
 
         ChatStimulusBus.ReportAudience(_audience.CurrentAudience, _audience.IsDecaying);
     }
@@ -249,13 +267,13 @@ public class ChatEventHub : MonoBehaviour
 
     private void Audience_OnLost(float delta) => ReportAudienceChange(ChatTopics.AudienceDrop, delta);
 
-    private static void ReportAudienceChange(string topicId, float delta)
+    private void ReportAudienceChange(string topicId, float delta)
     {
         float amount = Mathf.Abs(delta);
 
-        if (amount < NoticeableAudienceChange) return;
+        if (amount < noticeableAudienceChange) return;
 
-        ChatStimulusBus.Raise(topicId, Mathf.Clamp01(amount / BigAudienceChange));
+        ChatStimulusBus.Raise(topicId, Mathf.Clamp01(amount / bigAudienceChange));
     }
 
 
@@ -319,9 +337,9 @@ public class ChatEventHub : MonoBehaviour
         }
     }
 
-    private static void AnnounceDonation(string topicId, DonationNetworkState state)
+    private void AnnounceDonation(string topicId, DonationNetworkState state)
     {
-        ChatStimulusBus.Raise(topicId, Mathf.Clamp01(state.Amount / BigDonation),
+        ChatStimulusBus.Raise(topicId, Mathf.Clamp01(state.Amount / bigDonation),
             state.DonorName.ToString());
     }
 
@@ -355,10 +373,10 @@ public class ChatEventHub : MonoBehaviour
 
         float distance = Vector3.Distance(player.position, position);
 
-        if (distance > DoorCommentRange) return;
+        if (distance > doorCommentRange) return;
 
         // Closer means more certainly the streamer's own problem, so chat is more sure of itself.
-        float intensity = Mathf.Lerp(0.6f, 0.35f, Mathf.Clamp01(distance / DoorCommentRange));
+        float intensity = Mathf.Lerp(0.6f, 0.35f, Mathf.Clamp01(distance / doorCommentRange));
 
         ChatStimulusBus.Raise(ChatTopics.HintDoorLocked, intensity);
     }
@@ -367,7 +385,7 @@ public class ChatEventHub : MonoBehaviour
     {
         if (_localPlayer != null && Time.time < _nextPlayerRefresh) return _localPlayer;
 
-        _nextPlayerRefresh = Time.time + PlayerRefreshInterval;
+        _nextPlayerRefresh = Time.time + PLAYER_REFRESH_INTERVAL;
 
         NetworkManager manager = NetworkManager.Singleton;
 
@@ -402,7 +420,7 @@ public class ChatEventHub : MonoBehaviour
 
         if (_sabotageTimer > 0f) return;
 
-        _sabotageTimer = SabotagePollInterval;
+        _sabotageTimer = SABOTAGE_POLL_INTERVAL;
 
         PollLights();
     }
@@ -415,7 +433,7 @@ public class ChatEventHub : MonoBehaviour
 
             // Outside a match there is nothing to find, and this runs in every scene. Back off so
             // an idle main menu is not paying for a scene-wide search twice a second.
-            _sabotageTimer = UnboundSabotagePollInterval;
+            _sabotageTimer = UNBOUND_SABOTAGE_POLL_INTERVAL;
 
             _sabotage = FindFirstObjectByType<MonsterSabotage>();
 
@@ -441,6 +459,6 @@ public class ChatEventHub : MonoBehaviour
 
         lightsNudge.Disarm();
 
-        ChatStimulusBus.Raise(ChatTopics.LightsRestored, 0.5f);
+        ChatStimulusBus.Raise(ChatTopics.LightsRestored);
     }
 }

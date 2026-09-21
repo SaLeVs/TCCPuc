@@ -13,7 +13,7 @@ namespace Chat
     ///
     /// <para>Deliberately only four knobs. An earlier version escalated the intensity with each
     /// unanswered nudge, across four more fields - but intensity only changes how fast the chat
-    /// talks afterwards, never what it says, so the whole thing bought a difference nobody could
+    /// talks afterward, never what it says, so the whole thing bought a difference nobody could
     /// see. A hint that should get blunter earns a second topic with blunter lines, which is data
     /// rather than dials.</para>
     ///
@@ -42,7 +42,7 @@ namespace Chat
         /// set to, which is why there is no intensity field here: a second number would only have
         /// multiplied into the first one, and "how big a deal is this" already has an owner.
         /// </summary>
-        private const float NominalIntensity = 0.5f;
+        private const float NOMINAL_INTENSITY = 0.5f;
 
         private bool _armed = true;
         private float _timer;
@@ -107,7 +107,7 @@ namespace Chat
 
             // Nominal intensity on purpose: the topic entry already says how big a deal it is, and
             // a second number here only multiplied into the first one.
-            ChatStimulusBus.Raise(topicId, NominalIntensity, subject);
+            ChatStimulusBus.Raise(topicId, NOMINAL_INTENSITY, subject);
 
             _nudges++;
         }

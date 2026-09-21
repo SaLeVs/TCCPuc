@@ -15,7 +15,17 @@ MonoBehaviour:
   entries:
   - id: hint.lights_out
     data:
-      messages: []
+      messages:
+      - message: "vai no gerador"
+        allowedArchetypes: 8
+      - message: "tem um painel pra religar isso"
+        allowedArchetypes: 8
+      - message: "a luz volta no gerador mano"
+        allowedArchetypes: 12
+      - message: "procura o quadro de luz"
+        allowedArchetypes: 8
+      - message: "nao adianta andar no escuro, liga o gerador"
+        allowedArchetypes: 8
     minMessages: 1
     maxMessages: 3
     intensity: 0.6
@@ -25,7 +35,17 @@ MonoBehaviour:
     ignoreViewerFloor: 1
   - id: hint.mission_idle
     data:
-      messages: []
+      messages:
+      - message: "voce ta fazendo o que exatamente"
+        allowedArchetypes: 12
+      - message: "tinha uma missao pra fazer ne"
+        allowedArchetypes: 8
+      - message: "procura alguma coisa pra fazer"
+        allowedArchetypes: 8
+      - message: "a gente veio aqui trabalhar, nao passear"
+        allowedArchetypes: 12
+      - message: "cade a missao cara"
+        allowedArchetypes: 12
     minMessages: 1
     maxMessages: 2
     intensity: 0.5
@@ -35,7 +55,17 @@ MonoBehaviour:
     ignoreViewerFloor: 1
   - id: hint.exploration_idle
     data:
-      messages: []
+      messages:
+      - message: "ja vimos essa parede umas 500 vezes"
+        allowedArchetypes: 4
+      - message: "anda pra outro lugar"
+        allowedArchetypes: 8
+      - message: "explora um pouco vai"
+        allowedArchetypes: 8
+      - message: "tem mais coisa nesse mapa sabia"
+        allowedArchetypes: 12
+      - message: "ta girando em circulo faz tempo"
+        allowedArchetypes: 12
     minMessages: 1
     maxMessages: 2
     intensity: 0.45
@@ -45,7 +75,17 @@ MonoBehaviour:
     ignoreViewerFloor: 1
   - id: hint.door_locked
     data:
-      messages: []
+      messages:
+      - message: "sai dessa porta"
+        allowedArchetypes: 10
+      - message: "tem coisa segurando isso ai"
+        allowedArchetypes: 2
+      - message: "nao insiste nessa porta NAO"
+        allowedArchetypes: 10
+      - message: "essa porta nao vai abrir, corre"
+        allowedArchetypes: 8
+      - message: "ELE TA DO OUTRO LADO"
+        allowedArchetypes: 2
     minMessages: 1
     maxMessages: 2
     intensity: 0.5
@@ -55,7 +95,17 @@ MonoBehaviour:
     ignoreViewerFloor: 1
   - id: lights.out
     data:
-      messages: []
+      messages:
+      - message: "APAGOU TUDO"
+        allowedArchetypes: 31
+      - message: "cade a luz"
+        allowedArchetypes: 6
+      - message: "nao gostei disso nao"
+        allowedArchetypes: 2
+      - message: "ih ferrou"
+        allowedArchetypes: 5
+      - message: "meu deus apagou tudo"
+        allowedArchetypes: 2
     minMessages: 2
     maxMessages: 4
     intensity: 0.9
@@ -65,7 +115,17 @@ MonoBehaviour:
     ignoreViewerFloor: 0
   - id: player.died
     data:
-      messages: []
+      messages:
+      - message: "F"
+        allowedArchetypes: 31
+      - message: "morreu kkkkkkkk"
+        allowedArchetypes: 4
+      - message: "guys acabou a live"
+        allowedArchetypes: 4
+      - message: "alguem clipa isso"
+        allowedArchetypes: 5
+      - message: "nao acredito que morreu assim"
+        allowedArchetypes: 6
     minMessages: 3
     maxMessages: 5
     intensity: 1
@@ -75,7 +135,17 @@ MonoBehaviour:
     ignoreViewerFloor: 0
   - id: player.teammate_died
     data:
-      messages: []
+      messages:
+      - message: "o {subject} ja era"
+        allowedArchetypes: 4
+      - message: "F pro {subject}"
+        allowedArchetypes: 31
+      - message: "perdemos o {subject} kkkk"
+        allowedArchetypes: 4
+      - message: "{subject} nao aguentou"
+        allowedArchetypes: 20
+      - message: "era so o {subject} que prestava"
+        allowedArchetypes: 4
     minMessages: 2
     maxMessages: 4
     intensity: 0.85
@@ -85,7 +155,17 @@ MonoBehaviour:
     ignoreViewerFloor: 0
   - id: donation.received
     data:
-      messages: []
+      messages:
+      - message: "OBRIGADO {subject}"
+        allowedArchetypes: 1
+      - message: "{subject} pagando o miojo do mes"
+        allowedArchetypes: 5
+      - message: "olha o {subject} generoso"
+        allowedArchetypes: 1
+      - message: "{subject} bancando a live sozinho"
+        allowedArchetypes: 1
+      - message: "vlw {subject}, agora faz o que ele pediu"
+        allowedArchetypes: 9
     minMessages: 2
     maxMessages: 3
     intensity: 0.6
@@ -95,7 +175,17 @@ MonoBehaviour:
     ignoreViewerFloor: 0
   - id: mission.completed
     data:
-      messages: []
+      messages:
+      - message: "AEEEEEE"
+        allowedArchetypes: 1
+      - message: "conseguiu caramba"
+        allowedArchetypes: 1
+      - message: "ate que enfim"
+        allowedArchetypes: 4
+      - message: "sabia que ia dar certo"
+        allowedArchetypes: 9
+      - message: "olha ele trabalhando"
+        allowedArchetypes: 4
     minMessages: 2
     maxMessages: 4
     intensity: 0.7
@@ -105,7 +195,17 @@ MonoBehaviour:
     ignoreViewerFloor: 0
   - id: player.hurt
     data:
-      messages: []
+      messages:
+      - message: "ai"
+        allowedArchetypes: 31
+      - message: "ta sangrando"
+        allowedArchetypes: 2
+      - message: "cuidado com a vida ai"
+        allowedArchetypes: 10
+      - message: "kkkkk tomou"
+        allowedArchetypes: 4
+      - message: "isso doeu ate aqui"
+        allowedArchetypes: 6
     minMessages: 1
     maxMessages: 2
     intensity: 0.45
@@ -115,7 +215,17 @@ MonoBehaviour:
     ignoreViewerFloor: 0
   - id: lights.restored
     data:
-      messages: []
+      messages:
+      - message: "voltou"
+        allowedArchetypes: 31
+      - message: "gracas a deus"
+        allowedArchetypes: 3
+      - message: "agora sim da pra ver alguma coisa"
+        allowedArchetypes: 1
+      - message: "demorou hein"
+        allowedArchetypes: 4
+      - message: "luz linda"
+        allowedArchetypes: 5
     minMessages: 1
     maxMessages: 3
     intensity: 0.5
@@ -125,7 +235,17 @@ MonoBehaviour:
     ignoreViewerFloor: 0
   - id: donation.expired
     data:
-      messages: []
+      messages:
+      - message: "perdeu a doacao"
+        allowedArchetypes: 4
+      - message: "ih deixou passar"
+        allowedArchetypes: 4
+      - message: "era dinheiro facil"
+        allowedArchetypes: 4
+      - message: "nem viu que tinha"
+        allowedArchetypes: 12
+      - message: "jogou dinheiro fora"
+        allowedArchetypes: 4
     minMessages: 1
     maxMessages: 2
     intensity: 0.35
@@ -135,7 +255,17 @@ MonoBehaviour:
     ignoreViewerFloor: 0
   - id: audience.surge
     data:
-      messages: []
+      messages:
+      - message: "ta bombando"
+        allowedArchetypes: 1
+      - message: "ta entrando gente"
+        allowedArchetypes: 1
+      - message: "chamei a galera toda"
+        allowedArchetypes: 1
+      - message: "olha o chat enchendo"
+        allowedArchetypes: 1
+      - message: "viralizou e ninguem avisou"
+        allowedArchetypes: 5
     minMessages: 1
     maxMessages: 3
     intensity: 0.5
@@ -145,7 +275,17 @@ MonoBehaviour:
     ignoreViewerFloor: 0
   - id: audience.drop
     data:
-      messages: []
+      messages:
+      - message: "ta esvaziando"
+        allowedArchetypes: 4
+      - message: "cade todo mundo"
+        allowedArchetypes: 20
+      - message: "o pessoal ta saindo"
+        allowedArchetypes: 4
+      - message: "perdendo audiencia hein"
+        allowedArchetypes: 4
+      - message: "so sobrou eu aqui"
+        allowedArchetypes: 20
     minMessages: 1
     maxMessages: 2
     intensity: 0.4

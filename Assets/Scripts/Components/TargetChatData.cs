@@ -11,10 +11,6 @@ namespace Chat
         [TextArea(2, 4)]
         public string message;
 
-        [Min(0f)]
-        [Tooltip("Relative chance against the other lines in this pool. 0 disables the line.")]
-        public float weight = 1f;
-
         [Tooltip("Which personalities are allowed to post this line.")]
         public ViewerArchetype allowedArchetypes = ViewerArchetype.Everyone;
 
@@ -38,8 +34,8 @@ namespace Chat
         /// "don't say that again right away", and exposing them meant two numbers on each of the
         /// twenty pools - forty inspector rows nobody was ever going to tune individually.</para>
         /// </summary>
-        private const float RecencyWindow = 45f;
-        private const float RecencyFloor = 0.1f;
+        private const float RECENCY_WINDOW = 45f;
+        private const float RECENCY_FLOOR = 0.1f;
 
         /// <summary>
         /// When each line was last posted. Runtime only and rebuilt on demand: this class is
@@ -91,8 +87,8 @@ namespace Chat
 
                 cumulative += weight;
 
-                // Strictly-less keeps a zero-weight line at index 0 from winning on a roll of
-                // exactly 0, which is how the previous version could post a disabled line.
+                // Strictly-less so a line at index 0 that is currently ineligible cannot win on a
+                // roll of exactly 0.
                 if (roll < cumulative)
                 {
                     picked = messages[i];
@@ -114,15 +110,23 @@ namespace Chat
             return false;
         }
 
+        /// <summary>
+        /// How likely this line is right now: zero when it is not eligible at all, otherwise purely
+        /// how long ago it was last said.
+        ///
+        /// <para>Every eligible line starts equal. An earlier version let each line carry an
+        /// authored weight, which pulled against the recency suppression sitting right next to it -
+        /// one spreading lines out, the other concentrating them - and made a handful of lines
+        /// recur while the rest almost never came up.</para>
+        /// </summary>
         private float EffectiveWeight(int index, ViewerArchetype archetype, float now)
         {
             ChatMessage entry = messages[index];
 
             if (entry == null || string.IsNullOrWhiteSpace(entry.message)) return 0f;
-            if (entry.weight <= 0f) return 0f;
             if ((entry.allowedArchetypes & archetype) == 0) return 0f;
 
-            return entry.weight * RecencyMultiplier(index, now);
+            return RecencyMultiplier(index, now);
         }
 
         private float RecencyMultiplier(int index, float now)
@@ -139,7 +143,7 @@ namespace Chat
                 return 1f;
             }
 
-            return Mathf.Lerp(RecencyFloor, 1f, Mathf.Clamp01((now - last) / RecencyWindow));
+            return Mathf.Lerp(RECENCY_FLOOR, 1f, Mathf.Clamp01((now - last) / RECENCY_WINDOW));
         }
 
         private void EnsureHistory(int count)

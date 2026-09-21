@@ -79,7 +79,7 @@ namespace Player.Chat
         /// A constant, not a field: it is a detail of how the draw retries, not a decision anyone
         /// tuning the chat would ever want to make.
         /// </summary>
-        private const int SpeakerAttempts = 5;
+        private const int SPEAKER_ATTEMPTS = 5;
 
         /// <summary>
         /// Sorted by priority descending, then by insertion order. A List rather than a Queue
@@ -112,8 +112,7 @@ namespace Player.Chat
             /// <summary>Negative means draw a gap from the distribution.</summary>
             public readonly float gapOverride;
 
-            public PendingLine(string viewer, string text, int priority, float gapOverride,
-                bool ignoreViewerFloor)
+            public PendingLine(string viewer, string text, int priority, float gapOverride, bool ignoreViewerFloor)
             {
                 this.viewer = viewer;
                 this.text = text;
@@ -370,7 +369,7 @@ namespace Player.Chat
 
             if (_viewers == null || pool == null) return false;
 
-            for (int attempt = 0; attempt < SpeakerAttempts; attempt++)
+            for (int attempt = 0; attempt < SPEAKER_ATTEMPTS; attempt++)
             {
                 if (!_viewers.TryPick(out ViewerProfile profile)) return false;
 

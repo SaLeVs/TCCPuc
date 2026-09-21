@@ -243,12 +243,18 @@ namespace Missions.Donations
             if (_chips.ContainsKey(id)) return;
 
             DonationPopupView chip = Instantiate(chipPrefab, trayContainer);
-            chip.Setup(state, ResolveIcon(state));
 
             _chips[id] = chip;
             _trayOrder.Add(id);
 
+            // The tray root has to be on before the chip is set up. While it is off, the chip is
+            // not active in the hierarchy, so Unity defers its Awake - which left Setup using a
+            // RectTransform that had never been cached, and StartCoroutine refusing to run the
+            // enter animation. The tray root is switched off whenever the last donation leaves, so
+            // this hit every donation arriving into an empty tray.
             RefreshTrayRoot();
+
+            chip.Setup(state, ResolveIcon(state));
         }
 
         /// <summary>

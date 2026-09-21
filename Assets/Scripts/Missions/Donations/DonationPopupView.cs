@@ -33,10 +33,12 @@ namespace Missions.Donations
 
         private RectTransform _rect;
 
-        private void Awake()
-        {
-            _rect = (RectTransform)transform;
-        }
+        /// <summary>
+        /// Resolved on first use instead of in Awake. A chip is instantiated into a tray that may
+        /// still be switched off, and Unity does not run Awake until an object is active in the
+        /// hierarchy - so caching here in Awake left this null exactly when it was needed.
+        /// </summary>
+        private RectTransform Rect => _rect != null ? _rect : _rect = (RectTransform)transform;
 
         public void Setup(DonationNetworkState state, Sprite icon = null)
         {
@@ -56,7 +58,7 @@ namespace Missions.Donations
 
             gameObject.SetActive(true);
             canvasGroup.alpha = 0f;
-            _rect.localScale = Vector3.one * 0.85f;
+            Rect.localScale = Vector3.one * 0.85f;
             StopAllCoroutines();
             StartCoroutine(AnimateEnter());
         }
@@ -111,12 +113,12 @@ namespace Missions.Donations
                 timer += Time.deltaTime;
                 float p = enterCurve.Evaluate(Mathf.Clamp01(timer / enterDuration));
                 canvasGroup.alpha = p;
-                _rect.localScale = Vector3.one * Mathf.Lerp(0.85f, 1f, p);
+                Rect.localScale = Vector3.one * Mathf.Lerp(0.85f, 1f, p);
                 yield return null;
             }
 
             canvasGroup.alpha = 1f;
-            _rect.localScale = Vector3.one;
+            Rect.localScale = Vector3.one;
         }
 
         private IEnumerator AnimateExit(Action onComplete)
@@ -129,11 +131,11 @@ namespace Missions.Donations
                 timer += Time.deltaTime;
                 float p = Mathf.Clamp01(timer / exitDuration);
                 canvasGroup.alpha = Mathf.Lerp(startAlpha, 0f, p);
-                _rect.anchoredPosition += new Vector2(0f, Time.deltaTime * 40f);
+                Rect.anchoredPosition += new Vector2(0f, Time.deltaTime * 40f);
                 yield return null;
             }
 
             onComplete?.Invoke();
         }
     }
-}
+}

@@ -36,19 +36,27 @@ namespace Player.Chat
         [Tooltip("Lines per minute against the number of people watching")]
         private AnimationCurve linesPerMinuteByViewers = DefaultViewerCurve();
 
-        [SerializeField, Min(1f)]
+        [SerializeField]
         [Tooltip("How much faster chat talks at full intensity than at rest")]
         private float peakIntensityMultiplier = 4f;
 
-        [SerializeField, Min(0f)]
+        [SerializeField]
         [Tooltip("Viewers needed before chat says anything at all")]
         private float minViewersToTalk = 1f;
 
-        [Header("Pacing")]
-        [SerializeField, Min(0.05f)] private float minGapBetweenMessage = 0.35f;
-        [SerializeField, Min(0.1f)] private float maxGapBetweenMessage = 20f;
+        // A [Header] has to sit on a field with no Min/Range on it, or Odin draws the title twice.
+        // See the same note in ChatManager. Bounds moved into OnValidate.
 
-        [SerializeField, Min(0f)]
+        [Header("Pacing")]
+        [SerializeField]
+        [Tooltip("Shortest gap between two lines, whatever the rate says")]
+        private float minGapBetweenMessage = 0.35f;
+
+        [SerializeField]
+        [Tooltip("Longest gap between two lines, whatever the rate says")]
+        private float maxGapBetweenMessage = 20f;
+
+        [SerializeField]
         [Tooltip("How much intensity bleeds off per second")]
         private float intensityDecayPerSecond = 0.12f;
 
@@ -57,12 +65,12 @@ namespace Player.Chat
         [Tooltip("Keep a trickle of small talk going when nothing is happening")]
         private bool ambientEnabled = true;
 
-        [Header("Limits")]
-        [SerializeField, Min(1)]
+        [Header("Queue")]
+        [SerializeField]
         [Tooltip("Past this, room is made by dropping the oldest line of the lowest-priority band")]
         private int maxQueuedMessages = 14;
 
-        [SerializeField, Min(1f)]
+        [SerializeField]
         [Tooltip("Seconds a line may wait before it is dropped unsaid")]
         private float maxLineAge = 12f;
 
@@ -116,6 +124,19 @@ namespace Player.Chat
             }
         }
 
+
+        /// <summary>
+        /// Keeps the tuning usable while it is being typed, and keeps the two gaps from crossing.
+        /// Deliberately gentler than <see cref="Sanitize"/>, which snaps a broken value back to its
+        /// default - fine on startup, infuriating while someone is halfway through typing a number.
+        /// </summary>
+        private void OnValidate()
+        {
+            minGapBetweenMessage = Mathf.Max(0.05f, minGapBetweenMessage);
+            maxGapBetweenMessage = Mathf.Max(minGapBetweenMessage + 0.1f, maxGapBetweenMessage);
+
+            maxQueuedMessages = Mathf.Max(1, maxQueuedMessages);
+        }
 
         public void Initialize(ViewerPopulationSO viewers, ChatAmbientDatabaseSO ambient)
         {

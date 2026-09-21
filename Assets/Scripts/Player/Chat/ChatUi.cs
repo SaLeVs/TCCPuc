@@ -14,17 +14,27 @@ namespace Player.Chat
         [SerializeField] private GameObject chatMessagePrefab;
         [SerializeField] private int activeMessagesCount = 5;
         
+        // Same Odin quirk as ChatManager: a [Header] on a field that also carries a Unity
+        // PropertyDrawer attribute (TextArea, Range, Min) gets drawn twice. Each title sits on a
+        // plain field, and the decorated ones follow underneath.
+
         [Header("Message format")]
-        [SerializeField, TextArea] private string messageFormat = "{icon}<b><color={color}>{viewer}:</color></b> {message}";
+        [SerializeField]
+        [Tooltip("Placeholders: {icon}, {color}, {viewer} and {message}")]
+        private string messageFormat = "{icon}<b><color={color}>{viewer}:</color></b> {message}";
 
         [Header("Message icons")]
-        [SerializeField, Range(0f, 1f)] private float iconAppearChance = 0.35f;
+        [SerializeField]
+        [Tooltip("On: a viewer always draws the same icon, like a badge they own")]
+        private bool iconPerViewer = true;
 
-        [Tooltip("On: a viewer always draws the same icon")]
-        [SerializeField] private bool iconPerViewer = true;
+        [SerializeField, Range(0f, 1f)]
+        [Tooltip("Chance a message shows an icon at all")]
+        private float iconAppearChance = 0.35f;
 
-        [Tooltip("Sprite indices allowed in the roll")]
-        [SerializeField] private List<int> iconPool = new();
+        [SerializeField]
+        [Tooltip("Sprite indices allowed in the roll. Empty rolls over the whole sprite asset")]
+        private List<int> iconPool = new();
 
         [Header("Name colors")]
         [SerializeField] private ChatColorPaletteSO nameColors;
@@ -155,4 +165,4 @@ namespace Player.Chat
         }
 
     }
-}
+}

@@ -28,9 +28,20 @@ namespace Player.Chat
         /// <summary>Unchanged on purpose so <see cref="ChatUi"/> keeps working as-is.</summary>
         public event Action<string, string> OnMessageSent;
 
+        // A [Header] has to sit on a field with no Min/Range on it. Odin draws the header itself and
+        // then hands a field carrying a Unity PropertyDrawer back to Unity, which draws the header a
+        // second time - which is why the inspector used to show every title twice. Ranges further
+        // down a group are fine; only the field the header is attached to matters. Bounds that used
+        // to come from those attributes are enforced in OnValidate instead, where the relationship
+        // between min and max can be enforced too.
+
         [Header("References")]
         [SerializeField] private VisionSensor visionSensor;
         [SerializeField] private GameObject chatUi;
+
+        [SerializeField]
+        [Tooltip("Paces and releases the lines. Lives on this same object")]
+        private ChatDirector director;
 
         [Header("Databases")]
         [SerializeField] private ChatMessageDatabaseSO messageDatabase;
@@ -38,20 +49,24 @@ namespace Player.Chat
         [SerializeField] private ChatAmbientDatabaseSO ambientDatabase;
         [SerializeField] private ViewerPopulationSO viewerPopulation;
 
-        [Header("Reaction settings")]
-        [SerializeField, Min(0)] private int minMessages = 1;
-        [SerializeField, Min(0)] private int maxMessages = 3;
+        [Header("Reactions")]
+        [SerializeField]
+        [Tooltip("Fewest lines one sighting produces")]
+        private int minMessages = 1;
+
+        [SerializeField]
+        [Tooltip("Most lines one sighting produces")]
+        private int maxMessages = 3;
 
         [SerializeField, Range(0f, 1f)]
-        [Tooltip("How much chat cares about the streamer looking at an normal thing")]
+        [Tooltip("How much chat cares about the streamer looking at a normal thing")]
         private float normalIntensity = 0.25f;
 
         [SerializeField, Range(0f, 1f)]
         [Tooltip("How much chat cares about the monster being on screen")]
         private float monsterIntensity = 0.8f;
 
-        [Header("Health reactions")]
-        [SerializeField, Min(0f)]
+        [SerializeField, Range(0f, 1f)]
         [Tooltip("Damage in one hit, as a fraction of max health, before chat says anything")]
         private float hurtThreshold = 0.08f;
 
@@ -67,13 +82,10 @@ namespace Player.Chat
         public event Action OnExploredSomethingNew;
 
         [Header("Exploration")]
-        [SerializeField, Min(1f)]
-        [Tooltip("Seconds before a target counts as worth noticing again")]
-        private float noveltyWindow = 120f;
-
         [SerializeField]
-        [Tooltip("Paces and releases the lines. Lives on this same object")]
-        private ChatDirector director;
+        [Tooltip("Seconds before a target counts as worth noticing again. Looking at the same " +
+                 "scenery inside this window does not count as exploring")]
+        private float noveltyWindow = 120f;
 
         private readonly Dictionary<RecordableIdentifier, float> _activeTargets = new();
         private readonly Dictionary<RecordableIdentifier, float> _lastSentTime = new();
@@ -87,6 +99,21 @@ namespace Player.Chat
 
         private bool _subscribed;
 
+
+        /// <summary>
+        /// Keeps the tuning inside usable bounds, and keeps min and max from crossing.
+        ///
+        /// <para>Replaces the Min attributes these fields used to carry. It enforces more than they
+        /// did: a maxMessages below minMessages was previously allowed and left Random.Range with a
+        /// reversed range.</para>
+        /// </summary>
+        private void OnValidate()
+        {
+            minMessages = Mathf.Max(0, minMessages);
+            maxMessages = Mathf.Max(minMessages, maxMessages);
+
+            noveltyWindow = Mathf.Max(1f, noveltyWindow);
+        }
 
         private void OnEnable()
         {

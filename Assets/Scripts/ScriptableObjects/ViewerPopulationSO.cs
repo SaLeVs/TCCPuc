@@ -14,9 +14,7 @@ namespace ScriptableObjects
         public ViewerArchetype archetype = ViewerArchetype.Lurker;
 
         [Min(0f)]
-        [Tooltip("How often this viewer talks relative to the others. Give a handful of regulars " +
-                 "6-10 and leave the crowd at 0.5-1: a chat where everyone talks equally reads " +
-                 "like a name generator, one with a few loud regulars reads like people.")]
+        [Tooltip("How often this viewer talks relative to the others")]
         public float chattiness = 1f;
     }
 
@@ -36,10 +34,10 @@ namespace ScriptableObjects
         /// themselves without banning them for long.
         ///
         /// <para>Constants rather than fields: they are how the draw avoids an echo, not a
-        /// decision worth a dial. Chattiness is where a person actually tunes who talks.</para>
+        /// decision worth a dial. Chattiness is where a person actually tunes who talk.</para>
         /// </summary>
-        private const int RecentMemory = 5;
-        private const float RecentPenalty = 0.15f;
+        private const int RECENT_MEMORY = 5;
+        private const float RECENT_PENALTY = 0.15f;
 
         private readonly Queue<string> _recent = new();
         private readonly HashSet<string> _recentSet = new();
@@ -102,13 +100,13 @@ namespace ScriptableObjects
         /// instance. Going through here rather than keeping a second list of names is what makes
         /// the person who donates and the person who talks the same person.
         /// </summary>
-        public bool TryPickName(out string name)
+        public bool TryPickName(out string viewerName)
         {
-            name = null;
+            viewerName = null;
 
             if (!TryPick(out ViewerProfile profile)) return false;
 
-            name = profile.name;
+            viewerName = profile.name;
 
             return true;
         }
@@ -119,18 +117,18 @@ namespace ScriptableObjects
             if (profile.chattiness <= 0f) return 0f;
 
             return _recentSet.Contains(profile.name)
-                ? profile.chattiness * RecentPenalty
+                ? profile.chattiness * RECENT_PENALTY
                 : profile.chattiness;
         }
 
-        private void Remember(string name)
+        private void Remember(string viewerName)
         {
-            if (_recentSet.Add(name))
+            if (_recentSet.Add(viewerName))
             {
-                _recent.Enqueue(name);
+                _recent.Enqueue(viewerName);
             }
 
-            while (_recent.Count > RecentMemory)
+            while (_recent.Count > RECENT_MEMORY)
             {
                 _recentSet.Remove(_recent.Dequeue());
             }

@@ -184,7 +184,7 @@ mais aparece, porque é o momento de tensão.
 
 ## Etapa 5 — Controlar o volume
 
-**Um único controle manda em tudo:** `ChatManager > Director > Lines Per Minute By Viewers`.
+**Um único controle manda em tudo:** `ChatDirector > Lines Per Minute By Viewers` (componente ao lado do `ChatManager`).
 
 Curva: eixo X é quantos viewers, eixo Y é quantas falas por minuto.
 

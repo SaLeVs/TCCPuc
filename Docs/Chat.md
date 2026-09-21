@@ -52,6 +52,7 @@ para mudar qualquer coisa.
 |---|---|
 | `visionSensor` | Sensor de visão do player. Já vem cabeado por override no `Player.prefab`. |
 | `chatUi` | Objeto da UI que liga/desliga com a cena. |
+| `director` | O componente `ChatDirector`, no mesmo objeto. Ver §2.2. |
 | `messageDatabase` | Falas de **olhar coisas** (por `RecordableTarget`). |
 | `topicDatabase` | Falas de **acontecimentos** (por ID de texto). |
 | `ambientDatabase` | Conversa de fundo por humor. |
@@ -61,7 +62,6 @@ para mudar qualquer coisa.
 | `monsterIntensity` | Idem, pro monstro (0.8) — é isso que deixa a sala tensa. |
 | `hurtThreshold` | Fração da vida perdida de uma vez pra virar assunto (0.08). |
 | `noveltyWindow` | Quanto tempo até um alvo contar como "novo" de novo (120s). |
-| `director` | Referência ao componente `ChatDirector`, no mesmo objeto. Ver §2.2. |
 
 ### 2.2 `ChatDirector` — componente separado, no mesmo objeto do `ChatManager`
 
@@ -75,10 +75,10 @@ garante que os dois andam juntos.
 | **`linesPerMinuteByViewers`** | **Curva: X = nº de viewers, Y = falas por minuto.** É o dial mestre de volume. |
 | `peakIntensityMultiplier` | Quantas vezes mais rápido no auge (6x). Multiplica o que a curva deu. |
 | `minViewersToTalk` | Viewers mínimos pro chat abrir a boca (1). Abaixo disso só passa dica. |
-| `minGap` / `maxGap` | Piso e teto do intervalo entre falas (0.35s / 20s). |
+| `minGapBetweenMessage` / `maxGapBetweenMessage` | Piso e teto do intervalo entre falas (0.35s / 20s). |
 | `intensityDecayPerSecond` | Quão rápido a agitação baixa (0.12 ≈ 8s pra voltar ao normal). |
 | `ambientEnabled` | Liga a conversa de fundo. Desligar deixa o chat mudo quando nada acontece. |
-| `maxQueued` | Falas esperando na fila (14). Passou disso, abre espaço descartando a **mais antiga da faixa de menor prioridade**. |
+| `maxQueuedMessages` | Falas esperando na fila (14). Passou disso, abre espaço descartando a **mais antiga da faixa de menor prioridade**. |
 | `maxLineAge` | Segundos que uma fala pode esperar antes de ser descartada (12s). |
 
 **Curva padrão** (0 viewers → silêncio total):
@@ -103,7 +103,7 @@ São **dois caminhos diferentes**, e eles usam critérios diferentes de propósi
 | Caminho | Quando | Critério |
 |---|---|---|
 | **Idade** (`DropStaleLines`) | Toda fala, `maxLineAge` segundos depois de entrar | **Só ordem de chegada.** Prioridade não é lida. Quem entrou antes morre antes, sempre — uma dica de prioridade 60 não vive um segundo a mais que conversa fiada. |
-| **Lotação** (`TryMakeRoom`) | A fila chega em `maxQueued` | **Prioridade escolhe a faixa, idade escolhe quem.** A vítima é a mais antiga da faixa de menor prioridade. Se a fala nova for mais fraca que toda a fila, ela é que não entra. |
+| **Lotação** (`TryMakeRoom`) | A fila chega em `maxQueuedMessages` | **Prioridade escolhe a faixa, idade escolhe quem.** A vítima é a mais antiga da faixa de menor prioridade. Se a fala nova for mais fraca que toda a fila, ela é que não entra. |
 
 A divisão é intencional: prioridade serve pra **uma enxurrada de conversa fiada não expulsar uma
 dica**, não pra dar sobrevida a quem já está velho. Por isso, dentro da mesma faixa, quem sai é
@@ -116,7 +116,7 @@ recusar coisa fresca.
 |---|---|
 | `activeMessagesCount` | Linhas visíveis na tela (9). |
 | `messageFormat` | Template. Placeholders: `{icon}`, `{color}`, `{viewer}`, `{message}`. |
-| `iconChance` | Chance de um viewer ter badge (0.65). |
+| `iconAppearChance` | Chance de um viewer ter badge (0.35). |
 | `iconPerViewer` | Ligado: cada viewer tem sempre o mesmo ícone. |
 | `iconPool` | Índices de sprite permitidos. Vazio = todos. |
 | `nameColors` | Paleta de cores dos nomes. |
@@ -387,9 +387,9 @@ de um MonoBehaviour na cena, `ChatTrigger` ou `ChatIdleWatcher` resolvem sem toc
 
 ### 3.1 "O chat fala demais / de menos"
 
-**Não mexa em `minGap`/`maxGap`.** Vá na curva.
+**Não mexa em `minGapBetweenMessage`/`maxGapBetweenMessage`.** Vá na curva.
 
-1. `Player.prefab` → `ChatBar` → `ChatManager` → `Director` → `Lines Per Minute By Viewers`
+1. `Player.prefab` → `ChatBar` → componente `ChatDirector` → `Lines Per Minute By Viewers`
 2. Arraste os pontos. X = viewers, Y = falas/min.
 3. Para cortar tudo pela metade: baixe todos os Y. Para calar chat pequeno: puxe os primeiros
    pontos pra perto do zero.

@@ -98,10 +98,47 @@ namespace Missions.Donations
             }
         }
 
+        /// <summary>What still has to run once this chip has finished leaving. Null when nothing is.</summary>
+        private Action _pendingExit;
+
         public void PlayExit(Action onComplete)
         {
             StopAllCoroutines();
-            StartCoroutine(AnimateExit(onComplete));
+
+            _pendingExit = onComplete;
+
+            // Nothing to animate on an object that is already switched off, and StartCoroutine
+            // would refuse anyway - finish straight away so the caller still gets its callback.
+            if (!isActiveAndEnabled)
+            {
+                CompleteExit();
+                return;
+            }
+
+            StartCoroutine(AnimateExit());
+        }
+
+        /// <summary>
+        /// Finishes an exit that was cut short.
+        ///
+        /// <para>The tray root is switched off the moment its last chip is dropped, which leaves
+        /// this object inactive in the hierarchy and makes Unity stop its coroutines part way
+        /// through the fade. The completion callback is what destroys the chip, so without running
+        /// it here the object survived - parented to the tray, half faded, and already forgotten by
+        /// the controller, which had dropped its reference. Every emptied tray left one behind.</para>
+        /// </summary>
+        private void OnDisable()
+        {
+            if (_pendingExit != null) CompleteExit();
+        }
+
+        private void CompleteExit()
+        {
+            Action callback = _pendingExit;
+
+            _pendingExit = null;
+
+            callback?.Invoke();
         }
 
         private IEnumerator AnimateEnter()
@@ -121,7 +158,7 @@ namespace Missions.Donations
             Rect.localScale = Vector3.one;
         }
 
-        private IEnumerator AnimateExit(Action onComplete)
+        private IEnumerator AnimateExit()
         {
             float timer = 0f;
             float startAlpha = canvasGroup.alpha;
@@ -135,7 +172,7 @@ namespace Missions.Donations
                 yield return null;
             }
 
-            onComplete?.Invoke();
+            CompleteExit();
         }
     }
 }

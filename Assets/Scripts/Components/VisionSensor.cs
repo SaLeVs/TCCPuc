@@ -35,9 +35,22 @@ namespace Components
         [SerializeField] private List<GameObject> previousDetectedObjects = new();
 
         private Mesh _mesh;
-        private readonly Collider[] _collidersDetected = new Collider[50];
+
+        /// <summary>
+        /// Grows when a scan comes back full.
+        ///
+        /// <para>OverlapSphereNonAlloc stops at the buffer length and says nothing about what it
+        /// left behind, and what it keeps is whatever the broadphase happened to reach first. At a
+        /// fixed fifty, a crowded room silently dropped whatever did not fit - props the player was
+        /// plainly looking at would never register, and which ones changed from scan to scan.</para>
+        /// </summary>
+        private const int StartingColliderBuffer = 64;
+        private const int MaxColliderBuffer = 512;
+
+        private Collider[] _collidersDetected = new Collider[StartingColliderBuffer];
 
         private int _collidersCount;
+        private bool _bufferWarningIssued;
         private float _scanInterval;
         private float _scanTimer;
 
@@ -78,13 +91,7 @@ namespace Components
             previousDetectedObjects.AddRange(detectedObjects);
             detectedObjects.Clear();
 
-            _collidersCount = Physics.OverlapSphereNonAlloc(
-                orientation.position,
-                distance,
-                _collidersDetected,
-                targetLayers,
-                QueryTriggerInteraction.Collide
-            );
+            OverlapTargets();
 
             for (int i = 0; i < _collidersCount; i++)
             {
@@ -119,6 +126,42 @@ namespace Components
 
                 if (detectedObject.TryGetComponent(out RecordableIdentifier identifier))
                     TargetExit(detectedObject, identifier);
+            }
+        }
+
+        /// <summary>
+        /// Fills <see cref="_collidersDetected"/>, growing it and asking again while the result
+        /// comes back full, so a truncated scan never passes for a complete one.
+        /// </summary>
+        private void OverlapTargets()
+        {
+            while (true)
+            {
+                _collidersCount = Physics.OverlapSphereNonAlloc(
+                    orientation.position,
+                    distance,
+                    _collidersDetected,
+                    targetLayers,
+                    QueryTriggerInteraction.Collide
+                );
+
+                if (_collidersCount < _collidersDetected.Length) return;
+
+                if (_collidersDetected.Length >= MaxColliderBuffer)
+                {
+                    // Once. A scan runs several times a second, and a level dense enough to
+                    // hit the cap would hit it on every one of them.
+                    if (_bufferWarningIssued) return;
+
+                    _bufferWarningIssued = true;
+
+                    Debug.LogWarning($"{nameof(VisionSensor)}: {MaxColliderBuffer} colliders within " +
+                                     $"{distance} metres on the target layers. The scan is truncated, " +
+                                     "so some of them cannot be seen.", this);
+                    return;
+                }
+
+                _collidersDetected = new Collider[Mathf.Min(_collidersDetected.Length * 2, MaxColliderBuffer)];
             }
         }
 

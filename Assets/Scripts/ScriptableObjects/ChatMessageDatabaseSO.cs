@@ -50,6 +50,24 @@ namespace ScriptableObjects
         /// wired onto an object with nothing to say shows up once as a warning instead of as
         /// silence the whole match.
         /// </summary>
+        /// <summary>
+        /// Targets where some personality has almost nothing it is allowed to say. Same failure as
+        /// an empty pool, but invisible: the pool looks full and one personality still repeats.
+        /// </summary>
+        public IEnumerable<string> NarrowPools(int minimum)
+        {
+            if (entries == null) yield break;
+
+            foreach (TargetChatEntry entry in entries)
+            {
+                if (entry?.data == null || entry.data.Count == 0) continue;
+
+                ViewerArchetype narrow = entry.data.NarrowArchetypes(minimum);
+
+                if (narrow != ViewerArchetype.None) yield return $"{entry.target} ({narrow})";
+            }
+        }
+
         public IEnumerable<RecordableTarget> MissingTargets()
         {
             _lookup ??= new Dictionary<RecordableTarget, TargetChatData>();

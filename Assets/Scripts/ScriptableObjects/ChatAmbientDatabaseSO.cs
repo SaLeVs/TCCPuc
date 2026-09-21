@@ -54,6 +54,23 @@ namespace ScriptableObjects
             }
         }
 
+        /// <summary>
+        /// Moods where some personality has almost nothing it is allowed to say.
+        /// </summary>
+        public IEnumerable<string> NarrowPools(int minimum)
+        {
+            if (entries == null) yield break;
+
+            foreach (MoodChatEntry entry in entries)
+            {
+                if (entry?.data == null) continue;
+
+                ViewerArchetype narrow = entry.data.NarrowArchetypes(minimum);
+
+                if (narrow != ViewerArchetype.None) yield return $"{entry.mood} ({narrow})";
+            }
+        }
+
         public bool TryGet(ChatMood mood, out MoodChatEntry entry)
         {
             _lookup ??= new Dictionary<ChatMood, MoodChatEntry>();

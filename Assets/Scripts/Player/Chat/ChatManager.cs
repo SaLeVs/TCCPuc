@@ -25,6 +25,12 @@ namespace Player.Chat
     [RequireComponent(typeof(ChatDirector))]
     public class ChatManager : MonoBehaviour
     {
+        /// <summary>
+        /// Lines a single personality needs to have available in a pool before the draw stops
+        /// feeling repetitive. Below this, recency has nothing left to choose from.
+        /// </summary>
+        private const int MinLinesPerArchetype = 3;
+
         /// <summary>Unchanged on purpose so <see cref="ChatUi"/> keeps working as-is.</summary>
         public event Action<string, string> OnMessageSent;
 
@@ -198,9 +204,41 @@ namespace Player.Chat
 
             List<string> empty = new List<string>(topicDatabase.EmptyTopics());
 
-            if (empty.Count == 0) return;
+            if (empty.Count > 0)
+            {
+                Debug.LogWarning($"{nameof(ChatManager)}: these topics have no lines and will stay silent: {string.Join(", ", empty)}.", this);
+            }
 
-            Debug.LogWarning($"{nameof(ChatManager)}: these topics have no lines and will stay silent: {string.Join(", ", empty)}.", this);
+            WarnAboutNarrowPools();
+        }
+
+        /// <summary>
+        /// Says which pools are too narrow for the archetype filter.
+        ///
+        /// <para>A pool can be full and still broken: if a personality is allowed to say only one
+        /// of its lines, every viewer of that personality says that one line every time, and the
+        /// recency suppression has nothing else to reach for. It reads as the chat repeating
+        /// itself, which is impossible to trace back to the archetype flags by eye.</para>
+        /// </summary>
+        private void WarnAboutNarrowPools()
+        {
+            List<string> narrow = new List<string>(topicDatabase.NarrowPools(MinLinesPerArchetype));
+
+            if (ambientDatabase != null)
+            {
+                narrow.AddRange(ambientDatabase.NarrowPools(MinLinesPerArchetype));
+            }
+
+            if (messageDatabase != null)
+            {
+                narrow.AddRange(messageDatabase.NarrowPools(MinLinesPerArchetype));
+            }
+
+            if (narrow.Count == 0) return;
+
+            Debug.LogWarning($"{nameof(ChatManager)}: these pools give some personality fewer than " +
+                             $"{MinLinesPerArchetype} lines, so those viewers will repeat themselves - " +
+                             $"widen the Allowed Archetypes or write more lines: {string.Join(", ", narrow)}.", this);
         }
 
         private void Update()

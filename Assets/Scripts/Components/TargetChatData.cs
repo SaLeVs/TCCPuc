@@ -48,6 +48,46 @@ namespace Chat
 
         public void ResetRuntimeState() => _lastUsed = null;
 
+        /// <summary>Every personality, one bit each, for walking the archetype filter.</summary>
+        private static readonly ViewerArchetype[] AllArchetypes =
+        {
+            ViewerArchetype.Hype, ViewerArchetype.Scared, ViewerArchetype.Troll,
+            ViewerArchetype.Backseat, ViewerArchetype.Lurker
+        };
+
+        /// <summary>
+        /// Personalities that have fewer than <paramref name="minimum"/> lines they are allowed to
+        /// say, as a flags value. None means the pool is healthy.
+        ///
+        /// <para>This catches the quiet failure mode of the archetype filter: a pool can look full
+        /// while a given personality only has one line in it, and then every viewer of that
+        /// personality says the same thing every single time. The recency suppression cannot help,
+        /// because there is nothing else to pick.</para>
+        /// </summary>
+        public ViewerArchetype NarrowArchetypes(int minimum)
+        {
+            ViewerArchetype narrow = ViewerArchetype.None;
+
+            if (Count == 0) return narrow;
+
+            foreach (ViewerArchetype archetype in AllArchetypes)
+            {
+                int eligible = 0;
+
+                foreach (ChatMessage entry in messages)
+                {
+                    if (entry == null || string.IsNullOrWhiteSpace(entry.message)) continue;
+                    if ((entry.allowedArchetypes & archetype) == 0) continue;
+
+                    eligible++;
+                }
+
+                if (eligible < minimum) narrow |= archetype;
+            }
+
+            return narrow;
+        }
+
         /// <summary>
         /// Draws a line for a viewer of <paramref name="archetype"/>, weighted and biased away from
         /// whatever was said recently.

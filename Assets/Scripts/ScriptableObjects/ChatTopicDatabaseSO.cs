@@ -93,6 +93,24 @@ namespace ScriptableObjects
         }
 
         /// <summary>
+        /// Topics where some personality has almost nothing it is allowed to say. Reported at
+        /// startup so the archetype filter cannot quietly strangle a pool that looks full.
+        /// </summary>
+        public IEnumerable<string> NarrowPools(int minimum)
+        {
+            if (entries == null) yield break;
+
+            foreach (ChatTopicEntry entry in entries)
+            {
+                if (entry?.data == null || string.IsNullOrWhiteSpace(entry.id)) continue;
+
+                ViewerArchetype narrow = entry.data.NarrowArchetypes(minimum);
+
+                if (narrow != ViewerArchetype.None) yield return $"{entry.id} ({narrow})";
+            }
+        }
+
+        /// <summary>
         /// Ids that have a row but no lines. Reported once at startup so a topic someone wired and
         /// never wrote for shows up as a warning instead of as silence nobody can explain.
         /// </summary>

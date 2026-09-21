@@ -137,13 +137,12 @@ namespace Components
                 return;
             }
 
-            if (!string.IsNullOrWhiteSpace(identifier.RecordableId))
-            {
-                SendStaticTargetEnterRpc(
-                    identifier.RecordableId,
-                    RpcTarget.Single(OwnerClientId, RpcTargetUse.Temp)
-                );
-            }
+            // Position names the instance. The old hand-authored id lived on the prefab, so every
+            // copy of a prop shared it and only one copy was ever resolvable on the other side.
+            SendStaticTargetEnterRpc(
+                target.transform.position,
+                RpcTarget.Single(OwnerClientId, RpcTargetUse.Temp)
+            );
         }
 
         private void TargetExit(GameObject target, RecordableIdentifier identifier)
@@ -161,13 +160,10 @@ namespace Components
                 return;
             }
 
-            if (!string.IsNullOrWhiteSpace(identifier.RecordableId))
-            {
-                SendStaticTargetExitRpc(
-                    identifier.RecordableId,
-                    RpcTarget.Single(OwnerClientId, RpcTargetUse.Temp)
-                );
-            }
+            SendStaticTargetExitRpc(
+                target.transform.position,
+                RpcTarget.Single(OwnerClientId, RpcTargetUse.Temp)
+            );
         }
 
         [Rpc(SendTo.SpecifiedInParams)]
@@ -188,35 +184,30 @@ namespace Components
             }
         }
 
+        /// <summary>
+        /// Resolves the object by where it stands, through <see cref="RecordableRegistry"/>.
+        /// </summary>
+        /// <remarks>
+        /// Both of these used to run a FindObjectsByType over the entire scene - once per target
+        /// entering the cone and once per target leaving it - and then take the first prop whose
+        /// prefab id matched. The registry makes it a dictionary lookup, and it lands on the copy
+        /// that was actually looked at rather than whichever copy the search returned first.
+        /// </remarks>
         [Rpc(SendTo.SpecifiedInParams)]
-        private void SendStaticTargetEnterRpc(string recordableId, RpcParams rpcParams = default)
+        private void SendStaticTargetEnterRpc(Vector3 position, RpcParams rpcParams = default)
         {
-            foreach (RecordableIdentifier identifier in FindObjectsByType<RecordableIdentifier>(FindObjectsInactive.Exclude, FindObjectsSortMode.None))
+            if (RecordableRegistry.TryResolve(position, out RecordableIdentifier identifier))
             {
-                if (identifier == null)
-                    continue;
-
-                if (identifier.RecordableId != recordableId)
-                    continue;
-
                 OnTargetEnterStatic?.Invoke(identifier.gameObject);
-                break;
             }
         }
 
         [Rpc(SendTo.SpecifiedInParams)]
-        private void SendStaticTargetExitRpc(string recordableId, RpcParams rpcParams = default)
+        private void SendStaticTargetExitRpc(Vector3 position, RpcParams rpcParams = default)
         {
-            foreach (RecordableIdentifier identifier in FindObjectsByType<RecordableIdentifier>(FindObjectsInactive.Exclude, FindObjectsSortMode.None))
+            if (RecordableRegistry.TryResolve(position, out RecordableIdentifier identifier))
             {
-                if (identifier == null)
-                    continue;
-
-                if (identifier.RecordableId != recordableId)
-                    continue;
-
                 OnTargetExitStatic?.Invoke(identifier.gameObject);
-                break;
             }
         }
 
@@ -394,4 +385,4 @@ namespace Components
             previousDetectedObjects.Clear();
         }
     }
-}
+}

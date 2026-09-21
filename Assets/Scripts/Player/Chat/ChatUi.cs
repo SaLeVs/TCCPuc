@@ -93,12 +93,17 @@ namespace Player.Chat
 
         private void ChatManager_OnMessageSent(string viewer, string message)
         {
+            // Walks the pool that was actually built, not the count that was asked for. A message
+            // prefab instance with no TMP child is skipped while Awake fills the pool, so the two
+            // can differ - and indexing by the requested count would then run off the end.
+            if (_pool.Count == 0) return;
+
             _pool[_currentIndex].text = messageFormat.Replace("{icon}", PickIconTag(viewer)).Replace("{color}", PickNameColor(viewer)).Replace("{viewer}", viewer).Replace("{message}", message);
 
             _poolRoots[_currentIndex].transform.SetAsLastSibling();
             _poolRoots[_currentIndex].SetActive(true);
 
-            _currentIndex = (_currentIndex + 1) % activeMessagesCount;
+            _currentIndex = (_currentIndex + 1) % _pool.Count;
         }
         
         private string PickIconTag(string viewer)

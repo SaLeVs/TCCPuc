@@ -22,6 +22,9 @@ namespace ScriptableObjects
         public AudioClip[] missionSuccess;
         public AudioClip[] missionReceived;
         
+        public AudioClip[] donationReceived;
+        public AudioClip[] donationCompleted;
+        
     }
 }
 

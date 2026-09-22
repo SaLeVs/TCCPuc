@@ -1,3 +1,4 @@
+using Enums;
 using Missions;
 using Player;
 using Unity.Netcode;
@@ -44,8 +45,7 @@ public class SoundMissionUi : MonoBehaviour
             missionPanel.SetActive(true);
         }
 
-        Cursor.lockState = CursorLockMode.None;
-        Cursor.visible = true;
+        CursorState.Hold(CursorReason.MissionUi);
 
         skillCheckController.StartPuzzle();
     }
@@ -73,8 +73,7 @@ public class SoundMissionUi : MonoBehaviour
             missionPanel.SetActive(false);
         }
 
-        Cursor.lockState = CursorLockMode.Locked;
-        Cursor.visible = false;
+        CursorState.Release(CursorReason.MissionUi);
 
         if (skillCheckController != null)
         {

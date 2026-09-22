@@ -1,4 +1,5 @@
 using System;
+using Enums;
 using Player;
 using Unity.Netcode;
 using UnityEngine;
@@ -23,8 +24,7 @@ namespace Ui
         private void PlayerState_OnVictoryTriggered()
         {
             victoryPanel.SetActive(true);
-            Cursor.lockState = CursorLockMode.None;
-            Cursor.visible = true;
+            CursorState.Hold(CursorReason.Victory);
         }
         
         private void OnClientDisconnected(ulong clientId)

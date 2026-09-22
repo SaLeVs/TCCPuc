@@ -1,0 +1,295 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 161b37c8e1c3a3de9e733911de20b0b2, type: 3}
+  m_Name: ChatTopicDatabase
+  m_EditorClassIdentifier: ScriptableObjects::ScriptableObjects.ChatTopicDatabaseSO
+  entries:
+  - id: hint.lights_out
+    data:
+      messages:
+      - message: "vai no gerador"
+        allowedArchetypes: 31
+      - message: "tem um painel pra religar isso"
+        allowedArchetypes: 26
+      - message: "a luz volta no gerador mano"
+        allowedArchetypes: 31
+      - message: "procura o quadro de luz"
+        allowedArchetypes: 13
+      - message: "nao adianta andar no escuro, liga o gerador"
+        allowedArchetypes: 14
+    minMessages: 1
+    maxMessages: 3
+    intensity: 0.6
+    mood: 2
+    cooldown: 20
+    priority: 60
+    ignoreViewerFloor: 1
+  - id: hint.mission_idle
+    data:
+      messages:
+      - message: "voce ta fazendo o que exatamente"
+        allowedArchetypes: 31
+      - message: "tinha uma missao pra fazer ne"
+        allowedArchetypes: 31
+      - message: "procura alguma coisa pra fazer"
+        allowedArchetypes: 28
+      - message: "a gente veio aqui trabalhar, nao passear"
+        allowedArchetypes: 13
+      - message: "cade a missao cara"
+        allowedArchetypes: 14
+    minMessages: 1
+    maxMessages: 2
+    intensity: 0.5
+    mood: 0
+    cooldown: 30
+    priority: 55
+    ignoreViewerFloor: 1
+  - id: hint.exploration_idle
+    data:
+      messages:
+      - message: "ja vimos essa parede umas 500 vezes"
+        allowedArchetypes: 31
+      - message: "anda pra outro lugar"
+        allowedArchetypes: 31
+      - message: "explora um pouco vai"
+        allowedArchetypes: 25
+      - message: "tem mais coisa nesse mapa sabia"
+        allowedArchetypes: 14
+      - message: "ta girando em circulo faz tempo"
+        allowedArchetypes: 28
+    minMessages: 1
+    maxMessages: 2
+    intensity: 0.45
+    mood: 1
+    cooldown: 30
+    priority: 55
+    ignoreViewerFloor: 1
+  - id: hint.door_locked
+    data:
+      messages:
+      - message: "sai dessa porta"
+        allowedArchetypes: 31
+      - message: "tem coisa segurando isso ai"
+        allowedArchetypes: 22
+      - message: "nao insiste nessa porta NAO"
+        allowedArchetypes: 31
+      - message: "essa porta nao vai abrir, corre"
+        allowedArchetypes: 11
+      - message: "ELE TA DO OUTRO LADO"
+        allowedArchetypes: 7
+    minMessages: 1
+    maxMessages: 2
+    intensity: 0.5
+    mood: 2
+    cooldown: 8
+    priority: 50
+    ignoreViewerFloor: 1
+  - id: lights.out
+    data:
+      messages:
+      - message: "APAGOU TUDO"
+        allowedArchetypes: 31
+      - message: "cade a luz"
+        allowedArchetypes: 31
+      - message: "nao gostei disso nao"
+        allowedArchetypes: 26
+      - message: "ih ferrou"
+        allowedArchetypes: 21
+      - message: "meu deus apagou tudo"
+        allowedArchetypes: 7
+    minMessages: 2
+    maxMessages: 4
+    intensity: 0.9
+    mood: 2
+    cooldown: 5
+    priority: 20
+    ignoreViewerFloor: 0
+  - id: player.died
+    data:
+      messages:
+      - message: "F"
+        allowedArchetypes: 31
+      - message: "morreu kkkkkkkk"
+        allowedArchetypes: 21
+      - message: "guys acabou a live"
+        allowedArchetypes: 31
+      - message: "alguem clipa isso"
+        allowedArchetypes: 13
+      - message: "nao acredito que morreu assim"
+        allowedArchetypes: 26
+    minMessages: 3
+    maxMessages: 5
+    intensity: 1
+    mood: 2
+    cooldown: 2
+    priority: 20
+    ignoreViewerFloor: 0
+  - id: player.teammate_died
+    data:
+      messages:
+      - message: "o {subject} ja era"
+        allowedArchetypes: 31
+      - message: "F pro {subject}"
+        allowedArchetypes: 31
+      - message: "perdemos o {subject} kkkk"
+        allowedArchetypes: 21
+      - message: "{subject} nao aguentou"
+        allowedArchetypes: 26
+      - message: "era so o {subject} que prestava"
+        allowedArchetypes: 13
+    minMessages: 2
+    maxMessages: 4
+    intensity: 0.85
+    mood: 2
+    cooldown: 2
+    priority: 20
+    ignoreViewerFloor: 0
+  - id: donation.received
+    data:
+      messages:
+      - message: "OBRIGADO {subject}"
+        allowedArchetypes: 31
+      - message: "{subject} pagando o miojo do mes"
+        allowedArchetypes: 21
+      - message: "olha o {subject} generoso"
+        allowedArchetypes: 31
+      - message: "{subject} bancando a live sozinho"
+        allowedArchetypes: 19
+      - message: "vlw {subject}, agora faz o que ele pediu"
+        allowedArchetypes: 13
+    minMessages: 2
+    maxMessages: 3
+    intensity: 0.6
+    mood: 0
+    cooldown: 1
+    priority: 15
+    ignoreViewerFloor: 0
+  - id: mission.completed
+    data:
+      messages:
+      - message: "AEEEEEE"
+        allowedArchetypes: 31
+      - message: "conseguiu caramba"
+        allowedArchetypes: 31
+      - message: "ate que enfim"
+        allowedArchetypes: 28
+      - message: "sabia que ia dar certo"
+        allowedArchetypes: 25
+      - message: "olha ele trabalhando"
+        allowedArchetypes: 7
+    minMessages: 2
+    maxMessages: 4
+    intensity: 0.7
+    mood: 0
+    cooldown: 3
+    priority: 15
+    ignoreViewerFloor: 0
+  - id: player.hurt
+    data:
+      messages:
+      - message: "ai"
+        allowedArchetypes: 31
+      - message: "ta sangrando"
+        allowedArchetypes: 31
+      - message: "cuidado com a vida ai"
+        allowedArchetypes: 11
+      - message: "kkkkk tomou"
+        allowedArchetypes: 21
+      - message: "isso doeu ate aqui"
+        allowedArchetypes: 22
+    minMessages: 1
+    maxMessages: 2
+    intensity: 0.45
+    mood: 2
+    cooldown: 6
+    priority: 10
+    ignoreViewerFloor: 0
+  - id: lights.restored
+    data:
+      messages:
+      - message: "voltou"
+        allowedArchetypes: 31
+      - message: "gracas a deus"
+        allowedArchetypes: 31
+      - message: "agora sim da pra ver alguma coisa"
+        allowedArchetypes: 25
+      - message: "demorou hein"
+        allowedArchetypes: 28
+      - message: "luz linda"
+        allowedArchetypes: 7
+    minMessages: 1
+    maxMessages: 3
+    intensity: 0.5
+    mood: 0
+    cooldown: 5
+    priority: 10
+    ignoreViewerFloor: 0
+  - id: donation.expired
+    data:
+      messages:
+      - message: "perdeu a doacao"
+        allowedArchetypes: 31
+      - message: "ih deixou passar"
+        allowedArchetypes: 31
+      - message: "era dinheiro facil"
+        allowedArchetypes: 21
+      - message: "nem viu que tinha"
+        allowedArchetypes: 14
+      - message: "jogou dinheiro fora"
+        allowedArchetypes: 28
+    minMessages: 1
+    maxMessages: 2
+    intensity: 0.35
+    mood: 1
+    cooldown: 3
+    priority: 5
+    ignoreViewerFloor: 0
+  - id: audience.surge
+    data:
+      messages:
+      - message: "ta bombando"
+        allowedArchetypes: 31
+      - message: "ta entrando gente"
+        allowedArchetypes: 31
+      - message: "chamei a galera toda"
+        allowedArchetypes: 13
+      - message: "olha o chat enchendo"
+        allowedArchetypes: 19
+      - message: "viralizou e ninguem avisou"
+        allowedArchetypes: 21
+    minMessages: 1
+    maxMessages: 3
+    intensity: 0.5
+    mood: 0
+    cooldown: 8
+    priority: 5
+    ignoreViewerFloor: 0
+  - id: audience.drop
+    data:
+      messages:
+      - message: "ta esvaziando"
+        allowedArchetypes: 31
+      - message: "cade todo mundo"
+        allowedArchetypes: 31
+      - message: "o pessoal ta saindo"
+        allowedArchetypes: 26
+      - message: "perdendo audiencia hein"
+        allowedArchetypes: 13
+      - message: "so sobrou eu aqui"
+        allowedArchetypes: 22
+    minMessages: 1
+    maxMessages: 2
+    intensity: 0.4
+    mood: 1
+    cooldown: 10
+    priority: 5
+    ignoreViewerFloor: 0

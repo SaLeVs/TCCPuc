@@ -1,4 +1,5 @@
 using System;
+using Enums;
 using Inputs;
 using Unity.Cinemachine;
 using Unity.Netcode;
@@ -55,7 +56,7 @@ namespace Player
                 ApplySensitivity(SensibilitySettings.Current);
                 SensibilitySettings.OnSensibilityChanged += ApplySensitivity;
 
-                LockMouse();
+                CursorState.Refresh();
                 HideOcclusionRenderers();
             }
             else
@@ -75,8 +76,7 @@ namespace Player
             _isPaused = !_isPaused;
             inputAxisController.enabled = !_isPaused && !_isLocked;
 
-            if (_isPaused) UnlockMouse();
-            else LockMouse();
+            CursorState.Set(CursorReason.Paused, _isPaused);
 
             OnPauseToggled?.Invoke(_isPaused);
         }
@@ -126,31 +126,13 @@ namespace Player
             _isLocked = locked;
             inputAxisController.enabled = !locked && !_isPaused && !_isDead;
 
+            // The pause reason is left alone on purpose: unpausing while still locked at a board
+            // must not steal the cursor back.
+            CursorState.Set(CursorReason.InputLocked, locked);
+
             if (_isKnockedDown) return;
 
-            if (locked)
-            {
-                UnlockMouse();
-                cinemachineCamera.Priority = 0;
-            }
-            else
-            {
-                if (_isPaused) UnlockMouse();
-                else LockMouse();
-                cinemachineCamera.Priority = ownerCameraPriority;
-            }
-        }
-
-        private void LockMouse()
-        {
-            Cursor.lockState = CursorLockMode.Locked;
-            Cursor.visible = false;
-        }
-
-        private void UnlockMouse()
-        {
-            Cursor.lockState = CursorLockMode.None;
-            Cursor.visible = true;
+            cinemachineCamera.Priority = locked ? 0 : ownerCameraPriority;
         }
 
         private void HideOcclusionRenderers()

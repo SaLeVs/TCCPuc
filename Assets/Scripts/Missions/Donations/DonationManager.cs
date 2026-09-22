@@ -32,6 +32,7 @@ namespace Missions.Donations
         private readonly NetworkList<DonationNetworkState> _networkStates = new();
         private readonly Dictionary<string, DonationInstance> _activeInstances = new();
         private readonly Dictionary<string, float> _cooldownTimers = new();
+        private readonly Dictionary<string, DonationDefinition> _definitionsById = new();
 
         private readonly Dictionary<RecordableTarget, HashSet<ulong>> _recordingWatchers = new();
 
@@ -49,6 +50,33 @@ namespace Missions.Donations
         private void Awake()
         {
             Instance = this;
+            BuildDefinitionLookup();
+        }
+
+        /// <summary>
+        /// donationId -> definition, built on every peer: the pool is serialized in the prefab, so
+        /// clients hold the same assets the server does. The network state only carries the id, so
+        /// this is what lets the UI reach a donation's authored visuals (icon) on the client side.
+        /// </summary>
+        private void BuildDefinitionLookup()
+        {
+            _definitionsById.Clear();
+            if (donationPool == null) return;
+
+            foreach (var definition in donationPool)
+            {
+                if (definition == null || string.IsNullOrEmpty(definition.donationId)) continue;
+
+                _definitionsById[definition.donationId] = definition;
+            }
+        }
+
+        /// <summary>Definition behind a donation id, or null when the id isn't in the pool.</summary>
+        public DonationDefinition GetDefinition(string donationId)
+        {
+            if (string.IsNullOrEmpty(donationId)) return null;
+
+            return _definitionsById.TryGetValue(donationId, out var definition) ? definition : null;
         }
         
         private void Start()
@@ -239,10 +267,11 @@ namespace Missions.Donations
 
         private string PickDonorName(DonationDefinition definition)
         {
-            if (definition.fakeDonorNames == null || definition.fakeDonorNames.viewerNames.Count == 0)
-                return "Anonymous";
+            if (definition.fakeDonorNames == null) return "Anonymous";
 
-            return definition.fakeDonorNames.GetNext();
+            // Drawn from the same population the chat speaks with, so a donor is someone
+            // the player has seen in chat rather than a name out of a separate list.
+            return definition.fakeDonorNames.TryPickName(out string name) ? name : "Anonymous";
         }
 
         /// <summary>Call this from your recording progress detection system (see DonationRecordableZone).</summary>

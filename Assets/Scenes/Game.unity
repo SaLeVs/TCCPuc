@@ -7453,8 +7453,8 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 330585543}
   serializedVersion: 2
-  m_LocalRotation: {x: -0.000000011175871, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 1.0967253, y: 2.499754, z: 19.294394}
+  m_LocalRotation: {x: 0.07837903, y: -0.015340505, z: 0.0012062278, w: 0.9968049}
+  m_LocalPosition: {x: 0, y: 1, z: 0.3}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -19040,6 +19040,11 @@ MonoBehaviour:
   sensor: {fileID: 1071231245}
   drawHearingRange: 1
   drawHeardNoises: 1
+  heardNoiseColor: {r: 1, g: 0, b: 0.9, a: 1}
+  heardNoiseRadius: 0.55
+  heardNoiseLifetime: 5
+  drawGuessedPosition: 1
+  drawLabels: 1
 --- !u!1001 &933135691
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -30435,6 +30440,63 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 8405252762901524467, guid: dba425813f088694e90bcab8ad7591cc, type: 3}
   m_PrefabInstance: {fileID: 1449353675}
   m_PrefabAsset: {fileID: 0}
+--- !u!1001 &1455173415
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 0}
+    m_Modifications:
+    - target: {fileID: 1284650073918447206, guid: 1f5aacb463a4d3c100f01fb5826281ae, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1284650073918447206, guid: 1f5aacb463a4d3c100f01fb5826281ae, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1284650073918447206, guid: 1f5aacb463a4d3c100f01fb5826281ae, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1284650073918447206, guid: 1f5aacb463a4d3c100f01fb5826281ae, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 1284650073918447206, guid: 1f5aacb463a4d3c100f01fb5826281ae, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1284650073918447206, guid: 1f5aacb463a4d3c100f01fb5826281ae, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1284650073918447206, guid: 1f5aacb463a4d3c100f01fb5826281ae, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1284650073918447206, guid: 1f5aacb463a4d3c100f01fb5826281ae, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1284650073918447206, guid: 1f5aacb463a4d3c100f01fb5826281ae, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1284650073918447206, guid: 1f5aacb463a4d3c100f01fb5826281ae, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7412903558216640731, guid: 1f5aacb463a4d3c100f01fb5826281ae, type: 3}
+      propertyPath: m_Name
+      value: ChatEventHub
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: 1f5aacb463a4d3c100f01fb5826281ae, type: 3}
 --- !u!114 &1455419656
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -46674,6 +46736,7 @@ SceneRoots:
   - {fileID: 330585546}
   - {fileID: 1852864733}
   - {fileID: 832575519}
+  - {fileID: 1455173415}
   - {fileID: 6728308277643757922}
   - {fileID: 2170947464040313671}
   - {fileID: 1990024256909663643}

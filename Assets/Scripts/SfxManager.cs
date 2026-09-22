@@ -2,6 +2,7 @@ using System.Collections;
 using Components;
 using Enums;
 using Missions;
+using Missions.Donations;
 using Monster;
 using Objects;
 using Systems;
@@ -32,6 +33,9 @@ public class SfxManager : MonoBehaviour
         
         PlayerMissionHolder.OnMissionRecievedSound += PlayerMissionHolder_OnMissionReceivedSound;
         PlayerMissionHolder.OnMissionCompletedSound += PlayerMissionHolder_OnMissionCompletedSound;
+        
+        DonationUIController.OnDonationReceivedSound += DonationUi_OnDonationReceivedSound;
+        DonationUIController.OnDonationCompletedSound += DonationUi_OnDonationCompletedSound;
         
         MonsterAttack.OnMonsterAttackSound += MonsterAttack_OnMonsterAttack;
         MonsterSabotage.OnSabotageSound += MonsterSabotage_OnSabotageSound;
@@ -74,6 +78,16 @@ public class SfxManager : MonoBehaviour
     private void PlayerMissionHolder_OnMissionCompletedSound(Vector3 position)
     {
         PlaySound(audioClipRefsSO.missionSuccess, Vector3.zero);
+    }
+    
+    private void DonationUi_OnDonationReceivedSound(Vector3 position)
+    {
+        PlaySound(audioClipRefsSO.donationReceived, position);
+    }
+    
+    private void DonationUi_OnDonationCompletedSound(Vector3 position)
+    {
+        PlaySound(audioClipRefsSO.donationCompleted, position);
     }
     
     private void MonsterAttack_OnMonsterAttack(Vector3 position)
@@ -166,6 +180,9 @@ public class SfxManager : MonoBehaviour
         
         PlayerMissionHolder.OnMissionRecievedSound -= PlayerMissionHolder_OnMissionReceivedSound;
         PlayerMissionHolder.OnMissionCompletedSound -= PlayerMissionHolder_OnMissionCompletedSound;
+        
+        DonationUIController.OnDonationReceivedSound -= DonationUi_OnDonationReceivedSound;
+        DonationUIController.OnDonationCompletedSound -= DonationUi_OnDonationCompletedSound;
         
         MonsterAttack.OnMonsterAttackSound -= MonsterAttack_OnMonsterAttack;
         MonsterSabotage.OnSabotageSound -= MonsterSabotage_OnSabotageSound;

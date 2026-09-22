@@ -12,6 +12,10 @@ namespace Missions.Donations
         public string displayName;
         [TextArea] public string message;
 
+        [Header("Visual")]
+        [Tooltip("Icon shown in the donation popup. Leave empty to fall back to the popup's own icon.")]
+        public Sprite icon;
+
         [Header("Category")]
         public DonationCategory category;
         
@@ -45,6 +49,9 @@ namespace Missions.Donations
         public DonationStackingMode stackingMode = DonationStackingMode.Cumulative;
 
         [Header("Names of donators (flavor, optional)")]
-        public ViewerNameDatabaseSO fakeDonorNames;
+        [Tooltip("Who the donation is signed by. Same population the chat draws from, on " +
+                 "purpose - a donation from a name nobody has ever seen talk reads as a " +
+                 "random string, and one from a regular reads as a person.")]
+        public ViewerPopulationSO fakeDonorNames;
     }
 }

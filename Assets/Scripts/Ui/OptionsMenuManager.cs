@@ -35,6 +35,7 @@ public class OptionsMenuManager : MonoBehaviour
     [SerializeField] private GameObject brightnessPanel;
     
     [SerializeField] private GameObject audioDevicePanel;
+    [SerializeField] private GameObject creditsPanel;
     
     
     private const string SENSIBILITY_KEY = "MouseSensibility";
@@ -236,6 +237,16 @@ public class OptionsMenuManager : MonoBehaviour
     {
         audioDevicePanel.SetActive(false);
         VivoxManager.instance.LeaveTestVoiceChannel();
+    }
+    
+    public void OpenCreditsPanel()
+    {
+        creditsPanel.SetActive(true);
+    }
+    
+    public void CloseCreditsPanel()
+    {
+        creditsPanel.SetActive(false);
     }
 
     private void OnDisable()

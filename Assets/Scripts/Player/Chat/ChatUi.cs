@@ -1,56 +1,56 @@
-using System;
-using System.Collections;
 using System.Collections.Generic;
 using Enums;
-using Inputs;
+using ScriptableObjects;
 using TMPro;
 using UnityEngine;
 using UnityEngine.SceneManagement;
-using UnityEngine.UI;
 
 namespace Player.Chat
 {
     public class ChatUi : MonoBehaviour
     {
-        public event Action<bool> OnChatVisibilityChanged;
-        
         [SerializeField] private ChatManager chatManager;
-        [SerializeField] private InputReader inputReader;
         [SerializeField] private Transform chatMessageHolder;
         [SerializeField] private GameObject chatMessagePrefab;
         [SerializeField] private int activeMessagesCount = 5;
         
-        [SerializeField] private RectTransform panelRectTransform;
-        [SerializeField] private float slideDuration = 0.25f;
-        [SerializeField] private AnimationCurve slideCurve = AnimationCurve.EaseInOut(0f, 0f, 1f, 1f);
-        [SerializeField] private CanvasGroup panelCanvasGroup;
-        
-        [SerializeField] private Image handleIcon;
+        // Same Odin quirk as ChatManager: a [Header] on a field that also carries a Unity
+        // PropertyDrawer attribute (TextArea, Range, Min) gets drawn twice. Each title sits on a
+        // plain field, and the decorated ones follow underneath.
+
+        [Header("Message format")]
+        [SerializeField]
+        [Tooltip("Placeholders: {icon}, {color}, {viewer} and {message}")]
+        private string messageFormat = "{icon}<b><color={color}>{viewer}:</color></b> {message}";
+
+        [Header("Message icons")]
+        [SerializeField]
+        [Tooltip("On: a viewer always draws the same icon, like a badge they own")]
+        private bool iconPerViewer = true;
+
+        [SerializeField, Range(0f, 1f)]
+        [Tooltip("Chance a message shows an icon at all")]
+        private float iconAppearChance = 0.35f;
+
+        [SerializeField]
+        [Tooltip("Sprite indices allowed in the roll. Empty rolls over the whole sprite asset")]
+        private List<int> iconPool = new();
+
+        [Header("Name colors")]
+        [SerializeField] private ChatColorPaletteSO nameColors;
 
         private List<TextMeshProUGUI> _pool = new();
         private List<GameObject> _poolRoots = new();
         private int _currentIndex = 0;
+        private int _spriteCount;
 
-        private Vector2 _shownAnchoredPosition;
-        private Vector2 _hiddenAnchoredPosition;
-        private Coroutine _slideCoroutine;
-        private bool _isChatVisible = true;
+        /// <summary>FNV offset basis, nudged so the color roll lands elsewhere than the icon roll.</summary>
+        private const uint COLOR_HASH_SEED = 2654435769u;
 
 
         private void Awake()
         {
             if (SceneManager.GetActiveScene().name != nameof(Scenes.Game)) return;
-
-            if (panelRectTransform == null) panelRectTransform = (RectTransform)transform;
-
-            _shownAnchoredPosition = panelRectTransform.anchoredPosition;
-
-            float direction = panelRectTransform.pivot.x >= 0.5f ? 1f : -1f;
-            float hideDistance = panelRectTransform.rect.width;
-
-            _hiddenAnchoredPosition = _shownAnchoredPosition + new Vector2(direction * hideDistance, 0f);
-
-            UpdateHandleVisual(_isChatVisible);
 
             for (int i = 0; i < activeMessagesCount; i++)
             {
@@ -63,6 +63,24 @@ namespace Player.Chat
                     _poolRoots.Add(instance);
                 }
             }
+
+            CacheIconCount();
+        }
+
+        /// <summary>
+        /// Reads how many sprites the message prefab's sprite asset holds
+        /// </summary>
+        private void CacheIconCount()
+        {
+            if (_pool.Count > 0 && _pool[0].spriteAsset != null)
+            {
+                _spriteCount = _pool[0].spriteAsset.spriteCharacterTable.Count;
+            }
+
+            if (_spriteCount == 0 && iconPool.Count == 0 && iconAppearChance > 0f)
+            {
+                Debug.LogWarning($"{nameof(ChatUi)}: the message prefab's TMP component has no sprite asset, so messages will show no icons.", this);
+            }
         }
 
         private void OnEnable()
@@ -70,80 +88,85 @@ namespace Player.Chat
             if (SceneManager.GetActiveScene().name != nameof(Scenes.Game)) return;
 
             chatManager.OnMessageSent += ChatManager_OnMessageSent;
-            inputReader.OnChatEvent += ToggleChatVisibility;
         }
 
 
         private void ChatManager_OnMessageSent(string viewer, string message)
         {
-            _pool[_currentIndex].text = $"<b>{viewer}:</b> {message}";
+            // Walks the pool that was actually built, not the count that was asked for. A message
+            // prefab instance with no TMP child is skipped while Awake fills the pool, so the two
+            // can differ - and indexing by the requested count would then run off the end.
+            if (_pool.Count == 0) return;
+
+            _pool[_currentIndex].text = messageFormat.Replace("{icon}", PickIconTag(viewer)).Replace("{color}", PickNameColor(viewer)).Replace("{viewer}", viewer).Replace("{message}", message);
 
             _poolRoots[_currentIndex].transform.SetAsLastSibling();
             _poolRoots[_currentIndex].SetActive(true);
 
-            _currentIndex = (_currentIndex + 1) % activeMessagesCount;
+            _currentIndex = (_currentIndex + 1) % _pool.Count;
         }
-
-        public void ToggleChatVisibility()
+        
+        private string PickIconTag(string viewer)
         {
-            SetChatVisible(!_isChatVisible);
-        }
+            int optionCount = iconPool.Count > 0 ? iconPool.Count : _spriteCount;
+            if (optionCount <= 0) return string.Empty;
 
-        public void SetChatVisible(bool visible)
-        {
-            if (_isChatVisible == visible) return;
-            _isChatVisible = visible;
+            float roll;
+            int option;
 
-            if (_slideCoroutine != null) StopCoroutine(_slideCoroutine);
-
-            if (visible)
+            if (iconPerViewer)
             {
-                UpdateHandleVisual(true);
+                // Both the "does this viewer have an icon" roll and the icon itself come out of the
+                uint hash = StableHash(viewer);
+                roll = (hash & 0xFFFF) / (float)0xFFFF;
+                option = (int)((hash >> 16) % (uint)optionCount);
+            }
+            else
+            {
+                roll = Random.value;
+                option = Random.Range(0, optionCount);
             }
 
-            _slideCoroutine = StartCoroutine(SlideChat(visible ? _shownAnchoredPosition : _hiddenAnchoredPosition, visible ? 1f : 0f, visible));
+            if (roll >= iconAppearChance) return string.Empty;
 
-            OnChatVisibilityChanged?.Invoke(visible);
+            return $"<sprite={(iconPool.Count > 0 ? iconPool[option] : option)}> ";
         }
 
-        private void UpdateHandleVisual(bool chatVisible)
+        /// <summary>
+        /// Hex the viewer's name is drawn in. Falls back to white so "{color}" never expands into
+        /// a broken tag when no palette is assigned.
+        /// </summary>
+        private string PickNameColor(string viewer)
         {
-            if (handleIcon == null) return;
+            if (nameColors == null || nameColors.Count == 0) return "#FFFFFF";
 
-            handleIcon.enabled = !chatVisible;
+            // Seeded apart from the icon roll, otherwise name color and badge would move together
+            // and every viewer wearing badge N would also be wearing color N.
+            uint hash = StableHash(viewer, COLOR_HASH_SEED);
+            return nameColors.GetHex((int)(hash % (uint)nameColors.Count)) ?? "#FFFFFF";
         }
 
-        private IEnumerator SlideChat(Vector2 targetPosition, float targetAlpha, bool chatVisible)
+        /// <summary>
+        /// FNV-1a. string.GetHashCode isn't guaranteed to be stable between runs, this is.
+        /// </summary>
+        private static uint StableHash(string value, uint seed = 2166136261u)
         {
-            Vector2 startPosition = panelRectTransform.anchoredPosition;
-            float startAlpha = panelCanvasGroup != null ? panelCanvasGroup.alpha : 1f;
-            float elapsed = 0f;
+            uint hash = seed;
 
-            while (elapsed < slideDuration)
+            for (int i = 0; i < value.Length; i++)
             {
-                elapsed += Time.deltaTime;
-                float t = slideCurve.Evaluate(Mathf.Clamp01(elapsed / slideDuration));
-                panelRectTransform.anchoredPosition = Vector2.Lerp(startPosition, targetPosition, t);
-                if (panelCanvasGroup != null) panelCanvasGroup.alpha = Mathf.Lerp(startAlpha, targetAlpha, t);
-                yield return null;
+                hash ^= value[i];
+                hash *= 16777619u;
             }
 
-            panelRectTransform.anchoredPosition = targetPosition;
-            if (panelCanvasGroup != null) panelCanvasGroup.alpha = targetAlpha;
-            
-            if (!chatVisible)
-            {
-                UpdateHandleVisual(false);
-            }
+            return hash;
         }
-
 
         private void OnDisable()
         {
             if (SceneManager.GetActiveScene().name != nameof(Scenes.Game)) return;
 
             chatManager.OnMessageSent -= ChatManager_OnMessageSent;
-            inputReader.OnChatEvent -= ToggleChatVisibility;
         }
 
     }

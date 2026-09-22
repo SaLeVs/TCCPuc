@@ -10,6 +10,7 @@ namespace ScriptableObjects
         
         public string missionName;
         public string instructions;
+        public Sprite missionImage;
         
         public MissionObjectiveType objectiveType;
         public RoomDataSO requiredRoom;

@@ -95,9 +95,9 @@ namespace Player.Chat
         private float _intensity;
         private float _silence;
         private float _moodHold;
-        private ChatMood _mood = ChatMood.Idle;
+        private ChatMood chatMoodAfterMessage = ChatMood.Idle;
 
-        public ChatMood Mood => _mood;
+        public ChatMood ChatMoodAfterMessage => chatMoodAfterMessage;
         public float Intensity => _intensity;
         public int Queued => _queue.Count;
 
@@ -205,7 +205,7 @@ namespace Player.Chat
             _intensity = 0f;
             _silence = 0f;
             _moodHold = 0f;
-            _mood = ChatMood.Idle;
+            chatMoodAfterMessage = ChatMood.Idle;
 
             _viewers?.ResetRuntimeState();
         }
@@ -239,9 +239,9 @@ namespace Player.Chat
             // Hold scales with intensity: a jump scare owns the room longer than a small donation.
             float hold = Mathf.Lerp(2f, 12f, Mathf.Clamp01(intensity));
 
-            if (_moodHold > hold && _mood == mood) return;
+            if (_moodHold > hold && chatMoodAfterMessage == mood) return;
 
-            _mood = mood;
+            chatMoodAfterMessage = mood;
             _moodHold = Mathf.Max(_moodHold, hold);
         }
 
@@ -318,7 +318,7 @@ namespace Player.Chat
 
             // Nothing is holding the room in a mood, so it falls back to whether the audience is
             // still interested.
-            _mood = audienceDecaying ? ChatMood.Bored : ChatMood.Idle;
+            chatMoodAfterMessage = audienceDecaying ? ChatMood.Bored : ChatMood.Idle;
         }
 
         /// <summary>
@@ -342,7 +342,7 @@ namespace Player.Chat
         private void TryQueueAmbient(float viewerCount)
         {
             if (!ambientEnabled || _ambient == null) return;
-            if (!_ambient.TryGet(_mood, out MoodChatEntry entry)) return;
+            if (!_ambient.TryGet(chatMoodAfterMessage, out MoodChatEntry entry)) return;
             if (entry.data == null || entry.data.Count == 0) return;
 
             // Small talk thins out with the room instead of keeping a fixed cadence: a handful of

@@ -10,11 +10,35 @@ namespace Audio
         [Header("TTS")]
         [SerializeField] private bool enableTTS = true;
 
+        [SerializeField]
+        [Tooltip("Vivox TTS voice name. Leave empty for the default. Available names are logged on login")]
+        private string ttsVoice = "en_US female";
+
         private DonationManager _donationManager;
 
         private void Start()
         {
             TrySubscribe();
+
+            if (VivoxService.Instance == null) return;
+
+            if (VivoxService.Instance.IsLoggedIn) ApplyVoice();
+            else VivoxService.Instance.LoggedIn += ApplyVoice;
+        }
+
+        /// <summary>
+        /// Vivox only exposes its voices once logged in, and has no setting for them outside code.
+        /// The list is logged so the name for <see cref="ttsVoice"/> can be copied from the Console.
+        /// </summary>
+        private void ApplyVoice()
+        {
+            VivoxService.Instance.LoggedIn -= ApplyVoice;
+
+            Debug.Log($"DonationAudioManager: available TTS voices: {string.Join(", ", VivoxService.Instance.TextToSpeechAvailableVoices)}");
+
+            if (string.IsNullOrWhiteSpace(ttsVoice)) return;
+
+            VivoxService.Instance.TextToSpeechSetVoice(ttsVoice.Trim());
         }
 
         private void TrySubscribe()
@@ -79,6 +103,8 @@ namespace Audio
         
         private void OnDisable()
         {
+            if (VivoxService.Instance != null) VivoxService.Instance.LoggedIn -= ApplyVoice;
+
             if (DonationManager.Instance == null) return;
 
             DonationManager.Instance.OnDonationSpawned -= DonationManager_OnDonationSpawned;

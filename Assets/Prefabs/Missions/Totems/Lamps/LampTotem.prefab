@@ -13,6 +13,7 @@ GameObject:
   - component: {fileID: 9020858193391355638}
   - component: {fileID: 8729801038086169662}
   - component: {fileID: 1135352271863614403}
+  - component: {fileID: 3892703979092320611}
   m_Layer: 8
   m_Name: LampTotem
   m_TagString: Untagged
@@ -110,6 +111,22 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 0.03082221, y: 0.07846165, z: 0.064649604}
   m_Center: {x: 0.24407202, y: 1.5887063, z: 0.002203147}
+--- !u!114 &3892703979092320611
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3760331024586727149}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6e079cac865f317449e8df9d83d42f31, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Components::Components.InteractionMarker
+  actionLabel: Toggle
+  framedRenderers:
+  - {fileID: 4106271494030553407}
+  revealDistance: 0
 --- !u!1 &5983641806524932644
 GameObject:
   m_ObjectHideFlags: 0

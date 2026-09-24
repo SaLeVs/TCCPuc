@@ -670,6 +670,7 @@ GameObject:
   - component: {fileID: 2427057514933125181}
   - component: {fileID: 3730733820996994350}
   - component: {fileID: 2250343014323055571}
+  - component: {fileID: 9138128390241544535}
   m_Layer: 8
   m_Name: ReadyBoard
   m_TagString: Untagged
@@ -773,6 +774,22 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 2.6010513, y: 1.3472816, z: 0.071996786}
   m_Center: {x: 0.0020008087, y: 0.66279835, z: 0.030436795}
+--- !u!114 &9138128390241544535
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 9203712078508735652}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6e079cac865f317449e8df9d83d42f31, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Components::Components.InteractionMarker
+  actionLabel: Pick up
+  framedRenderers:
+  - {fileID: 8059509837279613748}
+  revealDistance: 0
 --- !u!1001 &564294070615730216
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -1001,6 +1018,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5fea29bb7c508c244a1f805a5fd3fc4d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Components::Outline
+--- !u!23 &8059509837279613748 stripped
+MeshRenderer:
+  m_CorrespondingSourceObject: {fileID: 5543807325994854228, guid: e18f6c497d5019d4b806f96049e56725, type: 3}
+  m_PrefabInstance: {fileID: 2537406870854890592}
+  m_PrefabAsset: {fileID: 0}
 --- !u!4 &9192424780443068507 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 6675640561245772859, guid: e18f6c497d5019d4b806f96049e56725, type: 3}

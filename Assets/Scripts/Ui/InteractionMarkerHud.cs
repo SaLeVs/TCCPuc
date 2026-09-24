@@ -27,7 +27,7 @@ namespace Ui
     [RequireComponent(typeof(RectTransform))]
     public class InteractionMarkerHud : MonoBehaviour
     {
-        private const string BlockedLabel = "Unavailable";
+        private const string BlockedLabel = "UNAVAILABLE";
         private const float FarPivotMargin = 3f;
 
         [Header("References")]
@@ -384,14 +384,13 @@ namespace Ui
             widget.Root.anchoredPosition = widget.Center;
             widget.Group.alpha = widget.Alpha;
 
-            // Idle corners breathe a little so the scene never looks frozen behind them; a locked
-            // one holds still after a damped kick outward, like a lens snapping to focus.
-            float breathe = (1f - focus) * 2f * Mathf.Sin(time * 2.1f + widget.Phase);
+            // The corners hold still. They only move once, on lock-on: a damped kick outward, like
+            // a lens snapping to focus. The one thing that breathes is the eye while recording.
             float kick = focus * lockOnKick * Mathf.Exp(-9f * widget.LockTime) * Mathf.Cos(17f * widget.LockTime);
             float arrive = (1f - widget.Appear) * 28f;
 
-            float halfW = widget.Size.x * 0.5f + focus * focusPadding + breathe + kick + arrive;
-            float halfH = widget.Size.y * 0.5f + focus * focusPadding + breathe + kick + arrive;
+            float halfW = widget.Size.x * 0.5f + focus * focusPadding + kick + arrive;
+            float halfH = widget.Size.y * 0.5f + focus * focusPadding + kick + arrive;
 
             float idleCorner = Mathf.Clamp(Mathf.Min(widget.Size.x, widget.Size.y) * 0.3f, 16f, cornerSize * 0.75f);
             float corner = Mathf.Lerp(idleCorner, cornerSize, focus);
@@ -414,11 +413,14 @@ namespace Ui
             if (widget.Eye.gameObject.activeSelf != recordable) widget.Eye.gameObject.SetActive(recordable);
             if (!recordable) return;
 
+            // Still while idle; breathes only while the camera is recording it, so movement on the
+            // HUD always means "this is on tape right now".
             float recording = widget.Recording;
             float pulse = 1f + 0.12f * recording * Mathf.Sin(time * 7f);
+            float bob = recording * Mathf.Sin(time * 1.6f + widget.Phase) * 1.5f;
 
             RectTransform eye = widget.Eye.rectTransform;
-            eye.anchoredPosition = new Vector2(0f, halfH + 8f + Mathf.Sin(time * 1.6f + widget.Phase) * 1.5f);
+            eye.anchoredPosition = new Vector2(0f, halfH + 8f + bob);
             eye.localScale = new Vector3(pulse, pulse, 1f);
             widget.Eye.color = Color.Lerp(idleColor, recordingColor, recording);
 

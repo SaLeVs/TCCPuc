@@ -15,6 +15,7 @@ GameObject:
   - component: {fileID: 3762203180040444809}
   - component: {fileID: 6038673705900979505}
   - component: {fileID: 5337164344605839204}
+  - component: {fileID: 4231251129244073327}
   - component: {fileID: 5094972377537088174}
   m_Layer: 8
   m_Name: SoundManager
@@ -134,6 +135,22 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Components::Highlight
   outline: {fileID: 5939242909818737815}
+--- !u!114 &4231251129244073327
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3788075683713115688}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6e079cac865f317449e8df9d83d42f31, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Components::Components.InteractionMarker
+  actionLabel: Pick up
+  framedRenderers:
+  - {fileID: 3871743634261450398}
+  revealDistance: 0
 --- !u!65 &5094972377537088174
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -251,6 +268,11 @@ MonoBehaviour:
   precomputeOutline: 0
   bakeKeys: []
   bakeValues: []
+--- !u!23 &3871743634261450398 stripped
+MeshRenderer:
+  m_CorrespondingSourceObject: {fileID: 5971280663428352434, guid: 90d7fefe9d5c83c49a0974d324fdfd12, type: 3}
+  m_PrefabInstance: {fileID: 7450486993047705388}
+  m_PrefabAsset: {fileID: 0}
 --- !u!4 &4087028280775519020 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 6907810320327080960, guid: 90d7fefe9d5c83c49a0974d324fdfd12, type: 3}

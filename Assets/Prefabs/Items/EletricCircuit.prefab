@@ -13,6 +13,7 @@ GameObject:
   - component: {fileID: 5903373789268268670}
   - component: {fileID: 5705610736174716161}
   - component: {fileID: 8480972037081780299}
+  - component: {fileID: 1547140196670185910}
   m_Layer: 8
   m_Name: EletricCircuit
   m_TagString: Untagged
@@ -48,7 +49,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Unity.Netcode.Runtime::Unity.Netcode.NetworkObject
-  GlobalObjectIdHash: 1743943728
+  GlobalObjectIdHash: 1767686129
   InScenePlacedSourceGlobalObjectIdHash: 0
   DeferredDespawnTick: 0
   Ownership: 1
@@ -109,6 +110,21 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 0.56359863, y: 0.44, z: 0.16690826}
   m_Center: {x: 0.137434, y: 0.21994396, z: 0.08345413}
+--- !u!114 &1547140196670185910
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1205836279395089931}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6e079cac865f317449e8df9d83d42f31, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Components::Components.InteractionMarker
+  actionLabel: Pick up
+  framedRenderers: []
+  revealDistance: 0
 --- !u!1001 &1773364285139454805
 PrefabInstance:
   m_ObjectHideFlags: 0

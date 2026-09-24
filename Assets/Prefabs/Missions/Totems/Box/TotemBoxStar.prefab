@@ -12,6 +12,7 @@ GameObject:
   - component: {fileID: 5834124400653978545}
   - component: {fileID: 3387447385039070318}
   - component: {fileID: 3436754371061624762}
+  - component: {fileID: 5496381245777029813}
   - component: {fileID: 2119509943739035687}
   m_Layer: 8
   m_Name: TotemBoxStar
@@ -91,6 +92,21 @@ MonoBehaviour:
   expectedItem: {fileID: 11400000, guid: 8f649d0cf47f05f4dbca8fbce859bc17, type: 2}
   spawnPoint: {fileID: 5871672297659161864}
   itemDatabase: {fileID: 11400000, guid: 445d4ee483405c346880c081245fee23, type: 2}
+--- !u!114 &5496381245777029813
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7196284807495355785}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6e079cac865f317449e8df9d83d42f31, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Components::Components.InteractionMarker
+  actionLabel: Pick up
+  framedRenderers: []
+  revealDistance: 0
 --- !u!65 &2119509943739035687
 BoxCollider:
   m_ObjectHideFlags: 0

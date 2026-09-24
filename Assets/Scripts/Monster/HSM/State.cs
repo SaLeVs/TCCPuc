@@ -37,7 +37,16 @@ namespace Monster.HSM
         protected virtual void OnEnter() { }
         protected virtual void OnExit() { }
         protected virtual void OnUpdate(float deltaTime) { }
-        
+
+        /// <summary>
+        /// Something outside the state machine borrowed the agent while this state stayed active
+        /// (forcing a door, for one) and has handed it back. Reassert whatever this state needs —
+        /// speed, rotation, destination, animation — for the phase it is in, without restarting it.
+        /// </summary>
+        protected virtual void OnResume() { }
+
+        internal void Resume() => OnResume();
+
         
         // This internal void guarantee that the parent always execute first
         internal void Enter()

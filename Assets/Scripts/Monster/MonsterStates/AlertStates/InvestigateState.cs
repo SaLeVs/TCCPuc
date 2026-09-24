@@ -11,7 +11,7 @@ namespace Monster.MonsterStates.AlertStates
     /// <see cref="ParentStates.MonsterAlert"/> promotes it to <see cref="SearchState"/>; if the
     /// walk finishes quietly, it gives up and goes back to roaming.</para>
     /// </summary>
-    public class InvestigateState : State
+    public class InvestigateState : State, IPathProblemHandler
     {
         private readonly MonsterBrain _monsterBrain;
 
@@ -49,6 +49,11 @@ namespace Monster.MonsterStates.AlertStates
             _monsterBrain.MonsterAwareness.Clear();
             StateMachine.Sequencer.RequestTransition(this, ((MonsterRoot)ParentState.ParentState).RoamingState);
         }
+
+        protected override void OnResume() => _monsterBrain.MonsterInvestigate.Resume();
+
+        /// <summary>Cannot get to where the noise came from: listen from here instead.</summary>
+        public void OnPathProblem(PathProblem problem) => _monsterBrain.MonsterInvestigate.AbandonMove();
 
         protected override void OnExit()
         {

@@ -35,6 +35,14 @@ namespace Monster.HSM
         }
         
         internal void InternalTick(float deltaTime) => Root.Update(deltaTime);
+
+        /// <summary>Hands the agent back to the active leaf after an interruption. See <see cref="State.OnResume"/>.</summary>
+        public void ResumeLeaf()
+        {
+            if (!_started) return;
+
+            Root.Leaf().Resume();
+        }
         
         // First exit for ancestor and after enter in the target
         public void ChangeState(State from, State to)

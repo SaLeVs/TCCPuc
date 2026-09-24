@@ -31,6 +31,8 @@ namespace Monster
         private float _lookTimer;
         private float _lookDuration;
         private Vector3 _lastKnownPosition;
+        private float _moveSpeed;
+        private int _searchDirection;
 
         private enum SearchPhase
         {
@@ -47,20 +49,56 @@ namespace Monster
         public void Begin(Vector3 lastKnownPosition, float chaseSpeed)
         {
             _lastKnownPosition = lastKnownPosition;
+            _moveSpeed = chaseSpeed;
             _phase = SearchPhase.MovingToLastKnownPosition;
-
-            _agent.isStopped = false;
-            _agent.speed = chaseSpeed;
-            _agent.updateRotation = false;
-
-            _agent.SetDestination(lastKnownPosition);
 
             _lookTimer = 0f;
             _lookDuration = Random.Range(minLookDuration, maxLookDuration);
 
+            StartMoving();
+        }
+
+        /// <summary>
+        /// Picks up where it was after the door forcer hands the agent back. The forcer walked it
+        /// to a door and reset the path, so the destination has to be asked for again.
+        /// </summary>
+        public void Resume()
+        {
+            switch (_phase)
+            {
+                case SearchPhase.MovingToLastKnownPosition:
+                    StartMoving();
+                    break;
+
+                case SearchPhase.LookingAround:
+                    _agent.isStopped = true;
+                    OnSearchStartedAnimation?.Invoke(_searchDirection);
+                    break;
+            }
+        }
+
+        /// <summary>
+        /// The last known position cannot be reached, or the agent has stopped getting closer.
+        /// Sweep from here instead of running at it forever.
+        /// </summary>
+        public void AbandonMove()
+        {
+            if (_phase != SearchPhase.MovingToLastKnownPosition) return;
+
+            StartLookingAround();
+        }
+
+        private void StartMoving()
+        {
+            _agent.isStopped = false;
+            _agent.speed = _moveSpeed;
+            _agent.updateRotation = false;
+
+            _agent.SetDestination(_lastKnownPosition);
+
             // Without this the run to the last known position kept whatever clip the previous
             // state left playing — usually an idle, so it slid there on frozen feet.
-            OnStartedMovingAnimation?.Invoke(chaseSpeed);
+            OnStartedMovingAnimation?.Invoke(_moveSpeed);
         }
 
         public void Tick(float deltaTime)
@@ -84,13 +122,18 @@ namespace Monster
             if (_agent.pathPending) return;
             if (_agent.remainingDistance > Mathf.Max(_agent.stoppingDistance, destinationTolerance)) return;
 
+            StartLookingAround();
+        }
+
+        private void StartLookingAround()
+        {
             _agent.isStopped = true;
             _agent.ResetPath();
 
             _phase = SearchPhase.LookingAround;
 
-            int searchDirection = Random.Range(1, 3);
-            OnSearchStartedAnimation?.Invoke(searchDirection);
+            _searchDirection = Random.Range(1, 3);
+            OnSearchStartedAnimation?.Invoke(_searchDirection);
         }
 
         private void RotateTowardsMovement()

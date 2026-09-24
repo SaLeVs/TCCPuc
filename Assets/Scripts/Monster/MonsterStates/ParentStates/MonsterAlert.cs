@@ -34,6 +34,10 @@ namespace Monster.MonsterStates.ParentStates
 
         protected override void OnUpdate(float deltaTime)
         {
+            // The promotion waits for the door: switching states mid walk-up drops the door, and
+            // Search would only pick it straight back up.
+            if (_monsterBrain.IsForcingDoor) return;
+
             if (ActiveChild == investigateState && _monsterBrain.MonsterAwareness.Level == AwarenessLevel.Alerted)
             {
                 StateMachine.Sequencer.RequestTransition(investigateState, searchState);

@@ -71,21 +71,21 @@ namespace Player
             cinemachineCamera.Priority = isSpectating ? 0 : ownerCameraPriority;
         }
 
-        private void ToggleMouse()
+        private void ToggleMouse() => SetPauseState(!_isPaused);
+
+        /// <summary>
+        /// The one way in and out of pause, for the key and for the menu's Resume button alike.
+        /// They used to be two copies, and only the key's copy dropped the Paused cursor reason —
+        /// resuming from the button left the cursor free until Esc was pressed twice more.
+        /// </summary>
+        public void SetPauseState(bool isPaused)
         {
-            _isPaused = !_isPaused;
+            _isPaused = isPaused;
             inputAxisController.enabled = !_isPaused && !_isLocked;
 
             CursorState.Set(CursorReason.Paused, _isPaused);
 
             OnPauseToggled?.Invoke(_isPaused);
-        }
-
-        public void SetPauseState(bool isPaused)
-        {
-            _isPaused = isPaused;
-            inputAxisController.enabled = !_isPaused && !_isLocked;
-            OnPauseToggled?.Invoke(isPaused);
         }
 
         private void PlayerState_OnPlayerDead(bool isDead) => _isDead = isDead;

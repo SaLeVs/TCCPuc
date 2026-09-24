@@ -48,7 +48,8 @@ namespace Monster
             
             _monsterBrain.MonsterChase.OnStartedChasingAnimation += PlayChase;
             _monsterBrain.MonsterChase.OnStoppedChasingAnimation += PlayIdle;
-            
+            _monsterBrain.MonsterChase.OnBlockedAnimation += PlayIdleCombat;
+
             _monsterBrain.MonsterAttack.OnAttackStartedAnimation += PlayAttack;
             _monsterBrain.MonsterAttack.OnAttackEndedAnimation += PlayIdleCombat;
             
@@ -67,9 +68,9 @@ namespace Monster
 
             if (_monsterBrain.MonsterDoorForcer != null)
             {
-                // Forcing a door reuses the attack swipe.
+                // Forcing a door reuses the attack swipe. What plays afterwards is the active
+                // state's call: the brain resumes it, and it replays its own clip.
                 _monsterBrain.MonsterDoorForcer.OnDoorHitAnimation += PlayAttack;
-                _monsterBrain.MonsterDoorForcer.OnDoorHitEndedAnimation += PlayAfterDoorHit;
             }
         }
 
@@ -144,16 +145,6 @@ namespace Monster
         private void PlaySabotage() => animator.CrossFade(_sabotageState, transitionDuration);
         private void PlaySearch(int direction) => animator.CrossFade(direction == 1 ? _searchStateLeft : _searchStateRight, transitionDuration);
 
-        /// <summary>
-        /// The door forcer runs outside the state machine, so no state re-enters afterwards to
-        /// reassert its animation — without this the monster walks off still stuck on the swipe.
-        /// </summary>
-        private void PlayAfterDoorHit()
-        {
-            if (_monsterBrain.IsHunting) PlayChase();
-            else PlayWander();
-        }
-        
         
         public void Uninitialize(MonsterBrain brain)
         {
@@ -162,9 +153,10 @@ namespace Monster
             
             _monsterBrain.MonsterChase.OnStartedChasingAnimation -= PlayChase;
             _monsterBrain.MonsterChase.OnStoppedChasingAnimation -= PlayIdle;
-            
+            _monsterBrain.MonsterChase.OnBlockedAnimation -= PlayIdleCombat;
+
             _monsterBrain.MonsterAttack.OnAttackStartedAnimation -= PlayAttack;
-            _monsterBrain.MonsterAttack.OnAttackEndedAnimation -= PlayIdle;
+            _monsterBrain.MonsterAttack.OnAttackEndedAnimation -= PlayIdleCombat;
             
             _monsterBrain.MonsterSabotage.OnSabotageStartedAnimation -= PlaySabotage;
             _monsterBrain.MonsterSabotage.OnSabotageEndedAnimation -= PlayIdle;
@@ -182,7 +174,6 @@ namespace Monster
             if (_monsterBrain.MonsterDoorForcer != null)
             {
                 _monsterBrain.MonsterDoorForcer.OnDoorHitAnimation -= PlayAttack;
-                _monsterBrain.MonsterDoorForcer.OnDoorHitEndedAnimation -= PlayAfterDoorHit;
             }
 
             _monsterBrain = null;

@@ -19,6 +19,13 @@ namespace Monster.MonsterStates.RoamingStates
             _monsterBrain.MonsterSabotage.Execute(_monsterBrain.MonsterSabotage.GetAvailableTargets());
         }
 
+        /// <summary>Sabotage stands still: keep the agent stopped and put the clip back.</summary>
+        protected override void OnResume()
+        {
+            _monsterBrain.NavMeshAgent.isStopped = true;
+            _monsterBrain.MonsterSabotage.ReplayAnimation();
+        }
+
         protected override void OnExit()
         {
             _monsterBrain.MonsterSabotage.EndSabotage();

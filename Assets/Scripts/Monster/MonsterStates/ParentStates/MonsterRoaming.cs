@@ -43,6 +43,10 @@ namespace Monster.MonsterStates.ParentStates
 
         protected override void OnUpdate(float deltaTime)
         {
+            // Paused at a door. Starting a sabotage mid walk-up used to swap Wander out from under
+            // the forcer, and the monster then stood through the whole sabotage playing a walk.
+            if (_monsterBrain.IsForcingDoor) return;
+
             if (!_monsterBrain.MonsterSabotage.CanSabotage) return;
             
             _timer += deltaTime;

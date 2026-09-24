@@ -3,7 +3,7 @@ using UnityEngine;
 
 namespace Monster.MonsterStates.RoamingStates
 {
-    public class WanderState : State
+    public class WanderState : State, IPathProblemHandler
     {
         private readonly MonsterBrain _monsterBrain;
         
@@ -28,6 +28,11 @@ namespace Monster.MonsterStates.RoamingStates
             _monsterBrain.MonsterWander.UpdateWander(deltaTime);
         }
         
+        protected override void OnResume() => _monsterBrain.MonsterWander.Resume();
+
+        /// <summary>This leg cannot be finished: count it as walked and pick another point.</summary>
+        public void OnPathProblem(PathProblem problem) => _monsterBrain.MonsterWander.AbandonLeg();
+
         protected override void OnExit()
         {
             _monsterBrain.MonsterWander.StopWander();

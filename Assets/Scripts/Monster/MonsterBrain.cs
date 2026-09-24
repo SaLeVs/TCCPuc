@@ -55,6 +55,16 @@ namespace Monster
         [Tooltip("Degrees of turn in a single frame that counts as a flip.")]
         [SerializeField, Min(1f)] private float facingFlipDegrees = 40f;
 
+        [Header("Path watchdog")]
+        [Tooltip("Seconds the agent may try to move without getting anywhere before the active state is told it is stuck.")]
+        [SerializeField, Min(0.25f)] private float stuckSeconds = 2f;
+
+        [Tooltip("Metres it has to cover in that time to count as making progress.")]
+        [SerializeField, Min(0.05f)] private float stuckMinProgress = 0.4f;
+
+        [Tooltip("Logs every stuck or unreachable report, and every time the path turns partial or invalid.")]
+        [SerializeField] private bool logPathStatus = true;
+
         public NavMeshAgent NavMeshAgent => navMeshAgent;
         public MonsterAwareness MonsterAwareness => monsterAwareness;
         public MonsterInvestigate MonsterInvestigate => monsterInvestigate;
@@ -76,10 +86,17 @@ namespace Monster
         public bool IsHunting => _playersInVision.Count > 0 || IsTrackingLostTarget;
         public bool IsForcingDoor => monsterDoorForcer != null && monsterDoorForcer.IsForcingDoor;
 
+        /// <summary>Mid-swipe at a door. The state machine is not ticked until it is over.</summary>
+        public bool IsDoorSwipeCommitted => monsterDoorForcer != null && monsterDoorForcer.IsCommitted;
+
         private StateMachine _stateMachine;
         private State _rootState;
         private string _lastPath;
         private float _trackingTimer;
+
+        private MonsterPathWatchdog _pathWatchdog;
+        private NavMeshPathStatus _lastLoggedPathStatus = NavMeshPathStatus.PathComplete;
+        private float _nextPathStatusLogTime;
 
         
         private void Awake()
@@ -136,6 +153,23 @@ namespace Monster
             {
                 hearingSensor.OnNoiseHeard += HearingSensor_OnNoiseHeard;
             }
+
+            if (monsterDoorForcer != null)
+            {
+                monsterDoorForcer.OnForcingFinished += MonsterDoorForcer_OnForcingFinished;
+            }
+
+            _pathWatchdog = new MonsterPathWatchdog(navMeshAgent, stuckSeconds, stuckMinProgress);
+        }
+
+        /// <summary>
+        /// The forcer borrowed the agent and the animation without the active state knowing.
+        /// Handing both back to that state is what stops the monster walking off still playing the
+        /// swipe, or standing still playing a walk.
+        /// </summary>
+        private void MonsterDoorForcer_OnForcingFinished()
+        {
+            _stateMachine.ResumeLeaf();
         }
 
 
@@ -215,13 +249,9 @@ namespace Monster
 
             TickTracking(Time.deltaTime);
             TickAwareness(Time.deltaTime);
-            
-            if (monsterDoorForcer != null)
-            {
-                monsterDoorForcer.Tick(Time.deltaTime);
-            }
 
-            _stateMachine.Tick(Time.deltaTime);
+            TickStateMachineAroundDoor(Time.deltaTime);
+            TickPathWatchdog();
 
             string statePath = StatePath(_stateMachine.Root.Leaf());
             if (statePath == _lastPath) return;
@@ -300,6 +330,84 @@ namespace Monster
                              $"(andou {travelled:0.00}m) — estado {_lastPath}", this);
         }
 
+        /// <summary>
+        /// The door forcer and the state machine share one agent, so their order matters.
+        ///
+        /// <para>The forcer ticks first, so a door finished this frame resumes the active state
+        /// before that state updates. The state machine is skipped entirely while a swipe is
+        /// committed: letting it run used to un-stop the agent from any OnEnter or OnExit (Chase,
+        /// Search, Investigate, Wander all do it) and walk the monster straight through the leaf it
+        /// was still swiping at. Before the swipe the state machine runs, and a change of state
+        /// drops the door; otherwise the forcer re-asserts its hold after anything the states did.</para>
+        /// </summary>
+        private void TickStateMachineAroundDoor(float deltaTime)
+        {
+            if (monsterDoorForcer == null)
+            {
+                _stateMachine.Tick(deltaTime);
+                return;
+            }
+
+            monsterDoorForcer.Tick(deltaTime);
+
+            if (monsterDoorForcer.IsCommitted)
+            {
+                monsterDoorForcer.HoldAgent();
+                return;
+            }
+
+            State leafBefore = _stateMachine.Root.Leaf();
+
+            _stateMachine.Tick(deltaTime);
+
+            if (monsterDoorForcer.IsForcingDoor && _stateMachine.Root.Leaf() != leafBefore)
+            {
+                monsterDoorForcer.CancelBeforeSwipe();
+                return;
+            }
+
+            monsterDoorForcer.HoldAgent();
+        }
+
+        private void TickPathWatchdog()
+        {
+            if (_pathWatchdog == null) return;
+
+            LogPathStatusChange();
+
+            if (!_pathWatchdog.Tick(Time.time, IsForcingDoor, out PathProblem problem)) return;
+
+            State leaf = _stateMachine.Root.Leaf();
+
+            if (logPathStatus)
+            {
+                Debug.LogWarning($"Monster: PRESO ({problem}) em {StatePath(leaf)} — {_pathWatchdog.Describe()}", this);
+            }
+
+            if (leaf is IPathProblemHandler handler)
+            {
+                handler.OnPathProblem(problem);
+            }
+        }
+
+        /// <summary>Logs the moment the path stops being complete, throttled — Chase re-paths every frame.</summary>
+        private void LogPathStatusChange()
+        {
+            if (!logPathStatus || !navMeshAgent.isOnNavMesh) return;
+            if (navMeshAgent.pathPending || !navMeshAgent.hasPath) return;
+
+            NavMeshPathStatus status = navMeshAgent.pathStatus;
+            if (status == _lastLoggedPathStatus) return;
+            if (Time.time < _nextPathStatusLogTime) return;
+
+            _lastLoggedPathStatus = status;
+            _nextPathStatusLogTime = Time.time + 1f;
+
+            if (status == NavMeshPathStatus.PathComplete) return;
+
+            Debug.Log($"Monster: caminho {status} em {StatePath(_stateMachine.Root.Leaf())} — {_pathWatchdog.Describe()}", this);
+        }
+
         private Vector3 _lastLoggedPosition;
         private bool _hasLastLoggedPosition;
         private Vector3 _lastLoggedForward;
@@ -326,6 +434,11 @@ namespace Monster
             if (hearingSensor != null)
             {
                 hearingSensor.OnNoiseHeard -= HearingSensor_OnNoiseHeard;
+            }
+
+            if (monsterDoorForcer != null)
+            {
+                monsterDoorForcer.OnForcingFinished -= MonsterDoorForcer_OnForcingFinished;
             }
         }
         

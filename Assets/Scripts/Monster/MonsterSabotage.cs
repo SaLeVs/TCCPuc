@@ -303,6 +303,12 @@ namespace Monster
             OnSabotageEndedAnimation?.Invoke();
         }
 
+        /// <summary>Puts the sabotage clip back after something else borrowed the animator.</summary>
+        public void ReplayAnimation()
+        {
+            OnSabotageStartedAnimation?.Invoke();
+        }
+
         
         public void Uninitialize()
         {

@@ -62,10 +62,47 @@ namespace Monster
             _phase = InvestigatePhase.MovingToPoint;
             _lookTimer = 0f;
 
+            StartMoving();
+        }
+
+        /// <summary>
+        /// Picks up where it was after the door forcer hands the agent back. The forcer walked it
+        /// to a door and reset the path, so the destination has to be asked for again.
+        /// </summary>
+        public void Resume()
+        {
+            if (_agent == null) return;
+
+            switch (_phase)
+            {
+                case InvestigatePhase.MovingToPoint:
+                    StartMoving();
+                    break;
+
+                case InvestigatePhase.LookingAround:
+                    _agent.isStopped = true;
+                    OnStoppedMovingAnimation?.Invoke();
+                    break;
+            }
+        }
+
+        /// <summary>
+        /// The noise came from somewhere it cannot get to, or it has stopped getting closer. Listen
+        /// from here instead of walking at it forever.
+        /// </summary>
+        public void AbandonMove()
+        {
+            if (_agent == null || _phase != InvestigatePhase.MovingToPoint) return;
+
+            StartLookingAround();
+        }
+
+        private void StartMoving()
+        {
             _agent.isStopped = false;
             _agent.speed = investigateSpeed;
             _agent.updateRotation = false;
-            _agent.SetDestination(point);
+            _agent.SetDestination(_point);
 
             OnStartedMovingAnimation?.Invoke(investigateSpeed);
         }
@@ -108,6 +145,11 @@ namespace Monster
             if (_agent.pathPending) return;
             if (_agent.remainingDistance > Mathf.Max(_agent.stoppingDistance, destinationTolerance)) return;
 
+            StartLookingAround();
+        }
+
+        private void StartLookingAround()
+        {
             _agent.isStopped = true;
             _agent.ResetPath();
 

@@ -30,6 +30,15 @@ namespace Monster.MonsterStates.HuntStates
             _monsterBrain.MonsterAttack.TryStartAttack();
         }
 
+        /// <summary>
+        /// Only reachable if the monster was at a door when the swap to Attack happened. Asking
+        /// again is enough: on cooldown it is refused, and MonsterHunt swaps back to Chase.
+        /// </summary>
+        protected override void OnResume()
+        {
+            _monsterBrain.MonsterAttack.TryStartAttack();
+        }
+
         protected override void OnExit()
         {
             _monsterBrain.MonsterAttack.CancelAttack();

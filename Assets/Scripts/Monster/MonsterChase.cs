@@ -10,8 +10,12 @@ namespace Monster
     {
         public event Action OnStartedChasingAnimation;
         public event Action OnStoppedChasingAnimation;
+
+        /// <summary>Standing its ground because the target cannot be reached.</summary>
+        public event Action OnBlockedAnimation;
+
         public static Action<Vector3> OnMonsterSeeTargetSound;
-        
+
         [SerializeField] private float chaseSpeed = 8f;
         [SerializeField] private float targetReevaluationInterval = 1f;
         [SerializeField] private float rotationSpeed = 10f;
@@ -19,7 +23,10 @@ namespace Monster
         [Tooltip("Within this distance the monster turns to face the target directly instead of " +
                  "following the path. Keep it around attack range so the swing lands square.")]
         [SerializeField, Min(0f)] private float faceTargetDistance = 3f;
-        
+
+        [Tooltip("While the target cannot be reached, how often to check whether a way through has opened.")]
+        [SerializeField, Min(0.1f)] private float unreachableRecheckSeconds = 0.75f;
+
         public List<Transform> monsterTargets;
         public float DistanceFromTarget => _currentDistanceFromTarget;
         public bool HasTarget => _currentTarget != null;
@@ -31,7 +38,11 @@ namespace Monster
         private Transform _currentTarget;
         private float _currentDistanceFromTarget = float.MaxValue;
         private float _reevaluationTimer;
-        
+
+        private bool _holdingUnreachable;
+        private float _recheckTimer;
+        private NavMeshPath _probePath;
+
         
         public void Initialize(List<Transform> monsterTargetsList, NavMeshAgent agent, MonsterBrain monsterBrain)
         {
@@ -158,6 +169,7 @@ namespace Monster
         {
             _currentTarget = null;
             _currentDistanceFromTarget = float.MaxValue;
+            _holdingUnreachable = false;
 
             if (_agent == null) return;
 
@@ -170,14 +182,35 @@ namespace Monster
             _agent.updateRotation = true;
         }
 
+        /// <summary>Also what ChaseState resumes with after a door: the destination is re-asked every frame anyway.</summary>
         public void StartChase()
         {
             if (_agent == null) return;
+
+            _holdingUnreachable = false;
 
             _agent.isStopped = false;
             _agent.speed = chaseSpeed;
             _agent.updateRotation = false;
             OnStartedChasingAnimation?.Invoke();
+        }
+
+        /// <summary>
+        /// The target is somewhere the navmesh does not connect to. Stand and face it instead of
+        /// re-pathing at it every frame, which parked the monster at the end of a partial path with
+        /// its run cycle still playing. <see cref="ChaseUpdate"/> keeps checking for a way through.
+        /// </summary>
+        public void HoldUnreachable()
+        {
+            if (_agent == null || _holdingUnreachable) return;
+
+            _holdingUnreachable = true;
+            _recheckTimer = unreachableRecheckSeconds;
+
+            _agent.isStopped = true;
+            _agent.ResetPath();
+
+            OnBlockedAnimation?.Invoke();
         }
         
         
@@ -210,10 +243,40 @@ namespace Monster
                 ReevaluateTarget();
             }
 
+            if (_holdingUnreachable && !TryLeaveHold(deltaTime))
+            {
+                // Still no way through. Face the target from here: with the agent stopped the
+                // rotation below falls back to looking straight at it.
+                UpdateDistanceFromTarget();
+                RotateTowardsMovement(deltaTime);
+                return;
+            }
+
             _agent.SetDestination(_currentTarget.position);
 
             UpdateDistanceFromTarget();
             RotateTowardsMovement(deltaTime);
+        }
+
+        /// <summary>
+        /// Every <see cref="unreachableRecheckSeconds"/>, asks for a full path to the target
+        /// without committing the agent to it — resuming just to find out would flicker between
+        /// the run and the stand every time the answer is still no.
+        /// </summary>
+        private bool TryLeaveHold(float deltaTime)
+        {
+            _recheckTimer -= deltaTime;
+            if (_recheckTimer > 0f) return false;
+
+            _recheckTimer = unreachableRecheckSeconds;
+
+            _probePath ??= new NavMeshPath();
+
+            if (!_agent.CalculatePath(_currentTarget.position, _probePath)) return false;
+            if (_probePath.status != NavMeshPathStatus.PathComplete) return false;
+
+            StartChase();
+            return true;
         }
         
         /// <summary>
@@ -252,6 +315,8 @@ namespace Monster
         public void StopChase()
         {
             if (_agent == null) return;
+
+            _holdingUnreachable = false;
 
             _agent.isStopped = true;
             _agent.updateRotation = true;

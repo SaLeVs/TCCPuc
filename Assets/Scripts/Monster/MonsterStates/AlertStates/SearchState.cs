@@ -2,10 +2,9 @@
 
 namespace Monster.MonsterStates.AlertStates
 {
-    public class SearchState : State
+    public class SearchState : State, IPathProblemHandler
     {
         private readonly MonsterBrain _monsterBrain;
-        private bool _destinationSet;
 
         public SearchState(StateMachine stateMachine, State parentState, MonsterBrain monsterBrain) : base(stateMachine, parentState)
         {
@@ -35,6 +34,11 @@ namespace Monster.MonsterStates.AlertStates
                 StateMachine.Sequencer.RequestTransition(this, ((MonsterRoot)ParentState.ParentState).RoamingState);
             }
         }
+
+        protected override void OnResume() => _monsterBrain.MonsterSearch.Resume();
+
+        /// <summary>Cannot get to the last known position: sweep from here instead.</summary>
+        public void OnPathProblem(PathProblem problem) => _monsterBrain.MonsterSearch.AbandonMove();
 
         protected override void OnExit()
         {

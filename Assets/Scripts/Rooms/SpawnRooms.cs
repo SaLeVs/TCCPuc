@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using Components;
 using Missions;
 using ScriptableObjects;
 using Systems;
@@ -146,6 +147,7 @@ namespace Rooms
         private void RebuildNavMeshRpc()
         {
             navMeshSurface.BuildNavMesh();
+            NavMeshRebuildNotifier.NotifyRebuilt();
         }
         
         private void ShuffleList<T>(List<T> list)

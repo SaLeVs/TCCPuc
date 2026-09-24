@@ -54,6 +54,10 @@ namespace Monster
 
         private bool _waitingAtPoint;
 
+        // The point it is walking to, kept so a resume after a door can ask for it again.
+        private Vector3 _currentDestination;
+        private bool _hasDestination;
+
         private float[] _sectorWeights;
         private float[] _sectorLastVisitTime;
         private readonly List<Vector3> _huntablePositions = new();
@@ -217,11 +221,7 @@ namespace Monster
             
             if (!_waitingAtPoint && ReachedDestination())
             {
-                _waitingAtPoint = true;
-                _wanderTimer = 0f;
-                _agent.isStopped = true;
-
-                OnStoppedMovingAnimation?.Invoke();
+                StartWaiting();
             }
 
             if (_waitingAtPoint)
@@ -254,19 +254,67 @@ namespace Monster
                     _waitingAtPoint = false;
                     _wanderTimer = 0f;
                     _currentWanderInterval = Random.Range(minWanderIntervalForEachPoint, maxWanderIntervalForEachPoint);
+
+                    _currentDestination = destination;
+                    _hasDestination = true;
+
                     _agent.isStopped = false;
                     _agent.SetDestination(destination);
-                    
+
                     OnStartedMovingAnimation?.Invoke();
                 }
             }
         }
-        
+
+        /// <summary>
+        /// Picks up where it was after the door forcer hands the agent back: walking on to the same
+        /// point, or still standing at the last one.
+        /// </summary>
+        public void Resume()
+        {
+            _agent.speed = walkSpeed;
+            _agent.updateRotation = true;
+
+            if (_waitingAtPoint || !_hasDestination)
+            {
+                _agent.isStopped = true;
+                OnStoppedMovingAnimation?.Invoke();
+                return;
+            }
+
+            _agent.isStopped = false;
+            _agent.SetDestination(_currentDestination);
+
+            OnStartedMovingAnimation?.Invoke();
+        }
+
+        /// <summary>
+        /// This leg cannot be finished. Count it as walked and pick another point after the usual
+        /// pause, rather than marching on the spot until the sector timer runs out.
+        /// </summary>
+        public void AbandonLeg()
+        {
+            if (_waitingAtPoint) return;
+
+            StartWaiting();
+        }
+
+        private void StartWaiting()
+        {
+            _waitingAtPoint = true;
+            _hasDestination = false;
+            _wanderTimer = 0f;
+            _agent.isStopped = true;
+
+            OnStoppedMovingAnimation?.Invoke();
+        }
+
         public void StopWander()
         {
             _agent.isStopped = true;
             _agent.ResetPath();
 
+            _hasDestination = false;
             _sectorTimer = 0f;
             _wanderTimer = 0f;
         }

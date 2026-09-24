@@ -209,7 +209,11 @@ namespace Player
             float radius = playerCapsule != null ? playerCapsule.radius * Mathf.Max(scale.x, scale.z) : 0.4f;
             float height = playerCapsule != null ? playerCapsule.height * scale.y : 1.8f;
 
-            if (!StandingSpotFinder.TryFind(origin, radius, height, standingBlockingMask,
+            // Walls and doors block the sight line; other players do not, or a friend standing over
+            // the body would push the spot out past them.
+            int lineOfSightMask = standingBlockingMask & ~(1 << gameObject.layer);
+
+            if (!StandingSpotFinder.TryFind(origin, radius, height, standingBlockingMask, lineOfSightMask,
                     searchMaxDistance, searchStepSize, searchAngleStep, out Vector3 spot))
             {
                 Debug.LogWarning($"PlayerKnockdown: no free standing spot within {searchMaxDistance}m of {origin}; getting up where the body landed.");

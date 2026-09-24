@@ -29,6 +29,7 @@ namespace Ui
     {
         private const string BlockedLabel = "UNAVAILABLE";
         private const float FarPivotMargin = 3f;
+        private const float MaxCameraArm = 1f;
 
         [Header("References")]
         [SerializeField] private PlayerInteractor interactor;
@@ -104,7 +105,6 @@ namespace Ui
 
             public Vector2 Center;
             public Vector2 Size;
-            public bool Placed;
 
             public float Alpha;
             public float Appear;
@@ -137,7 +137,6 @@ namespace Ui
         private readonly List<InteractionMarker> _released = new();
         private readonly HashSet<GameObject> _inFrame = new();
         private readonly RaycastHit[] _hits = new RaycastHit[16];
-        private readonly Vector3[] _boundsCorners = new Vector3[8];
 
         private RectTransform _rect;
         private Canvas _canvas;
@@ -274,7 +273,7 @@ namespace Ui
                 if (marker.transform.IsChildOf(_playerRoot)) continue;
                 if (!marker.TryGetBounds(out Bounds bounds)) continue;
 
-                float distance = Vector3.Distance(eye, bounds.ClosestPoint(eye));
+                float distance = Mathf.Max(0f, StableDistance(bounds.ClosestPoint(eye)));
 
                 if (!focused)
                 {
@@ -347,20 +346,10 @@ namespace Ui
 
             if (!onScreen) return;
 
-            if (!widget.Placed)
-            {
-                widget.Center = center;
-                widget.Size = size;
-                widget.Placed = true;
-            }
-            else
-            {
-                // Quick enough to feel glued on, slow enough to iron out an animated mesh's
-                // bounds breathing from frame to frame.
-                float follow = 1f - Mathf.Exp(-28f * dt);
-                widget.Center = Vector2.Lerp(widget.Center, center, follow);
-                widget.Size = Vector2.Lerp(widget.Size, size, follow);
-            }
+            // Straight onto the object, no easing. A smoothed follow trailed behind whenever the
+            // camera turned and then caught up, so the marker swam around a prop standing still.
+            widget.Center = center;
+            widget.Size = size;
 
             Draw(widget);
         }
@@ -469,10 +458,29 @@ namespace Ui
 
                 widget.Alpha = Damp(widget.Alpha, 0f, 12f, dt);
                 widget.Focus = Damp(widget.Focus, 0f, 14f, dt);
+
+                bool gone = widget.Marker == null || !widget.Marker.isActiveAndEnabled;
+
+                // Still glued to the object while it fades. Left where the object used to be, the
+                // marker hung behind for a moment whenever the player turned a prop off screen.
+                if (!gone && _worldCamera != null && widget.Marker.TryGetBounds(out Bounds bounds))
+                {
+                    if (ProjectBounds(bounds, out Vector2 center, out Vector2 size))
+                    {
+                        widget.Center = center;
+                        widget.Size = size;
+                        Draw(widget);
+                    }
+                    else
+                    {
+                        // Behind the camera: there is nowhere on screen for it to be.
+                        widget.Alpha = 0f;
+                    }
+                }
+
                 widget.Group.alpha = widget.Alpha;
 
-                if (widget.Alpha < 0.01f || widget.Marker == null || !widget.Marker.isActiveAndEnabled)
-                    _released.Add(widget.Marker);
+                if (widget.Alpha < 0.01f || gone) _released.Add(widget.Marker);
             }
 
             foreach (InteractionMarker marker in _released) Release(marker);
@@ -532,66 +540,67 @@ namespace Ui
         }
 
         /// <summary>
-        /// The object's box, flattened onto the HUD. Anything with a corner behind the camera
-        /// collapses to its centre at the minimum size, which only happens for things right on
-        /// top of the lens anyway.
+        /// Where the object sits on the HUD, and how big its frame is.
         /// </summary>
+        /// <remarks>
+        /// The frame's size depends on how far away the object is and nothing else - never on
+        /// which way the camera faces. It used to be the eight corners of the world box projected
+        /// onto the screen, and that silhouette changes shape with the viewing angle, so merely
+        /// turning the camera made the frame stretch and shrink around a prop standing still.
+        /// </remarks>
         private bool ProjectBounds(Bounds bounds, out Vector2 center, out Vector2 size)
         {
-            Vector3 min = bounds.min, max = bounds.max;
-            _boundsCorners[0] = new Vector3(min.x, min.y, min.z);
-            _boundsCorners[1] = new Vector3(max.x, min.y, min.z);
-            _boundsCorners[2] = new Vector3(min.x, max.y, min.z);
-            _boundsCorners[3] = new Vector3(max.x, max.y, min.z);
-            _boundsCorners[4] = new Vector3(min.x, min.y, max.z);
-            _boundsCorners[5] = new Vector3(max.x, min.y, max.z);
-            _boundsCorners[6] = new Vector3(min.x, max.y, max.z);
-            _boundsCorners[7] = new Vector3(max.x, max.y, max.z);
+            center = default;
+            size = default;
 
-            Vector2 screenMin = new(float.MaxValue, float.MaxValue);
-            Vector2 screenMax = new(float.MinValue, float.MinValue);
-            bool behind = false;
-
-            foreach (Vector3 corner in _boundsCorners)
-            {
-                Vector3 screen = _worldCamera.WorldToScreenPoint(corner);
-                if (screen.z <= 0.05f)
-                {
-                    behind = true;
-                    break;
-                }
-
-                screenMin = Vector2.Min(screenMin, screen);
-                screenMax = Vector2.Max(screenMax, screen);
-            }
+            Vector3 screen = _worldCamera.WorldToScreenPoint(bounds.center);
+            if (screen.z <= 0.05f) return false;
 
             Camera uiCamera = _canvas.renderMode == RenderMode.ScreenSpaceOverlay ? null : _canvas.worldCamera;
+            if (!RectTransformUtility.ScreenPointToLocalPointInRectangle(_rect, screen, uiCamera, out center)) return false;
 
-            if (behind)
-            {
-                Vector3 screenCenter = _worldCamera.WorldToScreenPoint(bounds.center);
-                size = Vector2.one * (minFrameSize + framePadding * 2f);
+            float distance = Mathf.Max(StableDistance(bounds.center), _worldCamera.nearClipPlane);
+            float halfFov = _worldCamera.fieldOfView * 0.5f * Mathf.Deg2Rad;
+            float pixelsPerMetre = _worldCamera.pixelHeight / (2f * distance * Mathf.Tan(halfFov));
+            float unitsPerMetre = pixelsPerMetre / Mathf.Max(_canvas.scaleFactor, 0.0001f);
 
-                if (screenCenter.z <= 0f)
-                {
-                    center = default;
-                    return false;
-                }
+            // Width from the wider of the two horizontal extents, so spinning around the object
+            // keeps the same frame too.
+            Vector3 extents = bounds.extents;
+            float width = 2f * Mathf.Max(extents.x, extents.z) * unitsPerMetre;
+            float height = 2f * extents.y * unitsPerMetre;
 
-                return RectTransformUtility.ScreenPointToLocalPointInRectangle(_rect, screenCenter, uiCamera, out center);
-            }
-
-            RectTransformUtility.ScreenPointToLocalPointInRectangle(_rect, screenMin, uiCamera, out Vector2 localMin);
-            RectTransformUtility.ScreenPointToLocalPointInRectangle(_rect, screenMax, uiCamera, out Vector2 localMax);
-
-            center = (localMin + localMax) * 0.5f;
-
-            Vector2 raw = localMax - localMin;
             size = new Vector2(
-                Mathf.Clamp(raw.x, minFrameSize, maxFrameSize) + framePadding * 2f,
-                Mathf.Clamp(raw.y, minFrameSize, maxFrameSize) + framePadding * 2f);
+                Mathf.Clamp(width, minFrameSize, maxFrameSize) + framePadding * 2f,
+                Mathf.Clamp(height, minFrameSize, maxFrameSize) + framePadding * 2f);
 
             return true;
+        }
+
+        /// <summary>
+        /// How far the object is, in a way that only changes when the player walks.
+        /// </summary>
+        /// <remarks>
+        /// Straight-line distance rather than depth along the view, since depth changes as the
+        /// camera turns. And measured from the body rather than the lens: the camera sits on a
+        /// short arm in front of the body and swings around it with every turn, so measuring from
+        /// the camera still nudged the frame's size each time the player looked around. Taking the
+        /// arm back off keeps it exact for whatever the player is facing.
+        /// </remarks>
+        private float StableDistance(Vector3 target)
+        {
+            Vector3 lens = _worldCamera.transform.position;
+            if (_playerRoot == null) return Vector3.Distance(lens, target);
+
+            Vector3 pivot = _playerRoot.position;
+            pivot.y = lens.y;
+
+            float arm = new Vector2(lens.x - pivot.x, lens.z - pivot.z).magnitude;
+
+            // A ragdoll or spectator camera is not on that arm any more.
+            if (arm > MaxCameraArm) return Vector3.Distance(lens, target);
+
+            return Vector3.Distance(pivot, target) - arm;
         }
 
         private string ReadKeyDisplay()
@@ -618,7 +627,6 @@ namespace Ui
             Widget widget = _pool.Count > 0 ? _pool.Pop() : CreateWidget();
 
             widget.Marker = marker;
-            widget.Placed = false;
             widget.Alpha = 0f;
             widget.Appear = 0f;
             widget.Focus = 0f;

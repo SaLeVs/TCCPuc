@@ -81,7 +81,12 @@ public class AudioDeviceSettings : MonoBehaviour
 
     private void Update()
     {
-        if (VivoxService.Instance.ActiveChannels.Count > 0)
+        // Vivox has no channel list until it has logged in, and in the main menu it has not yet:
+        // reading ActiveChannels there threw a NullReferenceException every frame.
+        IVivoxService vivox = VivoxService.Instance;
+        if (vivox == null || !vivox.IsLoggedIn || vivox.ActiveChannels == null) return;
+
+        if (vivox.ActiveChannels.Count > 0)
         {
             KeyValuePair<string, ReadOnlyCollection<VivoxParticipant>> channel = VivoxService.Instance.ActiveChannels.FirstOrDefault();
             VivoxParticipant localParticipant = channel.Value.FirstOrDefault(p => p.IsSelf);

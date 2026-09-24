@@ -1,4 +1,5 @@
 using System;
+using Components;
 using TMPro;
 using Unity.Netcode;
 using UnityEngine;
@@ -72,20 +73,21 @@ namespace Network
             string reason = networkManager.DisconnectReason;
 
             Report(string.IsNullOrWhiteSpace(reason)
-                ? "Connection denied or lost. Connection denied or lost. Check the IP, the port or the firewall (Entrance UDP)."
+                ? "Connection denied or lost. Check the IP, the port or the firewall (inbound UDP)."
                 : $"Disconnected: {reason}");
         }
 
         private void NetworkManager_OnTransportFailure()
         {
             Report(
-                "Fail on transport, host down and the port are busy. Fail on transport, host down and the port are busy. Check the IP, the port or the firewall (Entrance UDP).");
+                "Transport failure: the host is down or the port is busy. Check the IP, the port or the firewall (inbound UDP).");
         }
 
         public static void Report(string message)
         {
             LastMessage = message;
             Debug.LogWarning($"ConnectionFeedback: {message}");
+            ScreenToast.Show(message, ToastKind.Warning);
             OnMessage?.Invoke(message);
         }
 

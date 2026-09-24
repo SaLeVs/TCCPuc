@@ -25,6 +25,15 @@ namespace Inputs
         public event Action OnHideDonateEvent;
         
 
+        /// <summary>The key the player presses to interact, as the HUD should print it ("E").</summary>
+        public string GetInteractBindingDisplay()
+        {
+            if (_playerActions == null) return string.Empty;
+
+            return _playerActions.Game.Interact.GetBindingDisplayString(
+                InputBinding.DisplayStringOptions.DontIncludeInteractions);
+        }
+
         private void OnEnable()
         {
             if (_playerActions == null)

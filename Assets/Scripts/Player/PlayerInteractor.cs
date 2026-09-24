@@ -26,12 +26,22 @@ namespace Player
 
         public IInteractable CurrentInteractable => _currentInteractable;
 
+        /// <summary>
+        /// What the crosshair rests on, even when it refuses the player. The HUD needs the refused
+        /// case too: <see cref="CurrentInteractable"/> goes null there, which would read as "nothing
+        /// here" instead of "this is not yours".
+        /// </summary>
+        public IInteractable HoveredInteractable => _hoveredInteractable;
+
+        public bool IsHoveredBlocked => _hoveredInteractable != null && _currentInteractable == null;
+
         private float _checkTimer;
         private Ray _currentRay;
 
         private bool _isPlayerHitInteractable;
 
         private IInteractable _currentInteractable;
+        private IInteractable _hoveredInteractable;
         private IHighlighted _currentHighlighted;
 
         private Transform _rayOrigin;
@@ -135,6 +145,7 @@ namespace Player
             if (_currentInteractable != null && (_currentInteractable as MonoBehaviour) == null)
             {
                 _currentInteractable = null;
+                _hoveredInteractable = null;
                 _currentHighlighted?.Disable();
                 _currentHighlighted = null;
             }
@@ -151,6 +162,7 @@ namespace Player
                     bool canInteract = interactable.CanInteract(gameObject);
 
                     _currentInteractable = canInteract ? interactable : null;
+                    _hoveredInteractable = interactable;
 
                     ApplyHighlight(hit.collider, canInteract);
 
@@ -160,6 +172,7 @@ namespace Player
 
             ClearHighlight();
             _currentInteractable = null;
+            _hoveredInteractable = null;
             return false;
         }
 
@@ -191,6 +204,7 @@ namespace Player
         {
             ClearHighlight();
             _currentInteractable = null;
+            _hoveredInteractable = null;
             _isPlayerHitInteractable = false;
         }
 

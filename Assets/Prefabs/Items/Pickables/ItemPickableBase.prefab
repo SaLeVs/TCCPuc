@@ -14,6 +14,7 @@ GameObject:
   - component: {fileID: 2759342152120301046}
   - component: {fileID: 1117828246169919045}
   - component: {fileID: 80164970372955365}
+  - component: {fileID: 2951961394396588224}
   m_Layer: 8
   m_Name: ItemPickableBase
   m_TagString: Untagged
@@ -156,6 +157,21 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 1, y: 1, z: 1}
   m_Center: {x: 0, y: 0, z: 0}
+--- !u!114 &2951961394396588224
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6957830180743672895}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6e079cac865f317449e8df9d83d42f31, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Components::Components.InteractionMarker
+  actionLabel: Pick up
+  framedRenderers: []
+  revealDistance: 0
 --- !u!1 &8926870211040262102
 GameObject:
   m_ObjectHideFlags: 0

@@ -32,6 +32,7 @@ namespace Missions.Donations
         private readonly NetworkList<DonationNetworkState> _networkStates = new();
         private readonly Dictionary<string, DonationInstance> _activeInstances = new();
         private readonly Dictionary<string, float> _cooldownTimers = new();
+        private readonly List<string> _cooldownKeys = new();
         private readonly Dictionary<string, DonationDefinition> _definitionsById = new();
 
         private readonly Dictionary<RecordableTarget, HashSet<ulong>> _recordingWatchers = new();
@@ -162,8 +163,12 @@ namespace Missions.Donations
         {
             if (_cooldownTimers.Count == 0) return;
 
-            var keys = new List<string>(_cooldownTimers.Keys);
-            foreach (var key in keys)
+            // Reused: this runs every frame for as long as any type is cooling down, and a fresh
+            // list per frame was garbage the collector had to come back for.
+            _cooldownKeys.Clear();
+            _cooldownKeys.AddRange(_cooldownTimers.Keys);
+
+            foreach (var key in _cooldownKeys)
             {
                 _cooldownTimers[key] = Mathf.Max(0f, _cooldownTimers[key] - delta);
             }
@@ -291,8 +296,7 @@ namespace Missions.Donations
                     ? deltaSeconds / instance.Definition.requiredRecordingSeconds
                     : 1f;
 
-                instance.Progress = Mathf.Clamp01(instance.Progress + step);
-                PushNetworkState(instance);
+                AdvanceProgress(instance, step);
 
                 if (instance.Progress >= 1f)
                 {
@@ -331,8 +335,7 @@ namespace Missions.Donations
                 
                 float step = instance.Definition.requiredSpeechSeconds > 0f ? deltaSeconds / instance.Definition.requiredSpeechSeconds : 1f;
 
-                instance.Progress = Mathf.Clamp01(instance.Progress + step);
-                PushNetworkState(instance);
+                AdvanceProgress(instance, step);
 
                 if (instance.Progress >= 1f)
                 {
@@ -363,6 +366,24 @@ namespace Missions.Donations
             PushNetworkState(instance);
             OnDonationExpired?.Invoke(instance);
             _activeInstances.Remove(instance.InstanceId);
+        }
+
+        /// <summary>
+        /// Moves a donation along and replicates it once per whole percent rather than every frame.
+        /// </summary>
+        /// <remarks>
+        /// Progress is fed a frame at a time while a player records or talks, and every push rewrites
+        /// the whole entry in the NetworkList - donor name and message included - to every client.
+        /// Sixty full entries a second for a bar that moves a pixel at a time was bandwidth and
+        /// client-side UI work for nothing anyone could see.
+        /// </remarks>
+        private void AdvanceProgress(DonationInstance instance, float step)
+        {
+            float before = instance.Progress;
+            instance.Progress = Mathf.Clamp01(before + step);
+
+            bool crossedPercent = Mathf.FloorToInt(instance.Progress * 100f) != Mathf.FloorToInt(before * 100f);
+            if (crossedPercent || instance.Progress >= 1f) PushNetworkState(instance);
         }
 
         private void PushNetworkState(DonationInstance instance)

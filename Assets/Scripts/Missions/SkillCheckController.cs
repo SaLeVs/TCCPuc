@@ -42,27 +42,20 @@ public class SkillCheckController : MonoBehaviour
         
         bool success = distance <= successDistance;
 
-        Debug.Log($"Distance: {distance}");
 
         if (success)
         {
-            Debug.Log($"SkillCheck: Correct, Slot: {generator.CurrentSlot.name}");
 
             _currentCorrectChecks++;
 
             if (_currentCorrectChecks >= requiredCorrectChecks)
             {
                 _puzzleActive = false;
-                Debug.Log("SkillCheck: Puzzle completed");
                 OnPuzzleComplete?.Invoke();
                 return;
             }
 
             generator.GenerateNewSlot();
-        }
-        else
-        {
-            Debug.Log("SkillCheck: Error");
         }
     }
         

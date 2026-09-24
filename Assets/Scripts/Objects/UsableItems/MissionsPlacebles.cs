@@ -27,7 +27,7 @@ namespace Objects.UsableItems
                 if (playerNetworkObject != null)
                 {
                     _playerInteractor = playerNetworkObject.gameObject;
-                    if (_playerInteractor.TryGetComponent(out _interactor)) ;
+                    _playerInteractor.TryGetComponent(out _interactor);
                 }
             }
         }

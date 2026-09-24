@@ -46,8 +46,6 @@ namespace Systems
             int restored = sabotage.RestoreAll(SabotageType.Light);
             if (restored == 0) return;
 
-            Debug.Log($"ElectricCircuit: {restored} light(s) back on.");
-
             PlayRestoredRpc();
         }
 

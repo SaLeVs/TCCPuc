@@ -46,8 +46,6 @@ namespace Systems
             spawned.TryGetComponent(out ElectricCircuit circuit);
             SpawnedCircuit = circuit;
 
-            Debug.Log($"ElectricCircuitManager: circuit placed at {point.name}.");
-
             OnSpawnCompleted?.Invoke();
         }
 

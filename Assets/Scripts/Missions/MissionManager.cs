@@ -51,7 +51,6 @@ namespace Missions
 
             if (!_personalMissionsForPlayers.TryGetValue(deadClientId, out List<MissionSO> deadMissions) || deadMissions.Count == 0)
             {
-                Debug.Log($"MissionManager: Player {deadClientId} died with no pending missions.");
                 return;
             }
 
@@ -59,7 +58,6 @@ namespace Missions
 
             if (alivePlayers.Count == 0)
             {
-                Debug.LogWarning("MissionManager: No alive players to receive transferred missions.");
                 return;
             }
 
@@ -95,7 +93,6 @@ namespace Missions
             }
 
             deadMissions.Clear();
-            Debug.Log($"MissionManager: Transferred {total} missions from player {deadClientId} to {alivePlayers.Count} player(s).");
         }
 
         private IEnumerator ReassignOwnersNextFrame(Dictionary<ulong, List<MissionSO>> transferMap)
@@ -137,7 +134,6 @@ namespace Missions
         {
             _completedPersonalMissions++;
             RemoveMissionFromTracker(mission);
-            Debug.Log("MissionManager: Mission completed");
 
             if (_completedPersonalMissions >= _totalPersonalMissions)
             {
@@ -174,7 +170,6 @@ namespace Missions
         
         private void RevealMainMission()
         {
-            Debug.Log($"MissionManager: Reveal main mission {currentContract.mainMission.missionName}");
             
             if (IsServer)
             {
@@ -353,7 +348,6 @@ namespace Missions
             if (!IsServer) return;
 
             OnMainMissionCompleted?.Invoke();
-            Debug.Log("MissionManager: Main mission completed!");
             CompleteMainMissionRpc();
         }
         

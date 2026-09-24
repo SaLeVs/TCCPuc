@@ -28,13 +28,10 @@ namespace Audio
 
         /// <summary>
         /// Vivox only exposes its voices once logged in, and has no setting for them outside code.
-        /// The list is logged so the name for <see cref="ttsVoice"/> can be copied from the Console.
         /// </summary>
         private void ApplyVoice()
         {
             VivoxService.Instance.LoggedIn -= ApplyVoice;
-
-            Debug.Log($"DonationAudioManager: available TTS voices: {string.Join(", ", VivoxService.Instance.TextToSpeechAvailableVoices)}");
 
             if (string.IsNullOrWhiteSpace(ttsVoice)) return;
 
@@ -91,8 +88,6 @@ namespace Audio
             try
             {
                 VivoxService.Instance.TextToSpeechSendMessage(message, TextToSpeechMessageType.QueuedRemoteTransmissionWithLocalPlayback);
-
-                Debug.Log($"DonationAudioManager: TTS: {message}");
             }
             catch (Exception e)
             {

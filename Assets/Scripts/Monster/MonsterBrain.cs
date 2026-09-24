@@ -34,26 +34,8 @@ namespace Monster
         [SerializeField] private float trackingGraceSeconds = 3f;
 
         [Header("Debug")]
-        [Tooltip("Logs any frame where the monster moves further than it physically could. " +
-                 "Runs on every peer — turn it on as a LAN client to tell a network problem " +
-                 "(client logs jumps, host does not) from a local one (both log them).")]
-        [SerializeField] private bool logMovementJumps;
-
-        [Tooltip("A jump is anything faster than this, in metres per second.")]
-        [SerializeField, Min(1f)] private float jumpSpeedThreshold = 12f;
-
-        [Tooltip("Warns when the state machine changes state again too soon after the last one. " +
-                 "Rapid back-and-forth here is the usual cause of the monster twitching in place.")]
-        [SerializeField] private bool logRapidStateChanges = true;
-
-        [Tooltip("A state that lasts less than this many seconds is flagged.")]
-        [SerializeField, Min(0.05f)] private float rapidStateSeconds = 0.75f;
-
-        [Tooltip("Warns when the monster swings its facing further than it should in one frame.")]
-        [SerializeField] private bool logFacingFlips;
-
-        [Tooltip("Degrees of turn in a single frame that counts as a flip.")]
-        [SerializeField, Min(1f)] private float facingFlipDegrees = 40f;
+        [Tooltip("Logs every state change with the awareness level and how long the previous state lasted.")]
+        [SerializeField] private bool logStateChanges = true;
 
         [Header("Path watchdog")]
         [Tooltip("Seconds the agent may try to move without getting anywhere before the active state is told it is stuck.")]
@@ -62,7 +44,7 @@ namespace Monster
         [Tooltip("Metres it has to cover in that time to count as making progress.")]
         [SerializeField, Min(0.05f)] private float stuckMinProgress = 0.4f;
 
-        [Tooltip("Logs every stuck or unreachable report, and every time the path turns partial or invalid.")]
+        [Tooltip("Warns when the watchdog finds the monster stuck or its target unreachable.")]
         [SerializeField] private bool logPathStatus = true;
 
         [Header("Taunt")]
@@ -112,12 +94,11 @@ namespace Monster
 
         private StateMachine _stateMachine;
         private State _rootState;
-        private string _lastPath;
+        private State _lastLeaf;
+        private float _lastStateChangeTime;
         private float _trackingTimer;
 
         private MonsterPathWatchdog _pathWatchdog;
-        private NavMeshPathStatus _lastLoggedPathStatus = NavMeshPathStatus.PathComplete;
-        private float _nextPathStatusLogTime;
 
         
         private void Awake()
@@ -199,8 +180,6 @@ namespace Monster
             if (!_playersInVision.Contains(player.transform)) return;
 
             _taunt.Request(player.transform, Time.time);
-
-            Debug.Log($"Monster: {(died ? "matou" : "derrubou")} {player.name} na frente dele — vai zoar", this);
         }
 
         private void MonsterTaunt_OnTauntAnimation() => OnTauntAnimation?.Invoke();
@@ -319,82 +298,29 @@ namespace Monster
             }
 
             TickPathWatchdog();
+            TrackStateChange();
+        }
 
-            string statePath = StatePath(_stateMachine.Root.Leaf());
-            if (statePath == _lastPath) return;
+        /// <summary>
+        /// Compares the leaf by reference and only builds the readable path when it changed.
+        /// Building it every frame to find out whether it changed was a LINQ walk and a string
+        /// join sixty times a second, for a log line that fires a few times a minute.
+        /// </summary>
+        private void TrackStateChange()
+        {
+            State leaf = _stateMachine.Root.Leaf();
+            if (leaf == _lastLeaf) return;
 
             float heldFor = _lastStateChangeTime > 0f ? Time.time - _lastStateChangeTime : 0f;
 
-            _lastPath = statePath;
+            _lastLeaf = leaf;
             _lastStateChangeTime = Time.time;
+
+            if (!logStateChanges) return;
 
             // Server-only: the state machine does not run anywhere else. If you are testing as a
             // LAN client and see nothing here, that is expected — run as host to read the AI.
-            Debug.Log($"Monster: State: {statePath}  (awareness {monsterAwareness.Value:0.00} / {monsterAwareness.Level}, anterior durou {heldFor:0.00}s)");
-
-            if (!logRapidStateChanges) return;
-
-            bool wasRapid = heldFor > 0f && heldFor < rapidStateSeconds;
-
-            if (!wasRapid)
-            {
-                _rapidChangeStreak = 0;
-                return;
-            }
-
-            _rapidChangeStreak++;
-
-            Debug.LogWarning($"Monster: TROCA RAPIDA DE ESTADO — durou so {heldFor:0.00}s " +
-                             $"({_rapidChangeStreak} seguidas). Agora: {statePath}", this);
-        }
-        
-        /// <summary>
-        /// Runs on every peer, unlike <see cref="Update"/>. On a client the transform is written
-        /// by NetworkTransform interpolation, so a jump logged here and not on the host means the
-        /// updates are arriving late or dropping — a network problem, not an AI one.
-        /// </summary>
-        private void LateUpdate()
-        {
-            if (!logMovementJumps && !logFacingFlips) return;
-
-            Vector3 position = transform.position;
-            Vector3 forward = transform.forward;
-
-            if (!_hasLastLoggedPosition)
-            {
-                _lastLoggedPosition = position;
-                _lastLoggedForward = forward;
-                _hasLastLoggedPosition = true;
-                return;
-            }
-
-            float travelled = Vector3.Distance(_lastLoggedPosition, position);
-            float turned = Vector3.Angle(_lastLoggedForward, forward);
-
-            _lastLoggedPosition = position;
-            _lastLoggedForward = forward;
-
-            if (Time.deltaTime <= 0f) return;
-
-            string peer = IsServer ? "HOST" : "CLIENT";
-
-            if (logMovementJumps)
-            {
-                float speed = travelled / Time.deltaTime;
-
-                if (speed >= jumpSpeedThreshold)
-                {
-                    Debug.Log($"Monster: {peer} SALTO de {travelled:0.00}m num frame ({speed:0} m/s)");
-                }
-            }
-
-            if (!logFacingFlips) return;
-            if (turned < facingFlipDegrees) return;
-
-            // A big turn in one frame is either the rotation code fighting itself or a path that
-            // doubled back — both look identical on screen, but only the second moves the agent.
-            Debug.LogWarning($"Monster: {peer} GIROU {turned:0}graus num frame " +
-                             $"(andou {travelled:0.00}m) — estado {_lastPath}", this);
+            Debug.Log($"Monster: State: {StatePath(leaf)}  (awareness {monsterAwareness.Value:0.00} / {monsterAwareness.Level}, anterior durou {heldFor:0.00}s)");
         }
 
         /// <summary>
@@ -440,8 +366,6 @@ namespace Monster
         {
             if (_pathWatchdog == null) return;
 
-            LogPathStatusChange();
-
             if (!_pathWatchdog.Tick(Time.time, IsForcingDoor || IsTaunting, out PathProblem problem)) return;
 
             State leaf = _stateMachine.Root.Leaf();
@@ -456,30 +380,6 @@ namespace Monster
                 handler.OnPathProblem(problem);
             }
         }
-
-        /// <summary>Logs the moment the path stops being complete, throttled — Chase re-paths every frame.</summary>
-        private void LogPathStatusChange()
-        {
-            if (!logPathStatus || !navMeshAgent.isOnNavMesh) return;
-            if (navMeshAgent.pathPending || !navMeshAgent.hasPath) return;
-
-            NavMeshPathStatus status = navMeshAgent.pathStatus;
-            if (status == _lastLoggedPathStatus) return;
-            if (Time.time < _nextPathStatusLogTime) return;
-
-            _lastLoggedPathStatus = status;
-            _nextPathStatusLogTime = Time.time + 1f;
-
-            if (status == NavMeshPathStatus.PathComplete) return;
-
-            Debug.Log($"Monster: caminho {status} em {StatePath(_stateMachine.Root.Leaf())} — {_pathWatchdog.Describe()}", this);
-        }
-
-        private Vector3 _lastLoggedPosition;
-        private bool _hasLastLoggedPosition;
-        private Vector3 _lastLoggedForward;
-        private float _lastStateChangeTime;
-        private int _rapidChangeStreak;
 
         private static string StatePath(State state)
         {

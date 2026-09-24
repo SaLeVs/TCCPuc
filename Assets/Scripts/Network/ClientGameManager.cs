@@ -31,11 +31,10 @@ namespace Network
             
             if (authState == AuthenticationState.Authenticated)
             {
-                Debug.Log("ClientGameManager: Authenticated");
                 return true;
             }
             
-            Debug.Log("ClientGameManager: Failed to initialize");
+            Debug.LogError("ClientGameManager: Failed to initialize");
             return false;
         }
 
@@ -58,7 +57,7 @@ namespace Network
             }
             catch (Exception e)
             {
-                Debug.Log(e);
+                Debug.LogException(e);
                 ConnectionFeedback.Report("Código de sala inválido ou serviço indisponível.");
                 return;
             }

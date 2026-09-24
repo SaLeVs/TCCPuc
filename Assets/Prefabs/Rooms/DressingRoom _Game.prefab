@@ -293,6 +293,7 @@ GameObject:
   - component: {fileID: 8957328166359452540}
   - component: {fileID: 8592657871611091954}
   - component: {fileID: 3773673976897314126}
+  - component: {fileID: 4440796899004606183}
   m_Layer: 0
   m_Name: Camera
   m_TagString: Untagged
@@ -347,7 +348,7 @@ Camera:
     width: 1
     height: 1
   near clip plane: 0.3
-  far clip plane: 1000
+  far clip plane: 20
   field of view: 113
   orthographic: 0
   orthographic size: 5
@@ -363,7 +364,7 @@ Camera:
   m_AllowMSAA: 1
   m_AllowDynamicResolution: 0
   m_ForceIntoRT: 0
-  m_OcclusionCulling: 1
+  m_OcclusionCulling: 0
   m_StereoConvergence: 10
   m_StereoSeparation: 0.022
 --- !u!114 &3773673976897314126
@@ -378,12 +379,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a79441f348de89743a2939f4d699eac1, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Unity.RenderPipelines.Universal.Runtime::UnityEngine.Rendering.Universal.UniversalAdditionalCameraData
-  m_RenderShadows: 1
-  m_RequiresDepthTextureOption: 2
-  m_RequiresOpaqueTextureOption: 2
+  m_RenderShadows: 0
+  m_RequiresDepthTextureOption: 0
+  m_RequiresOpaqueTextureOption: 0
   m_CameraType: 0
   m_Cameras: []
-  m_RendererIndex: -1
+  m_RendererIndex: 1
   m_VolumeLayerMask:
     serializedVersion: 2
     m_Bits: 1
@@ -410,6 +411,21 @@ MonoBehaviour:
     m_VarianceClampScale: 0.9
     m_ContrastAdaptiveSharpening: 0
   m_Version: 2
+--- !u!114 &4440796899004606183
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 712491659160710064}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 761a8d20262fd0b44ba9441010c3b1d9, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Components::Components.MirrorCamera
+  mirrorSurface: {fileID: 6308667193775648018}
+  maxViewDistance: 15
+  refreshRate: 30
 --- !u!1 &1127828972446357544
 GameObject:
   m_ObjectHideFlags: 0

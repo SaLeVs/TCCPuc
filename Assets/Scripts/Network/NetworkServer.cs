@@ -29,8 +29,6 @@ namespace Network
 
             response.Approved = true;
             response.CreatePlayerObject = false;
-
-            Debug.Log($"NetworkServer: Approved client {request.ClientNetworkId} as '{userData.playerName}'");
         }
         
         private void NetworkManager_OnServerStarted()

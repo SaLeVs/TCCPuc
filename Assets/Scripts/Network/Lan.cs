@@ -38,13 +38,11 @@ namespace Network
         public void OnChangeIpInputField(string ip)
         {
             _ip = ip;
-            Debug.Log($"ip changed to {ip}");
         }
 
         public void OnChangePortInputField(string portCode)
         {
             _port = portCode;
-            Debug.Log($"port changed to {_port}");
         }
 
         public async void StartSessionLan()
@@ -62,7 +60,6 @@ namespace Network
             // "0.0.0.0" as listen address = accept on every interface (Wi-Fi, Ethernet, Radmin VPN).
             transport.SetConnectionData("0.0.0.0", portNumber, "0.0.0.0");
 
-            Debug.Log($"Lan: hosting on 0.0.0.0:{portNumber}");
 
             if (!await HostSingleton.instance.gameManager.StartLanHostAsync())
             {
@@ -87,7 +84,6 @@ namespace Network
             UnityTransport transport = NetworkManager.Singleton.GetComponent<UnityTransport>();
             transport.SetConnectionData(_ip, portNumber);
 
-            Debug.Log($"Lan: connecting to {_ip}:{portNumber}");
 
             if (!await ClientSingleton.instance.gameManager.StartLanClientAsync())
             {

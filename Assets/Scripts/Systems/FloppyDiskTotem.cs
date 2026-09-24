@@ -61,11 +61,9 @@ namespace Systems
             _disksPlaced.Value++;
 
             SpawnDiskVisualRpc(slotIndex);
-            Debug.Log($"Placed disk {slotIndex}");
 
             if (IsComplete)
             {
-                Debug.Log("FloppyDiskTotem: All disks placed!");
                 OnAllDisksPlaced?.Invoke();
             }
         }

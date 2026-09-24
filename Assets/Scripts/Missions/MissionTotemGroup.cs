@@ -91,7 +91,6 @@ namespace Missions
 
             IsComplete = true;
             missionCompleter.Complete();
-            NotifyMissionCompletedRpc();
             NotifyOwnerMissionCompletedRpc(RpcTarget.Single(clientId, RpcTargetUse.Temp));
         }
 
@@ -104,9 +103,6 @@ namespace Missions
             
             return true;
         }
-
-        [Rpc(SendTo.ClientsAndHost)]
-        private void NotifyMissionCompletedRpc() => Debug.Log("MissionTotemGroup: Mission completed");
 
         [Rpc(SendTo.SpecifiedInParams)]
         private void NotifyOwnerMissionCompletedRpc(RpcParams rpcParams = default)

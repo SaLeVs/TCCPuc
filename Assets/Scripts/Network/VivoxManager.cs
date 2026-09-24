@@ -75,12 +75,6 @@ namespace Network
         
         private void Start()
         {
-            VivoxService.Instance.LoggedIn += VivoxService_OnUserLoggedIn;
-            VivoxService.Instance.LoggedOut += VivoxService_OnUserLoggedOut;
-
-            VivoxService.Instance.ChannelJoined += VivoxService_OnChannelJoined;
-            VivoxService.Instance.ChannelLeft += VivoxService_OnChannelLeft;
-
             VivoxService.Instance.ParticipantAddedToChannel += VivoxService_OnParticipantAddedToChannel;
             VivoxService.Instance.ParticipantRemovedFromChannel += VivoxService_OnParticipantRemovedFromChannel;
 
@@ -138,17 +132,14 @@ namespace Network
 
                 if (positional)
                 {
-                    Debug.Log($"[Vivox] audible={audibleDistance} conversational={conversationalDistance} fade={audioFadeIntensity}");
                     Channel3DProperties properties = new Channel3DProperties(audibleDistance: audibleDistance, conversationalDistance: conversationalDistance,
                         audioFadeIntensityByDistanceaudio: audioFadeIntensity, audioFadeModel: audioFadeModel);
 
                     await VivoxService.Instance.JoinPositionalChannelAsync(newChannelName, capability, properties);
-                    Debug.Log("Enter in positionalGameAsync");
                 }
                 else
                 {
                     await VivoxService.Instance.JoinGroupChannelAsync(newChannelName, capability);
-                    Debug.Log("Enter in groupChannelAsync");
                 }
 
                 _currentChannelName = newChannelName;
@@ -323,11 +314,6 @@ namespace Network
             if (participant.ChannelName == ECHO_CHANNEL_NAME) return;
             OnParticipantLeftChannel?.Invoke(participant);
         }
-        
-        private void VivoxService_OnChannelJoined(string channelName) => Debug.Log($"Joined channel: {channelName}");
-        private void VivoxService_OnChannelLeft(string channelName) => Debug.Log($"Left channel: {channelName}");
-        private void VivoxService_OnUserLoggedIn() => Debug.Log("User logged in");
-        private void VivoxService_OnUserLoggedOut() => Debug.Log("User logged out");
 
         private async void Application_ApplicationQuit()
         {
@@ -347,12 +333,6 @@ namespace Network
         
         private void OnDisable()
         {
-            VivoxService.Instance.LoggedIn -= VivoxService_OnUserLoggedIn;
-            VivoxService.Instance.LoggedOut -= VivoxService_OnUserLoggedOut;
-
-            VivoxService.Instance.ChannelJoined -= VivoxService_OnChannelJoined;
-            VivoxService.Instance.ChannelLeft -= VivoxService_OnChannelLeft;
-
             VivoxService.Instance.ParticipantAddedToChannel -= VivoxService_OnParticipantAddedToChannel;
             VivoxService.Instance.ParticipantRemovedFromChannel -= VivoxService_OnParticipantRemovedFromChannel;
 

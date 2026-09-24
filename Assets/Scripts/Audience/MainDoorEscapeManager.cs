@@ -87,7 +87,6 @@ namespace Audience
             yield return new WaitForSeconds(stateInfo.length);
 
             navMeshSurface.BuildNavMesh();
-            Debug.Log("Build NavMesh after door opened");
         }
 
         public override void OnNetworkDespawn()

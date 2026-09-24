@@ -39,7 +39,6 @@ namespace Missions
             _personalMissions.Add(mission);
             OnPersonalMissionReceived?.Invoke(mission);
             OnMissionRecievedSound?.Invoke(transform.position);
-            Debug.Log($"PlayerMissionHolder: Personal mission received {mission.missionName}");
         }
         
         public void CompletePersonalMission(MissionSO mission)
@@ -50,7 +49,6 @@ namespace Missions
             _personalMissions.Remove(mission);
             OnPersonalMissionCompleted?.Invoke(mission);
             OnMissionCompletedSound?.Invoke(transform.position);
-            Debug.Log($"PlayerMissionHolder: Personal mission completed {mission.missionName}");
         }
 
         public void ReceiveMainMission(MissionSO mission)
@@ -60,7 +58,6 @@ namespace Missions
             _mainMission = mission;
             OnMainMissionReceived?.Invoke(mission);
             OnMissionRecievedSound?.Invoke(transform.position);
-            Debug.Log($"PlayerMissionHolder: Main mission revealed: {mission.missionName}");
         }
 
         public void CompleteMainMission()
@@ -72,7 +69,6 @@ namespace Missions
             _mainMission = null;
             OnMainMissionCompleted?.Invoke(completed);
             OnMissionCompletedSound?.Invoke(transform.position);
-            Debug.Log($"PlayerMissionHolder: Main mission completed {completed.missionName}");
         }
         
         [Rpc(SendTo.Owner)]
@@ -85,7 +81,6 @@ namespace Missions
         public void ClearPersonalMissionsRpc()
         {
             _personalMissions.Clear();
-            Debug.Log("PlayerMissionHolder: Missions cleared after transfer.");
         }
         
         public bool HasPersonalMission(MissionSO mission)

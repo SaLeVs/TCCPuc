@@ -41,7 +41,6 @@ namespace Network
 
             if (!nm.IsListening && !nm.ShutdownInProgress) return;
 
-            Debug.Log("NetworkSession: a session was still running — shutting it down before starting a new one.");
 
             _transitionDepth++;
 

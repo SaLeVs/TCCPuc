@@ -61,7 +61,6 @@ namespace Objects.PickupItems
         {
             if (_ownershipFilter != null && !_ownershipFilter.CanClientInteract(playerNetworkObject.OwnerClientId))
             {
-                Debug.Log($"Interaction denied. ClientId: {playerNetworkObject.OwnerClientId}");
                 return;
             }
 

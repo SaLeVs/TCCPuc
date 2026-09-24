@@ -37,7 +37,7 @@ namespace Network
             }
             catch (Exception e)
             {
-                Debug.Log(e);
+                Debug.LogException(e);
             }
         }
         

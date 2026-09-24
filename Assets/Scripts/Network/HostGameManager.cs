@@ -46,7 +46,6 @@ namespace Network
             try
             {
                 _joinCode = await RelayService.Instance.GetJoinCodeAsync(_allocation.AllocationId);
-                Debug.Log($"HostGameManager: Join code: {_joinCode}");
             }
             catch (Exception e)
             {

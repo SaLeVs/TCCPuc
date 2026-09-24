@@ -141,7 +141,6 @@ namespace Player
             }
             catch (System.NullReferenceException)
             {
-                Debug.LogWarning("Vivox participant became invalid. Waiting for rebind.");
                 _localParticipant = null;
             }
         }

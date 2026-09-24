@@ -157,7 +157,6 @@ namespace Missions
             IsComplete = true;
             _isMissionComplete.Value = true;
             missionCompleter.Complete();
-            NotifyMissionCompletedRpc();
             NotifyOwnerMissionCompletedRpc(RpcTarget.Single(clientId, RpcTargetUse.Temp));
         }
         
@@ -175,9 +174,6 @@ namespace Missions
             
             _correctLampsCount.Value = correct;
         }
-
-        [Rpc(SendTo.ClientsAndHost)]
-        private void NotifyMissionCompletedRpc() => Debug.Log("LampManager: Mission Complete!");
 
         [Rpc(SendTo.SpecifiedInParams)]
         private void NotifyOwnerMissionCompletedRpc(RpcParams rpcParams = default)

@@ -364,8 +364,6 @@ namespace Objects
                 area = 0,
                 agentTypeID = filter.agentTypeID
             });
-
-            Debug.Log($"{name}: vao desconectado no NavMesh em {centre} — link de reserva criado atravessando a porta.", this);
         }
 
         private static bool IsConnectedThroughDoorway(Vector3 from, Vector3 to, NavMeshQueryFilter filter)
@@ -426,7 +424,6 @@ namespace Objects
                 return false;
             }
 
-            Debug.Log($"Door interacted by {playerInteractor.name} at position {playerInteractor.transform.position}");
             RequestToggleServerRpc(playerInteractor.transform.position);
             return true;
         }

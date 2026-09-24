@@ -28,6 +28,7 @@ namespace Ui
     public class InteractionMarkerHud : MonoBehaviour
     {
         private const string BlockedLabel = "Unavailable";
+        private const float FarPivotMargin = 3f;
 
         [Header("References")]
         [SerializeField] private PlayerInteractor interactor;
@@ -149,6 +150,11 @@ namespace Ui
             _rect = (RectTransform)transform;
             _canvas = GetComponentInParent<Canvas>().rootCanvas;
 
+            // A canvas of its own. The markers move every frame, and anything that moves inside a
+            // canvas makes that whole canvas rebuild its batches - without this, following one prop
+            // meant re-batching the entire HUD, chat included.
+            if (!TryGetComponent(out Canvas _)) gameObject.AddComponent<Canvas>();
+
             if (interactor != null) _playerRoot = interactor.transform.root;
 
             if ((recordingSensors == null || recordingSensors.Length == 0) && _playerRoot != null)
@@ -252,15 +258,23 @@ namespace Ui
                 bool recordable = marker.IsRecordable;
 
                 if (!usable && !recordable) continue;
-                if (marker.transform.IsChildOf(_playerRoot)) continue;
-                if (!marker.TryGetBounds(out Bounds bounds)) continue;
 
                 float reach = marker.RevealDistance > 0f
                     ? marker.RevealDistance
                     : Mathf.Max(usable ? revealDistance : 0f, recordable ? recordableRevealDistance : 0f);
 
-                float distance = Vector3.Distance(eye, bounds.ClosestPoint(eye));
                 bool focused = IsFocused(marker);
+
+                // Cheap cut before the bounds: most of the level's markers are rooms away, and
+                // gathering renderer bounds for every one of them each frame was the bulk of the
+                // cost. The margin covers props whose pivot sits far from their mesh.
+                float roughReach = reach + FarPivotMargin;
+                if (!focused && (marker.transform.position - eye).sqrMagnitude > roughReach * roughReach) continue;
+
+                if (marker.transform.IsChildOf(_playerRoot)) continue;
+                if (!marker.TryGetBounds(out Bounds bounds)) continue;
+
+                float distance = Vector3.Distance(eye, bounds.ClosestPoint(eye));
 
                 if (!focused)
                 {

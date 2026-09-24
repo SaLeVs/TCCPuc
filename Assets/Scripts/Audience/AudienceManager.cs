@@ -43,6 +43,22 @@ namespace Audience
         private float _idleTimer;
         private bool  _thresholdReached;
 
+        /// <summary>
+        /// Seconds of gain and loss gathered into one notification.
+        /// </summary>
+        /// <remarks>
+        /// Decay and the gain rate cap both move the audience a sliver per frame, and each sliver used
+        /// to go out as its own RPC to every client - sixty messages a second whenever the bar moved.
+        /// Each one was also far too small to clear the chat's "noticeable change" bar, so the surge
+        /// and drop topics never fired at all. Gathered over half a second, a real surge arrives as
+        /// one change big enough to be noticed.
+        /// </remarks>
+        private const float NotifyInterval = 0.5f;
+
+        private float _unsentGain;
+        private float _unsentLoss;
+        private float _notifyTimer;
+
 
         private void Awake()
         {
@@ -94,9 +110,31 @@ namespace Audience
 
         private void Update()
         {
-            if (IsServer)
+            // IsServer stays true through the frame the session shuts down, and an RPC sent then
+            // is refused with an error.
+            if (!IsServer || !IsSpawned || !NetworkManager.IsListening) return;
+
+            ServerTick();
+            FlushNotifications(Time.deltaTime);
+        }
+
+        private void FlushNotifications(float deltaTime)
+        {
+            _notifyTimer -= deltaTime;
+            if (_notifyTimer > 0f) return;
+
+            _notifyTimer = NotifyInterval;
+
+            if (_unsentGain > 0f)
             {
-                ServerTick();
+                NotifyGainClientRpc(_unsentGain);
+                _unsentGain = 0f;
+            }
+
+            if (_unsentLoss > 0f)
+            {
+                NotifyLossClientRpc(_unsentLoss);
+                _unsentLoss = 0f;
             }
         }
 
@@ -166,7 +204,7 @@ namespace Audience
             if (audienceAmount > 0f)
             {
                 PublishViewerCount();
-                NotifyGainClientRpc(audienceAmount);
+                _unsentGain += audienceAmount;
             }
 
             if (!_thresholdReached && NormalizedAudience >= escapeThreshold)
@@ -187,7 +225,7 @@ namespace Audience
             if (audienceAmount > 0f)
             {
                 PublishViewerCount();
-                NotifyLossClientRpc(audienceAmount);
+                _unsentLoss += audienceAmount;
             }
         }
 

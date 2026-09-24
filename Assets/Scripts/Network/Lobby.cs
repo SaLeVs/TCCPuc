@@ -134,7 +134,7 @@ namespace Network
             }
             catch (LobbyServiceException exception)
             {
-                Debug.Log(exception);
+                Debug.LogException(exception);
             }
         }
 
@@ -157,7 +157,7 @@ namespace Network
             }
             catch (Exception e)
             {
-                Debug.Log(e);
+                Debug.LogException(e);
             }
         }
 
@@ -177,7 +177,7 @@ namespace Network
             }
             catch (Exception e)
             {
-                Debug.Log(e);
+                Debug.LogException(e);
             }
             
         }
@@ -238,7 +238,7 @@ namespace Network
             }
             catch (Exception e)
             {
-                Debug.Log(e);
+                Debug.LogException(e);
             }
         }
         

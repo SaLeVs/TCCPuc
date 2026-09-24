@@ -23,7 +23,6 @@ namespace Missions
         private void LampsManager_OnCorrectLampsCountChanged(int lampsCorrect, int totalLamps)
         {
             countText.text = $"{lampsCorrect}/{totalLamps}";
-            Debug.Log($"{lampsCorrect}/{totalLamps}");
         }
 
         private void LampsManager_OnMissionCompleteChanged(bool isComplete)

@@ -42,7 +42,6 @@ namespace UI
             if (available.Count == 0)
             {
                 CurrentSlot = null;
-                Debug.Log("SkillCheck: No slots available");
                 return;
             }
 
@@ -87,7 +86,6 @@ namespace UI
             Vector2 pos = new Vector2(Mathf.Cos(rad), Mathf.Sin(rad)) * radius;
             slotRect.anchoredPosition = pos;
 
-            Debug.Log($"Angle: {angleDegrees} Pos: {pos}");
 
             slotRect.localRotation = Quaternion.Euler(0f, 0f, angleDegrees + rotationOffset);
         }

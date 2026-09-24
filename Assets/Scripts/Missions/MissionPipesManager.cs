@@ -29,7 +29,6 @@ namespace Missions
         public void RequestSpawn()
         {
             if (!IsServer) return;
-            Debug.Log("MissionPipesManager: RequestSpawn called");
             
             ResolvePipeConfigsFromGridIfNeeded();
             SpawnPipes();
@@ -40,7 +39,6 @@ namespace Missions
         {
             if (possibleGridLayouts == null || possibleGridLayouts.Count == 0)
             {
-                Debug.LogWarning("MissionPipesManager: possibleGridLayouts empty. using manual pipeConfigs");
                 return;
             }
             
@@ -86,7 +84,6 @@ namespace Missions
 
                 Transform spawn = config.spawnPoint[0];
 
-                Debug.Log($"Instantiating {config.prefab.name} at {spawn.position}");
 
                 GameObject spawned = Instantiate(config.prefab, spawn.position, spawn.rotation);
 
@@ -174,7 +171,6 @@ namespace Missions
 
             IsComplete = true;
             missionCompleter.Complete();
-            NotifyMissionCompletedRpc();
             NotifyOwnerMissionCompletedRpc(RpcTarget.Single(clientId, RpcTargetUse.Temp));
         }
         
@@ -187,9 +183,6 @@ namespace Missions
             return true;
         }
         
-        [Rpc(SendTo.ClientsAndHost)]
-        private void NotifyMissionCompletedRpc() => Debug.Log("MissionPipesManager: Mission completed!");
-
         [Rpc(SendTo.SpecifiedInParams)]
         private void NotifyOwnerMissionCompletedRpc(RpcParams rpcParams = default)
         {

@@ -49,7 +49,6 @@ namespace Missions
 
                     playerDead.OnDeathEvent += handler;
                     _registrations[clientId] = (playerDead, handler);
-                    Debug.Log($"MissionTransferManager: Watching player {clientId} for death.");
                     yield break;
                 }
 

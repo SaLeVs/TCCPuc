@@ -98,10 +98,6 @@ namespace Audience
                     resumedTime = saved;
                     _pendingViewTime.Remove(id);
                 }
-                else
-                {
-                    Debug.Log($"AudienceContributor: {target.name} entered for the first time.");
-                }
 
                 _activeObjects[target] = resumedTime;
             }

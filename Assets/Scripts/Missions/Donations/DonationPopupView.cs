@@ -33,6 +33,10 @@ namespace Missions.Donations
 
         private RectTransform _rect;
 
+        // Last whole second written to the timer. SetExpiration runs every frame; the label only
+        // changes once a second, so rebuilding its string and mesh in between was wasted work.
+        private int _shownSeconds = int.MinValue;
+
         /// <summary>
         /// Resolved on first use instead of in Awake. A chip is instantiated into a tray that may
         /// still be switched off, and Unity does not run Awake until an object is active in the
@@ -53,6 +57,7 @@ namespace Missions.Donations
             if (progressFill != null) progressFill.fillAmount = state.Progress;
             if (expirationFill != null) expirationFill.fillAmount = 1f;
             if (expirationText != null) expirationText.text = string.Empty;
+            _shownSeconds = int.MinValue;
 
             ApplyIcon(icon);
 
@@ -92,10 +97,15 @@ namespace Missions.Donations
         {
             if (expirationFill != null) expirationFill.fillAmount = Mathf.Clamp01(ratio);
 
-            if (expirationText != null)
-            {
-                expirationText.text = remainingSeconds >= 0f ? $"{Mathf.CeilToInt(remainingSeconds)}s" : string.Empty;
-            }
+            if (expirationText == null) return;
+
+            int seconds = remainingSeconds >= 0f ? Mathf.CeilToInt(remainingSeconds) : -1;
+            if (seconds == _shownSeconds) return;
+
+            _shownSeconds = seconds;
+
+            if (seconds < 0) expirationText.SetText(string.Empty);
+            else expirationText.SetText("{0}s", seconds);
         }
 
         /// <summary>What still has to run once this chip has finished leaving. Null when nothing is.</summary>

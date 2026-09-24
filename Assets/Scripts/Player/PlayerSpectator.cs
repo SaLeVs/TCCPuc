@@ -62,35 +62,65 @@ namespace Player
             gameplayCanvas.SetActive(false);
             spectatorCanvas.SetActive(true);
 
-            playerState.SetSpectatorMode(true);
-            
             CursorState.Hold(CursorReason.Spectating);
 
-            RefreshAliveList();
-
-            if (_alivePlayerIds.Count > 0)
-            {
-                SetTarget(0);
-            }
+            WatchFirstAliveOrOwnView();
 
             _spectatorCoroutine = null;
         }
-        
-        
+
+
         private void PlayerState_OnPlayerWon()
         {
             gameplayCanvas.SetActive(false);
             spectatorCanvas.SetActive(true);
-            playerState.SetSpectatorMode(true);
 
             CursorState.Hold(CursorReason.Spectating);
-            
+
+            WatchFirstAliveOrOwnView();
+        }
+
+        /// <summary>
+        /// Hands the view to someone still playing, or keeps this player's own parked view when
+        /// there is nobody.
+        ///
+        /// <para>It used to drop this camera's priority first and only then look for a target.
+        /// With nobody left alive to watch, that left no camera in charge, and Cinemachine fell back
+        /// to whatever other camera happened to be live.</para>
+        /// </summary>
+        private void WatchFirstAliveOrOwnView()
+        {
             RefreshAliveList();
-            
+
             if (_alivePlayerIds.Count > 0)
             {
+                playerState.SetSpectatorMode(true);
                 SetTarget(0);
+                return;
             }
+
+            // Someone who escaped has no view of their own worth going back to; they stay as the
+            // win left them.
+            if (playerState.HasWon)
+            {
+                playerState.SetSpectatorMode(true);
+                return;
+            }
+
+            ReleaseCurrentTarget();
+            playerState.SetSpectatorMode(false);
+        }
+
+        private void ReleaseCurrentTarget()
+        {
+            if (_currentTargetVCam != null)
+            {
+                _currentTargetVCam.Priority = 0;
+                _currentTargetState?.SetOcclusionVisible(true);
+            }
+
+            _currentTargetVCam = null;
+            _currentTargetState = null;
         }
 
         private void RefreshAliveList()
@@ -123,24 +153,14 @@ namespace Player
 
         private void PlayerState_OnWatchedPlayerWon()
         {
-            RefreshAliveList();
-
-            if (_alivePlayerIds.Count > 0)
-            {
-                SetTarget(0);
-            }
+            WatchFirstAliveOrOwnView();
         }
-        
+
         private void PlayerState_OnWatchedPlayerDied(bool isDead)
         {
             if (!isDead) return;
-            
-            RefreshAliveList();
-            
-            if (_alivePlayerIds.Count > 0)
-            {
-                SetTarget(0);
-            }
+
+            WatchFirstAliveOrOwnView();
         }
 
         public void NextPlayer()

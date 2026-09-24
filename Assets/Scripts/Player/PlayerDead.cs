@@ -42,7 +42,11 @@ namespace Player
         
         private void PlayerHealth_OnDie(Health health)
         {
+            if (_isDead.Value) return;
+
             _isDead.Value = true;
+
+            PlayerDownedNotifier.Notify(gameObject, died: true);
         }
         
         private void PlayerDead_OnIsDeadChanged(bool previous, bool current)

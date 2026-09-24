@@ -35,6 +35,10 @@ namespace Monster
         private readonly int _sabotageState = Animator.StringToHash("Sabotage");
         private readonly int _searchStateLeft = Animator.StringToHash("SearchLeft");
         private readonly int _searchStateRight = Animator.StringToHash("SearchRight");
+
+        // Its own state so the clip can be swapped in the controller without touching code. It
+        // borrows the sabotage clip until a proper emote exists.
+        private readonly int _tauntState = Animator.StringToHash("Taunt");
         
         private MonsterBrain _monsterBrain;
 
@@ -72,6 +76,8 @@ namespace Monster
                 // state's call: the brain resumes it, and it replays its own clip.
                 _monsterBrain.MonsterDoorForcer.OnDoorHitAnimation += PlayAttack;
             }
+
+            _monsterBrain.OnTauntAnimation += PlayTaunt;
         }
 
         
@@ -145,6 +151,13 @@ namespace Monster
         private void PlaySabotage() => animator.CrossFade(_sabotageState, transitionDuration);
         private void PlaySearch(int direction) => animator.CrossFade(direction == 1 ? _searchStateLeft : _searchStateRight, transitionDuration);
 
+        private void PlayTaunt()
+        {
+            // Falls back to the sabotage clip if the Taunt state is ever removed from the controller.
+            int state = animator.HasState(0, _tauntState) ? _tauntState : _sabotageState;
+            animator.CrossFade(state, transitionDuration);
+        }
+
         
         public void Uninitialize(MonsterBrain brain)
         {
@@ -175,6 +188,8 @@ namespace Monster
             {
                 _monsterBrain.MonsterDoorForcer.OnDoorHitAnimation -= PlayAttack;
             }
+
+            _monsterBrain.OnTauntAnimation -= PlayTaunt;
 
             _monsterBrain = null;
         }

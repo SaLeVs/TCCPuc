@@ -25,6 +25,9 @@ namespace Player
         [SerializeField] private float minSensitivityMultiplier = 0.3f;
         [SerializeField] private float maxSensitivityMultiplier = 3f;
 
+        [Tooltip("How fast the view levels out to look straight ahead after a death.")]
+        [SerializeField, Min(0.1f)] private float fallenLevelSpeed = 5f;
+
         public CinemachineCamera playerCinemachineCamera => cinemachineCamera;
 
         private bool _isDead;
@@ -35,6 +38,9 @@ namespace Player
         private float _savedPan;
         private float _savedTilt;
         private const string SENSIBILITY_KEY = "MouseSensibility";
+
+        /// <summary>Knocked down or dead: the view belongs to the ragdoll, and the mouse stays out of it.</summary>
+        private bool IsFallen => _isKnockedDown || _isDead;
         
         private float _baseLookXGain;
         private float _baseLookYGain;
@@ -81,14 +87,18 @@ namespace Player
         public void SetPauseState(bool isPaused)
         {
             _isPaused = isPaused;
-            inputAxisController.enabled = !_isPaused && !_isLocked;
+            RefreshLookInput();
 
             CursorState.Set(CursorReason.Paused, _isPaused);
 
             OnPauseToggled?.Invoke(_isPaused);
         }
 
-        private void PlayerState_OnPlayerDead(bool isDead) => _isDead = isDead;
+        private void PlayerState_OnPlayerDead(bool isDead)
+        {
+            _isDead = isDead;
+            RefreshLookInput();
+        }
 
         /// <summary>
         /// A knockdown locks input the same way a menu does, but it is not a menu: the player is
@@ -99,6 +109,7 @@ namespace Player
             if (_isKnockedDown == knockedDown) return;
 
             _isKnockedDown = knockedDown;
+            RefreshLookInput();
 
             if (knockedDown)
             {
@@ -124,15 +135,33 @@ namespace Player
         private void PlayerState_OnPlayerLocked(bool locked)
         {
             _isLocked = locked;
-            inputAxisController.enabled = !locked && !_isPaused && !_isDead;
+            RefreshLookInput();
 
             // The pause reason is left alone on purpose: unpausing while still locked at a board
-            // must not steal the cursor back.
-            CursorState.Set(CursorReason.InputLocked, locked);
+            // must not steal the cursor back. A knockdown is not a menu, so it keeps the cursor.
+            CursorState.Set(CursorReason.InputLocked, locked && !_isKnockedDown);
 
             if (_isKnockedDown) return;
 
             cinemachineCamera.Priority = locked ? 0 : ownerCameraPriority;
+        }
+
+        /// <summary>
+        /// The mouse only turns the view while nothing else owns it. Dead used to be left out, so
+        /// in spectator mode — cursor free for the buttons — moving the mouse spun the view.
+        /// </summary>
+        private void RefreshLookInput()
+        {
+            inputAxisController.enabled = !_isPaused && !_isLocked && !IsFallen;
+        }
+
+        /// <summary>
+        /// Dead, the view keeps aiming in World while it rides the head: this eases its tilt back to
+        /// level, so it looks straight ahead instead of wherever the mouse last was.
+        /// </summary>
+        private void LevelFallenView()
+        {
+            panTilt.TiltAxis.Value = Mathf.Lerp(panTilt.TiltAxis.Value, 0f, fallenLevelSpeed * Time.deltaTime);
         }
 
         private void HideOcclusionRenderers()
@@ -149,7 +178,16 @@ namespace Player
 
         private void LateUpdate()
         {
-            if (IsOwner && !_isDead && !_isLocked)
+            if (!IsOwner) return;
+
+            if (IsFallen)
+            {
+                // A knockdown aims along the ragdoll's eyes through ParentObject; only death needs levelling.
+                if (!_isKnockedDown) LevelFallenView();
+                return;
+            }
+
+            if (!_isLocked)
             {
                 _yaw = panTilt.PanAxis.Value;
                 orientation.rotation = Quaternion.Euler(0f, _yaw, 0f);

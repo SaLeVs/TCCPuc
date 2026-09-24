@@ -65,6 +65,19 @@ namespace Monster
         [Tooltip("Logs every stuck or unreachable report, and every time the path turns partial or invalid.")]
         [SerializeField] private bool logPathStatus = true;
 
+        [Header("Taunt")]
+        [Tooltip("Stops to mock a player who dies or is knocked down while it can see them.")]
+        [SerializeField] private bool tauntWhenPlayerDowned = true;
+
+        [Tooltip("How long it stands there mocking them.")]
+        [SerializeField, Min(0.1f)] private float tauntSeconds = 2.5f;
+
+        [Tooltip("How long a taunt may wait for a swing or a door to finish before it is dropped.")]
+        [SerializeField, Min(0f)] private float tauntMaxDelay = 1.5f;
+
+        [Tooltip("How fast it turns to face the player it is mocking.")]
+        [SerializeField, Min(0.1f)] private float tauntTurnSpeed = 6f;
+
         public NavMeshAgent NavMeshAgent => navMeshAgent;
         public MonsterAwareness MonsterAwareness => monsterAwareness;
         public MonsterInvestigate MonsterInvestigate => monsterInvestigate;
@@ -88,6 +101,14 @@ namespace Monster
 
         /// <summary>Mid-swipe at a door. The state machine is not ticked until it is over.</summary>
         public bool IsDoorSwipeCommitted => monsterDoorForcer != null && monsterDoorForcer.IsCommitted;
+
+        /// <summary>Mocking a downed player. The state machine is not ticked until it is over.</summary>
+        public bool IsTaunting => _taunt != null && _taunt.IsTaunting;
+
+        /// <summary>The animator listens here; the taunt itself only exists on the server.</summary>
+        public event Action OnTauntAnimation;
+
+        private MonsterTaunt _taunt;
 
         private StateMachine _stateMachine;
         private State _rootState;
@@ -160,6 +181,41 @@ namespace Monster
             }
 
             _pathWatchdog = new MonsterPathWatchdog(navMeshAgent, stuckSeconds, stuckMinProgress);
+
+            _taunt = new MonsterTaunt(navMeshAgent, transform, tauntSeconds, tauntMaxDelay, tauntTurnSpeed);
+            _taunt.OnTauntAnimation += MonsterTaunt_OnTauntAnimation;
+            _taunt.OnFinished += MonsterTaunt_OnFinished;
+
+            PlayerDownedNotifier.OnPlayerDowned += PlayerDownedNotifier_OnPlayerDowned;
+        }
+
+        /// <summary>
+        /// "In front of it" is what the vision sensor already calls seen. The body is still in the
+        /// list at this point: it only drops out on the next scan, once its colliders are off.
+        /// </summary>
+        private void PlayerDownedNotifier_OnPlayerDowned(GameObject player, bool died)
+        {
+            if (!tauntWhenPlayerDowned || _taunt == null || player == null) return;
+            if (!_playersInVision.Contains(player.transform)) return;
+
+            _taunt.Request(player.transform, Time.time);
+
+            Debug.Log($"Monster: {(died ? "matou" : "derrubou")} {player.name} na frente dele — vai zoar", this);
+        }
+
+        private void MonsterTaunt_OnTauntAnimation() => OnTauntAnimation?.Invoke();
+
+        /// <summary>Same hand-back as after a door: the active state restores itself.</summary>
+        private void MonsterTaunt_OnFinished() => _stateMachine.ResumeLeaf();
+
+        private bool IsAnyoneElseInView(Transform except)
+        {
+            foreach (Transform player in _playersInVision)
+            {
+                if (player != null && player != except) return true;
+            }
+
+            return false;
         }
 
         /// <summary>
@@ -250,7 +306,18 @@ namespace Monster
             TickTracking(Time.deltaTime);
             TickAwareness(Time.deltaTime);
 
-            TickStateMachineAroundDoor(Time.deltaTime);
+            if (_taunt != null)
+            {
+                bool busy = MonsterAttack.IsAttacking || IsForcingDoor;
+                _taunt.Tick(Time.time, Time.deltaTime, busy, IsAnyoneElseInView(_taunt.Victim));
+            }
+
+            // Mocking someone holds everything else still, the same as a committed door swipe.
+            if (!IsTaunting)
+            {
+                TickStateMachineAroundDoor(Time.deltaTime);
+            }
+
             TickPathWatchdog();
 
             string statePath = StatePath(_stateMachine.Root.Leaf());
@@ -375,7 +442,7 @@ namespace Monster
 
             LogPathStatusChange();
 
-            if (!_pathWatchdog.Tick(Time.time, IsForcingDoor, out PathProblem problem)) return;
+            if (!_pathWatchdog.Tick(Time.time, IsForcingDoor || IsTaunting, out PathProblem problem)) return;
 
             State leaf = _stateMachine.Root.Leaf();
 
@@ -439,6 +506,14 @@ namespace Monster
             if (monsterDoorForcer != null)
             {
                 monsterDoorForcer.OnForcingFinished -= MonsterDoorForcer_OnForcingFinished;
+            }
+
+            PlayerDownedNotifier.OnPlayerDowned -= PlayerDownedNotifier_OnPlayerDowned;
+
+            if (_taunt != null)
+            {
+                _taunt.OnTauntAnimation -= MonsterTaunt_OnTauntAnimation;
+                _taunt.OnFinished -= MonsterTaunt_OnFinished;
             }
         }
         

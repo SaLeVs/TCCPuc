@@ -115,6 +115,8 @@ namespace Player
 
             StopRecovering();
             _recoverRoutine = StartCoroutine(RecoverAfter(profile.knockdownSeconds));
+
+            PlayerDownedNotifier.Notify(gameObject, died: false);
         }
 
         private IEnumerator RecoverAfter(float seconds)
@@ -166,7 +168,8 @@ namespace Player
 
             if (playerCameraOffset != null)
             {
-                playerCameraOffset.AttachRagdollCamera(_ragdoll.HeadBone, _ragdoll.EyesForward);
+                // The hips are the point inside the body the camera is kept clear of walls from.
+                playerCameraOffset.AttachRagdollCamera(_ragdoll.HeadBone, _ragdoll.EyesForward, _ragdoll.HipsBone);
             }
         }
 

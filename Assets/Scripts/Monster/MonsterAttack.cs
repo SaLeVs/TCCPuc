@@ -30,6 +30,9 @@ namespace Monster
         /// </summary>
         public bool IsOnCooldown => _cooldownRemaining > 0f;
 
+        /// <summary>Mid-swing. Anything that wants the monster's attention waits for this.</summary>
+        public bool IsAttacking => _isAttacking;
+
         public float CooldownRemaining => _cooldownRemaining;
 
         private float _timer;

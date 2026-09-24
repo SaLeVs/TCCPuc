@@ -48,6 +48,11 @@ namespace Objects
                  "and where the fallback link starts and ends when that connection is missing.")]
         [SerializeField, Min(0.3f)] private float navMeshCheckReach = 0.9f;
 
+        [Tooltip("Metres of the open leaf, from the hinge, left out of the navmesh carve. That end " +
+                 "lies against the wall where the navmesh is eroded anyway, and carving it as well " +
+                 "cut through the doorway strip beside it.")]
+        [SerializeField, Min(0f)] private float openLeafHingeClearance = 0.45f;
+
         [Header("Angles")]
         [SerializeField] private float closedAngle;
         [FormerlySerializedAs("openAngle")]
@@ -79,6 +84,9 @@ namespace Objects
         private static readonly Vector3[] ProbeCorners = new Vector3[32];
 
         private NavMeshLinkInstance _fallbackLink;
+
+        // Server-side. Carves the open leaf out of the navmesh so the monster walks round it.
+        private NavMeshObstacle _openLeafObstacle;
 
         private readonly NetworkVariable<DoorState> _state = new NetworkVariable<DoorState>(DoorState.Closed);
 
@@ -157,6 +165,57 @@ namespace Objects
             // SpawnRooms just placed has nothing under its room side until the rebuild, so a
             // missing side is not worth a warning yet.
             EnsureDoorwayConnected(warnIfNoNavMesh: false);
+
+            CreateOpenLeafObstacle();
+        }
+
+        /// <summary>
+        /// An open leaf sticks most of a metre out from the wall, and the navmesh has no idea it is
+        /// there — the doors are left out of the bake so a shut one never blocks the doorway. The
+        /// monster walked straight through open leaves, above all the one it had just forced,
+        /// which swings out on exactly the side it is heading into.
+        ///
+        /// <para>A carving obstacle on the leaf, switched on only while the door stands open and
+        /// still: shut, it would carve the doorway itself, and moving, the carve lags behind.</para>
+        /// </summary>
+        private void CreateOpenLeafObstacle()
+        {
+            BoxCollider leafBox = doorRigidbody.GetComponent<BoxCollider>();
+            if (leafBox == null) return;
+
+            Vector3 centre = leafBox.center;
+            Vector3 size = leafBox.size;
+
+            // The long horizontal axis runs from the hinge, at the leaf's origin, out to the latch.
+            int axis = Mathf.Abs(size.x) >= Mathf.Abs(size.z) ? 0 : 2;
+
+            float scale = Mathf.Abs(leafBox.transform.lossyScale[axis]);
+            float clearance = scale > 0.0001f ? openLeafHingeClearance / scale : 0f;
+
+            float length = Mathf.Abs(size[axis]);
+            float kept = Mathf.Max(0.05f, length - clearance);
+            float outward = centre[axis] < 0f ? -1f : 1f;
+
+            centre[axis] += outward * (length - kept) * 0.5f;
+            size[axis] = kept;
+
+            _openLeafObstacle = leafBox.gameObject.AddComponent<NavMeshObstacle>();
+            _openLeafObstacle.shape = NavMeshObstacleShape.Box;
+            _openLeafObstacle.center = centre;
+            _openLeafObstacle.size = size;
+            _openLeafObstacle.carving = true;
+            _openLeafObstacle.carveOnlyStationary = true;
+            _openLeafObstacle.enabled = false;
+        }
+
+        private void UpdateOpenLeafObstacle()
+        {
+            if (_openLeafObstacle == null) return;
+
+            bool carve = _state.Value != DoorState.Closed && !IsSwinging;
+            if (_openLeafObstacle.enabled == carve) return;
+
+            _openLeafObstacle.enabled = carve;
         }
 
         public override void OnNetworkDespawn()
@@ -431,6 +490,7 @@ namespace Objects
             if (IsServer)
             {
                 TryCloseWhenClear();
+                UpdateOpenLeafObstacle();
             }
 
             if (!IsSwinging) return;
@@ -480,6 +540,9 @@ namespace Objects
 
             foreach (PlayerKnockdown knockdown in _knockableBuffer)
             {
+                // Touching the leaf is not being hit by it. Whoever opened the door and ran after
+                // it catches up with the back of a leaf that is moving away from them.
+                if (!IsInFrontOfSwing(knockdown.transform.position, nextAngle)) continue;
                 if (!_hitThisSwing.Add(knockdown)) continue;
 
                 KnockDown(knockdown);
@@ -488,6 +551,27 @@ namespace Objects
             // Opening is never stopped: the monster is kinematic and the leaf simply passes it,
             // and anything else was refused before the swing started.
             return true;
+        }
+
+        /// <summary>
+        /// True when <paramref name="position"/> is on the face of the leaf that is travelling into
+        /// it — the side the door actually hits. The leaf's plane runs through the hinge along the
+        /// leaf, and it sweeps towards whichever side its motion points to.
+        /// </summary>
+        private bool IsInFrontOfSwing(Vector3 position, float angle)
+        {
+            Vector3 along = _leafBoxOffset;
+            along.y = 0f;
+
+            if (along.sqrMagnitude < 0.0001f || _swingSign == 0f) return true;
+
+            Vector3 leafAxis = LeafRotationAt(angle) * along.normalized;
+            Vector3 travel = Vector3.Cross(Vector3.up * _swingSign, leafAxis);
+
+            Vector3 fromHinge = position - doorRigidbody.position;
+            fromHinge.y = 0f;
+
+            return Vector3.Dot(fromHinge, travel) > 0f;
         }
 
         private void KnockDown(PlayerKnockdown knockdown)

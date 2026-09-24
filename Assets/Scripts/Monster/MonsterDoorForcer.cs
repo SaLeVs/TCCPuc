@@ -54,7 +54,7 @@ namespace Monster
         [Tooltip("How fast it turns while walking up to the door and squaring up to it.")]
         [SerializeField] private float faceDoorSpeed = 8f;
 
-        [Tooltip("Pause before it will look for another door, so slamming one in its face cannot make it stutter.")]
+        [Tooltip("Pause before it will go for the same door again, so slamming it in its face cannot make it stutter. Other doors are looked for straight away.")]
         [SerializeField] private float retryCooldown = 0.6f;
 
         [Tooltip("Layers the door leaves live on. Door_* prefabs use Doors; SM_Double_Door_V2 uses Interactable.")]
@@ -85,6 +85,10 @@ namespace Monster
         private IForceableDoor _door;
         private Phase _phase;
         private float _phaseTimer;
+
+        // Per door, not global: a blanket cooldown blinded it to a second door just past the first,
+        // and it walked straight through that one.
+        private IForceableDoor _cooldownDoor;
         private float _cooldown;
         private float _scanTimer;
         private Vector3 _standPoint;
@@ -115,8 +119,9 @@ namespace Monster
                 return;
             }
 
-            // Someone else opened it before the swipe began: nothing left to do.
-            if (!IsCommitted && !_door.IsClosed)
+            // Someone else opened it before the swipe began and it has finished swinging: nothing
+            // left to do. Still swinging, it is waited out like any other leaf in the way.
+            if (!IsCommitted && !_door.IsClosed && !_door.IsSwinging)
             {
                 Finish();
                 return;
@@ -189,6 +194,7 @@ namespace Monster
             _phase = Phase.None;
             _door = null;
             _cooldown = 0f;
+            _cooldownDoor = null;
             _scanTimer = 0f;
         }
 
@@ -197,7 +203,7 @@ namespace Monster
             if (_cooldown > 0f)
             {
                 _cooldown -= deltaTime;
-                return;
+                if (_cooldown <= 0f) _cooldownDoor = null;
             }
 
             _scanTimer -= deltaTime;
@@ -205,7 +211,9 @@ namespace Monster
 
             _scanTimer = ScanInterval;
 
-            if (_agent.isStopped || _agent.pathPending || !_agent.hasPath) return;
+            // A pending path does not mean no path: Chase asks for a new one every frame, and the
+            // one it is walking is still the one to check.
+            if (_agent.isStopped || !_agent.hasPath) return;
 
             IForceableDoor door = FindClosedDoorOnPath();
             if (door == null) return;
@@ -263,7 +271,11 @@ namespace Monster
             for (int i = 0; i < count; i++)
             {
                 IForceableDoor door = _hits[i].collider.GetComponentInParent<IForceableDoor>();
-                if (door == null || !door.IsClosed) continue;
+                if (door == null) continue;
+
+                // Shut, or still swinging open: both leave the leaf across the doorway.
+                if (!door.IsClosed && !door.IsSwinging) continue;
+                if (door == _cooldownDoor && _cooldown > 0f) continue;
                 if (_hits[i].distance >= nearestDistance) continue;
 
                 nearest = door;
@@ -319,6 +331,13 @@ namespace Monster
 
             if (!squaredUp && _phaseTimer < maxAlignSeconds) return;
 
+            // Already opening on its own: no swipe, just let the leaf clear the doorway.
+            if (!_door.IsClosed)
+            {
+                SetPhase(Phase.WaitingForSwing);
+                return;
+            }
+
             SetPhase(Phase.Swiping);
 
             OnDoorHitAnimation?.Invoke();
@@ -327,9 +346,11 @@ namespace Monster
 
         private void Finish()
         {
+            _cooldownDoor = _door;
+            _cooldown = retryCooldown;
+
             _phase = Phase.None;
             _door = null;
-            _cooldown = retryCooldown;
 
             OnForcingFinished?.Invoke();
         }

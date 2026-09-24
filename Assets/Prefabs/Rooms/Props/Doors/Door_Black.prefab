@@ -101,12 +101,18 @@ MonoBehaviour:
   doorPivot: {fileID: 8952904701045092032}
   doorRigidbody: {fileID: 5000072927107982651}
   navMeshObstacle: {fileID: 6845968548665118180}
-  leafCollisionRelay: {fileID: 8339847382613564467}
   useNoise: {fileID: 6771927605353919430}
   impactProfile: {fileID: 11400000, guid: c1eef1fa3b196444284896d4bae14c64, type: 2}
+  occupantLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  obstructionMargin: 0.05
+  sweepSampleDegrees: 10
+  navMeshCheckReach: 0.9
+  openLeafHingeClearance: 0.45
   closedAngle: 0
-  openSideAAngle: 105
-  openSideBAngle: -105
+  openSideAAngle: 90
+  openSideBAngle: -90
   openDegreesPerSecond: 250
   monsterLockSeconds: 3
 --- !u!114 &2166531864739782751

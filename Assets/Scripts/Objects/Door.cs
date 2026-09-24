@@ -20,7 +20,10 @@ namespace Objects
 
         [Header("References")]
         [SerializeField] private Transform doorPivot;
+
+        [Tooltip("The main leaf's kinematic Rigidbody. Its transform must sit on the hinge — that is the point it turns round.")]
         [SerializeField] private Rigidbody doorRigidbody;
+
         [SerializeField] private NavMeshObstacle navMeshObstacle;
 
         [Tooltip("Optional. The noise a player makes opening or closing this door. Deliberately " +
@@ -54,10 +57,38 @@ namespace Objects
         [SerializeField, Min(0f)] private float openLeafHingeClearance = 0.45f;
 
         [Header("Angles")]
+        [Tooltip("The main leaf's local Y rotation when the door is shut — the rotation the leaf has " +
+                 "in the prefab, usually 0. How the whole door is turned in the scene is the root's " +
+                 "rotation and never goes here.")]
         [SerializeField] private float closedAngle;
+
+        [Tooltip("The main leaf's local Y rotation fully open one way. The door picks this side or " +
+                 "side B on its own, so it always swings away from whoever opens it.")]
         [FormerlySerializedAs("openAngle")]
         [SerializeField] private float openSideAAngle = 100f;
+
+        [Tooltip("The main leaf's local Y rotation fully open the other way — normally side A's angle, negated.")]
         [SerializeField] private float openSideBAngle = -100f;
+
+        [Header("Double door")]
+        [Tooltip("The other leaves that open and close with the main one. Leave empty for a single door.")]
+        [SerializeField] private ExtraLeaf[] extraLeaves = Array.Empty<ExtraLeaf>();
+
+        /// <summary>A leaf that follows the main one — the other half of a double door.</summary>
+        [Serializable]
+        private class ExtraLeaf
+        {
+            [Tooltip("This leaf's kinematic Rigidbody. Its transform must sit on its hinge.")]
+            public Rigidbody leafRigidbody;
+
+            [Tooltip("This leaf's own local Y rotation when the door is shut. The left half of a " +
+                     "double door modelled as a mirror of the right one is usually 180.")]
+            public float closedAngle;
+
+            [Tooltip("-1 turns it the opposite way to the main leaf, which is what makes both halves " +
+                     "of a double door open to the same side. 1 turns it the same way.")]
+            public float mirror = -1f;
+        }
 
         [Header("Settings")]
         [SerializeField] private float openDegreesPerSecond = 300f;
@@ -85,12 +116,10 @@ namespace Objects
 
         private NavMeshLinkInstance _fallbackLink;
 
-        // Server-side. Carves the open leaf out of the navmesh so the monster walks round it.
-        private NavMeshObstacle _openLeafObstacle;
-
         private readonly NetworkVariable<DoorState> _state = new NetworkVariable<DoorState>(DoorState.Closed);
 
-        // Source of truth for the swing on every peer. The leaf is driven towards _targetAngle on the
+        // Source of truth for the swing on every peer, as the main leaf's local Y rotation — every
+        // other leaf's is worked out from it. The leaves are driven towards _targetAngle on the
         // physics step with MoveRotation everywhere: writing the Transform instead, as clients used to,
         // teleports the collider, and a teleported leaf does not push a player out of the way — it
         // appears inside them and the solver ejects them to whichever side is nearer.
@@ -109,12 +138,30 @@ namespace Objects
         // Where a close that gets bounced goes back to.
         private DoorState _lastOpenState = DoorState.OpenSideA;
 
-        // The leaf's box, kept in the leaf's own rotation frame so its pose at any angle can be
-        // rebuilt for a query without moving the real one.
+        /// <summary>
+        /// One moving leaf. Its box is kept in the leaf's own rotation frame so its pose at any
+        /// angle can be rebuilt for a query without moving the real one.
+        /// </summary>
+        private sealed class Leaf
+        {
+            public Rigidbody Body;
+            public float ClosedYaw;
+            public float Mirror;
+
+            public bool HasBox;
+            public Vector3 BoxOffset;
+            public Quaternion BoxRotation;
+            public Vector3 BoxHalfExtents;
+
+            // Server-side. Carves the open leaf out of the navmesh so the monster walks round it.
+            public NavMeshObstacle OpenObstacle;
+        }
+
+        // The main leaf first, then any extras.
+        private readonly List<Leaf> _leaves = new List<Leaf>();
+
+        // At least one leaf has a box to query with.
         private bool _hasLeafBox;
-        private Vector3 _leafBoxOffset;
-        private Quaternion _leafBoxRotation;
-        private Vector3 _leafBoxHalfExtents;
 
         private readonly Collider[] _overlapBuffer = new Collider[16];
         private readonly List<PlayerKnockdown> _knockableBuffer = new List<PlayerKnockdown>();
@@ -138,11 +185,32 @@ namespace Objects
                 occupantLayers = LayerMask.GetMask("Player", "Monster");
             }
 
+            AddLeaf(doorRigidbody, closedAngle, 1f);
+
+            if (extraLeaves != null)
+            {
+                foreach (ExtraLeaf extra in extraLeaves)
+                {
+                    if (extra == null || extra.leafRigidbody == null) continue;
+
+                    AddLeaf(extra.leafRigidbody, extra.closedAngle, extra.mirror < 0f ? -1f : 1f);
+                }
+            }
+        }
+
+        private void AddLeaf(Rigidbody body, float closedYaw, float mirror)
+        {
+            if (body == null) return;
+
             // The only continuous mode a kinematic body supports. It lets the leaf's own motion be
             // swept, so a fast swing meets a player instead of skipping past their surface.
-            doorRigidbody.collisionDetectionMode = CollisionDetectionMode.ContinuousSpeculative;
+            body.collisionDetectionMode = CollisionDetectionMode.ContinuousSpeculative;
 
-            CacheLeafGeometry();
+            Leaf leaf = new Leaf { Body = body, ClosedYaw = closedYaw, Mirror = mirror };
+            CacheLeafGeometry(leaf);
+
+            _leaves.Add(leaf);
+            _hasLeafBox |= leaf.HasBox;
         }
 
         public override void OnNetworkSpawn()
@@ -180,8 +248,16 @@ namespace Objects
         /// </summary>
         private void CreateOpenLeafObstacle()
         {
-            BoxCollider leafBox = doorRigidbody.GetComponent<BoxCollider>();
-            if (leafBox == null) return;
+            foreach (Leaf leaf in _leaves)
+            {
+                leaf.OpenObstacle = CreateOpenLeafObstacle(leaf.Body);
+            }
+        }
+
+        private NavMeshObstacle CreateOpenLeafObstacle(Rigidbody body)
+        {
+            BoxCollider leafBox = body.GetComponent<BoxCollider>();
+            if (leafBox == null) return null;
 
             Vector3 centre = leafBox.center;
             Vector3 size = leafBox.size;
@@ -199,23 +275,27 @@ namespace Objects
             centre[axis] += outward * (length - kept) * 0.5f;
             size[axis] = kept;
 
-            _openLeafObstacle = leafBox.gameObject.AddComponent<NavMeshObstacle>();
-            _openLeafObstacle.shape = NavMeshObstacleShape.Box;
-            _openLeafObstacle.center = centre;
-            _openLeafObstacle.size = size;
-            _openLeafObstacle.carving = true;
-            _openLeafObstacle.carveOnlyStationary = true;
-            _openLeafObstacle.enabled = false;
+            NavMeshObstacle obstacle = leafBox.gameObject.AddComponent<NavMeshObstacle>();
+            obstacle.shape = NavMeshObstacleShape.Box;
+            obstacle.center = centre;
+            obstacle.size = size;
+            obstacle.carving = true;
+            obstacle.carveOnlyStationary = true;
+            obstacle.enabled = false;
+
+            return obstacle;
         }
 
         private void UpdateOpenLeafObstacle()
         {
-            if (_openLeafObstacle == null) return;
-
             bool carve = _state.Value != DoorState.Closed && !IsSwinging;
-            if (_openLeafObstacle.enabled == carve) return;
 
-            _openLeafObstacle.enabled = carve;
+            foreach (Leaf leaf in _leaves)
+            {
+                if (leaf.OpenObstacle == null || leaf.OpenObstacle.enabled == carve) continue;
+
+                leaf.OpenObstacle.enabled = carve;
+            }
         }
 
         public override void OnNetworkDespawn()
@@ -320,10 +400,32 @@ namespace Objects
             _fallbackLink = default;
         }
 
+        /// <summary>
+        /// Says which door it is, once, as soon as the scene loads. A door with no NetworkObject
+        /// above it never spawns, and the first sign used to be an RpcException when someone tried
+        /// to open it.
+        /// </summary>
+        private void Start()
+        {
+            if (GetComponentInParent<NetworkObject>(true) != null) return;
+
+            Debug.LogError(NotNetworkedMessage, this);
+        }
+
+        private string NotNetworkedMessage =>
+            $"{name}: esta porta não tem NetworkObject acima dela, então não entra na rede e não abre. " +
+            "Com a cena aberta, rode Tools > TCC > Portas > Adicionar NetworkObject nas portas sem rede e salve.";
+
         public bool CanInteract(GameObject interactor) => true;
 
         public bool Interact(GameObject playerInteractor)
         {
+            if (!IsSpawned)
+            {
+                Debug.LogError(NotNetworkedMessage, this);
+                return false;
+            }
+
             Debug.Log($"Door interacted by {playerInteractor.name} at position {playerInteractor.transform.position}");
             RequestToggleServerRpc(playerInteractor.transform.position);
             return true;
@@ -540,12 +642,14 @@ namespace Objects
 
             foreach (PlayerKnockdown knockdown in _knockableBuffer)
             {
+                Leaf leaf = NearestLeaf(knockdown.transform.position, nextAngle);
+
                 // Touching the leaf is not being hit by it. Whoever opened the door and ran after
                 // it catches up with the back of a leaf that is moving away from them.
-                if (!IsInFrontOfSwing(knockdown.transform.position, nextAngle)) continue;
+                if (!IsInFrontOfSwing(leaf, knockdown.transform.position, nextAngle)) continue;
                 if (!_hitThisSwing.Add(knockdown)) continue;
 
-                KnockDown(knockdown);
+                KnockDown(leaf, knockdown);
             }
 
             // Opening is never stopped: the monster is kinematic and the leaf simply passes it,
@@ -558,25 +662,28 @@ namespace Objects
         /// it — the side the door actually hits. The leaf's plane runs through the hinge along the
         /// leaf, and it sweeps towards whichever side its motion points to.
         /// </summary>
-        private bool IsInFrontOfSwing(Vector3 position, float angle)
+        private bool IsInFrontOfSwing(Leaf leaf, Vector3 position, float angle)
         {
-            Vector3 along = _leafBoxOffset;
+            if (leaf == null || !leaf.HasBox) return true;
+
+            Vector3 along = leaf.BoxOffset;
             along.y = 0f;
 
             if (along.sqrMagnitude < 0.0001f || _swingSign == 0f) return true;
 
-            Vector3 leafAxis = LeafRotationAt(angle) * along.normalized;
-            Vector3 travel = Vector3.Cross(Vector3.up * _swingSign, leafAxis);
+            // A mirrored leaf turns the other way for the same change of angle.
+            Vector3 leafAxis = LeafRotationAt(leaf, angle) * along.normalized;
+            Vector3 travel = Vector3.Cross(Vector3.up * (_swingSign * leaf.Mirror), leafAxis);
 
-            Vector3 fromHinge = position - doorRigidbody.position;
+            Vector3 fromHinge = position - leaf.Body.position;
             fromHinge.y = 0f;
 
             return Vector3.Dot(fromHinge, travel) > 0f;
         }
 
-        private void KnockDown(PlayerKnockdown knockdown)
+        private void KnockDown(Leaf leaf, PlayerKnockdown knockdown)
         {
-            Vector3 hinge = doorRigidbody.position;
+            Vector3 hinge = leaf.Body.position;
             Vector3 radial = knockdown.transform.position - hinge;
             radial.y = 0f;
 
@@ -587,9 +694,34 @@ namespace Objects
             if (leafSpeed < impactProfile.minimumSpeed) return;
 
             // The leaf sweeps perpendicular to the lever arm, so that is where it throws the player.
-            Vector3 direction = Vector3.Cross(Vector3.up * _swingSign, radial).normalized;
+            Vector3 direction = Vector3.Cross(Vector3.up * (_swingSign * leaf.Mirror), radial).normalized;
 
             knockdown.ApplyImpact(impactProfile, direction);
+        }
+
+        /// <summary>The leaf whose middle is closest to <paramref name="position"/> — the one that hit them.</summary>
+        private Leaf NearestLeaf(Vector3 position, float angle)
+        {
+            Leaf nearest = _leaves.Count > 0 ? _leaves[0] : null;
+            float nearestDistance = float.MaxValue;
+
+            foreach (Leaf leaf in _leaves)
+            {
+                if (!leaf.HasBox) continue;
+
+                LeafBoxPose(leaf, angle, out Vector3 centre, out _);
+
+                Vector3 offset = position - centre;
+                offset.y = 0f;
+
+                float distance = offset.sqrMagnitude;
+                if (distance >= nearestDistance) continue;
+
+                nearest = leaf;
+                nearestDistance = distance;
+            }
+
+            return nearest;
         }
 
         private void TryCloseWhenClear()
@@ -616,28 +748,53 @@ namespace Objects
         {
             _currentAngle = angle;
 
-            if (snap)
+            foreach (Leaf leaf in _leaves)
             {
-                doorRigidbody.transform.localRotation = Quaternion.Euler(0f, angle, 0f);
-                doorRigidbody.rotation = doorRigidbody.transform.rotation;
-                return;
-            }
+                if (snap)
+                {
+                    leaf.Body.transform.localRotation = Quaternion.Euler(0f, YawFor(leaf, angle), 0f);
+                    leaf.Body.rotation = leaf.Body.transform.rotation;
+                    continue;
+                }
 
-            doorRigidbody.MoveRotation(LeafRotationAt(angle));
+                leaf.Body.MoveRotation(LeafRotationAt(leaf, angle));
+            }
         }
 
         // ---- Leaf geometry ------------------------------------------------------------------
 
+        /// <summary>
+        /// A leaf's local Y rotation when the main leaf is at <paramref name="angle"/>: its own
+        /// shut rotation, plus the main leaf's swing — reversed for a mirrored leaf.
+        /// </summary>
+        private float YawFor(Leaf leaf, float angle)
+        {
+            return leaf.ClosedYaw + leaf.Mirror * (angle - closedAngle);
+        }
+
+        /// <summary>Middle of the doorway at floor height — between both halves of a double door.</summary>
         private Vector3 DoorwayCentre
         {
             get
             {
-                if (!_hasLeafBox) return transform.position;
+                Vector3 sum = Vector3.zero;
+                int count = 0;
 
-                LeafBoxPose(closedAngle, out Vector3 centre, out _);
-                centre.y = doorPivot.position.y;
+                foreach (Leaf leaf in _leaves)
+                {
+                    if (!leaf.HasBox) continue;
 
-                return centre;
+                    LeafBoxPose(leaf, closedAngle, out Vector3 centre, out _);
+                    sum += centre;
+                    count++;
+                }
+
+                if (count == 0) return transform.position;
+
+                Vector3 middle = sum / count;
+                middle.y = doorPivot.position.y;
+
+                return middle;
             }
         }
 
@@ -649,59 +806,65 @@ namespace Objects
             return normal.sqrMagnitude > 0.0001f ? normal.normalized : Vector3.forward;
         }
 
-        private void CacheLeafGeometry()
+        private void CacheLeafGeometry(Leaf leaf)
         {
-            BoxCollider leafBox = doorRigidbody.GetComponent<BoxCollider>();
+            BoxCollider leafBox = leaf.Body.GetComponent<BoxCollider>();
 
             if (leafBox == null)
             {
-                Debug.LogWarning($"{name}: the door leaf has no BoxCollider, so nothing can check whether the doorway is clear.", this);
+                Debug.LogWarning($"{name}: the door leaf {leaf.Body.name} has no BoxCollider, so nothing can check whether the doorway is clear.", this);
                 return;
             }
 
-            Transform leaf = doorRigidbody.transform;
+            Transform leafTransform = leaf.Body.transform;
             Transform box = leafBox.transform;
 
-            Quaternion toLeafSpace = Quaternion.Inverse(leaf.rotation);
+            Quaternion toLeafSpace = Quaternion.Inverse(leafTransform.rotation);
 
-            _leafBoxOffset = toLeafSpace * (box.TransformPoint(leafBox.center) - leaf.position);
-            _leafBoxRotation = toLeafSpace * box.rotation;
+            leaf.BoxOffset = toLeafSpace * (box.TransformPoint(leafBox.center) - leafTransform.position);
+            leaf.BoxRotation = toLeafSpace * box.rotation;
 
             Vector3 scale = box.lossyScale;
-            _leafBoxHalfExtents = Vector3.Scale(leafBox.size, new Vector3(Mathf.Abs(scale.x), Mathf.Abs(scale.y), Mathf.Abs(scale.z))) * 0.5f;
+            leaf.BoxHalfExtents = Vector3.Scale(leafBox.size, new Vector3(Mathf.Abs(scale.x), Mathf.Abs(scale.y), Mathf.Abs(scale.z))) * 0.5f;
 
-            _hasLeafBox = true;
+            leaf.HasBox = true;
         }
 
-        private Quaternion LeafRotationAt(float angle)
+        private Quaternion LeafRotationAt(Leaf leaf, float angle)
         {
-            Transform parent = doorRigidbody.transform.parent;
+            Transform parent = leaf.Body.transform.parent;
             Quaternion parentRotation = parent != null ? parent.rotation : Quaternion.identity;
 
-            return parentRotation * Quaternion.Euler(0f, angle, 0f);
+            return parentRotation * Quaternion.Euler(0f, YawFor(leaf, angle), 0f);
         }
 
-        private void LeafBoxPose(float angle, out Vector3 centre, out Quaternion rotation)
+        private void LeafBoxPose(Leaf leaf, float angle, out Vector3 centre, out Quaternion rotation)
         {
-            Quaternion leafRotation = LeafRotationAt(angle);
+            Quaternion leafRotation = LeafRotationAt(leaf, angle);
 
             // The hinge is the leaf's own origin, so it stays put while the leaf turns.
-            centre = doorRigidbody.transform.position + leafRotation * _leafBoxOffset;
-            rotation = leafRotation * _leafBoxRotation;
+            centre = leaf.Body.transform.position + leafRotation * leaf.BoxOffset;
+            rotation = leafRotation * leaf.BoxRotation;
         }
 
         /// <summary>
-        /// Which side of the doorway plane the leaf ends up on at <paramref name="openAngle"/>:
-        /// +1 along the door's forward, -1 against it. Worked out from the leaf itself rather than
-        /// from the sign of the angle, which depends on which way the leaf was modelled.
+        /// Which side of the doorway plane the leaves end up on at <paramref name="openAngle"/>:
+        /// +1 along the door's forward, -1 against it. Worked out from the main leaf itself rather
+        /// than from the sign of the angle, which depends on which way the leaf was modelled. The
+        /// other half of a double door, mirrored, opens to the same side.
         /// </summary>
         private float SwingSide(float openAngle)
         {
-            if (!_hasLeafBox) return 0f;
+            foreach (Leaf leaf in _leaves)
+            {
+                if (!leaf.HasBox) continue;
 
-            LeafBoxPose(openAngle, out Vector3 centre, out _);
+                LeafBoxPose(leaf, openAngle, out Vector3 centre, out _);
 
-            return Vector3.Dot(FlatNormal(), centre - DoorwayCentre) >= 0f ? 1f : -1f;
+                return Vector3.Dot(FlatNormal(), centre - DoorwayCentre) >= 0f ? 1f : -1f;
+            }
+
+            return 0f;
         }
 
         /// <summary>
@@ -731,8 +894,8 @@ namespace Objects
         }
 
         /// <summary>
-        /// What the leaf would overlap at <paramref name="angle"/>. Players it can knock down are
-        /// added to <paramref name="knockable"/> when one is given.
+        /// What the leaves would overlap with the main leaf at <paramref name="angle"/>. Players
+        /// they can knock down are added to <paramref name="knockable"/> when one is given.
         /// </summary>
         /// <param name="side">
         /// 0 counts everyone. +1 or -1 counts only bodies on that side of the doorway plane — an
@@ -743,17 +906,33 @@ namespace Objects
         {
             if (!_hasLeafBox) return Occupant.None;
 
-            LeafBoxPose(angle, out Vector3 centre, out Quaternion rotation);
+            Occupant worst = Occupant.None;
 
-            Vector3 halfExtents = _leafBoxHalfExtents + Vector3.one * obstructionMargin;
+            Vector3 doorwayCentre = DoorwayCentre;
+            Vector3 normal = FlatNormal();
+
+            foreach (Leaf leaf in _leaves)
+            {
+                if (!leaf.HasBox) continue;
+
+                Occupant occupant = ScanOneLeafAt(leaf, angle, knockable, side, doorwayCentre, normal);
+                if (occupant > worst) worst = occupant;
+            }
+
+            return worst;
+        }
+
+        private Occupant ScanOneLeafAt(Leaf leaf, float angle, List<PlayerKnockdown> knockable, float side,
+            Vector3 doorwayCentre, Vector3 normal)
+        {
+            LeafBoxPose(leaf, angle, out Vector3 centre, out Quaternion rotation);
+
+            Vector3 halfExtents = leaf.BoxHalfExtents + Vector3.one * obstructionMargin;
 
             int count = Physics.OverlapBoxNonAlloc(centre, halfExtents, _overlapBuffer, rotation,
                 occupantLayers, QueryTriggerInteraction.Ignore);
 
             Occupant worst = Occupant.None;
-
-            Vector3 doorwayCentre = DoorwayCentre;
-            Vector3 normal = FlatNormal();
 
             for (int i = 0; i < count; i++)
             {

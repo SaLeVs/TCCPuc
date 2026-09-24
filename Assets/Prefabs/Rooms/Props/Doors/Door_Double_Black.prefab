@@ -100,7 +100,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Objects::Objects.Door
   ShowTopMostFoldoutHeaderGroup: 1
   doorPivot: {fileID: 8952904701045092032}
-  doorRigidbody: {fileID: 5000072927107982651}
+  doorRigidbody: {fileID: 9131128096824117462}
   navMeshObstacle: {fileID: 6845968548665118180}
   leafCollisionRelay: {fileID: 8339847382613564467}
   useNoise: {fileID: 4426862191569625372}
@@ -110,6 +110,10 @@ MonoBehaviour:
   openSideBAngle: -120
   openDegreesPerSecond: 250
   monsterLockSeconds: 3
+  extraLeaves:
+  - leafRigidbody: {fileID: 5000072927107982651}
+    closedAngle: 180
+    mirror: -1
 --- !u!114 &2054124538091224265
 MonoBehaviour:
   m_ObjectHideFlags: 0

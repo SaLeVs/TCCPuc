@@ -3,7 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using Interfaces;
-using Missions.PersonalMissions;
+using Missions.Puzzles;
 using Player;
 using ScriptableObjects;
 using Systems;
@@ -338,9 +338,9 @@ namespace Missions
         {
             if (!spawned.TryGetComponent(out IMissionOwnerAware ownerAware)) return;
             if (MissionItemRegistry.Instance == null) return;
-            if (!MissionItemRegistry.Instance.TryGetManager(itemId, out MissionsManagerBase manager)) return;
+            if (!MissionItemRegistry.Instance.TryGetManager(itemId, out PuzzleManagerBase puzzle)) return;
 
-            ownerAware.SetOwnershipSelector(manager);
+            ownerAware.BindToPuzzle(puzzle);
         }
         
         public void CompleteMainMission()

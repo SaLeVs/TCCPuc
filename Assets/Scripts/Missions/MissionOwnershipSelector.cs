@@ -3,7 +3,7 @@ using ScriptableObjects;
 using Unity.Netcode;
 using UnityEngine;
 
-namespace Missions.PersonalMissions
+namespace Missions
 {
     public class MissionOwnershipSelector : NetworkBehaviour
     {

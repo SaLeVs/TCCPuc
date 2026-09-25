@@ -1,6 +1,6 @@
 using Inputs;
 using Interfaces;
-using Missions.PersonalMissions;
+using Missions.Puzzles;
 using Player;
 using ScriptableObjects;
 using Unity.Netcode;
@@ -8,7 +8,7 @@ using UnityEngine;
 
 namespace Objects.UsableItems
 {
-    public class MissionPlaceable : NetworkBehaviour, IUsable
+    public class SlotPlaceableItem : NetworkBehaviour, IUsable
     {
         [SerializeField] private InputReader inputReader;
         [SerializeField] private ItemDataSO itemData;
@@ -41,14 +41,14 @@ namespace Objects.UsableItems
         {
             if (playerInteractor.TryGetComponent(out PlayerState playerState) && playerState.IsDead) return false;
 
-            return _interactor?.CurrentInteractable is MissionTotem;
+            return _interactor?.CurrentInteractable is ItemSlotTotem;
         }
 
         public void Use(GameObject playerInteractor)
         {
             if (!CanUse(playerInteractor)) return;
 
-            if (_interactor.CurrentInteractable is MissionTotem totem)
+            if (_interactor.CurrentInteractable is ItemSlotTotem totem)
             {
                 TryPlaceServerRpc(totem.NetworkObjectId);
             }
@@ -58,7 +58,7 @@ namespace Objects.UsableItems
         private void TryPlaceServerRpc(ulong totemNetworkId)
         {
             if (!NetworkManager.Singleton.SpawnManager.SpawnedObjects.TryGetValue(totemNetworkId, out NetworkObject netObj)) return;
-            if (!netObj.TryGetComponent(out MissionTotem totem)) return;
+            if (!netObj.TryGetComponent(out ItemSlotTotem totem)) return;
             if (!totem.TryDeposit(OwnerClientId, itemData.itemId)) return;
 
             NetworkObject playerNetObj = NetworkManager.Singleton.SpawnManager.GetPlayerNetworkObject(OwnerClientId);

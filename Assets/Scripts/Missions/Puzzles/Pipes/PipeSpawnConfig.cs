@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using Enums;
 using UnityEngine;
 
-namespace Missions
+namespace Missions.Puzzles
 {
     [Serializable]
     public class PipeSpawnConfig : SpawnConfig

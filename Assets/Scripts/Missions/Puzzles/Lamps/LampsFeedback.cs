@@ -2,11 +2,11 @@ using TMPro;
 using Unity.Netcode;
 using UnityEngine;
 
-namespace Missions
+namespace Missions.Puzzles
 {
     public class LampsFeedback : NetworkBehaviour
     {
-        [SerializeField] private LampsManager lampsManager;
+        [SerializeField] private LampsPuzzleManager lampsManager;
         [SerializeField] private TextMeshProUGUI countText;
         [SerializeField] private Light statusLight;
         [SerializeField] private Color correctMaterial;
@@ -15,8 +15,8 @@ namespace Missions
         public override void OnNetworkSpawn()
         {
             lampsManager.OnCorrectLampsCountChanged += LampsManager_OnCorrectLampsCountChanged;
-            lampsManager.OnMissionCompleteChanged += LampsManager_OnMissionCompleteChanged;
-            
+            lampsManager.OnCompleteChanged += LampsManager_OnCompleteChanged;
+
             LampsManager_OnCorrectLampsCountChanged(lampsManager.CorrectLampsCount, lampsManager.TotalLampsCount);
         }
 
@@ -25,7 +25,7 @@ namespace Missions
             countText.text = $"{lampsCorrect}/{totalLamps}";
         }
 
-        private void LampsManager_OnMissionCompleteChanged(bool isComplete)
+        private void LampsManager_OnCompleteChanged(bool isComplete)
         {
             statusLight.color = isComplete ? correctMaterial : incorrectMaterial;
         }
@@ -33,9 +33,8 @@ namespace Missions
         public override void OnNetworkDespawn()
         {
             lampsManager.OnCorrectLampsCountChanged -= LampsManager_OnCorrectLampsCountChanged;
-            lampsManager.OnMissionCompleteChanged -= LampsManager_OnMissionCompleteChanged;
+            lampsManager.OnCompleteChanged -= LampsManager_OnCompleteChanged;
         }
-        
+
     }
 }
-

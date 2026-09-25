@@ -1,4 +1,4 @@
-using Missions.PersonalMissions;
+using Missions.Puzzles;
 using Unity.Netcode;
 using UnityEngine;
 
@@ -8,13 +8,13 @@ namespace Missions
     {
         private readonly NetworkVariable<NetworkObjectReference> _managerRef = new();
 
-        private MissionsManagerBase Manager
+        private PuzzleManagerBase Manager
         {
             get
             {
                 if (_managerRef.Value.TryGet(out NetworkObject networkObject))
                 {
-                    if (networkObject.TryGetComponent(out MissionsManagerBase missionManager))
+                    if (networkObject.TryGetComponent(out PuzzleManagerBase missionManager))
                     {
                         return missionManager;
                     }
@@ -24,7 +24,7 @@ namespace Missions
             }
         }
 
-        public void SetManager(MissionsManagerBase manager)
+        public void SetManager(PuzzleManagerBase manager)
         {
             if (!IsServer || manager == null || manager.NetworkObject == null) return;
 
@@ -33,7 +33,7 @@ namespace Missions
 
         public bool CanClientInteract(ulong clientId)
         {
-            MissionsManagerBase manager = Manager;
+            PuzzleManagerBase manager = Manager;
 
             if (manager == null) return false;
 

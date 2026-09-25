@@ -3,7 +3,7 @@ using System.Linq;
 using ScriptableObjects;
 using UnityEngine;
 
-namespace Missions
+namespace Missions.Puzzles
 {
     public static class PipeGridResolver
     {

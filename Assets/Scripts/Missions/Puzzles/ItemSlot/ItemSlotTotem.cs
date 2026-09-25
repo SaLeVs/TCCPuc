@@ -1,31 +1,22 @@
-using System;
 using Interfaces;
 using Unity.Netcode;
 using UnityEngine;
 using ScriptableObjects;
 
-namespace Missions.PersonalMissions
+namespace Missions.Puzzles
 {
-    public class MissionTotem : TotemsMissionsBase, IInteractable
+    public class ItemSlotTotem : PuzzlePieceBase, IInteractable
     {
-        public event Action<ulong> OnTotemDeposited;
-        
         [SerializeField] private ItemDataSO expectedItem;
         [SerializeField] private Transform spawnPoint;
         [SerializeField] private ItemListSO itemDatabase;
-        
-        
-        public bool IsSlotCorrect => _currentItemId == expectedItem.itemId;
-        
+
+        public override bool IsCorrect => HasItemInSlot() && _currentItemId == expectedItem.itemId;
+
         private NetworkObject _currentPickable;
         private int _currentItemId = -1;
-        
 
-        public void Initialize(MissionTotemGroup totemGroup)
-        {
-            InitializeBase(totemGroup);
-        }
-        
+
         public bool CanInteract(GameObject interactor)
         {
             if (HasItemInSlot()) return false;
@@ -41,8 +32,6 @@ namespace Missions.PersonalMissions
             if (!CheckOwnership(clientId)) return false;
             if (HasItemInSlot()) return false;
 
-            _currentItemId = itemId;
-
             ItemDataSO item = itemDatabase.GetItem(itemId);
 
             if (item == null) return false;
@@ -56,14 +45,15 @@ namespace Missions.PersonalMissions
 
                 if (spawned.TryGetComponent(out IMissionOwnerAware ownerAware))
                 {
-                    ownerAware.SetOwnershipSelector(Manager);
+                    ownerAware.BindToPuzzle(Manager);
                 }
             }
 
-            OnTotemDeposited?.Invoke(clientId);
+            _currentItemId = itemId;
+            NotifyChanged(clientId);
             return true;
         }
-        
+
         private bool HasItemInSlot()
         {
             if (_currentPickable == null) return false;
@@ -76,12 +66,12 @@ namespace Missions.PersonalMissions
 
             return true;
         }
-        
+
         private void ClearSlot()
         {
             _currentPickable = null;
             _currentItemId = -1;
         }
-        
+
     }
 }

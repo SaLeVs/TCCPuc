@@ -1,8 +1,10 @@
-﻿namespace Missions
+﻿using Missions.Puzzles;
+
+namespace Missions
 {
     public interface IMissionOwnerAware
     {
         int ItemId { get; }
-        void SetOwnershipSelector(MissionsManagerBase manager);
+        void BindToPuzzle(PuzzleManagerBase puzzle);
     }
 }

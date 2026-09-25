@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using Missions.Puzzles;
 using UnityEngine;
 
 namespace Missions
@@ -7,16 +8,16 @@ namespace Missions
     {
         public static MissionItemRegistry Instance { get; private set; }
 
-        private readonly Dictionary<int, MissionsManagerBase> _itemIdToManager = new();
+        private readonly Dictionary<int, PuzzleManagerBase> _itemIdToManager = new();
 
         private void Awake() => Instance = this;
 
-        public void Register(int itemId, MissionsManagerBase manager)
+        public void Register(int itemId, PuzzleManagerBase manager)
         {
             _itemIdToManager[itemId] = manager;
         }
 
-        public bool TryGetManager(int itemId, out MissionsManagerBase manager)
+        public bool TryGetManager(int itemId, out PuzzleManagerBase manager)
         {
             if (_itemIdToManager.TryGetValue(itemId, out manager) && manager != null)
                 return true;

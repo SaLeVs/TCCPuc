@@ -1,36 +1,43 @@
-using Missions.PersonalMissions;
 using Unity.Netcode;
 using UnityEngine;
 
-namespace Missions
+namespace Missions.Puzzles
 {
-    public class TotemsMissionsBase : NetworkBehaviour
+    public abstract class PuzzlePieceBase : NetworkBehaviour
     {
         private readonly NetworkVariable<NetworkObjectReference> _managerRef = new();
-        
+
+        public abstract bool IsCorrect { get; }
+
         protected MissionOwnershipSelector OwnershipSelector => Manager?.OwnershipSelector;
-        
-        protected MissionsManagerBase Manager
+
+        protected PuzzleManagerBase Manager
         {
             get
             {
                 if (_managerRef.Value.TryGet(out NetworkObject networkObject))
                 {
-                    if(networkObject.TryGetComponent(out MissionsManagerBase manager))
+                    if (networkObject.TryGetComponent(out PuzzleManagerBase manager))
                     {
                         return manager;
                     }
                 }
-                
+
                 return null;
             }
         }
-        
-        protected void InitializeBase(MissionsManagerBase missionManager)
+
+        // Chamado pelo PuzzleManagerBase.SpawnPiece.
+        internal void Bind(PuzzleManagerBase manager)
         {
             if (!IsServer) return;
-            
-            _managerRef.Value = missionManager.NetworkObject;
+
+            _managerRef.Value = manager.NetworkObject;
+        }
+
+        protected void NotifyChanged(ulong clientId)
+        {
+            Manager?.NotifyPieceChanged(this, clientId);
         }
 
         protected bool CheckOwnership(ulong clientId)
@@ -40,11 +47,11 @@ namespace Missions
                 Debug.LogWarning($"{name}: Manager is null! _managerRef synced?");
                 return false;
             }
-            
+
             if (Manager.IsComplete) return false;
 
             MissionOwnershipSelector selector = OwnershipSelector;
-            
+
             if (selector == null)
             {
                 Debug.LogWarning($"{name}: OwnershipSelector not sync yet");
@@ -53,7 +60,6 @@ namespace Missions
 
             return selector.IsMissionOwner(clientId);
         }
-        
+
     }
 }
-

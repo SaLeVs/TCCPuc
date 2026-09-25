@@ -1,28 +1,26 @@
-﻿using System.Collections.Generic;
-using Enums;
+using System.Collections.Generic;
 using Interfaces;
 using Unity.Netcode;
 using UnityEngine;
 
-namespace Missions
+namespace Missions.Puzzles
 {
-    public class PipeTotem : TotemsMissionsBase, IInteractable
+    public class PipeTotem : PuzzlePieceBase, IInteractable
     {
         [SerializeField] private Vector3 rotationAxis = Vector3.up;
 
-        public bool IsCorrect => IsRotationCorrect();
+        public override bool IsCorrect => IsRotationCorrect();
         public int CurrentStep => _currentRotationStep.Value;
 
         private readonly NetworkVariable<int> _currentRotationStep = new();
         private readonly NetworkList<int> _correctSteps = new();
-        
+
         private Quaternion _baseRotation;
 
-        private List<float> PossibleAngles => (Manager as MissionPipesManager)?.PossiblePipesAngles;
-        
-        public void Initialize(MissionPipesManager manager, List<float> possibleAngles, List<int> correctSteps, int initialStepIndex)
+        private List<float> PossibleAngles => (Manager as PipesPuzzleManager)?.PossiblePipesAngles;
+
+        public void Setup(List<int> correctSteps, int initialStepIndex)
         {
-            InitializeBase(manager);
             _baseRotation = transform.localRotation;
 
             if (!IsServer) return;
@@ -32,7 +30,7 @@ namespace Missions
                 _correctSteps.Add(step);
             }
 
-            int count = manager.PossiblePipesAngles?.Count ?? 1;
+            int count = PossibleAngles?.Count ?? 1;
             _currentRotationStep.Value = Mathf.Clamp(initialStepIndex, 0, count - 1);
         }
 
@@ -82,7 +80,7 @@ namespace Missions
 
             _currentRotationStep.Value = (_currentRotationStep.Value + 1) % angles.Count;
 
-            ((MissionPipesManager)Manager).OnPipeRotated(clientId);
+            NotifyChanged(clientId);
         }
 
         private void PipeTotem_OnRotationChanged(int previousValue, int newValue)
@@ -110,11 +108,11 @@ namespace Missions
             _correctSteps.Clear();
         }
 
-        
+
         public override void OnNetworkDespawn()
         {
             _currentRotationStep.OnValueChanged -= PipeTotem_OnRotationChanged;
         }
-        
+
     }
 }

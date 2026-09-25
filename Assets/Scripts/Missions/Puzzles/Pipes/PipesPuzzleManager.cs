@@ -1,54 +1,41 @@
-using System;
 using System.Collections.Generic;
-using Enums;
-using Interfaces;
 using ScriptableObjects;
-using Unity.Netcode;
 using UnityEngine;
 
-namespace Missions
+namespace Missions.Puzzles
 {
-    public class MissionPipesManager : MissionsManagerBase, IMissionSpawnable
+    public class PipesPuzzleManager : PuzzleManagerBase
     {
-        public event Action OnSpawnCompleted;
-        
-        [SerializeField] private MissionCompleter missionCompleter;
-        
         [SerializeField] private List<float> possibleAngles;
-        
+
         [SerializeField] private Transform spawnListRoot;
         [SerializeField] private GameObject defaultPipePrefab;
         [SerializeField] private List<PipeGridLayout> possibleGridLayouts;
         [SerializeField] private List<PipeSpawnConfig> pipeConfigs = new();
-        
-        public override bool IsComplete { get; protected set; }
+
         public List<float> PossiblePipesAngles => possibleAngles;
-        
-        private readonly List<PipeTotem> _spawnedPipes = new();
-        
-        public void RequestSpawn()
+
+
+        protected override void SpawnPuzzle()
         {
-            if (!IsServer) return;
-            
             ResolvePipeConfigsFromGridIfNeeded();
             SpawnPipes();
         }
-        
-        
+
         private void ResolvePipeConfigsFromGridIfNeeded()
         {
             if (possibleGridLayouts == null || possibleGridLayouts.Count == 0)
             {
                 return;
             }
-            
+
             if (spawnListRoot == null)
             {
-                Debug.LogWarning("MissionPipesManager: possibleGridLayouts defined, but spawnListRoot is null. Using manual pipeConfigs.");
+                Debug.LogWarning("PipesPuzzleManager: possibleGridLayouts defined, but spawnListRoot is null. Using manual pipeConfigs.");
                 return;
             }
 
-            PipeGridLayout selectedLayout = possibleGridLayouts[UnityEngine.Random.Range(0, possibleGridLayouts.Count)];
+            PipeGridLayout selectedLayout = possibleGridLayouts[Random.Range(0, possibleGridLayouts.Count)];
 
             List<PipeSpawnConfig> resolvedConfigs = PipeGridResolver.BuildSpawnConfigs(selectedLayout, spawnListRoot, defaultPipePrefab);
 
@@ -58,10 +45,10 @@ namespace Missions
             }
             else
             {
-                Debug.LogWarning($"MissionPipesManager: The layout '{selectedLayout.name}' did not generate any valid config. Using manual pipeConfigs.");
+                Debug.LogWarning($"PipesPuzzleManager: The layout '{selectedLayout.name}' did not generate any valid config. Using manual pipeConfigs.");
             }
         }
-        
+
         private void SpawnPipes()
         {
             List<int> randomSteps = GenerateRandomSteps(pipeConfigs.Count);
@@ -82,28 +69,14 @@ namespace Missions
                     continue;
                 }
 
-                Transform spawn = config.spawnPoint[0];
+                PipeTotem pipe = SpawnPiece<PipeTotem>(config.prefab, config.spawnPoint[0]);
 
+                if (pipe == null) continue;
 
-                GameObject spawned = Instantiate(config.prefab, spawn.position, spawn.rotation);
-
-                
-                if (spawned.TryGetComponent(out NetworkObject netObj))
-                {
-                    netObj.Spawn();
-                }
-                
-                if (spawned.TryGetComponent(out PipeTotem pipe))
-                {
-                    pipe.Initialize(this, possibleAngles, config.correctSteps, randomSteps[i]);
-                    _spawnedPipes.Add(pipe);
-                }
+                pipe.Setup(config.correctSteps, randomSteps[i]);
             }
-
-            OnSpawnCompleted?.Invoke();
         }
-        
-        
+
         private List<int> GenerateRandomSteps(int pipeCount)
         {
             int wrongCount = Mathf.CeilToInt(pipeCount / 2f);
@@ -132,11 +105,11 @@ namespace Missions
 
             return new List<int>(steps);
         }
-        
+
         private int GetCorrectStep(PipeSpawnConfig config)
         {
             if (config.correctSteps == null || config.correctSteps.Count == 0) return 0;
-            return config.correctSteps[UnityEngine.Random.Range(0, config.correctSteps.Count)];
+            return config.correctSteps[Random.Range(0, config.correctSteps.Count)];
         }
 
         private int GetWrongStep(PipeSpawnConfig config, List<float> angles)
@@ -152,69 +125,34 @@ namespace Missions
             }
 
             if (wrongSteps.Count == 0) return 0;
-            return wrongSteps[UnityEngine.Random.Range(0, wrongSteps.Count)];
+            return wrongSteps[Random.Range(0, wrongSteps.Count)];
         }
 
         private void Shuffle(List<int> list)
         {
             for (int i = list.Count - 1; i > 0; i--)
             {
-                int j = UnityEngine.Random.Range(0, i + 1);
+                int j = Random.Range(0, i + 1);
                 (list[i], list[j]) = (list[j], list[i]);
             }
         }
-        
-        public void OnPipeRotated(ulong clientId)
-        {
-            if (!IsServer || IsComplete) return;
-            if (!CheckAllPipesCorrect()) return;
 
-            IsComplete = true;
-            missionCompleter.Complete();
-            NotifyOwnerMissionCompletedRpc(RpcTarget.Single(clientId, RpcTargetUse.Temp));
-        }
-        
-        private bool CheckAllPipesCorrect()
-        {
-            foreach (PipeTotem pipe in _spawnedPipes)
-            {
-                if (!pipe.IsCorrect) return false;
-            }
-            return true;
-        }
-        
-        [Rpc(SendTo.SpecifiedInParams)]
-        private void NotifyOwnerMissionCompletedRpc(RpcParams rpcParams = default)
-        {
-            NetworkObject playerNetworkObject = NetworkManager.Singleton.SpawnManager.GetPlayerNetworkObject(NetworkManager.Singleton.LocalClientId);
 
-            if (playerNetworkObject.TryGetComponent(out PlayerMissionHolder missionHolder))
-            {
-                missionHolder.CompletePersonalMission(OwnershipSelector.Mission);
-            }
-        }
-        
-        
         public override void OnNetworkDespawn()
         {
-            if (!IsServer) return;
-
-            foreach (PipeTotem pipe in _spawnedPipes)
+            if (IsServer)
             {
-                if (pipe == null) continue;
-
-                pipe.Uninitialize();
-
-                if (pipe.TryGetComponent(out NetworkObject netObj) && netObj.IsSpawned)
+                foreach (PuzzlePieceBase piece in Pieces)
                 {
-                    netObj.Despawn();
+                    if (piece is PipeTotem pipe && pipe != null)
+                    {
+                        pipe.Uninitialize();
+                    }
                 }
-
-                Destroy(pipe.gameObject);
             }
 
-            _spawnedPipes.Clear();
+            base.OnNetworkDespawn();
         }
-        
+
     }
 }

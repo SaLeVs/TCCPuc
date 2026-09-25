@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using UnityEngine;
 
-namespace Missions
+namespace Missions.Puzzles
 {
     public static class SpawnUtility
     {

@@ -1,5 +1,6 @@
 using Interfaces;
 using Missions;
+using Missions.Puzzles;
 using Player;
 using ScriptableObjects;
 using Unity.Netcode;
@@ -21,9 +22,9 @@ namespace Objects.PickupItems
         }
         
 
-        public void SetOwnershipSelector(MissionsManagerBase manager)
+        public void BindToPuzzle(PuzzleManagerBase puzzle)
         {
-            _ownershipFilter?.SetManager(manager);
+            _ownershipFilter?.SetManager(puzzle);
         }
 
         public bool CanInteract(GameObject interactor)

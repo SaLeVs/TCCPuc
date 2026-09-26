@@ -1,7 +1,7 @@
-﻿namespace Interfaces
+namespace Interfaces
 {
     public interface IInputLockable
     {
-        void SetInputLocked(bool locked);
+        void SetInputLocked(InputLockReason reason, bool locked);
     }
 }

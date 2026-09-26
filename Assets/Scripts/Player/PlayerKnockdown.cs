@@ -1,6 +1,8 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using Components;
+using Interfaces;
 using ScriptableObjects;
 using Unity.Netcode;
 using UnityEngine;
@@ -26,6 +28,8 @@ namespace Player
     /// </summary>
     public class PlayerKnockdown : NetworkBehaviour
     {
+        public event Action<bool> OnKnockdownChanged;
+
         [Header("References")]
         [SerializeField] private PlayerState playerState;
         [SerializeField] private PlayerDead playerDead;
@@ -132,6 +136,10 @@ namespace Player
 
         private void Knockdown_OnStateChanged(KnockdownState previous, KnockdownState current)
         {
+            // Before entering: whatever reacts (e.g. closing a minigame) releases its own locks
+            // while the camera still sees a standing player.
+            OnKnockdownChanged?.Invoke(current.Active);
+
             if (current.Active)
             {
                 EnterKnockdown(current.Impulse);
@@ -157,7 +165,7 @@ namespace Player
             // those on an already-kinematic body is not allowed.
             if (IsOwner)
             {
-                playerState.SetInputLocked(true);
+                playerState.SetInputLocked(InputLockReason.Knockdown, true);
             }
 
             SpawnRagdoll(impulse);
@@ -199,7 +207,7 @@ namespace Player
                 playerCamera.SetKnockedDown(false);
             }
 
-            playerState.SetInputLocked(false);
+            playerState.SetInputLocked(InputLockReason.Knockdown, false);
         }
 
         private void MoveToStandingSpot()

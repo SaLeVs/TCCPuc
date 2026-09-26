@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using Enums;
 using UnityEngine;
 
-namespace UI
+namespace Missions.Puzzles
 {
     public class SkillCheckGenerator : MonoBehaviour
     {
@@ -11,20 +11,20 @@ namespace UI
         [SerializeField] private RectTransform slotsParent;
         [SerializeField] private int correctAreasCount = 5;
         [SerializeField] private float radius = 100f;
-        
+
         [SerializeField] private float minAngleGapDegrees = 10f;
         [SerializeField] private float rotationOffset;
 
         private readonly List<SkillCheckSlot> _slots = new();
 
         public SkillCheckSlot CurrentSlot { get; private set; }
-
-        private void Awake() => Reset();
+        public int SlotCount => correctAreasCount;
 
         private void OnDestroy() => ClearSlots();
 
 
-        public void Reset()
+        // Não pode se chamar Reset(): é uma mensagem do Unity, chamada no editor ao adicionar o componente.
+        public void Regenerate()
         {
             CurrentSlot = null;
             GenerateSlots();
@@ -89,7 +89,7 @@ namespace UI
 
             slotRect.localRotation = Quaternion.Euler(0f, 0f, angleDegrees + rotationOffset);
         }
-        
+
         private List<float> GenerateRandomAngles(int count, float minGapDegrees)
         {
             List<float> result = new List<float>(count);

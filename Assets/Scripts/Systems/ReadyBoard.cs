@@ -88,7 +88,7 @@ namespace Systems
             _isInUse = true;
             _currentInputLockable = lockable;
 
-            _currentInputLockable.SetInputLocked(true);
+            _currentInputLockable.SetInputLocked(InputLockReason.ReadyBoard, true);
             readyBoardVCam.Priority = 20;
 
             return true;
@@ -98,7 +98,7 @@ namespace Systems
         {
             _isInUse = false;
 
-            _currentInputLockable?.SetInputLocked(false);
+            _currentInputLockable?.SetInputLocked(InputLockReason.ReadyBoard, false);
             _currentInputLockable = null;
 
             readyBoardVCam.Priority = 0;

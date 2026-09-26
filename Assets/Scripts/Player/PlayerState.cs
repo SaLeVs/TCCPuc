@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using Interfaces;
 using Unity.Cinemachine;
 using Unity.Netcode;
@@ -42,6 +43,7 @@ namespace Player
         public bool IsHuntable => !IsDead && !HasWon;
         public Vector3 HuntablePosition => transform.position;
         
+        private readonly HashSet<InputLockReason> _inputLockReasons = new();
         private bool _isInputLocked;
         private Vector2 _movementInput;
         
@@ -114,12 +116,21 @@ namespace Player
         }
 
 
-        public void SetInputLocked(bool locked)
+        public void SetInputLocked(InputLockReason reason, bool locked)
         {
             if (!IsOwner) return;
-    
-            _isInputLocked = locked;
-            OnPlayerLocked?.Invoke(locked);
+
+            if (locked)
+            {
+                _inputLockReasons.Add(reason);
+            }
+            else
+            {
+                _inputLockReasons.Remove(reason);
+            }
+
+            _isInputLocked = _inputLockReasons.Count > 0;
+            OnPlayerLocked?.Invoke(_isInputLocked);
         }
         
         public void SetSpectatorMode(bool isSpectating) => playerCamera.SetSpectatorMode(isSpectating);
@@ -155,7 +166,7 @@ namespace Player
         public void TriggerVictoryLocally()
         {
             SetSpectatorMode(false);
-            SetInputLocked(true);
+            SetInputLocked(InputLockReason.EndGame, true);
             OnVictoryTriggered?.Invoke();
         }
         
@@ -193,7 +204,7 @@ namespace Player
 
         public void TriggerGameOverLocally()
         {
-            SetInputLocked(true);
+            SetInputLocked(InputLockReason.EndGame, true);
             OnGameOverTriggered?.Invoke();
         }
         

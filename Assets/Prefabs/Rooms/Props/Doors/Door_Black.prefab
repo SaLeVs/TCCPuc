@@ -45,6 +45,7 @@ GameObject:
   - component: {fileID: 2166531864739782751}
   - component: {fileID: 2719397508710892928}
   - component: {fileID: 6771927605353919430}
+  - component: {fileID: 6728418094681573926}
   m_Layer: 18
   m_Name: Door_Black
   m_TagString: Untagged
@@ -102,6 +103,7 @@ MonoBehaviour:
   doorRigidbody: {fileID: 5000072927107982651}
   navMeshObstacle: {fileID: 6845968548665118180}
   useNoise: {fileID: 6771927605353919430}
+  blockedSound: {fileID: 11400000, guid: ffd9dbfe32f74574ea3a412ec1b04caa, type: 2}
   impactProfile: {fileID: 11400000, guid: c1eef1fa3b196444284896d4bae14c64, type: 2}
   occupantLayers:
     serializedVersion: 2
@@ -113,6 +115,7 @@ MonoBehaviour:
   closedAngle: 0
   openSideAAngle: 90
   openSideBAngle: -90
+  extraLeaves: []
   openDegreesPerSecond: 250
   monsterLockSeconds: 3
 --- !u!114 &2166531864739782751
@@ -164,6 +167,21 @@ MonoBehaviour:
   loudness: 13
   cooldown: 0.4
   origin: {fileID: 0}
+--- !u!114 &6728418094681573926
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5154175870565505241}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e829c87dc2a2ed2419c5f67848317fe4, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: SteamAudioUnity::SteamAudio.SteamAudioGeometry
+  material: {fileID: 11400000, guid: 89b4b059442c39741b8fe71b3d7e304a, type: 2}
+  exportAllChildren: 0
+  terrainSimplificationLevel: 0
 --- !u!1 &7462114213329178385
 GameObject:
   m_ObjectHideFlags: 0

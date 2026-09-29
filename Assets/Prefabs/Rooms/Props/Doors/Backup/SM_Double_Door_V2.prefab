@@ -105,7 +105,7 @@ GameObject:
   - component: {fileID: 4523274771507174324}
   - component: {fileID: 6773264135420492356}
   - component: {fileID: 3867573451082726814}
-  m_Layer: 8
+  m_Layer: 18
   m_Name: LeafRight
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -347,6 +347,9 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: cef564be14493164db27d15ca13b66fd, type: 3}
       insertIndex: -1
       addedObject: {fileID: 4919010405281757955}
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: cef564be14493164db27d15ca13b66fd, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 197808734187823637}
   m_SourcePrefab: {fileID: 100100000, guid: cef564be14493164db27d15ca13b66fd, type: 3}
 --- !u!1 &3759366471055911744 stripped
 GameObject:
@@ -369,12 +372,20 @@ MonoBehaviour:
   doorPivot: {fileID: 7257680344211552655}
   doorRigidbody: {fileID: 1721929873816632866}
   navMeshObstacle: {fileID: 7409972186935927049}
-  leafCollisionRelay: {fileID: 587608046940699343}
   useNoise: {fileID: 0}
+  blockedSound: {fileID: 11400000, guid: ffd9dbfe32f74574ea3a412ec1b04caa, type: 2}
   impactProfile: {fileID: 11400000, guid: c1eef1fa3b196444284896d4bae14c64, type: 2}
+  occupantLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  obstructionMargin: 0.05
+  sweepSampleDegrees: 10
+  navMeshCheckReach: 0.9
+  openLeafHingeClearance: 0.45
   closedAngle: 0
   openSideAAngle: 105
   openSideBAngle: -105
+  extraLeaves: []
   openDegreesPerSecond: 250
   monsterLockSeconds: 3
 --- !u!208 &7409972186935927049
@@ -426,6 +437,21 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Monster::Monster.MonsterSabotages.DoorSabotage
   blockSeconds: 12
+--- !u!114 &197808734187823637
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3759366471055911744}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e829c87dc2a2ed2419c5f67848317fe4, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: SteamAudioUnity::SteamAudio.SteamAudioGeometry
+  material: {fileID: 11400000, guid: 89b4b059442c39741b8fe71b3d7e304a, type: 2}
+  exportAllChildren: 0
+  terrainSimplificationLevel: 0
 --- !u!4 &4566688847407968762 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: cef564be14493164db27d15ca13b66fd, type: 3}

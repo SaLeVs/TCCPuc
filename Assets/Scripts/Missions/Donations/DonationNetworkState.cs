@@ -10,6 +10,8 @@ namespace Missions.Donations
         public FixedString64Bytes DonationId;
         public FixedString32Bytes DonorName;
         public FixedString128Bytes Message;
+        public ulong RecipientClientId;
+        public FixedString32Bytes RecipientName;
         public float Amount;
         public float Progress;
         public double SpawnTime;
@@ -22,6 +24,8 @@ namespace Missions.Donations
             serializer.SerializeValue(ref DonationId);
             serializer.SerializeValue(ref DonorName);
             serializer.SerializeValue(ref Message);
+            serializer.SerializeValue(ref RecipientClientId);
+            serializer.SerializeValue(ref RecipientName);
             serializer.SerializeValue(ref Amount);
             serializer.SerializeValue(ref Progress);
             serializer.SerializeValue(ref SpawnTime);

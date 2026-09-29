@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using Components.Sound;
 using Unity.Netcode;
 using UnityEngine;
 using UnityEngine.Events;
@@ -16,10 +17,9 @@ namespace Missions.Donations
     /// </summary>
     public class DonationUIController : MonoBehaviour
     {
-        /// <summary>Carries a position so SfxManager can play it like every other sound.</summary>
-        public static event Action<Vector3> OnDonationReceivedSound;
-
-        public static event Action<Vector3> OnDonationCompletedSound;
+        [Header("HUD sounds")]
+        [SerializeField] private SoundDefinitionSO donationReceivedSound;
+        [SerializeField] private SoundDefinitionSO donationCompletedSound;
 
         [Header("Card slot")]
         [Tooltip("Where the single card is spawned. One card is reused for every donation.")]
@@ -67,9 +67,6 @@ namespace Missions.Donations
         private string _selectedId;
         private float _alertEndsAt;
         private bool _isCardShown;
-
-        /// <summary>SfxManager reads Vector3.zero as "this is an interface sound": 2D, no occlusion.</summary>
-        private static readonly Vector3 UiSoundPosition = Vector3.zero;
 
         private void OnEnable()
         {
@@ -159,7 +156,7 @@ namespace Missions.Donations
 
             if (state.State == DonationState.Completed)
             {
-                OnDonationCompletedSound?.Invoke(UiSoundPosition);
+                UiSound.Play(donationCompletedSound);
                 Drop(id);
                 return;
             }
@@ -172,7 +169,7 @@ namespace Missions.Donations
 
             if (isNew)
             {
-                OnDonationReceivedSound?.Invoke(UiSoundPosition);
+                UiSound.Play(donationReceivedSound);
                 _pendingAlerts.Enqueue(id);
                 return;
             }

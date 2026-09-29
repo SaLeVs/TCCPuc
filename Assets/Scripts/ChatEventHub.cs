@@ -17,7 +17,7 @@ using UnityEngine;
 /// say - the lines, the volume, the mood and the priority all live in the topic database, and the
 /// only thing crossing over is a string id.</para>
 ///
-/// <para>It lives in the Game assembly for the same reason <see cref="SfxManager"/> does: Game sits
+/// <para>It lives in the Game assembly because Game sits
 /// at the top of the dependency graph, referencing nearly everything while nothing references it,
 /// so it is the only place a listener can see Audience, Missions, Monster and Objects at once. The
 /// chat itself lives in Player, which Missions already references - so the chat can never reach
@@ -123,17 +123,17 @@ public class ChatEventHub : MonoBehaviour
         // All three are static and already client-side, so they need no manager to be found first.
         // The two mission ones are raised behind an IsOwner guard, so they arrive exactly once, on
         // the client whose mission it was.
-        PlayerMissionHolder.OnMissionCompletedSound += PlayerMissionHolder_OnMissionCompleted;
-        PlayerMissionHolder.OnMissionRecievedSound += PlayerMissionHolder_OnMissionReceived;
-        Door.OnDoorBlockedSound += Door_OnBlocked;
+        PlayerMissionHolder.OnLocalMissionCompleted += PlayerMissionHolder_OnLocalMissionCompleted;
+        PlayerMissionHolder.OnLocalMissionReceived += PlayerMissionHolder_OnLocalMissionReceived;
+        Door.OnDoorBlocked += Door_OnBlocked;
         missionNudge.ReportProgress();
     }
 
     private void OnDisable()
     {
-        PlayerMissionHolder.OnMissionCompletedSound -= PlayerMissionHolder_OnMissionCompleted;
-        PlayerMissionHolder.OnMissionRecievedSound -= PlayerMissionHolder_OnMissionReceived;
-        Door.OnDoorBlockedSound -= Door_OnBlocked;
+        PlayerMissionHolder.OnLocalMissionCompleted -= PlayerMissionHolder_OnLocalMissionCompleted;
+        PlayerMissionHolder.OnLocalMissionReceived -= PlayerMissionHolder_OnLocalMissionReceived;
+        Door.OnDoorBlocked -= Door_OnBlocked;
 
         UnbindAudience();
 
@@ -343,7 +343,7 @@ public class ChatEventHub : MonoBehaviour
             state.DonorName.ToString());
     }
 
-    private void PlayerMissionHolder_OnMissionCompleted(Vector3 _)
+    private void PlayerMissionHolder_OnLocalMissionCompleted()
     {
         missionNudge.ReportProgress();
 
@@ -352,14 +352,14 @@ public class ChatEventHub : MonoBehaviour
 
     // Picking one up counts as progress too - the player is clearly not lost, so the hint should
     // not be counting down at them while they walk to it.
-    private void PlayerMissionHolder_OnMissionReceived(Vector3 _) => missionNudge.ReportProgress();
+    private void PlayerMissionHolder_OnLocalMissionReceived() => missionNudge.ReportProgress();
 
 
     // ------------------------------------------------------------------ Doors
     //
-    // Hooks the blocked-door sound rather than the interaction, because that sound is already
-    // raised on every client through an RPC - the one version of the event reachable from here
-    // without the door needing to know who pressed the key.
+    // Hooks the door's blocked event rather than the interaction, because that one is raised on
+    // every client through an RPC - the one version of the event reachable from here without the
+    // door needing to know who pressed the key.
     //
     // Filtered by distance, not by who interacted, and deliberately so: viewers are watching a
     // screen. A door rattling in front of the streamer is worth a comment whoever pulled on it,

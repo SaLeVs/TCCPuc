@@ -1,6 +1,8 @@
+using Components.Sound;
 using Network;
 using Unity.Services.Vivox;
 using UnityEngine;
+using UnityEngine.Audio;
 
 namespace Audio
 {
@@ -8,6 +10,16 @@ namespace Audio
     {
         [SerializeField] private PlayerVoiceIdentity voiceIdentity;
         [SerializeField] private PlayerZoneAudioState zoneState;
+
+        [Header("Spatial audio")]
+        [Tooltip("Where the voice comes out: a point at the mouth, riding the head bone and facing where " +
+                 "the character faces. Without it the voice left from the feet.")]
+        [SerializeField] private Transform voiceAnchor;
+
+        [SerializeField] private AudioMixerGroup voiceMixerGroup;
+
+        [Tooltip("HRTF, walls and facing for voices.")]
+        [SerializeField] private SpatialAudioProfileSO voiceProfile;
 
         [Header("Range by speaking volume")]
         [Tooltip("Off pins the range to the channel's audible distance, the way it behaved before.")]
@@ -73,8 +85,9 @@ namespace Audio
                 return;
             }
 
-            tapObject.transform.SetParent(transform, false);
+            tapObject.transform.SetParent(voiceAnchor != null ? voiceAnchor : transform, false);
             tapObject.transform.localPosition = Vector3.zero;
+            tapObject.transform.localRotation = Quaternion.identity;
 
             _audioSource = tapObject.GetComponent<AudioSource>();
 
@@ -91,6 +104,21 @@ namespace Audio
 
             _audioSource.spatialBlend = 1f;
             _audioSource.rolloffMode = AudioRolloffMode.Linear;
+            _audioSource.outputAudioMixerGroup = voiceMixerGroup;
+
+            if (voiceProfile != null)
+            {
+                voiceProfile.AttachTo(_audioSource);
+
+                // Vivox starts the tap playing the moment it creates it, before spatialize was on, and
+                // Unity only picks up the spatializer when a sound starts. The tap's own drift
+                // correction realigns its ring buffer after the restart.
+                if (_audioSource.isPlaying)
+                {
+                    _audioSource.Stop();
+                    _audioSource.Play();
+                }
+            }
 
             if (VivoxManager.instance != null)
             {

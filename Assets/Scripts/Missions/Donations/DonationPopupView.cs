@@ -22,7 +22,11 @@ namespace Missions.Donations
         [SerializeField] private Sprite fallbackIcon;
 
         [Header("Donate text")]
-        [SerializeField] private string donationTextFormat = "{donor} donate R$ {amount} para o chat!";
+        [Tooltip("{donor}, {amount} and {recipient} are filled in.")]
+        [SerializeField] private string donationTextFormat = "{donor} donate R$ {amount} para {recipient}!";
+
+        [Tooltip("Stands in for {recipient} when the donation was addressed to nobody in particular.")]
+        [SerializeField] private string noRecipientText = "o chat";
 
         [Header("Animation")]
         [SerializeField] private float enterDuration = 0.35f;
@@ -50,7 +54,12 @@ namespace Missions.Donations
             
             if (donationText != null)
             {
-                donationText.text = donationTextFormat.Replace("{donor}", state.DonorName.ToString()).Replace("{amount}", state.Amount.ToString("0.00"));
+                string recipient = state.RecipientName.IsEmpty ? noRecipientText : state.RecipientName.ToString();
+
+                donationText.text = donationTextFormat
+                    .Replace("{donor}", state.DonorName.ToString())
+                    .Replace("{amount}", state.Amount.ToString("0.00"))
+                    .Replace("{recipient}", recipient);
             }
 
             if (messageText != null) messageText.text = state.Message.ToString();

@@ -45,6 +45,7 @@ GameObject:
   - component: {fileID: 7446075748067852088}
   - component: {fileID: 2684588005399580054}
   - component: {fileID: 4290616149819651037}
+  - component: {fileID: 2712012326635291791}
   m_Layer: 18
   m_Name: Door_Double_Exit
   m_TagString: Untagged
@@ -102,18 +103,25 @@ MonoBehaviour:
   doorPivot: {fileID: 8952904701045092032}
   doorRigidbody: {fileID: 9131128096824117462}
   navMeshObstacle: {fileID: 6845968548665118180}
-  leafCollisionRelay: {fileID: 8339847382613564467}
   useNoise: {fileID: 4290616149819651037}
+  blockedSound: {fileID: 11400000, guid: ffd9dbfe32f74574ea3a412ec1b04caa, type: 2}
   impactProfile: {fileID: 11400000, guid: c1eef1fa3b196444284896d4bae14c64, type: 2}
+  occupantLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  obstructionMargin: 0.05
+  sweepSampleDegrees: 10
+  navMeshCheckReach: 0.9
+  openLeafHingeClearance: 0.45
   closedAngle: 0
   openSideAAngle: 120
   openSideBAngle: -120
-  openDegreesPerSecond: 250
-  monsterLockSeconds: 3
   extraLeaves:
   - leafRigidbody: {fileID: 5000072927107982651}
     closedAngle: 180
     mirror: -1
+  openDegreesPerSecond: 250
+  monsterLockSeconds: 3
 --- !u!114 &7446075748067852088
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -163,6 +171,21 @@ MonoBehaviour:
   loudness: 16
   cooldown: 0.4
   origin: {fileID: 0}
+--- !u!114 &2712012326635291791
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5154175870565505241}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e829c87dc2a2ed2419c5f67848317fe4, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: SteamAudioUnity::SteamAudio.SteamAudioGeometry
+  material: {fileID: 11400000, guid: 89b4b059442c39741b8fe71b3d7e304a, type: 2}
+  exportAllChildren: 0
+  terrainSimplificationLevel: 0
 --- !u!1 &5380929468958873504
 GameObject:
   m_ObjectHideFlags: 0

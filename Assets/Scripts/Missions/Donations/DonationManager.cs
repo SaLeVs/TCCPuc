@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using Enums;
+using Player;
 using Unity.Netcode;
 using UnityEngine;
 
@@ -36,6 +37,7 @@ namespace Missions.Donations
         private readonly Dictionary<string, DonationDefinition> _definitionsById = new();
 
         private readonly Dictionary<RecordableTarget, HashSet<ulong>> _recordingWatchers = new();
+        private readonly List<PlayerState> _recipientCandidates = new();
 
         private readonly NetworkVariable<int> _manualViewerCount = new(0);
         private float _currentEvaluationInterval;
@@ -253,6 +255,8 @@ namespace Missions.Donations
             double now = NetworkManager.Singleton.ServerTime.TimeAsFloat;
             double expireTime = definition.durationSeconds > 0f ? now + definition.durationSeconds : 0.0;
 
+            PlayerState recipient = PickRecipient();
+
             DonationInstance instance = new DonationInstance
             {
                 InstanceId = Guid.NewGuid().ToString("N"),
@@ -261,6 +265,8 @@ namespace Missions.Donations
                 Amount = UnityEngine.Random.Range(definition.minAmountMoney, definition.maxAmountMoney),
                 SpawnTime = now,
                 ExpireTime = expireTime,
+                RecipientClientId = recipient != null ? recipient.OwnerClientId : NetworkManager.ServerClientId,
+                RecipientName = recipient != null ? recipient.PlayerInfos.PlayerName.Value.ToString() : string.Empty,
                 State = DonationState.Active,
                 Progress = 0f
             };
@@ -268,6 +274,35 @@ namespace Missions.Donations
             _activeInstances[instance.InstanceId] = instance;
             PushNetworkState(instance);
             OnDonationSpawned?.Invoke(instance);
+        }
+
+        /// <summary>
+        /// Draws who the donation is addressed to, uniformly among the players still in the match —
+        /// not dead, not escaped. Falls back to anyone connected, so a donation always has someone
+        /// to read it out.
+        /// </summary>
+        private PlayerState PickRecipient()
+        {
+            _recipientCandidates.Clear();
+
+            NetworkManager network = NetworkManager.Singleton;
+            PlayerState anyone = null;
+
+            foreach (ulong clientId in network.ConnectedClientsIds)
+            {
+                NetworkObject playerObject = network.SpawnManager.GetPlayerNetworkObject(clientId);
+                if (playerObject == null || !playerObject.TryGetComponent(out PlayerState player)) continue;
+
+                anyone ??= player;
+
+                if (player.IsDead || player.HasWon || player.HasEscapedServerSide) continue;
+
+                _recipientCandidates.Add(player);
+            }
+
+            if (_recipientCandidates.Count == 0) return anyone;
+
+            return _recipientCandidates[UnityEngine.Random.Range(0, _recipientCandidates.Count)];
         }
 
         private string PickDonorName(DonationDefinition definition)
@@ -394,6 +429,8 @@ namespace Missions.Donations
                 DonationId = instance.Definition.donationId,
                 DonorName = instance.DonorName,
                 Message = instance.Definition.message,
+                RecipientClientId = instance.RecipientClientId,
+                RecipientName = instance.RecipientName,
                 Amount = instance.Amount,
                 Progress = instance.Progress,
                 SpawnTime = instance.SpawnTime,

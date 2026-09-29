@@ -1,5 +1,6 @@
 using System;
 using Components;
+using Components.Sound;
 using Unity.Netcode;
 using UnityEngine;
 
@@ -9,9 +10,9 @@ namespace Player
     {
         public event Action<bool> OnDeathEvent;
         public event Action<Transform> OnRagdollSpawned;
-        public static Action<Vector3> OnDeathSound;
 
         [SerializeField] private Health playerHealth;
+        [SerializeField] private SoundDefinitionSO deathSound;
         [SerializeField] private Animator playerAnimator;
         [SerializeField] private Transform ragdollSpawnRoot;
         [SerializeField] private GameObject ragdollPrefab;
@@ -46,6 +47,10 @@ namespace Player
 
             _isDead.Value = true;
 
+            // Here on the server, once, and not in the value-changed callback below: that one runs
+            // on every peer, and each would send the scream again.
+            WorldSound.Play(deathSound, transform.position, NetworkObject);
+
             PlayerDownedNotifier.Notify(gameObject, died: true);
         }
         
@@ -56,7 +61,6 @@ namespace Player
             if (current)
             {
                 HandleDeathLocally();
-                OnDeathSound?.Invoke(transform.position);
             }
 
             OnDeathEvent?.Invoke(current);

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using Components.Sound;
 using Interfaces;
 using Monster.MonsterSabotages;
 using Unity.Netcode;
@@ -13,9 +14,9 @@ namespace Monster
     {
         public event Action OnSabotageStartedAnimation;
         public event Action OnSabotageEndedAnimation;
-        public static Action<Vector3> OnSabotageSound;
-        
-        [SerializeField] private MonoBehaviour audienceProviderSource; 
+
+        [SerializeField] private SoundDefinitionSO sabotageSound;
+        [SerializeField] private MonoBehaviour audienceProviderSource;
         [SerializeField] private float sabotageUnlockThreshold = 0.5f;
         [SerializeField] private float minSabotageCooldown = 15f;     
         [SerializeField] private float maxSabotageCooldown = 30f;
@@ -190,7 +191,8 @@ namespace Monster
                 SabotageRegisteredRpc(_currentSabotageType);
             }
 
-            OnSabotageSound?.Invoke(transform.position);
+            // Server-side, like the rest of Execute: a local event here meant only the host heard it.
+            WorldSound.Play(sabotageSound, transform.position, NetworkObject);
             OnSabotageStartedAnimation?.Invoke();
         }
 

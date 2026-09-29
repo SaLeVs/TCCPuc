@@ -1,6 +1,4 @@
-using System;
-using Components.Perception;
-using Enums;
+using Components.Sound;
 using Unity.Netcode;
 using UnityEngine;
 
@@ -8,63 +6,28 @@ namespace Components
 {
     public class FootstepEmitter : NetworkBehaviour
     {
-        public static event Action<FootstepSource, Vector3> OnFootstepSound;
-
-        [SerializeField] private FootstepSource source;
-
-        [Header("Noise heard by the monster")]
-        [Tooltip("How far a normal step carries, in meters. Crouching and sprinting scale this through LoudnessMultiplier.")]
-        [SerializeField, Min(0f)] private float footstepLoudness = 9f;
-
-        [Tooltip("Off for the monster's own steps, or for anything that should be silent to the AI.")]
-        [SerializeField] private bool reportsNoise = true;
+        [Tooltip("The step's clips, how far it carries and whether the monster hears it. Its range is the " +
+                 "normal step; crouching and sprinting scale it through LoudnessMultiplier.")]
+        [SerializeField] private SoundDefinitionSO footstepSound;
 
         /// <summary>
-        /// Scales every step this emitter makes. Driven by <see cref="Perception.PlayerNoiseProfile"/>:
-        /// crouch turns it down, sprint turns it up. Only meaningful on the owner, which is why
-        /// it travels with the step instead of being read on the receiving side.
+        /// Scales every step this emitter makes — for the players who hear it and for the monster alike.
+        /// Driven by the player's PlayerNoiseProfile: crouch turns it down, sprint turns it up. Only
+        /// meaningful on the owner, which is the only copy that emits.
         /// </summary>
         public float LoudnessMultiplier { get; set; } = 1f;
 
         /// <summary>
-        /// Called by animationEvents
+        /// Called by animation events — on every peer, since every peer plays the animation. Only the
+        /// owner's copy counts: for a player that is the client whose legs they are, for the monster
+        /// the server. Letting every copy emit is what played a client's steps twice, the second one
+        /// from the host's copy at full loudness, because the host never knew the player was crouching.
         /// </summary>
         public void AnimationFootstep()
         {
-            float multiplier = Mathf.Max(0f, LoudnessMultiplier);
+            if (!IsOwner) return;
 
-            if (IsServer)
-            {
-                NotifyFootstepClientRpc(transform.position, source, multiplier);
-            }
-            else if (IsOwner)
-            {
-                NotifyFootstepServerRpc(transform.position, multiplier);
-            }
+            WorldSound.Play(footstepSound, transform.position, NetworkObject, Mathf.Max(0f, LoudnessMultiplier));
         }
-
-
-        [Rpc(SendTo.Server)]
-        private void NotifyFootstepServerRpc(Vector3 position, float loudnessMultiplier)
-        {
-            NotifyFootstepClientRpc(position, source, loudnessMultiplier);
-        }
-
-        [Rpc(SendTo.ClientsAndHost)]
-        private void NotifyFootstepClientRpc(Vector3 position, FootstepSource footstepSource, float loudnessMultiplier)
-        {
-            OnFootstepSound?.Invoke(footstepSource, position);
-
-            // The bus fires on every peer; only the server's HearingSensor acts on it.
-            if (reportsNoise)
-            {
-                NoiseBus.Report(
-                    position,
-                    footstepLoudness * loudnessMultiplier,
-                    NoiseType.Footstep,
-                    transform.root);
-            }
-        }
-
     }
 }

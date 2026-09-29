@@ -1,4 +1,5 @@
 using System;
+using Components.Sound;
 using Interfaces;
 using Unity.Netcode;
 using UnityEngine;
@@ -20,12 +21,13 @@ namespace Monster
     /// </summary>
     public class MonsterDoorForcer : NetworkBehaviour
     {
-        public static Action<Vector3> OnDoorHitSound;
-
         public event Action OnDoorHitAnimation;
 
         /// <summary>The door is dealt with and the active state should take the agent back.</summary>
         public event Action OnForcingFinished;
+
+        [Tooltip("The swipe hitting the door.")]
+        [SerializeField] private SoundDefinitionSO doorHitSound;
 
         [Tooltip("How far ahead along its path the monster looks for a shut door.")]
         [SerializeField] private float detectDistance = 2f;
@@ -341,7 +343,7 @@ namespace Monster
             SetPhase(Phase.Swiping);
 
             OnDoorHitAnimation?.Invoke();
-            PlayHitSoundRpc();
+            WorldSound.Play(doorHitSound, transform.position, NetworkObject);
         }
 
         private void Finish()
@@ -387,12 +389,6 @@ namespace Monster
             a.y = 0f;
             b.y = 0f;
             return Vector3.Distance(a, b);
-        }
-
-        [Rpc(SendTo.ClientsAndHost)]
-        private void PlayHitSoundRpc()
-        {
-            OnDoorHitSound?.Invoke(transform.position);
         }
     }
 }

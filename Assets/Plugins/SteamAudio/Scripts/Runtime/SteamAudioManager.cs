@@ -1521,12 +1521,16 @@ namespace SteamAudio
             hit.triangleIndex = 0;
             hit.materialIndex = 0;
 
-            var numHits = Physics.RaycastNonAlloc(origin, direction, sSingleton.mRayHits, maxDistance, layerMask);
-            if (numHits > 0)
+            // TCCPuc patch: Physics.Raycast instead of RaycastNonAlloc into a one-slot buffer, which
+            // hands back an arbitrary hit along the ray rather than the closest, so transmission read
+            // the material of whatever wall happened to come first in the list. And never triggers:
+            // queriesHitTriggers is on in this project, and a voice zone is a volume, not a wall.
+            // Re-apply this if Steam Audio is ever re-imported.
+            if (Physics.Raycast(origin, direction, out RaycastHit closest, maxDistance, layerMask, QueryTriggerInteraction.Ignore))
             {
-                hit.distance = sSingleton.mRayHits[0].distance;
-                hit.normal = Common.ConvertVector(sSingleton.mRayHits[0].normal);
-                hit.material = GetMaterialBufferForTransform(sSingleton.mRayHits[0].collider.transform);
+                hit.distance = closest.distance;
+                hit.normal = Common.ConvertVector(closest.normal);
+                hit.material = GetMaterialBufferForTransform(closest.collider.transform);
             }
             else
             {
@@ -1546,9 +1550,10 @@ namespace SteamAudio
 
             var layerMask = SteamAudioSettings.Singleton.layerMask;
 
-            var numHits = Physics.RaycastNonAlloc(origin, direction, sSingleton.mRayHits, maxDistance, layerMask);
+            // TCCPuc patch: triggers are volumes, not walls. See ClosestHit.
+            var isOccluded = Physics.Raycast(origin, direction, maxDistance, layerMask, QueryTriggerInteraction.Ignore);
 
-            occluded = (byte)((numHits > 0) ? 1 : 0);
+            occluded = (byte)(isOccluded ? 1 : 0);
         }
 
         // This method is called as soon as scripts are loaded, which happens whenever play mode is started

@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using Components;
 using Components.Perception;
+using Components.Sound;
 using Enums;
 using Interfaces;
 using Player;
@@ -16,7 +17,8 @@ namespace Objects
     [RequireComponent(typeof(NavMeshObstacle))]
     public class Door : NetworkBehaviour, IInteractable, IForceableDoor
     {
-        public static Action<Vector3> OnDoorBlockedSound;
+        /// <summary>Someone failed to get this door to move. Raised on every client, with where the door is.</summary>
+        public static event Action<Vector3> OnDoorBlocked;
 
         [Header("References")]
         [SerializeField] private Transform doorPivot;
@@ -29,6 +31,9 @@ namespace Objects
         [Tooltip("Optional. The noise a player makes opening or closing this door. Deliberately " +
                  "not emitted when the monster forces the door — it would chase its own racket.")]
         [SerializeField] private NoiseEmitter useNoise;
+
+        [Tooltip("The rattle of a door that won't move: held by the monster, or stuck on someone.")]
+        [SerializeField] private SoundDefinitionSO blockedSound;
 
         [Header("Impact")]
         [Tooltip("What this door does to a player it hits while swinging. Leave empty for a door that never knocks anyone over.")]
@@ -436,7 +441,7 @@ namespace Objects
             // the refusal reads as the door being held, not as the input being dropped.
             if (IsLocked)
             {
-                PlayBlockedSoundRpc();
+                RattleBlocked();
                 return;
             }
 
@@ -447,7 +452,7 @@ namespace Objects
             // Someone is in the way. Same rattle: the door is stuck on them.
             if (!moved)
             {
-                PlayBlockedSoundRpc();
+                RattleBlocked();
                 return;
             }
 
@@ -513,11 +518,17 @@ namespace Objects
             facing = -normal * side;
         }
 
-        [Rpc(SendTo.ClientsAndHost)]
-        private void PlayBlockedSoundRpc()
+        /// <summary>Server-side: the rattle for everyone near the door, and the event for every client.</summary>
+        private void RattleBlocked()
         {
-            // Positional, so anyone nearby hears someone failing to get through.
-            OnDoorBlockedSound?.Invoke(transform.position);
+            WorldSound.Play(blockedSound, transform.position, NetworkObject);
+            NotifyBlockedRpc();
+        }
+
+        [Rpc(SendTo.ClientsAndHost)]
+        private void NotifyBlockedRpc()
+        {
+            OnDoorBlocked?.Invoke(transform.position);
         }
 
         private bool TryOpenAwayFrom(Vector3 fromPosition)
@@ -627,7 +638,7 @@ namespace Objects
                 if (ScanLeafAt(nextAngle, null, 0f) == Occupant.None) return true;
 
                 _state.Value = _lastOpenState;
-                PlayBlockedSoundRpc();
+                RattleBlocked();
 
                 if (IsLocked) _closeWhenClear = true;
 

@@ -33,6 +33,10 @@ namespace Player
 
         
         public bool IsDead => playerDead.IsDead;
+        public bool IsCrouching { get; private set; }
+
+        // The one place that says what may stop a sprint; add new blockers here, not in PlayerRun.
+        public bool CanRun => !IsCrouching;
         public CinemachineCamera PlayerCinemachineCamera => playerCamera.playerCinemachineCamera;
         public bool HasEscapedServerSide { get; set; }
         public bool HasWon { get; private set; }
@@ -87,6 +91,7 @@ namespace Player
         
         private void PlayerCrouch_OnCrouchEvent(bool isCrouching)
         {
+            IsCrouching = isCrouching;
             OnCrouchEvent?.Invoke(isCrouching);
         }
         

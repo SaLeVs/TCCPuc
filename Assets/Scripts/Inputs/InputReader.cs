@@ -23,7 +23,10 @@ namespace Inputs
         public event Action OnChatEvent;
         public event Action OnHideMissionsEvent;
         public event Action OnHideDonateEvent;
-        
+
+        /// <summary>Whether the crouch key is down right now, for when the last event can't be trusted.</summary>
+        public bool IsCrouchHeld => _playerActions != null && _playerActions.Game.Crouch.IsPressed();
+
 
         /// <summary>The key the player presses to interact, as the HUD should print it ("E").</summary>
         public string GetInteractBindingDisplay()

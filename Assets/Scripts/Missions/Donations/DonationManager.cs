@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using Components.Sound;
 using Enums;
 using Player;
 using Unity.Netcode;
@@ -27,7 +28,14 @@ namespace Missions.Donations
                  "what stops two donations landing seconds apart — the per-type cooldown only " +
                  "ever spaced a type from itself, never one type from another.")]
         [SerializeField, Min(0f)] private float minSecondsBetweenDonations = 90f;
-        
+
+        [Header("World sounds")]
+        [Tooltip("Played at the recipient when a donation reaches them, for everyone nearby to hear.")]
+        [SerializeField] private SoundDefinitionSO receivedSound;
+
+        [Tooltip("Played at the recipient when they complete their donation.")]
+        [SerializeField] private SoundDefinitionSO completedSound;
+
         public NetworkList<DonationNetworkState> NetworkStates => _networkStates;
         
         private readonly NetworkList<DonationNetworkState> _networkStates = new();
@@ -38,6 +46,7 @@ namespace Missions.Donations
 
         private readonly Dictionary<RecordableTarget, HashSet<ulong>> _recordingWatchers = new();
         private readonly List<PlayerState> _recipientCandidates = new();
+        private readonly List<DonationDefinition> _rollOrder = new();
 
         private readonly NetworkVariable<int> _manualViewerCount = new(0);
         private float _currentEvaluationInterval;
@@ -187,7 +196,9 @@ namespace Missions.Donations
 
             foreach (var instance in _activeInstances.Values)
             {
-                if (instance.State == DonationState.Active && instance.IsExpired(now))
+                // A recipient who died, escaped or left can never finish it, and while it stays
+                // active that donation is closed to everyone else.
+                if (instance.State == DonationState.Active && (instance.IsExpired(now) || !CanStillComplete(instance.RecipientClientId)))
                 {
                     (toExpire ??= new List<DonationInstance>()).Add(instance);
                 }
@@ -202,9 +213,10 @@ namespace Missions.Donations
         }
 
         /// <summary>
-        /// One pass over the pool. Every definition is rolled independently, so more than one can
-        /// land together when the dice say so — but the whole pass is gated behind the quiet
-        /// period, so a burst is followed by real silence instead of another burst.
+        /// One pass over the pool, landing at most one donation: two players never get one at the
+        /// same moment, and the quiet period that follows keeps the next one well apart. The pool
+        /// is walked in a fresh random order so the first definition in it is not favoured — each
+        /// still rolls its own chance, so the audience tuning is untouched.
         /// </summary>
         private void EvaluateSpawns()
         {
@@ -212,18 +224,25 @@ namespace Missions.Donations
 
             if (_timeSinceLastSpawn < minSecondsBetweenDonations) return;
 
-            int viewers = ViewerCount;
-            bool spawnedAny = false;
+            // Nobody free to receive one: every player still in the match is already busy with theirs.
+            PlayerState recipient = PickRecipient();
+            if (recipient == null) return;
 
-            foreach (var definition in donationPool)
+            int viewers = ViewerCount;
+
+            _rollOrder.Clear();
+            _rollOrder.AddRange(donationPool);
+            Shuffle(_rollOrder);
+
+            foreach (var definition in _rollOrder)
             {
                 if (definition == null || string.IsNullOrEmpty(definition.donationId)) continue;
 
                 if (_cooldownTimers.TryGetValue(definition.donationId, out float remaining) && remaining > 0f)
                     continue;
 
-                if (definition.stackingMode == DonationStackingMode.Exclusive && HasActiveInstanceOf(definition.donationId))
-                    continue;
+                // A donation is one person's: the same one is never running for two players at once.
+                if (HasActiveInstanceOf(definition.donationId)) continue;
 
                 float chance = definition.triggerRule.EvaluateChance(viewers);
 
@@ -232,11 +251,19 @@ namespace Missions.Donations
                 // below a rule's minViewersRequired.
                 if (UnityEngine.Random.value >= chance) continue;
 
-                SpawnDonation(definition);
-                spawnedAny = true;
+                SpawnDonation(definition, recipient);
+                _timeSinceLastSpawn = 0f;
+                return;
             }
+        }
 
-            if (spawnedAny) _timeSinceLastSpawn = 0f;
+        private static void Shuffle(List<DonationDefinition> list)
+        {
+            for (int i = list.Count - 1; i > 0; i--)
+            {
+                int j = UnityEngine.Random.Range(0, i + 1);
+                (list[i], list[j]) = (list[j], list[i]);
+            }
         }
 
         private bool HasActiveInstanceOf(string donationId)
@@ -248,14 +275,29 @@ namespace Missions.Donations
             return false;
         }
 
-        private void SpawnDonation(DonationDefinition definition)
+        private static bool CanStillComplete(ulong clientId)
+        {
+            NetworkObject playerObject = NetworkManager.Singleton.SpawnManager.GetPlayerNetworkObject(clientId);
+            if (playerObject == null || !playerObject.TryGetComponent(out PlayerState player)) return false;
+
+            return !player.IsDead && !player.HasWon && !player.HasEscapedServerSide;
+        }
+
+        private bool HasActiveDonation(ulong clientId)
+        {
+            foreach (var instance in _activeInstances.Values)
+            {
+                if (instance.State == DonationState.Active && instance.RecipientClientId == clientId) return true;
+            }
+            return false;
+        }
+
+        private void SpawnDonation(DonationDefinition definition, PlayerState recipient)
         {
             _cooldownTimers[definition.donationId] = definition.triggerRule.cooldownSeconds;
 
             double now = NetworkManager.Singleton.ServerTime.TimeAsFloat;
             double expireTime = definition.durationSeconds > 0f ? now + definition.durationSeconds : 0.0;
-
-            PlayerState recipient = PickRecipient();
 
             DonationInstance instance = new DonationInstance
             {
@@ -265,44 +307,58 @@ namespace Missions.Donations
                 Amount = UnityEngine.Random.Range(definition.minAmountMoney, definition.maxAmountMoney),
                 SpawnTime = now,
                 ExpireTime = expireTime,
-                RecipientClientId = recipient != null ? recipient.OwnerClientId : NetworkManager.ServerClientId,
-                RecipientName = recipient != null ? recipient.PlayerInfos.PlayerName.Value.ToString() : string.Empty,
+                RecipientClientId = recipient.OwnerClientId,
+                RecipientName = recipient.PlayerInfos.PlayerName.Value.ToString(),
                 State = DonationState.Active,
                 Progress = 0f
             };
-            
+
             _activeInstances[instance.InstanceId] = instance;
             PushNetworkState(instance);
+            PlayAtRecipient(receivedSound, instance);
             OnDonationSpawned?.Invoke(instance);
         }
 
         /// <summary>
-        /// Draws who the donation is addressed to, uniformly among the players still in the match —
-        /// not dead, not escaped. Falls back to anyone connected, so a donation always has someone
-        /// to read it out.
+        /// Draws who the next donation goes to, uniformly among the players still in the match — not
+        /// dead, not escaped — who are not already working on one. Null when nobody qualifies: the
+        /// donation simply waits for the next evaluation instead of doubling up on someone.
         /// </summary>
         private PlayerState PickRecipient()
         {
             _recipientCandidates.Clear();
 
             NetworkManager network = NetworkManager.Singleton;
-            PlayerState anyone = null;
+            if (network == null) return null;
 
             foreach (ulong clientId in network.ConnectedClientsIds)
             {
                 NetworkObject playerObject = network.SpawnManager.GetPlayerNetworkObject(clientId);
                 if (playerObject == null || !playerObject.TryGetComponent(out PlayerState player)) continue;
 
-                anyone ??= player;
-
                 if (player.IsDead || player.HasWon || player.HasEscapedServerSide) continue;
+                if (HasActiveDonation(clientId)) continue;
 
                 _recipientCandidates.Add(player);
             }
 
-            if (_recipientCandidates.Count == 0) return anyone;
+            if (_recipientCandidates.Count == 0) return null;
 
             return _recipientCandidates[UnityEngine.Random.Range(0, _recipientCandidates.Count)];
+        }
+
+        /// <summary>
+        /// Server-side, once: a world sound at the recipient, following them while it plays, so the
+        /// players around them hear it from where they are.
+        /// </summary>
+        private void PlayAtRecipient(SoundDefinitionSO sound, DonationInstance instance)
+        {
+            if (sound == null) return;
+
+            NetworkObject playerObject = NetworkManager.Singleton.SpawnManager.GetPlayerNetworkObject(instance.RecipientClientId);
+            if (playerObject == null) return;
+
+            WorldSound.Play(sound, playerObject.transform.position, playerObject);
         }
 
         private string PickDonorName(DonationDefinition definition)
@@ -324,6 +380,7 @@ namespace Missions.Donations
             foreach (var instance in _activeInstances.Values)
             {
                 if (instance.State != DonationState.Active) continue;
+                if (instance.RecipientClientId != clientId) continue;
                 if (instance.Definition.category != DonationCategory.Recording) continue;
                 if (instance.Definition.targetType != target) continue;
 
@@ -358,6 +415,7 @@ namespace Missions.Donations
             foreach (var instance in _activeInstances.Values)
             {
                 if (instance.State != DonationState.Active) continue;
+                if (instance.RecipientClientId != clientId) continue;
                 if (instance.Definition.category != DonationCategory.MicSpeech) continue;
                 if (instance.Definition.micActionId != micActionId) continue;
 
@@ -391,6 +449,7 @@ namespace Missions.Donations
         {
             instance.State = DonationState.Completed;
             PushNetworkState(instance);
+            PlayAtRecipient(completedSound, instance);
             OnDonationCompleted?.Invoke(instance);
             _activeInstances.Remove(instance.InstanceId);
         }

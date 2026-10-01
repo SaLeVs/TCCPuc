@@ -1,5 +1,7 @@
 using Components.Sound;
+using Missions.Donations;
 using Network;
+using Unity.Netcode;
 using Unity.Services.Vivox;
 using UnityEngine;
 using UnityEngine.Audio;
@@ -41,6 +43,7 @@ namespace Audio
         private AudioReverbFilter _reverbFilter;
         private AudioSource _audioSource;
         private AudioListener _listener;
+        private NetworkObject _owner;
         private float _currentRange;
 
 
@@ -147,7 +150,13 @@ namespace Audio
         {
             if (_participant == null || _audioSource == null) return;
 
-            if (rangeScalesWithVoice)
+            if (IsReadingDonation())
+            {
+                // The TTS rides this voice but not its mic level: a donation being read carries to
+                // everyone in the channel's range, like a shout, for as long as the reading lasts.
+                _currentRange = LoudRange();
+            }
+            else if (rangeScalesWithVoice)
             {
                 float energy;
 
@@ -206,6 +215,13 @@ namespace Audio
                 : 1f;
 
             _audioSource.volume = playerVolume * window;
+        }
+
+        private bool IsReadingDonation()
+        {
+            if (_owner == null) _owner = GetComponentInParent<NetworkObject>();
+
+            return _owner != null && _owner.IsSpawned && DonationReading.IsReading(_owner.OwnerClientId);
         }
 
         private bool TryGetListener(out AudioListener listener)

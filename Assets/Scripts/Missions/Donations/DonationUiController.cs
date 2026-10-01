@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using Components.Sound;
 using Unity.Netcode;
 using UnityEngine;
 using UnityEngine.Events;
@@ -17,10 +16,6 @@ namespace Missions.Donations
     /// </summary>
     public class DonationUIController : MonoBehaviour
     {
-        [Header("HUD sounds")]
-        [SerializeField] private SoundDefinitionSO donationReceivedSound;
-        [SerializeField] private SoundDefinitionSO donationCompletedSound;
-
         [Header("Card slot")]
         [Tooltip("Where the single card is spawned. One card is reused for every donation.")]
         [SerializeField] private Transform cardContainer;
@@ -149,19 +144,17 @@ namespace Missions.Donations
 
         private void HandleState(DonationNetworkState state)
         {
+            // A donation is its recipient's mission: only they get the card and the chip. Everyone
+            // else hears it happen — the sound and the reading come from the recipient, in the world.
+            NetworkManager network = NetworkManager.Singleton;
+            if (network == null || state.RecipientClientId != network.LocalClientId) return;
+
             string id = state.InstanceId.ToString();
             bool isNew = !_states.ContainsKey(id);
 
             _states[id] = state;
 
-            if (state.State == DonationState.Completed)
-            {
-                UiSound.Play(donationCompletedSound);
-                Drop(id);
-                return;
-            }
-
-            if (state.State == DonationState.Expired)
+            if (state.State != DonationState.Active)
             {
                 Drop(id);
                 return;
@@ -169,7 +162,6 @@ namespace Missions.Donations
 
             if (isNew)
             {
-                UiSound.Play(donationReceivedSound);
                 _pendingAlerts.Enqueue(id);
                 return;
             }

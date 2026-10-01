@@ -44,10 +44,6 @@ namespace Missions.Donations
         [Header("Rules of engagement")]
         public DonationTriggerRule triggerRule = new DonationTriggerRule();
         
-        [Header("Stacking mode")]
-        [Tooltip("Cumulative = can receive multiple donates of this type at the same time. Exclusive = only 1 at a time.")]
-        public DonationStackingMode stackingMode = DonationStackingMode.Cumulative;
-
         [Header("Names of donators (flavor, optional)")]
         [Tooltip("Who the donation is signed by. Same population the chat draws from, on " +
                  "purpose - a donation from a name nobody has ever seen talk reads as a " +

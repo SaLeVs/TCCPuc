@@ -10,6 +10,11 @@ namespace Audio
     /// <summary>
     /// Reads each donation out loud through the voice of the player it is addressed to.
     ///
+    /// <para>That voice is the only way Vivox can carry the TTS to other machines — its local
+    /// playback goes straight to the device, past Unity's audio — so the reading is a world sound
+    /// by riding the recipient's spatialized voice. <see cref="DonationReading"/> holds that voice at
+    /// full range while it reads.</para>
+    ///
     /// <para>Runs on every client, but only the recipient speaks. Vivox's remote transmission puts the
     /// speech into that player's own outgoing voice, so everyone else hears it come from them —
     /// positioned, muffled by walls and fading with distance exactly like their voice — while the
@@ -27,6 +32,14 @@ namespace Audio
 
         [Tooltip("{donor}, {amount} and {recipient} are filled in. Read before the donation's own message.")]
         [SerializeField] private string announcementFormat = "{donor} donated R$ {amount} to {recipient}!";
+
+        [Header("Reach")]
+        [Tooltip("How fast the TTS voice reads, used to estimate how long the recipient's voice carries " +
+                 "at full range: Vivox gives no callback when the reading ends.")]
+        [SerializeField, Min(0.1f)] private float wordsPerSecond = 2.5f;
+
+        [Tooltip("Seconds added to the estimate for the network and Vivox to deliver the speech.")]
+        [SerializeField, Min(0f)] private float readingSlackSeconds = 1.5f;
 
         private DonationManager _donationManager;
 
@@ -93,7 +106,7 @@ namespace Audio
             if (!_announced.Add(state.InstanceId.ToString())) return;
 
             NetworkManager network = NetworkManager.Singleton;
-            if (network == null || state.RecipientClientId != network.LocalClientId) return;
+            if (network == null) return;
 
             string recipient = state.RecipientName.IsEmpty ? "the chat" : state.RecipientName.ToString();
 
@@ -102,8 +115,20 @@ namespace Audio
                 .Replace("{amount}", state.Amount.ToString("0.00"))
                 .Replace("{recipient}", recipient);
 
+            string message = state.Message.ToString();
+
+            // Every machine marks it, so each one's copy of the recipient's voice carries the
+            // reading to everybody in range — not only as far as the recipient's mic would.
+            float seconds = DonationReading.EstimateSeconds(announcement, wordsPerSecond) +
+                            DonationReading.EstimateSeconds(message, wordsPerSecond) +
+                            readingSlackSeconds;
+
+            DonationReading.Mark(state.RecipientClientId, seconds);
+
+            if (state.RecipientClientId != network.LocalClientId) return;
+
             Speak(announcement);
-            Speak(state.Message.ToString());
+            Speak(message);
         }
 
         private void Speak(string message)

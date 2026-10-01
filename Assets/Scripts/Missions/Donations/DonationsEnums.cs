@@ -8,12 +8,6 @@ namespace Missions.Donations
         MicSpeech
     }
     
-    public enum DonationStackingMode
-    {
-        Cumulative,
-        Exclusive
-    }
-
     public enum DonationState
     {
         Active,

@@ -1,4 +1,5 @@
 ﻿using System;
+using Components.Sound;
 using Interfaces;
 using Unity.Netcode;
 using UnityEngine;
@@ -11,6 +12,7 @@ namespace Systems
 
         [SerializeField] private Transform[] diskSpawnPoints;
         [SerializeField] private GameObject diskVisualPrefab;
+        [SerializeField] private SoundDefinitionSO diskInsertedSound;
 
         private readonly NetworkVariable<int> _disksPlaced = new NetworkVariable<int>(
             0,
@@ -61,6 +63,7 @@ namespace Systems
             _disksPlaced.Value++;
 
             SpawnDiskVisualRpc(slotIndex);
+            WorldSound.Play(diskInsertedSound, transform.position, NetworkObject);
 
             if (IsComplete)
             {

@@ -35,6 +35,13 @@ namespace Objects
         [Tooltip("The rattle of a door that won't move: held by the monster, or stuck on someone.")]
         [SerializeField] private SoundDefinitionSO blockedSound;
 
+        [Tooltip("The latch and creak as the door starts to swing open — whoever opens it, the monster included.")]
+        [SerializeField] private SoundDefinitionSO openSound;
+
+        [Tooltip("The thud of the leaf landing in the frame. Played when the swing ends, not when it starts, " +
+                 "so a close that bounces off someone never sounds like it shut.")]
+        [SerializeField] private SoundDefinitionSO closeSound;
+
         [Header("Impact")]
         [Tooltip("What this door does to a player it hits while swinging. Leave empty for a door that never knocks anyone over.")]
         [SerializeField] private ImpactProfileSO impactProfile;
@@ -479,6 +486,7 @@ namespace Objects
             if (_state.Value != DoorState.Closed) return;
 
             _state.Value = SideAwayFrom(fromPosition);
+            WorldSound.Play(openSound, DoorwayCentre, NetworkObject);
         }
 
         /// <summary>
@@ -545,6 +553,7 @@ namespace Objects
             if (ScanSweep(_currentAngle, openAngle, SwingSide(openAngle)) == Occupant.Solid) return false;
 
             _state.Value = away;
+            WorldSound.Play(openSound, DoorwayCentre, NetworkObject);
             return true;
         }
 
@@ -616,6 +625,12 @@ namespace Objects
             {
                 _swingSign = 0f;
                 _hitThisSwing.Clear();
+
+                // Every peer runs the swing; only the server's copy sends the sound.
+                if (IsServer && Mathf.Approximately(_targetAngle, closedAngle))
+                {
+                    WorldSound.Play(closeSound, DoorwayCentre, NetworkObject);
+                }
             }
         }
 

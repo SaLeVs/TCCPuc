@@ -37,6 +37,11 @@ namespace Network
         [SerializeField] private float audioFadeIntensity;
         [SerializeField] private AudioFadeModel audioFadeModel;
 
+        [Tooltip("Vivox's automatic gain control levels every mic to the same loudness, so a shout " +
+                 "comes out about as loud as normal talking. Off keeps the level it was spoken at — " +
+                 "which is what the voice range and the monster's hearing are calibrated against.")]
+        [SerializeField] private bool automaticGainControl;
+
         public string CurrentChannelName => _currentChannelName;
         public bool IsInPositionalChannel { get; private set; }
         public int AudibleDistance => audibleDistance;
@@ -72,6 +77,8 @@ namespace Network
         private bool _isSwitchingChannel;
         private bool _isTogglingTestChannel;
 
+        private readonly Dictionary<string, float> _tapVolumes = new();
+
         
         private void Start()
         {
@@ -89,6 +96,8 @@ namespace Network
 
         private async Task EnsureLoggedInAsync()
         {
+            ApplyGlobalAudioSettings();
+
             if (VivoxService.Instance.IsLoggedIn) return;
 
             LoginOptions loginOptions = new LoginOptions()
@@ -98,6 +107,27 @@ namespace Network
             };
 
             await VivoxService.Instance.LoginAsync(loginOptions);
+        }
+
+        /// <summary>
+        /// Global to the Vivox client, so it is set before every channel this machine joins — the
+        /// echo test included, where the player calibrates against the same signal the game hears.
+        /// </summary>
+        private void ApplyGlobalAudioSettings()
+        {
+            try
+            {
+                IVivoxGlobalAudioSettings settings = VivoxService.Instance.VivoxGlobalAudioSettings;
+
+                if (settings.AutomaticGainControlEnabled != automaticGainControl)
+                {
+                    settings.AutomaticGainControlEnabled = automaticGainControl;
+                }
+            }
+            catch (Exception e)
+            {
+                Debug.LogWarning($"Could not set Vivox automatic gain control: {e.Message}");
+            }
         }
 
         public async void EnterLobbyVoice()
@@ -263,14 +293,38 @@ namespace Network
                     if (participant.PlayerId == playerId)
                     {
                         participant.SetLocalVolume(volume);
-                        
-                        if (participant.ParticipantTapAudioSource != null)
-                        {
-                            participant.ParticipantTapAudioSource.volume = ConvertVivoxVolumeToLinear(volume);
-                        }
                     }
                 }
             }
+
+            // The tap's AudioSource volume belongs to RemoteVoiceFilter, which also fades it with
+            // distance every frame; it multiplies this in rather than having it overwritten.
+            _tapVolumes[playerId] = ConvertVivoxVolumeToLinear(volume);
+        }
+
+        /// <summary>The volume this player chose for <paramref name="playerId"/>, as a linear gain.</summary>
+        public float GetParticipantTapVolume(string playerId)
+        {
+            return playerId != null && _tapVolumes.TryGetValue(playerId, out float volume) ? volume : 1f;
+        }
+
+        /// <summary>
+        /// This machine's own mic energy, from whichever channel it is in — the echo test included.
+        /// 0 while silent or not connected.
+        /// </summary>
+        public float GetSelfAudioEnergy()
+        {
+            if (!VivoxService.Instance.IsLoggedIn) return 0f;
+
+            foreach (KeyValuePair<string, ReadOnlyCollection<VivoxParticipant>> channel in VivoxService.Instance.ActiveChannels)
+            {
+                foreach (VivoxParticipant participant in channel.Value)
+                {
+                    if (participant.IsSelf) return (float)participant.AudioEnergy;
+                }
+            }
+
+            return 0f;
         }
 
         private static float ConvertVivoxVolumeToLinear(int vivoxVolume)

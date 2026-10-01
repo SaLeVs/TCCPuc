@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using Components.Sound;
 using Interfaces;
 using Unity.Netcode;
 using UnityEngine;
@@ -18,6 +19,9 @@ namespace Missions.Puzzles
 
         [SerializeField] private MissionOwnershipSelector ownershipSelector;
         [SerializeField] private MissionCompleter missionCompleter;
+
+        [Tooltip("Heard by everyone near the puzzle when it is solved — the owner's own HUD sound is separate.")]
+        [SerializeField] private SoundDefinitionSO solvedSound;
 
         public MissionOwnershipSelector OwnershipSelector => ownershipSelector;
         public bool IsComplete => _isComplete.Value;
@@ -83,6 +87,7 @@ namespace Missions.Puzzles
 
             _isComplete.Value = true;
             missionCompleter.Complete();
+            WorldSound.Play(solvedSound, transform.position, NetworkObject);
             NotifyOwnerPuzzleCompletedRpc(RpcTarget.Single(clientId, RpcTargetUse.Temp));
         }
 

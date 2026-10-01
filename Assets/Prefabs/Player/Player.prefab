@@ -2030,7 +2030,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d354d2e61995894468e76315fa6aa1f8, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Ui::Ui.SoundMissionUi
-  container: {fileID: 0}
+  container: {fileID: 9152057266685934072}
 --- !u!114 &8310508884860127548
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -6510,11 +6510,9 @@ MonoBehaviour:
   zoneState: {fileID: 1872326034872167580}
   voiceAnchor: {fileID: 3222417864136573291}
   voiceMixerGroup: {fileID: 5407354752172556524, guid: 3338bd0d581fd344a91f47f92cc91ff5, type: 2}
-  voiceProfile: {fileID: 11400000, guid: b5d7c9270f9bf6b43bc08647fe6ebd50, type: 2}
+  spatialProfile: {fileID: 11400000, guid: b5d7c9270f9bf6b43bc08647fe6ebd50, type: 2}
+  voiceProfile: {fileID: 11400000, guid: c6b030aa68bac2242a1435e00ae54109, type: 2}
   rangeScalesWithVoice: 1
-  speechEnergyThreshold: 0.25
-  shoutEnergyThreshold: 0.65
-  whisperDistance: 8
   rangeAttackSeconds: 0.08
   rangeReleaseSeconds: 0.9
 --- !u!114 &9144792236639197796
@@ -6545,10 +6543,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Player::Player.PlayerMicReporter
   ShowTopMostFoldoutHeaderGroup: 1
   micWatcherBehaviour: {fileID: 9144792236639197796}
-  audioEnergyThreshold: 0.65
+  voiceProfile: {fileID: 11400000, guid: c6b030aa68bac2242a1435e00ae54109, type: 2}
   voiceMakesNoise: 1
-  speechEnergyThreshold: 0.25
-  shoutEnergyThreshold: 0.65
   speechLoudness: 10
   shoutLoudness: 24
   voiceReportInterval: 0.35

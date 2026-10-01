@@ -19,23 +19,15 @@ namespace Audio
         [SerializeField] private AudioMixerGroup voiceMixerGroup;
 
         [Tooltip("HRTF, walls and facing for voices.")]
-        [SerializeField] private SpatialAudioProfileSO voiceProfile;
+        [SerializeField] private SpatialAudioProfileSO spatialProfile;
 
         [Header("Range by speaking volume")]
-        [Tooltip("Off pins the range to the channel's audible distance, the way it behaved before.")]
+        [Tooltip("Thresholds and distances shared with PlayerMicReporter, so what the other players " +
+                 "hear and what the monster hears never disagree.")]
+        [SerializeField] private VoiceProfileSO voiceProfile;
+
+        [Tooltip("Off pins the range to the channel's audible distance.")]
         [SerializeField] private bool rangeScalesWithVoice = true;
-
-        [Tooltip("Mic energy at or below which the voice counts as a whisper and only reaches " +
-                 "whisperDistance. Mirrors PlayerMicReporter.speechEnergyThreshold on purpose: the " +
-                 "moment the monster starts hearing you is the moment your voice starts carrying.")]
-        [SerializeField, Range(0f, 1f)] private float speechEnergyThreshold = 0.25f;
-
-        [Tooltip("Mic energy at or above which it counts as a shout and reaches the channel limit. " +
-                 "Mirrors PlayerMicReporter.shoutEnergyThreshold.")]
-        [SerializeField, Range(0f, 1f)] private float shoutEnergyThreshold = 0.65f;
-
-        [Tooltip("How far a whisper carries, in meters.")]
-        [SerializeField, Min(0f)] private float whisperDistance = 8f;
 
         [Tooltip("Seconds for the range to cross its whole span while rising. Deliberately short: " +
                  "a shout has to reach the moment it leaves someone's mouth.")]
@@ -48,6 +40,7 @@ namespace Audio
         private VivoxParticipant _participant;
         private AudioReverbFilter _reverbFilter;
         private AudioSource _audioSource;
+        private AudioListener _listener;
         private float _currentRange;
 
 
@@ -103,12 +96,15 @@ namespace Audio
             }
 
             _audioSource.spatialBlend = 1f;
-            _audioSource.rolloffMode = AudioRolloffMode.Linear;
+            // Unity's logarithmic rolloff is exactly the inverse-distance law, minDistance/distance:
+            // the level the voice was spoken at inside the near field, 6 dB less per doubling past it.
+            // Where it stops being heard is not up to the curve — see ApplyRange.
+            _audioSource.rolloffMode = AudioRolloffMode.Logarithmic;
             _audioSource.outputAudioMixerGroup = voiceMixerGroup;
 
-            if (voiceProfile != null)
+            if (spatialProfile != null)
             {
-                voiceProfile.AttachTo(_audioSource);
+                spatialProfile.AttachTo(_audioSource);
 
                 // Vivox starts the tap playing the moment it creates it, before spatialize was on, and
                 // Unity only picks up the spatializer when a sound starts. The tap's own drift
@@ -120,19 +116,13 @@ namespace Audio
                 }
             }
 
-            if (VivoxManager.instance != null)
-            {
-                _audioSource.minDistance = VivoxManager.instance.ConversationalDistance;
-                _audioSource.maxDistance = VivoxManager.instance.AudibleDistance;
-            }
+            _audioSource.minDistance = voiceProfile != null ? voiceProfile.NearField : 1f;
+            _audioSource.maxDistance = LoudRange();
 
-            if (rangeScalesWithVoice)
-            {
-                // Open at the quiet end, so the first word someone says widens the range instead of
-                // the range starting wide and audibly shrinking around them.
-                _currentRange = QuietRange();
-                _audioSource.maxDistance = _currentRange;
-            }
+            // Open at the quiet end, so the first word someone says widens the range instead of
+            // the range starting wide and audibly shrinking around them.
+            _currentRange = rangeScalesWithVoice ? QuietRange() : LoudRange();
+            ApplyRange();
 
             _reverbFilter = _audioSource.gameObject.AddComponent<AudioReverbFilter>();
 
@@ -141,51 +131,100 @@ namespace Audio
         }
 
         /// <summary>
-        /// Moves the tap's audible range with how loudly the speaker is actually talking.
+        /// Moves the voice's audible range with how loudly the speaker is actually talking.
         ///
-        /// <para>Under linear rolloff maxDistance is not only where a voice stops being audible, it
-        /// also sets how fast it fades on the way out — so driving it from mic energy does both
-        /// halves of the job at once: a whisper is quieter at 6 m <i>and</i> gone by 8 m, while a
-        /// shout stays strong all the way to the channel limit.</para>
+        /// <para>With Vivox's gain control off, the level in the stream already is the level it was
+        /// spoken at, and the logarithmic rolloff already takes 6 dB off it per doubling of distance
+        /// — together that is a real voice. What a digital signal lacks is a point where it drops
+        /// below hearing: 1/r never reaches zero. That point is the range, and it depends on the
+        /// loudness, just as a shout stays above the noise floor further than a whisper does.</para>
         ///
         /// <para>The energy is read locally from the remote participant, which Vivox already
         /// replicates as participant state. That costs no RPC, and every listener derives the same
-        /// curve from the stream they are receiving anyway.</para>
+        /// range from the stream they are receiving anyway.</para>
         /// </summary>
         private void Update()
         {
-            if (!rangeScalesWithVoice) return;
             if (_participant == null || _audioSource == null) return;
 
-            float energy;
-
-            try
+            if (rangeScalesWithVoice)
             {
-                energy = (float)_participant.AudioEnergy;
+                float energy;
+
+                try
+                {
+                    energy = (float)_participant.AudioEnergy;
+                }
+                catch (System.NullReferenceException)
+                {
+                    // The participant can go invalid between leaving the channel and this frame.
+                    return;
+                }
+
+                float quiet = QuietRange();
+                float loud = LoudRange();
+                float loudness = voiceProfile != null ? voiceProfile.Loudness(energy) : 1f;
+                float target = Mathf.Lerp(quiet, loud, loudness);
+
+                // Asymmetric envelope: rise fast, fall slow. Both rates are expressed as seconds to
+                // cross the whole span, so the tuning keeps its meaning when the span itself changes.
+                float seconds = target > _currentRange ? rangeAttackSeconds : rangeReleaseSeconds;
+                float rate = Mathf.Max(loud - quiet, 0.01f) / seconds;
+
+                _currentRange = Mathf.MoveTowards(_currentRange, target, rate * Time.deltaTime);
             }
-            catch (System.NullReferenceException)
+
+            ApplyRange();
+        }
+
+        /// <summary>
+        /// Fades the voice to exactly zero at the current range, through the source's volume: there is
+        /// one listener per machine, so the distance to it is all a curve would have known anyway, and
+        /// the rolloff stays fixed instead of being rebuilt every time the range moves.
+        ///
+        /// <para>(1 - x²)² is the window the world sounds use: it leaves the near and middle distances
+        /// almost untouched and closes smoothly on zero instead of cutting the tail off.</para>
+        /// </summary>
+        private void ApplyRange()
+        {
+            float window = 0f;
+
+            if (TryGetListener(out AudioListener listener))
             {
-                // The participant can go invalid between leaving the channel and this frame.
-                return;
+                float x = Vector3.Distance(listener.transform.position, _audioSource.transform.position) /
+                          Mathf.Max(_currentRange, 0.01f);
+
+                if (x < 1f)
+                {
+                    window = 1f - x * x;
+                    window *= window;
+                }
             }
 
-            float quiet = QuietRange();
-            float loud = LoudRange();
-            float target = Mathf.Lerp(quiet, loud, Mathf.InverseLerp(speechEnergyThreshold, shoutEnergyThreshold, energy));
+            float playerVolume = VivoxManager.instance != null
+                ? VivoxManager.instance.GetParticipantTapVolume(_participant.PlayerId)
+                : 1f;
 
-            // Asymmetric envelope: rise fast, fall slow. Both rates are expressed as seconds to
-            // cross the whole span, so the tuning keeps its meaning when the span itself changes.
-            float seconds = target > _currentRange ? rangeAttackSeconds : rangeReleaseSeconds;
-            float rate = Mathf.Max(loud - quiet, 0.01f) / seconds;
+            _audioSource.volume = playerVolume * window;
+        }
 
-            _currentRange = Mathf.MoveTowards(_currentRange, target, rate * Time.deltaTime);
-            _audioSource.maxDistance = _currentRange;
+        private bool TryGetListener(out AudioListener listener)
+        {
+            // The listener rides whichever camera is live — the player's own, or a spectator camera
+            // after death — so a disabled one is looked up again.
+            if (_listener == null || !_listener.isActiveAndEnabled)
+            {
+                _listener = FindFirstObjectByType<AudioListener>();
+            }
+
+            listener = _listener;
+            return listener != null;
         }
 
         /// <summary>
         /// The channel's audible distance is a hard ceiling rather than a suggestion: Vivox stops
-        /// delivering a participant's stream past it, so a larger maxDistance would only promise
-        /// audio that never arrives.
+        /// delivering a participant's stream past it, so a larger range would only promise audio
+        /// that never arrives.
         /// </summary>
         private float LoudRange()
         {
@@ -195,8 +234,7 @@ namespace Audio
         }
 
         /// <summary>
-        /// Held strictly above minDistance. That one is the full-volume radius and must not move
-        /// with speaking volume, and linear rolloff degenerates when the two meet.
+        /// Held strictly above the near field: a whisper must still fade before it stops.
         /// </summary>
         private float QuietRange()
         {
@@ -205,14 +243,9 @@ namespace Audio
 
             if (floor >= loud) return loud;
 
-            return Mathf.Clamp(whisperDistance, floor, loud);
-        }
+            float whisper = voiceProfile != null ? voiceProfile.WhisperRange : loud;
 
-        private void OnValidate()
-        {
-            // Mathf.InverseLerp silently inverts when these cross, which would make speaking
-            // quietly the thing that carries furthest.
-            shoutEnergyThreshold = Mathf.Max(shoutEnergyThreshold, speechEnergyThreshold);
+            return Mathf.Clamp(whisper, floor, loud);
         }
 
         private void VivoxManager_OnParticipantLeft(VivoxParticipant participant)
@@ -237,6 +270,7 @@ namespace Audio
             _participant = null;
             _reverbFilter = null;
             _audioSource = null;
+            _listener = null;
             _currentRange = 0f;
         }
 

@@ -15,6 +15,7 @@ namespace UI
         [SerializeField] private GameObject lanPanel;
         [SerializeField] private GameObject menuPanel;
         [SerializeField] private GameObject optionPanel;
+        [SerializeField] private GameObject creditsPanel; // CRÉDITOS
 
         private void Start()
         {
@@ -32,7 +33,7 @@ namespace UI
             string lobbyCode = lobbyCodeInputField.text;
             Lobby.instance.JoinLobbyByCode(lobbyCode);
             lobbyPanel.SetActive(true);
-            
+
         }
 
         public void ToggleLobbyPanel()
@@ -64,11 +65,22 @@ namespace UI
             optionPanel.SetActive(true);
         }
 
+        // CRÉDITOS
+        public void OpenCreditsPanel()
+        {
+            creditsPanel.SetActive(true);
+        }
+
+        // CRÉDITOS
+        public void CloseCreditsPanel()
+        {
+            creditsPanel.SetActive(false);
+        }
+
         public void QuitGame()
         {
             Application.Quit();
         }
-        
+
     }
 }
-

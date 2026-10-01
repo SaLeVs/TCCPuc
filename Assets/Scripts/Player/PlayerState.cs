@@ -34,6 +34,7 @@ namespace Player
         
         public bool IsDead => playerDead.IsDead;
         public bool IsCrouching { get; private set; }
+        public bool IsInputLocked => _isInputLocked;
 
         // The one place that says what may stop a sprint; add new blockers here, not in PlayerRun.
         public bool CanRun => !IsCrouching;

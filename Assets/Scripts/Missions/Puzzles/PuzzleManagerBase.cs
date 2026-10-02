@@ -103,9 +103,12 @@ namespace Missions.Puzzles
         }
 
         // Instancia, faz Spawn na rede e registra para o despawn automático.
-        protected GameObject SpawnTracked(GameObject prefab, Transform spawnPoint)
+        protected GameObject SpawnTracked(GameObject prefab, Transform spawnPoint) =>
+            SpawnTracked(prefab, spawnPoint.position, spawnPoint.rotation);
+
+        protected GameObject SpawnTracked(GameObject prefab, Vector3 position, Quaternion rotation)
         {
-            GameObject spawned = Instantiate(prefab, spawnPoint.position, spawnPoint.rotation);
+            GameObject spawned = Instantiate(prefab, position, rotation);
 
             if (spawned.TryGetComponent(out NetworkObject netObj))
             {
@@ -117,9 +120,12 @@ namespace Missions.Puzzles
         }
 
         // SpawnTracked + liga a peça a este puzzle e inclui ela na checagem do IsSolved().
-        protected T SpawnPiece<T>(GameObject prefab, Transform spawnPoint) where T : PuzzlePieceBase
+        protected T SpawnPiece<T>(GameObject prefab, Transform spawnPoint) where T : PuzzlePieceBase =>
+            SpawnPiece<T>(prefab, spawnPoint.position, spawnPoint.rotation);
+
+        protected T SpawnPiece<T>(GameObject prefab, Vector3 position, Quaternion rotation) where T : PuzzlePieceBase
         {
-            GameObject spawned = SpawnTracked(prefab, spawnPoint);
+            GameObject spawned = SpawnTracked(prefab, position, rotation);
 
             if (!spawned.TryGetComponent(out T piece))
             {

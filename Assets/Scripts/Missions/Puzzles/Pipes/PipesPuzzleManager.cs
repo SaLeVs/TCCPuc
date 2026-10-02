@@ -63,13 +63,23 @@ namespace Missions.Puzzles
                     continue;
                 }
 
-                if (config.spawnPoint == null || config.spawnPoint.Count == 0)
+                Pose pose;
+
+                if (config.fittedPose.HasValue)
+                {
+                    pose = config.fittedPose.Value;
+                }
+                else if (config.spawnPoint != null && config.spawnPoint.Count > 0 && config.spawnPoint[0] != null)
+                {
+                    pose = new Pose(config.spawnPoint[0].position, config.spawnPoint[0].rotation);
+                }
+                else
                 {
                     Debug.LogWarning($"Pipe {i} spawnpoint null");
                     continue;
                 }
 
-                PipeTotem pipe = SpawnPiece<PipeTotem>(config.prefab, config.spawnPoint[0]);
+                PipeTotem pipe = SpawnPiece<PipeTotem>(config.prefab, pose.position, pose.rotation);
 
                 if (pipe == null) continue;
 

@@ -17,7 +17,10 @@ namespace UI
         private Action<string, bool> _onMuteChanged;
 
         
-        public void Setup(VivoxParticipant participant, Action<string, int> onVolumeChanged, Action<string, bool> onMuteChanged)
+        /// <param name="savedVolume">What this player last chose for them, on Vivox's -50..50 scale.</param>
+        /// <param name="savedMuted">Whether this player last muted them.</param>
+        public void Setup(VivoxParticipant participant, int savedVolume, bool savedMuted,
+            Action<string, int> onVolumeChanged, Action<string, bool> onMuteChanged)
         {
             _playerId = participant.PlayerId;
             _onVolumeChanged = onVolumeChanged;
@@ -31,12 +34,13 @@ namespace UI
 
             if (!controlsEnabled) return;
 
-            muteToggle.SetIsOnWithoutNotify(false);
+            muteToggle.SetIsOnWithoutNotify(savedMuted);
             muteToggle.onValueChanged.AddListener(HandleMuteChanged);
 
             volumeSlider.minValue = -50;
             volumeSlider.maxValue = 50;
-            volumeSlider.SetValueWithoutNotify(participant.LocalVolume);
+            volumeSlider.SetValueWithoutNotify(savedVolume);
+            volumeSlider.interactable = !savedMuted;
             volumeSlider.onValueChanged.AddListener(HandleSliderChanged);
         }
 

@@ -42,6 +42,7 @@ namespace Audio
         private VivoxParticipant _participant;
         private AudioReverbFilter _reverbFilter;
         private AudioSource _audioSource;
+        private VoiceGain _gain;
         private AudioListener _listener;
         private NetworkObject _owner;
         private float _currentRange;
@@ -121,6 +122,9 @@ namespace Audio
 
             _audioSource.minDistance = voiceProfile != null ? voiceProfile.NearField : 1f;
             _audioSource.maxDistance = LoudRange();
+
+            // Added after the tap, so it scales the voice the tap has just written.
+            _gain = _audioSource.gameObject.AddComponent<VoiceGain>();
 
             // Open at the quiet end, so the first word someone says widens the range instead of
             // the range starting wide and audibly shrinking around them.
@@ -214,7 +218,17 @@ namespace Audio
                 ? VivoxManager.instance.GetParticipantTapVolume(_participant.PlayerId)
                 : 1f;
 
-            _audioSource.volume = playerVolume * window;
+            // The distance fade stays on the source; the volume this player chose, which can go above
+            // 1, rides the gain — AudioSource.volume would cap a boost at 1.
+            if (_gain != null)
+            {
+                _audioSource.volume = window;
+                _gain.Gain = playerVolume;
+            }
+            else
+            {
+                _audioSource.volume = playerVolume * window;
+            }
         }
 
         private bool IsReadingDonation()
@@ -285,6 +299,7 @@ namespace Audio
             _participant?.DestroyVivoxParticipantTap();
             _participant = null;
             _reverbFilter = null;
+            _gain = null;
             _audioSource = null;
             _listener = null;
             _currentRange = 0f;

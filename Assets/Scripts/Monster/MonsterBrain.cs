@@ -280,7 +280,9 @@ namespace Monster
 
         private void Update()
         {
-            if (!IsServer) return;
+            // IsServer is cached at spawn and outlives the NetworkManager when it is destroyed before
+            // this object despawns — leaving Play Mode, going back to the menu.
+            if (!IsServer || !IsSpawned) return;
 
             TickTracking(Time.deltaTime);
             TickAwareness(Time.deltaTime);

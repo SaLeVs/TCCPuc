@@ -32,7 +32,18 @@ namespace Network
         }
 
         [SerializeField] private Lobby lobbyManager;
+
+        [Tooltip("How far a voice carries, in meters. RemoteVoiceFilter fades every voice to silence by " +
+                 "here — this is the voice range, not the channel's.")]
         [SerializeField] private int audibleDistance;
+
+        [Tooltip("The audible distance handed to Vivox. Vivox drops anyone past it from the participant " +
+                 "list, so a player who walked off left the channel: gone from the pause roster, their " +
+                 "volume and mute forgotten. Kept far beyond the voice range so everyone stays in; the " +
+                 "distance fade is what silences them. The fade model ignores this value, so it changes " +
+                 "nothing inside the voice range. Every client must use the same value to join.")]
+        [SerializeField] private int channelAudibleDistance = 1000;
+
         [SerializeField] private int conversationalDistance;
         [SerializeField] private float audioFadeIntensity;
         [SerializeField] private AudioFadeModel audioFadeModel;
@@ -98,6 +109,13 @@ namespace Network
         private bool _isReconciling;
 
         private string _currentChannelName;
+
+        // Per player, keyed by their Unity Authentication id — the same id Vivox uses, stable across
+        // sessions as long as that player signs in on the same machine.
+        private const string VOLUME_KEY_PREFIX = "VoiceVolume_";
+        private const string MUTED_KEY_PREFIX = "VoiceMuted_";
+        private const int MIN_PARTICIPANT_VOLUME = -50;
+        private const int MAX_PARTICIPANT_VOLUME = 50;
 
         private readonly Dictionary<string, float> _tapVolumes = new();
 
@@ -256,7 +274,7 @@ namespace Network
 
             if (channel.Positional)
             {
-                Channel3DProperties properties = new Channel3DProperties(audibleDistance: audibleDistance, conversationalDistance: conversationalDistance,
+                Channel3DProperties properties = new Channel3DProperties(audibleDistance: Mathf.Max(channelAudibleDistance, audibleDistance), conversationalDistance: conversationalDistance,
                     audioFadeIntensityByDistanceaudio: audioFadeIntensity, audioFadeModel: audioFadeModel);
 
                 await VivoxService.Instance.JoinPositionalChannelAsync(channel.Name, channel.Capability, properties);
@@ -289,9 +307,14 @@ namespace Network
             await VivoxService.Instance.LeaveChannelAsync(channelName);
         }
     
+        /// <summary>Sets and remembers the volume this player hears <paramref name="playerId"/> at.</summary>
         public void SetParticipantVolume(string playerId, int volume)
         {
-            volume = Mathf.Clamp(volume, -50, 10);
+            if (string.IsNullOrEmpty(playerId)) return;
+
+            volume = Mathf.Clamp(volume, MIN_PARTICIPANT_VOLUME, MAX_PARTICIPANT_VOLUME);
+
+            PlayerPrefs.SetInt(VOLUME_KEY_PREFIX + playerId, volume);
 
             foreach (KeyValuePair<string, ReadOnlyCollection<VivoxParticipant>> channel in VivoxService.Instance.ActiveChannels)
             {
@@ -309,10 +332,57 @@ namespace Network
             _tapVolumes[playerId] = ConvertVivoxVolumeToLinear(volume);
         }
 
-        /// <summary>The volume this player chose for <paramref name="playerId"/>, as a linear gain.</summary>
+        /// <summary>The volume saved for <paramref name="playerId"/>, on Vivox's -50..50 scale. 0 if never set.</summary>
+        public int GetParticipantVolume(string playerId)
+        {
+            if (string.IsNullOrEmpty(playerId)) return 0;
+
+            return Mathf.Clamp(PlayerPrefs.GetInt(VOLUME_KEY_PREFIX + playerId, 0), MIN_PARTICIPANT_VOLUME, MAX_PARTICIPANT_VOLUME);
+        }
+
+        public bool IsParticipantLocallyMuted(string playerId)
+        {
+            return !string.IsNullOrEmpty(playerId) && PlayerPrefs.GetInt(MUTED_KEY_PREFIX + playerId, 0) == 1;
+        }
+
+        /// <summary>
+        /// The volume this player chose for <paramref name="playerId"/>, as a linear gain — 0 while
+        /// muted. The voice is heard only through its tap (silenced in the channel mix), so the tap
+        /// is where mute has to land, whatever Vivox's own local mute does.
+        /// </summary>
         public float GetParticipantTapVolume(string playerId)
         {
-            return playerId != null && _tapVolumes.TryGetValue(playerId, out float volume) ? volume : 1f;
+            if (string.IsNullOrEmpty(playerId)) return 1f;
+            if (IsParticipantLocallyMuted(playerId)) return 0f;
+
+            if (!_tapVolumes.TryGetValue(playerId, out float volume))
+            {
+                volume = ConvertVivoxVolumeToLinear(GetParticipantVolume(playerId));
+                _tapVolumes[playerId] = volume;
+            }
+
+            return volume;
+        }
+
+        /// <summary>
+        /// Reapplies what this player chose for a participant every time Vivox hands over a fresh
+        /// participant object — a rejoin, a channel switch, a new session.
+        /// </summary>
+        private void ApplySavedParticipantSettings(VivoxParticipant participant)
+        {
+            if (participant.IsSelf) return;
+
+            try
+            {
+                int volume = GetParticipantVolume(participant.PlayerId);
+                if (volume != 0) participant.SetLocalVolume(volume);
+
+                if (IsParticipantLocallyMuted(participant.PlayerId)) participant.MutePlayerLocally();
+            }
+            catch (Exception e)
+            {
+                Debug.LogWarning($"Could not apply saved voice settings for {participant.DisplayName}: {e.Message}");
+            }
         }
 
         /// <summary>
@@ -336,13 +406,18 @@ namespace Network
 
         private static float ConvertVivoxVolumeToLinear(int vivoxVolume)
         {
-            vivoxVolume = Mathf.Clamp(vivoxVolume, -50, 10);
+            vivoxVolume = Mathf.Clamp(vivoxVolume, MIN_PARTICIPANT_VOLUME, MAX_PARTICIPANT_VOLUME);
             
             return vivoxVolume >= 0 ? Mathf.Lerp(1f, 2f, vivoxVolume / 50f) : Mathf.Lerp(0f, 1f, (vivoxVolume + 50f) / 50f);
         }
         
+        /// <summary>Mutes or unmutes <paramref name="playerId"/> for this player only, and remembers it.</summary>
         public void SetParticipantLocalMute(string playerId, bool isMuted)
         {
+            if (string.IsNullOrEmpty(playerId)) return;
+
+            PlayerPrefs.SetInt(MUTED_KEY_PREFIX + playerId, isMuted ? 1 : 0);
+
             foreach (KeyValuePair<string, ReadOnlyCollection<VivoxParticipant>> currentChannel in VivoxService.Instance.ActiveChannels)
             {
                 foreach (VivoxParticipant participant in currentChannel.Value)
@@ -367,6 +442,8 @@ namespace Network
         private void VivoxService_OnParticipantAddedToChannel(VivoxParticipant participant)
         {
             if (participant.ChannelName == ECHO_CHANNEL_NAME) return;
+
+            ApplySavedParticipantSettings(participant);
             OnParticipantJoinedChannel?.Invoke(participant);
         }
 

@@ -197,7 +197,11 @@ namespace Monster
         {
             _huntablePositions.Clear();
 
-            IReadOnlyList<NetworkClient> allClients = NetworkManager.Singleton.ConnectedClientsList;
+            // Gone for the last frame or so of a shutdown, while the monster can still be ticking.
+            NetworkManager networkManager = NetworkManager.Singleton;
+            if (networkManager == null || !networkManager.IsListening) return;
+
+            IReadOnlyList<NetworkClient> allClients = networkManager.ConnectedClientsList;
             if (allClients == null) return;
 
             foreach (NetworkClient client in allClients)

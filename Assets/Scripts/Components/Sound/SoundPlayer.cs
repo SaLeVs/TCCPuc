@@ -1,3 +1,4 @@
+using Unity.Netcode;
 using UnityEngine;
 using UnityEngine.Audio;
 
@@ -38,6 +39,18 @@ namespace Components.Sound
                  "is moved plays its first milliseconds with the walls of wherever it was before.")]
         [SerializeField, Range(0f, 0.1f)] private float worldStartDelay = 0.04f;
 
+        [Tooltip("Sounds closer than this to the listener wait a single frame instead of worldStartDelay. " +
+                 "No wall fits between the ear and the player's own feet, and a step that sounds 70 ms " +
+                 "after the foot lands reads as lag.")]
+        [SerializeField, Range(0f, 5f)] private float instantStartDistance = 2.5f;
+
+        [Header("Own body")]
+        [Tooltip("Volume of the sounds this player's own body makes — their footsteps, their damage — as " +
+                 "they hear them. Played flat in their ears instead of out in the world: at their feet a " +
+                 "3D source sits half inside the floor, so Steam Audio muffles it, and the HRTF from right " +
+                 "below the head sounds hollow. Everybody else still hears them in 3D.")]
+        [SerializeField, Range(0f, 1f)] private float ownBodyVolume = 0.75f;
+
         [Header("Pool")]
         [Tooltip("Sounds that can play at once. Unity mixes 32 real voices; stay under that so music " +
                  "and voice chat keep theirs.")]
@@ -45,6 +58,7 @@ namespace Components.Sound
 
         private Slot[] _slots;
         private AnimationCurve _rolloff;
+        private AudioListener _listener;
 
         private sealed class Slot
         {
@@ -111,28 +125,100 @@ namespace Components.Sound
             Slot slot = Rent(sound.Priority, now);
             if (slot == null) return;
 
+            if (IsLocalPlayer(emitter))
+            {
+                PlayOwnBody(slot, sound, clip, loudness, now);
+                return;
+            }
+
             AudioSource source = Prepare(slot, sound, clip, worldGroup);
             source.spatialBlend = 1f;
             source.spatialize = slot.Spatial != null;
             source.maxDistance = Mathf.Max(0.1f, sound.Range * loudness);
 
-            Vector3 point = position + Vector3.up * sound.HeightOffset;
-            source.transform.position = point;
-
             slot.Follow = sound.FollowEmitter ? emitter : null;
-            slot.FollowOffset = slot.Follow != null ? point - slot.Follow.position : Vector3.zero;
+
+            // A followed sound is pinned to the emitter as this machine sees it. The position sent with
+            // a remote sound is where the owner was, which runs ahead of the interpolated copy here —
+            // keeping that offset left remote steps hanging in front of or behind the body.
+            slot.FollowOffset = Vector3.up * sound.HeightOffset;
+
+            Vector3 point = slot.Follow != null
+                ? slot.Follow.position + slot.FollowOffset
+                : position + Vector3.up * sound.HeightOffset;
+
+            source.transform.position = point;
 
             if (slot.Spatial != null)
             {
                 slot.Spatial.enabled = true;
             }
 
-            // Long enough for at least two frames at a low framerate: one for Steam Audio to simulate
-            // the new position, one for the source to hand the result to the audio thread.
-            float delay = Mathf.Min(0.1f, Mathf.Max(worldStartDelay, Time.unscaledDeltaTime * 2.2f));
+            float delay = StartDelayFor(point);
             source.PlayDelayed(delay);
 
             Occupy(slot, sound, clip, source.pitch, now, delay);
+        }
+
+        /// <summary>
+        /// Flat in this player's ears, through the world mixer group so the world volume still applies.
+        /// Loudness still shapes it — a crouched step is quieter and a sprint louder — but by its
+        /// square root, so crouching stays audible to the one doing it.
+        /// </summary>
+        private void PlayOwnBody(Slot slot, SoundDefinitionSO sound, AudioClip clip, float loudness, float now)
+        {
+            AudioSource source = Prepare(slot, sound, clip, worldGroup);
+            source.volume = Mathf.Clamp01(sound.Volume * ownBodyVolume * Mathf.Sqrt(Mathf.Max(0f, loudness)));
+            source.spatialBlend = 0f;
+            source.spatialize = false;
+            slot.Follow = null;
+
+            if (slot.Spatial != null)
+            {
+                slot.Spatial.enabled = false;
+            }
+
+            // No Steam Audio to wait for.
+            source.Play();
+
+            Occupy(slot, sound, clip, source.pitch, now, 0f);
+        }
+
+        private static bool IsLocalPlayer(Transform emitter)
+        {
+            if (emitter == null) return false;
+
+            NetworkObject networkObject = emitter.GetComponentInParent<NetworkObject>();
+            return networkObject != null && networkObject.IsSpawned && networkObject.IsLocalPlayer;
+        }
+
+        /// <summary>
+        /// Long enough for at least two frames at a low framerate: one for Steam Audio to simulate the
+        /// new position, one for the source to hand the result to the audio thread. Right by the ear a
+        /// single frame does, since there are no walls to work out.
+        /// </summary>
+        private float StartDelayFor(Vector3 point)
+        {
+            float frame = Time.unscaledDeltaTime;
+
+            if (IsNearListener(point))
+            {
+                return Mathf.Min(worldStartDelay, frame * 1.1f);
+            }
+
+            return Mathf.Min(0.1f, Mathf.Max(worldStartDelay, frame * 2.2f));
+        }
+
+        private bool IsNearListener(Vector3 point)
+        {
+            // The listener lives on the local player's camera, which is spawned and destroyed with it.
+            if (_listener == null || !_listener.isActiveAndEnabled)
+            {
+                _listener = FindFirstObjectByType<AudioListener>();
+            }
+
+            return _listener != null
+                   && (_listener.transform.position - point).sqrMagnitude <= instantStartDistance * instantStartDistance;
         }
 
         /// <summary>Plays flat in this player's ears: HUD feedback, heard by nobody else.</summary>

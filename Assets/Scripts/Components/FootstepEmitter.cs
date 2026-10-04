@@ -10,6 +10,12 @@ namespace Components
                  "normal step; crouching and sprinting scale it through LoudnessMultiplier.")]
         [SerializeField] private SoundDefinitionSO footstepSound;
 
+        [Tooltip("Steps closer together than this are one step. A 2D blend tree fires the event of every " +
+                 "clip it is mixing, a few milliseconds apart, so a diagonal walk would flam every step.")]
+        [SerializeField, Min(0f)] private float minStepInterval = 0.18f;
+
+        private float _lastStepTime = float.NegativeInfinity;
+
         /// <summary>
         /// Scales every step this emitter makes — for the players who hear it and for the monster alike.
         /// Driven by the player's PlayerNoiseProfile: crouch turns it down, sprint turns it up. Only
@@ -26,6 +32,9 @@ namespace Components
         public void AnimationFootstep()
         {
             if (!IsOwner) return;
+            if (Time.time - _lastStepTime < minStepInterval) return;
+
+            _lastStepTime = Time.time;
 
             WorldSound.Play(footstepSound, transform.position, NetworkObject, Mathf.Max(0f, LoudnessMultiplier));
         }

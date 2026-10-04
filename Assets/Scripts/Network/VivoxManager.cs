@@ -43,7 +43,14 @@ namespace Network
         [SerializeField] private bool automaticGainControl;
 
         public string CurrentChannelName => _currentChannelName;
-        public bool IsInPositionalChannel { get; private set; }
+
+        /// <summary>
+        /// True only while the positional channel is actually joined — false while switching, while in
+        /// the echo test and before the join has finished, which is when Set3DPosition throws.
+        /// </summary>
+        public bool IsInPositionalChannel => _joinedChannel is { Positional: true }
+                                             && !string.IsNullOrEmpty(_currentChannelName)
+                                             && VivoxService.Instance.ActiveChannels.ContainsKey(_currentChannelName);
         public int AudibleDistance => audibleDistance;
         public int ConversationalDistance => conversationalDistance;
         
@@ -65,17 +72,32 @@ namespace Network
         private const string LOBBY_CHANNEL_SUFFIX = "_lobby";
         private const string GAME_CHANNEL_SUFFIX = "_game";
 
-        private string _currentChannelName;
-        private ChatCapability _currentChannelCapability;
-        private bool _currentChannelPositional;
+        private sealed class VoiceChannel
+        {
+            public readonly string Name;
+            public readonly ChatCapability Capability;
+            public readonly bool Positional;
 
-        private string _channelBeforeTest;
-        private ChatCapability _channelBeforeTestCapability;
-        private bool _channelBeforeTestPositional;
+            public VoiceChannel(string name, ChatCapability capability, bool positional)
+            {
+                Name = name;
+                Capability = capability;
+                Positional = positional;
+            }
+        }
 
+        // What the game asked for and what Vivox is actually in. Requests only change the wanted
+        // side; ReconcileChannelsAsync walks the joined side towards it one step at a time. A request
+        // that arrives mid-switch or mid-test is never dropped — it just changes where the walk ends,
+        // so the game channel asked for while the mic test is open is the one rejoined afterwards.
+        private VoiceChannel _wantedChannel;
+        private bool _wantsTestChannel;
+
+        private VoiceChannel _joinedChannel;
         private bool _isInTestChannel;
-        private bool _isSwitchingChannel;
-        private bool _isTogglingTestChannel;
+        private bool _isReconciling;
+
+        private string _currentChannelName;
 
         private readonly Dictionary<string, float> _tapVolumes = new();
 
@@ -130,52 +152,55 @@ namespace Network
             }
         }
 
-        public async void EnterLobbyVoice()
+        public void EnterLobbyVoice()
         {
             if (lobbyManager.JoinedLobby == null) return;
-            await SwitchChannelAsync(lobbyManager.JoinedLobby.Id + LOBBY_CHANNEL_SUFFIX, ChatCapability.TextAndAudio, positional: false);
+
+            _wantedChannel = new VoiceChannel(lobbyManager.JoinedLobby.Id + LOBBY_CHANNEL_SUFFIX, ChatCapability.TextAndAudio, positional: false);
+            ReconcileChannels();
         }
 
-        public async void EnterGameVoice()
+        public void EnterGameVoice()
         {
             if (lobbyManager.JoinedLobby == null) return;
-            await SwitchChannelAsync(lobbyManager.JoinedLobby.Id + GAME_CHANNEL_SUFFIX, ChatCapability.AudioOnly, positional: true);
+
+            _wantedChannel = new VoiceChannel(lobbyManager.JoinedLobby.Id + GAME_CHANNEL_SUFFIX, ChatCapability.AudioOnly, positional: true);
+            ReconcileChannels();
         }
 
-        private async Task SwitchChannelAsync(string newChannelName, ChatCapability capability, bool positional)
+        /// <summary>Leaves the lobby/game channel. An open mic test stays open.</summary>
+        public void LeaveVoiceChannel()
         {
-            if (_isSwitchingChannel) return;
-            if (_currentChannelName == newChannelName) return;
-            if (_isInTestChannel) return;
+            _wantedChannel = null;
+            ReconcileChannels();
+        }
 
-            _isSwitchingChannel = true;
+        /// <summary>
+        /// Swaps the lobby/game channel for the echo channel while the audio device panel is open, so
+        /// the player hears themselves and nobody else hears the test.
+        /// </summary>
+        public void EnterTestVoiceChannel()
+        {
+            _wantsTestChannel = true;
+            ReconcileChannels();
+        }
+
+        public void LeaveTestVoiceChannel()
+        {
+            _wantsTestChannel = false;
+            ReconcileChannels();
+        }
+
+        private async void ReconcileChannels()
+        {
+            // The running walk re-reads the wanted state after every step, so it picks this up.
+            if (_isReconciling) return;
+
+            _isReconciling = true;
 
             try
             {
-                await EnsureLoggedInAsync();
-
-                if (!string.IsNullOrEmpty(_currentChannelName))
-                {
-                    await VivoxService.Instance.LeaveChannelAsync(_currentChannelName);
-                    _currentChannelName = null;
-                }
-
-                if (positional)
-                {
-                    Channel3DProperties properties = new Channel3DProperties(audibleDistance: audibleDistance, conversationalDistance: conversationalDistance,
-                        audioFadeIntensityByDistanceaudio: audioFadeIntensity, audioFadeModel: audioFadeModel);
-
-                    await VivoxService.Instance.JoinPositionalChannelAsync(newChannelName, capability, properties);
-                }
-                else
-                {
-                    await VivoxService.Instance.JoinGroupChannelAsync(newChannelName, capability);
-                }
-
-                _currentChannelName = newChannelName;
-                _currentChannelCapability = capability;
-                _currentChannelPositional = positional;
-                IsInPositionalChannel = positional;
+                await ReconcileChannelsAsync();
             }
             catch (Exception e)
             {
@@ -183,103 +208,85 @@ namespace Network
             }
             finally
             {
-                _isSwitchingChannel = false;
+                _isReconciling = false;
             }
         }
-        
-        public async void LeaveVoiceChannel()
-        {
-            if (string.IsNullOrEmpty(_currentChannelName)) return;
 
-            try
+        private async Task ReconcileChannelsAsync()
+        {
+            while (true)
             {
-                if (VivoxService.Instance.ActiveChannels.ContainsKey(_currentChannelName))
+                if (_wantsTestChannel)
                 {
-                    await VivoxService.Instance.LeaveChannelAsync(_currentChannelName);
+                    if (_joinedChannel != null)
+                    {
+                        await LeaveJoinedChannelAsync();
+                    }
+                    else if (!_isInTestChannel)
+                    {
+                        await EnsureLoggedInAsync();
+                        await VivoxService.Instance.JoinEchoChannelAsync(ECHO_CHANNEL_NAME, ChatCapability.AudioOnly);
+                        _isInTestChannel = true;
+                    }
+                    else return;
+                }
+                else
+                {
+                    if (_isInTestChannel)
+                    {
+                        _isInTestChannel = false;
+                        await LeaveIfActiveAsync(ECHO_CHANNEL_NAME);
+                    }
+                    else if (_joinedChannel != null && _joinedChannel.Name != _wantedChannel?.Name)
+                    {
+                        await LeaveJoinedChannelAsync();
+                    }
+                    else if (_joinedChannel == null && _wantedChannel != null)
+                    {
+                        await JoinAsync(_wantedChannel);
+                    }
+                    else return;
                 }
             }
-            catch (Exception e)
+        }
+
+        private async Task JoinAsync(VoiceChannel channel)
+        {
+            await EnsureLoggedInAsync();
+
+            if (channel.Positional)
             {
-                Debug.LogWarning(e);
+                Channel3DProperties properties = new Channel3DProperties(audibleDistance: audibleDistance, conversationalDistance: conversationalDistance,
+                    audioFadeIntensityByDistanceaudio: audioFadeIntensity, audioFadeModel: audioFadeModel);
+
+                await VivoxService.Instance.JoinPositionalChannelAsync(channel.Name, channel.Capability, properties);
+            }
+            else
+            {
+                await VivoxService.Instance.JoinGroupChannelAsync(channel.Name, channel.Capability);
             }
 
+            _joinedChannel = channel;
+            _currentChannelName = channel.Name;
+        }
+
+        private async Task LeaveJoinedChannelAsync()
+        {
+            string channelName = _joinedChannel.Name;
+
+            // Cleared before the await: VivoxPlayer sends its 3D position every frame and must stop
+            // the moment the channel starts going away, not after.
+            _joinedChannel = null;
             _currentChannelName = null;
-            IsInPositionalChannel = false;
 
-            _currentChannelCapability = default;
-            _currentChannelPositional = false;
-
-            _channelBeforeTest = null;
-            _channelBeforeTestCapability = default;
-            _channelBeforeTestPositional = false;
-
-            _isInTestChannel = false;
-            _isSwitchingChannel = false;
-            _isTogglingTestChannel = false;
+            await LeaveIfActiveAsync(channelName);
         }
 
-        public async void EnterTestVoiceChannel()
+        private static async Task LeaveIfActiveAsync(string channelName)
         {
-            if (_isTogglingTestChannel || _isInTestChannel) return;
+            if (!VivoxService.Instance.ActiveChannels.ContainsKey(channelName)) return;
 
-            _isTogglingTestChannel = true;
-
-            try
-            {
-                await EnsureLoggedInAsync();
-
-                if (!string.IsNullOrEmpty(_currentChannelName))
-                {
-                    _channelBeforeTest = _currentChannelName;
-                    _channelBeforeTestCapability = _currentChannelCapability;
-                    _channelBeforeTestPositional = _currentChannelPositional;
-
-                    await VivoxService.Instance.LeaveChannelAsync(_currentChannelName);
-                    _currentChannelName = null;
-                }
-
-                await VivoxService.Instance.JoinEchoChannelAsync(ECHO_CHANNEL_NAME, ChatCapability.AudioOnly);
-                _isInTestChannel = true;
-            }
-            catch (Exception e)
-            {
-                Debug.LogError($"Error entering test voice channel: {e.Message}");
-            }
-            finally
-            {
-                _isTogglingTestChannel = false;
-            }
-        }
-        
-        public async void LeaveTestVoiceChannel()
-        {
-            if (_isTogglingTestChannel || !_isInTestChannel) return;
-
-            _isTogglingTestChannel = true;
-
-            try
-            {
-                await VivoxService.Instance.LeaveChannelAsync(ECHO_CHANNEL_NAME);
-                _isInTestChannel = false;
-
-                if (!string.IsNullOrEmpty(_channelBeforeTest))
-                {
-                    string channelToRejoin = _channelBeforeTest;
-                    ChatCapability capabilityToRejoin = _channelBeforeTestCapability;
-                    bool positionalToRejoin = _channelBeforeTestPositional;
-                    _channelBeforeTest = null;
-
-                    await SwitchChannelAsync(channelToRejoin, capabilityToRejoin, positionalToRejoin);
-                }
-            }
-            catch (Exception e)
-            {
-                Debug.LogError($"Error leaving test voice channel: {e.Message}");
-            }
-            finally
-            {
-                _isTogglingTestChannel = false;
-            }
+            await VivoxService.Instance.LeaveChannelAsync(channelName);
         }
     
         public void SetParticipantVolume(string playerId, int volume)

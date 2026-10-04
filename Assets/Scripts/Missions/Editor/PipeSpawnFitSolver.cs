@@ -63,6 +63,10 @@ namespace Missions.Editor
         public readonly List<PipeFitJoint> Joints = new();
         public readonly List<PipeFitAnchor> Anchors = new();
         public readonly List<string> Problems = new();
+
+        // Células com passos corretos errados ou faltando -> os passos que deveriam ser
+        // (todos os que deixam o cano igual ao primeiro passo da lista).
+        public readonly Dictionary<PipeFitCell, List<int>> SuggestedSteps = new();
         public readonly List<string> Notes = new();
 
         public float MaxErrorBefore;
@@ -166,6 +170,12 @@ namespace Missions.Editor
         public static bool TryFindMouth(PipeFitPiece piece, float angle, Vector3 direction, out Vector3 mouth)
         {
             mouth = Vector3.zero;
+
+            // Ângulo que não leva os lados da grade em lados da grade (ex.: 45°) deixa o cano na diagonal:
+            // nenhuma boca fica de frente para um vizinho.
+            Vector3 turned = Quaternion.AngleAxis(angle, piece.RotationAxis) * direction;
+            if (Mathf.Max(Mathf.Abs(turned.x), Mathf.Abs(turned.y), Mathf.Abs(turned.z)) < 0.999f) return false;
+
             Vector3[] vertices = Rotated(piece, angle);
 
             if (vertices.Length == 0) return false;
@@ -234,6 +244,8 @@ namespace Missions.Editor
                     result.Problems.Add($"Célula {Label(cell)}: passos corretos vazios ou fora da lista de ângulos (0 a {angles.Count - 1}).");
                     continue;
                 }
+
+                if (!CheckSteps(cell, angles, columnDirection, rowDirection, result)) continue;
 
                 byPosition[new Vector2Int(cell.Column, cell.Row)] = cell;
             }
@@ -313,6 +325,85 @@ namespace Missions.Editor
             }
         }
 
+        // O primeiro passo da lista é o que vale (é o que a prévia mostra). Os outros passos corretos têm
+        // que deixar o cano abrindo para os mesmos lados (o reto em 0° e 180°), e nenhum desses pode faltar:
+        // senão o jogo aceita um cano virado errado, ou recusa um que está visualmente certo.
+        private static bool CheckSteps(PipeFitCell cell, IReadOnlyList<float> angles, Vector3 columnDirection,
+            Vector3 rowDirection, PipeFitResult result)
+        {
+            int first = cell.CorrectSteps[0];
+            int expected = OpenSides(cell.Piece, angles[first], columnDirection, rowDirection);
+
+            if (expected == 0)
+            {
+                result.Problems.Add($"Célula {Label(cell)}: no passo {first} ({Deg(angles[first])}) o cano não abre para nenhum " +
+                                    "lado da grade (fica na diagonal). Escolha outro primeiro passo.");
+                return false;
+            }
+
+            // O primeiro passo continua na frente: é a rotação que a prévia e o encaixe usam.
+            List<int> equivalent = Enumerable.Range(0, angles.Count)
+                .Where(step => OpenSides(cell.Piece, angles[step], columnDirection, rowDirection) == expected)
+                .OrderBy(step => step == first ? -1 : step)
+                .ToList();
+
+            List<int> wrong = cell.CorrectSteps.Distinct().Where(step => !equivalent.Contains(step)).ToList();
+            List<int> missing = equivalent.Where(step => !cell.CorrectSteps.Contains(step)).ToList();
+
+            foreach (int step in wrong)
+            {
+                int sides = OpenSides(cell.Piece, angles[step], columnDirection, rowDirection);
+                result.Problems.Add($"Célula {Label(cell)}: o passo {step} ({Deg(angles[step])}) conta como certo, mas nele o cano " +
+                                    $"abre para {SideNames(sides)}, e no passo {first} abre para {SideNames(expected)}.");
+            }
+
+            foreach (int step in missing)
+            {
+                result.Problems.Add($"Célula {Label(cell)}: falta o passo {step} ({Deg(angles[step])}). Nele o cano fica igual " +
+                                    $"ao passo {first} ({SideNames(expected)}), mas o jogo não contaria como certo.");
+            }
+
+            if (wrong.Count > 0 || missing.Count > 0)
+            {
+                result.SuggestedSteps[cell] = equivalent;
+            }
+
+            return true;
+        }
+
+        // Bits: 1 = direita (próxima coluna), 2 = esquerda, 4 = baixo (próxima linha), 8 = cima.
+        private static int OpenSides(PipeFitPiece piece, float angle, Vector3 columnDirection, Vector3 rowDirection)
+        {
+            int sides = 0;
+
+            if (TryFindMouth(piece, angle, columnDirection, out _)) sides |= 1;
+            if (TryFindMouth(piece, angle, -columnDirection, out _)) sides |= 2;
+            if (TryFindMouth(piece, angle, rowDirection, out _)) sides |= 4;
+            if (TryFindMouth(piece, angle, -rowDirection, out _)) sides |= 8;
+
+            return sides;
+        }
+
+        public static string SideNames(int sides)
+        {
+            List<string> names = new();
+
+            if ((sides & 8) != 0) names.Add("cima");
+            if ((sides & 4) != 0) names.Add("baixo");
+            if ((sides & 2) != 0) names.Add("esquerda");
+            if ((sides & 1) != 0) names.Add("direita");
+
+            return names.Count > 0 ? string.Join(" e ", names) : "nenhum lado (diagonal)";
+        }
+
+        // Para o inspector: para que lados o cano abre nesse ângulo.
+        public static string OpenSidesText(PipeFitPiece piece, float angle, Vector3 columnDirection, Vector3 rowDirection)
+        {
+            return SideNames(OpenSides(piece, angle, SnapToAxis(columnDirection), SnapToAxis(rowDirection)));
+        }
+
+        private static string Deg(float angle) => $"{angle.ToString("0.#", Invariant)}°";
+
         private static void TryLink(PipeFitCell from, Dictionary<Vector2Int, PipeFitCell> byPosition, Vector2Int offset,
             Vector3 direction, IReadOnlyList<float> angles, PipeFitResult result)
         {
@@ -343,12 +434,8 @@ namespace Missions.Editor
                     bool a = TryFindMouth(from.Piece, angles[fromStep], direction, out Vector3 otherFrom);
                     bool b = TryFindMouth(to.Piece, angles[toStep], -direction, out Vector3 otherTo);
 
-                    if (!a || !b)
-                    {
-                        result.Notes.Add($"{Label(from)} no passo {fromStep} com {Label(to)} no passo {toStep} contam como certos, " +
-                                         "mas não se ligam.");
-                        continue;
-                    }
+                    // Passo que não liga já foi acusado no CheckSteps.
+                    if (!a || !b) continue;
 
                     float deviation = (otherFrom - otherTo - joint.Required).magnitude;
                     joint.WorstOtherCorrectSteps = Mathf.Max(joint.WorstOtherCorrectSteps, deviation);
@@ -475,6 +562,17 @@ namespace Missions.Editor
                 report.AppendLine();
                 report.AppendLine("Não dá para encaixar ainda:");
                 foreach (string problem in result.Problems) report.AppendLine($"  • {problem}");
+
+                if (result.SuggestedSteps.Count > 0)
+                {
+                    report.AppendLine();
+                    report.AppendLine("Correção dos passos (pelo primeiro passo de cada célula):");
+
+                    foreach ((PipeFitCell cell, List<int> steps) in result.SuggestedSteps.OrderBy(p => p.Key.Row).ThenBy(p => p.Key.Column))
+                    {
+                        report.AppendLine($"  • {Label(cell)}: [{string.Join(", ", cell.CorrectSteps)}] → [{string.Join(", ", steps)}]");
+                    }
+                }
             }
             else if (result.Positions.Count > 0)
             {

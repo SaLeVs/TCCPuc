@@ -11,9 +11,9 @@ namespace Missions.Puzzles
         [SerializeField] private Transform spawnListRoot;
         [SerializeField] private GameObject defaultPipePrefab;
         [SerializeField] private List<PipeGridLayout> possibleGridLayouts;
-        [SerializeField] private List<PipeSpawnConfig> pipeConfigs = new();
-
+       
         public List<float> PossiblePipesAngles => possibleAngles;
+        private List<PipeSpawnConfig> pipeConfigs = new();
 
 
         protected override void SpawnPuzzle()
@@ -75,7 +75,7 @@ namespace Missions.Puzzles
                 }
                 else
                 {
-                    Debug.LogWarning($"Pipe {i} spawnpoint null");
+                    Debug.LogWarning($"Pipe {i} spawn null");
                     continue;
                 }
 

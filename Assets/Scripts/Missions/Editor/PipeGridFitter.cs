@@ -19,7 +19,7 @@ namespace Missions.Editor
     }
 
     // Liga um grid ao PipesManager: monta o cálculo de encaixe (PipeSpawnFitSolver), salva as posições
-    // encaixadas no próprio grid e mostra uma prévia dos canos na cena. Usado pelos dois inspectors.
+    // encaixadas no próprio grid e mostra uma prévia dos canos na cena. Usado pelo inspector do grid.
     public static class PipeGridFitter
     {
         private const string PreviewName = "[Prévia do grid]";
@@ -72,6 +72,35 @@ namespace Missions.Editor
             EditorUtility.SetDirty(layout);
             AssetDatabase.SaveAssetIfDirty(layout);
         }
+
+        // Troca os passos corretos das células pelos sugeridos (todos os que deixam o cano igual ao
+        // primeiro passo). Mexer nos passos invalida o encaixe: encaixe de novo depois.
+        public static void ApplySuggestedSteps(PipeGridLayout layout, PipeFitResult result)
+        {
+            Undo.RecordObject(layout, "Corrigir passos do grid");
+
+            foreach ((PipeFitCell fitCell, List<int> steps) in result.SuggestedSteps)
+            {
+                if (!layout.TryGetCell(fitCell.Column, fitCell.Row, out PipeCellData cell)) continue;
+
+                cell.correctSteps = new List<int>(steps);
+                layout.Editor_SetCell(cell);
+            }
+
+            EditorUtility.SetDirty(layout);
+            AssetDatabase.SaveAssetIfDirty(layout);
+        }
+
+        // Para o inspector do grid: para que lados o cano da célula abre nesse ângulo.
+        public static string OpenSidesText(PipesPuzzleManager manager, GameObject prefab, float angle)
+        {
+            if (!TryReadManager(manager, out ManagerData data, out _)) return null;
+
+            PipeFitPiece piece = Piece(prefab != null ? prefab : data.DefaultPrefab, DisplayPieces);
+            return piece != null ? PipeSpawnFitSolver.OpenSidesText(piece, angle, data.ColumnStep, data.RowStep) : null;
+        }
+
+        private static readonly Dictionary<GameObject, PipeFitPiece> DisplayPieces = new();
 
         // Fitted = as posições salvas valem para o grid e o PipesManager de agora.
         public static PipeGridFitStatus Status(PipeGridLayout layout, PipesPuzzleManager manager)
@@ -168,18 +197,6 @@ namespace Missions.Editor
             managerObject.ApplyModifiedProperties();
         }
 
-        public static List<PipeGridLayout> LayoutsOf(PipesPuzzleManager manager)
-        {
-            SerializedProperty list = new SerializedObject(manager).FindProperty("possibleGridLayouts");
-            List<PipeGridLayout> layouts = new();
-
-            for (int i = 0; i < list.arraySize; i++)
-            {
-                if (list.GetArrayElementAtIndex(i).objectReferenceValue is PipeGridLayout layout) layouts.Add(layout);
-            }
-
-            return layouts;
-        }
 
         // ---------- prévia ----------
 

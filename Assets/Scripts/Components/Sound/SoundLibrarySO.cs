@@ -3,14 +3,6 @@ using UnityEngine;
 
 namespace Components.Sound
 {
-    /// <summary>
-    /// Every sound that can travel over the network, so a peer sends a two-byte id instead of the asset.
-    ///
-    /// <para>An id is the sound's position in the list. Every peer runs the same build, so the list
-    /// — and with it every id — is identical everywhere. A sound missing from here can only be heard
-    /// on the machine that made it; <see cref="WorldSoundNetwork"/> logs an error when that happens.
-    /// Use the context menu to collect every definition in the project.</para>
-    /// </summary>
     [CreateAssetMenu(fileName = "SoundLibrary", menuName = "ScriptableObjects/Audio/Sound Library")]
     public class SoundLibrarySO : ScriptableObject
     {

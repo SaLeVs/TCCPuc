@@ -4,13 +4,6 @@ using UnityEngine;
 
 namespace Components.Sound
 {
-    /// <summary>
-    /// Carries world sounds between peers. One lives on an in-scene object in every networked scene.
-    ///
-    /// <para>The server sends to everyone, itself included. A client plays its own sound at once —
-    /// its footsteps should not wait a round trip — and asks the server to pass it on to everybody
-    /// else, so nobody hears it twice.</para>
-    /// </summary>
     public class WorldSoundNetwork : NetworkBehaviour
     {
         public static WorldSoundNetwork Instance { get; private set; }
@@ -54,20 +47,16 @@ namespace Components.Sound
             RpcParams rpcParams = default)
         {
             // The sender already heard it.
-            PlayRpc(id, position, loudness, hasEmitter, emitter,
-                RpcTarget.Not(rpcParams.Receive.SenderClientId, RpcTargetUse.Temp));
+            PlayRpc(id, position, loudness, hasEmitter, emitter, RpcTarget.Not(rpcParams.Receive.SenderClientId, RpcTargetUse.Temp));
         }
 
         [Rpc(SendTo.SpecifiedInParams)]
-        private void PlayRpc(ushort id, Vector3 position, float loudness, bool hasEmitter, NetworkObjectReference emitter,
-            RpcParams rpcParams)
+        private void PlayRpc(ushort id, Vector3 position, float loudness, bool hasEmitter, NetworkObjectReference emitter, RpcParams rpcParams)
         {
             SoundDefinitionSO sound = library.Get(id);
             if (sound == null) return;
 
-            Transform emitterTransform = hasEmitter && emitter.TryGet(out NetworkObject emitterObject)
-                ? emitterObject.transform
-                : null;
+            Transform emitterTransform = hasEmitter && emitter.TryGet(out NetworkObject emitterObject) ? emitterObject.transform : null;
 
             WorldSound.PlayHere(sound, position, emitterTransform, loudness);
         }
@@ -80,9 +69,14 @@ namespace Components.Sound
                            "machine hears it. Add it to the library (context menu: Collect every Sound Definition).", this);
         }
 
+        
         public override void OnNetworkDespawn()
         {
-            if (Instance == this) Instance = null;
+            if (Instance == this)
+            {
+                Instance = null;
+            }
         }
+        
     }
 }

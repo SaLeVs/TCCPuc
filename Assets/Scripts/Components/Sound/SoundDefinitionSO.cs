@@ -3,14 +3,6 @@ using UnityEngine;
 
 namespace Components.Sound
 {
-    /// <summary>
-    /// Everything about one sound: what it sounds like, how far it carries and whether the monster
-    /// notices it.
-    ///
-    /// <para><see cref="Range"/> is in meters, the same unit <see cref="NoiseBus"/> uses, and it is
-    /// the only reach the sound has. Players stop hearing it where the monster stops hearing it, so
-    /// the two can never be tuned apart by accident.</para>
-    /// </summary>
     [CreateAssetMenu(fileName = "Sound", menuName = "ScriptableObjects/Audio/Sound Definition")]
     public class SoundDefinitionSO : ScriptableObject
     {

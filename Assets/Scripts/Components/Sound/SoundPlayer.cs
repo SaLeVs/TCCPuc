@@ -4,19 +4,6 @@ using UnityEngine.Audio;
 
 namespace Components.Sound
 {
-    /// <summary>
-    /// Plays sounds on this machine from a fixed pool of AudioSources.
-    ///
-    /// <para>Nothing here is networked. <see cref="WorldSound"/> decides who hears what, and every
-    /// peer reaches this exactly once per sound; this only answers how it sounds.</para>
-    ///
-    /// <para>Pooled instead of a new GameObject per sound: footsteps from four players and a monster
-    /// were allocating and destroying objects on every step, and each fresh Steam Audio source needs
-    /// a simulation pass before it knows which walls stand between it and the ear.</para>
-    ///
-    /// <para>Runs its LateUpdate before Steam Audio's, so a sound following its emitter is simulated
-    /// where the emitter is this frame rather than where it was last frame.</para>
-    /// </summary>
     [DefaultExecutionOrder(-100)]
     public class SoundPlayer : MonoBehaviour
     {

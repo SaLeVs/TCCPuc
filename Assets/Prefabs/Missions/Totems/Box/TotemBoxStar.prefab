@@ -14,6 +14,7 @@ GameObject:
   - component: {fileID: 3436754371061624762}
   - component: {fileID: 5496381245777029813}
   - component: {fileID: 2119509943739035687}
+  - component: {fileID: 8464066237768436078}
   m_Layer: 8
   m_Name: TotemBoxStar
   m_TagString: Untagged
@@ -93,6 +94,7 @@ MonoBehaviour:
   expectedItem: {fileID: 11400000, guid: 8f649d0cf47f05f4dbca8fbce859bc17, type: 2}
   spawnPoint: {fileID: 5871672297659161864}
   itemDatabase: {fileID: 11400000, guid: 445d4ee483405c346880c081245fee23, type: 2}
+  placementArea: {fileID: 8464066237768436078}
 --- !u!114 &5496381245777029813
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -129,6 +131,27 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 0.10653418, y: 0.13451612, z: 0.022818178}
   m_Center: {x: 0.00034113228, y: 0.4573455, z: 0.26669842}
+--- !u!65 &8464066237768436078
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7196284807495355785}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 1
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 0.38958532, y: 0.35981706, z: 0.3971881}
+  m_Center: {x: 0, y: 0.6849085, z: 0.0035254806}
 --- !u!1 &8574671341241307916
 GameObject:
   m_ObjectHideFlags: 0

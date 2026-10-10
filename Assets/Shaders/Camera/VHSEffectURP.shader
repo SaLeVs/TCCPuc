@@ -24,6 +24,9 @@ Shader "Hidden/VHSEffectURP"
             HLSLPROGRAM
             #pragma vertex Vert
             #pragma fragment Frag
+
+            // Core.hlsl PRECISA vir antes do Blit.hlsl: é ele que define TEXTURE2D_X e afins
+            #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
             #include "Packages/com.unity.render-pipelines.core/Runtime/Utilities/Blit.hlsl"
 
             float _NoiseIntensity;
@@ -40,6 +43,12 @@ Shader "Hidden/VHSEffectURP"
                 return frac(sin(dot(co.xy, float2(12.9898, 78.233))) * 43758.5453);
             }
 
+            // Amostra com LOD 0: seguro dentro de if (evita erro de "gradient" no compilador)
+            half3 SampleScreen(float2 uv)
+            {
+                return SAMPLE_TEXTURE2D_X_LOD(_BlitTexture, sampler_LinearClamp, uv, 0).rgb;
+            }
+
             half4 Frag(Varyings input) : SV_Target
             {
                 UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
@@ -53,9 +62,9 @@ Shader "Hidden/VHSEffectURP"
 
                 // Chromatic aberration
                 float caAmount = _ChromaticAberration + _GlitchIntensity * 0.01;
-                float r = SAMPLE_TEXTURE2D_X(_BlitTexture, sampler_LinearClamp, uv + float2(caAmount, 0)).r;
-                float g = SAMPLE_TEXTURE2D_X(_BlitTexture, sampler_LinearClamp, uv).g;
-                float b = SAMPLE_TEXTURE2D_X(_BlitTexture, sampler_LinearClamp, uv - float2(caAmount, 0)).b;
+                float r = SampleScreen(uv + float2(caAmount, 0)).r;
+                float g = SampleScreen(uv).g;
+                float b = SampleScreen(uv - float2(caAmount, 0)).b;
                 half4 col = half4(r, g, b, 1);
 
                 // Scanlines
@@ -75,7 +84,7 @@ Shader "Hidden/VHSEffectURP"
                     {
                         float2 tornUV = uv;
                         tornUV.x = frac(uv.x + (tear - 0.5) * 0.2);
-                        col.rgb = SAMPLE_TEXTURE2D_X(_BlitTexture, sampler_LinearClamp, tornUV).rgb;
+                        col.rgb = SampleScreen(tornUV);
                     }
                 }
 

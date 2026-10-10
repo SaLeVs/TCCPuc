@@ -60,6 +60,7 @@ GameObject:
   - component: {fileID: 8220886843260042270}
   - component: {fileID: 9158156660860726962}
   - component: {fileID: 7437886285449800429}
+  - component: {fileID: 4984114764321018656}
   m_Layer: 9
   m_Name: Monster
   m_TagString: Untagged
@@ -96,7 +97,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Unity.Netcode.Runtime::Unity.Netcode.NetworkObject
-  GlobalObjectIdHash: 3265427313
+  GlobalObjectIdHash: 2315160054
   InScenePlacedSourceGlobalObjectIdHash: 3265427313
   DeferredDespawnTick: 0
   Ownership: 1
@@ -198,12 +199,7 @@ MonoBehaviour:
   monsterAwareness: {fileID: 5320133689007995861}
   monsterInvestigate: {fileID: 6105359185430086693}
   trackingGraceSeconds: 4
-  logMovementJumps: 1
-  jumpSpeedThreshold: 12
-  logRapidStateChanges: 1
-  rapidStateSeconds: 0.75
-  logFacingFlips: 1
-  facingFlipDegrees: 40
+  logStateChanges: 1
   stuckSeconds: 2
   stuckMinProgress: 0.4
   logPathStatus: 1
@@ -772,6 +768,20 @@ CapsuleCollider:
   m_Height: 1.6961818
   m_Direction: 1
   m_Center: {x: 0.048435867, y: 0.8887541, z: 0.06999999}
+--- !u!114 &4984114764321018656
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2397166377357422809}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f90e28cdf4d03bc42ba113bd47ff481a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Game::VHSGlitchOnTouch
+  playerTag: Player
+  cooldown: 1
 --- !u!1 &8968525623132493308
 GameObject:
   m_ObjectHideFlags: 0

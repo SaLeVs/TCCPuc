@@ -621,6 +621,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 3956797275737810196}
+  - component: {fileID: 1048433842914399791}
   m_Layer: 0
   m_Name: VHSController
   m_TagString: Untagged
@@ -643,6 +644,51 @@ Transform:
   m_Children: []
   m_Father: {fileID: 1450085231864165735}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1048433842914399791
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1056249132713527916}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 11f3ff5888eb9444a96c270e552bf41b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Game::VHSGlitchController
+  vhsMaterial: {fileID: 2100000, guid: 3918879c5323dd64ab85e243f7e1982e, type: 2}
+  noiseIntensity: 0.03
+  scanlineIntensity: 0.08
+  scanlineCount: 800
+  chromaticAberration: 0.0015
+  vignetteIntensity: 0.25
+  colorTint: {r: 1, g: 0.95, b: 0.9, a: 1}
+  trackingWobble: 0.002
+  glitchDuration: 0.6
+  glitchCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    - serializedVersion: 3
+      time: 1
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
 --- !u!1 &1161502781854321520
 GameObject:
   m_ObjectHideFlags: 0

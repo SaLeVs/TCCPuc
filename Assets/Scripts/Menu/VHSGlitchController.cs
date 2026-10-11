@@ -1,10 +1,9 @@
 using System.Collections;
 using UnityEngine;
 
-// Não precisa estar na câmera — pode ficar em qualquer GameObject da cena
-// (ex: um objeto vazio chamado "VHSController"). O efeito em si é aplicado
-// pela Full Screen Pass Renderer Feature do URP, configurada no Renderer Data
-// asset com o material que usa o shader VHSEffectURP.
+// Pode ficar em qualquer GameObject da cena (ex: um objeto vazio chamado "VHSController").
+// O efeito em si é aplicado pela Full Screen Pass Renderer Feature do URP,
+// configurada no Renderer Data com o material que usa o shader VHSEffectURP.
 public class VHSGlitchController : MonoBehaviour
 {
     public static VHSGlitchController Instance { get; private set; }
@@ -24,6 +23,13 @@ public class VHSGlitchController : MonoBehaviour
     [Header("Glitch (quando o monstro toca o player)")]
     public float glitchDuration = 0.6f;
     public AnimationCurve glitchCurve = AnimationCurve.EaseInOut(0, 1, 1, 0);
+    [Tooltip("Multiplica a força do glitch do ataque (1 = normal, 4 = bem forte)")]
+    public float glitchStrength = 1f;
+
+    [Header("Teste")]
+    [Tooltip("Marque durante o Play pra manter o glitch ligado e ver se o efeito funciona")]
+    public bool forceGlitch;
+    [Range(0, 5)] public float forceGlitchValue = 3f;
 
     private float currentGlitch;
     private Coroutine glitchRoutine;
@@ -31,6 +37,11 @@ public class VHSGlitchController : MonoBehaviour
     private void Awake()
     {
         Instance = this;
+    }
+
+    private void OnDestroy()
+    {
+        if (Instance == this) Instance = null;
     }
 
     private void Update()
@@ -44,7 +55,9 @@ public class VHSGlitchController : MonoBehaviour
         vhsMaterial.SetFloat("_VignetteIntensity", vignetteIntensity);
         vhsMaterial.SetColor("_ColorTint", colorTint);
         vhsMaterial.SetFloat("_TrackingWobble", trackingWobble);
-        vhsMaterial.SetFloat("_GlitchIntensity", currentGlitch);
+
+        float g = forceGlitch ? forceGlitchValue : currentGlitch * glitchStrength;
+        vhsMaterial.SetFloat("_GlitchIntensity", g);
     }
 
     /// <summary>Chame quando o monstro encostar no player: VHSGlitchController.Instance.TriggerGlitch();</summary>
@@ -60,6 +73,13 @@ public class VHSGlitchController : MonoBehaviour
         glitchRoutine = StartCoroutine(GlitchCoroutine(customDuration));
     }
 
+    // Teste rápido: no Play, clique com o botão direito no cabeçalho do componente > "Testar Glitch"
+    [ContextMenu("Testar Glitch")]
+    public void TestGlitch()
+    {
+        TriggerGlitch();
+    }
+
     private IEnumerator GlitchCoroutine(float duration)
     {
         float t = 0f;
@@ -72,16 +92,3 @@ public class VHSGlitchController : MonoBehaviour
         currentGlitch = 0f;
     }
 }
-
-// ------------------------------------------------------------------
-// Exemplo de uso no script do monstro:
-//
-// public class MonsterAttack : MonoBehaviour
-// {
-//     private void OnTriggerEnter(Collider other)
-//     {
-//         if (other.CompareTag("Player"))
-//             VHSGlitchController.Instance.TriggerGlitch();
-//     }
-// }
-// ------------------------------------------------------------------

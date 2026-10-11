@@ -60,7 +60,6 @@ GameObject:
   - component: {fileID: 8220886843260042270}
   - component: {fileID: 9158156660860726962}
   - component: {fileID: 7437886285449800429}
-  - component: {fileID: 4984114764321018656}
   m_Layer: 9
   m_Name: Monster
   m_TagString: Untagged
@@ -83,7 +82,6 @@ Transform:
   m_Children:
   - {fileID: 4949085718853090176}
   - {fileID: 7062565932091900400}
-  - {fileID: 1416498719088733391}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &2554784949663478114
@@ -769,75 +767,6 @@ CapsuleCollider:
   m_Height: 1.6961818
   m_Direction: 1
   m_Center: {x: 0.048435867, y: 0.8887541, z: 0.06999999}
---- !u!114 &4984114764321018656
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2397166377357422809}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: f90e28cdf4d03bc42ba113bd47ff481a, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Game::VHSGlitchOnTouch
-  playerTag: Player
-  cooldown: 1
---- !u!1 &3222338421032419976
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 1416498719088733391}
-  - component: {fileID: 7416610771044370229}
-  m_Layer: 9
-  m_Name: HitZone
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!4 &1416498719088733391
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 3222338421032419976}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 2931985732990858266}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!136 &7416610771044370229
-CapsuleCollider:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 3222338421032419976}
-  m_Material: {fileID: 0}
-  m_IncludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ExcludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_LayerOverridePriority: 0
-  m_IsTrigger: 1
-  m_ProvidesContacts: 0
-  m_Enabled: 1
-  serializedVersion: 2
-  m_Radius: 0.37
-  m_Height: 1.7
-  m_Direction: 1
-  m_Center: {x: 0, y: 0.89, z: 0.07}
 --- !u!1 &8968525623132493308
 GameObject:
   m_ObjectHideFlags: 0

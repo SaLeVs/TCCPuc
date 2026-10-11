@@ -10,7 +10,7 @@ namespace Monster
         public event Action OnAttackStartedAnimation;
         public event Action OnAttackEndedAnimation;
         public static Action<Vector3> OnMonsterAttackSound;
-        
+
         [SerializeField] private float distanceToAttack;
         [SerializeField] private float damageAmountPerAttack;
         [SerializeField] private float attackCooldown;
@@ -53,7 +53,7 @@ namespace Monster
             _agent = agent;
             _defaultAvoidance = agent.obstacleAvoidanceType;
         }
-        
+
         /// <summary>
         /// Swings, unless already swinging or still on cooldown. Returns whether it actually
         /// started, so callers can keep asking every frame without having to track the rhythm.
@@ -74,6 +74,10 @@ namespace Monster
             OnAttackStartedAnimation?.Invoke();
             hitbox.ResetHits();
             hitbox.EnableHitbox();
+
+            // TESTE: glitch do VHS no começo do ataque (roda uma vez por golpe)
+            if (VHSGlitchController.Instance != null)
+                VHSGlitchController.Instance.TriggerGlitch();
 
             return true;
         }
@@ -123,7 +127,6 @@ namespace Monster
             // cooling down must not top the timer back up.
             if (wasSwinging) _cooldownRemaining = attackCooldown;
         }
-        
-    } 
-}
 
+    }
+}

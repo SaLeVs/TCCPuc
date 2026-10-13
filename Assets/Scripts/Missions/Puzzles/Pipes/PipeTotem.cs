@@ -15,15 +15,18 @@ namespace Missions.Puzzles
         private readonly NetworkVariable<int> _currentRotationStep = new();
         private readonly NetworkList<int> _correctSteps = new();
 
+        // Só o servidor conhece (Setup) e usa: os clientes recebem a rotação pelo NetworkTransform.
         private Quaternion _baseRotation;
+        private bool _hasBaseRotation;
 
         private List<float> PossibleAngles => (Manager as PipesPuzzleManager)?.PossiblePipesAngles;
 
         public void Setup(List<int> correctSteps, int initialStepIndex)
         {
-            _baseRotation = transform.localRotation;
-
             if (!IsServer) return;
+
+            _baseRotation = transform.localRotation;
+            _hasBaseRotation = true;
 
             foreach (int step in correctSteps)
             {
@@ -32,6 +35,9 @@ namespace Missions.Puzzles
 
             int count = PossibleAngles?.Count ?? 1;
             _currentRotationStep.Value = Mathf.Clamp(initialStepIndex, 0, count - 1);
+
+            // Se o passo inicial for igual ao valor padrão (0), o OnValueChanged não dispara.
+            ApplyRotation(_currentRotationStep.Value);
         }
 
         public override void OnNetworkSpawn()
@@ -88,8 +94,13 @@ namespace Missions.Puzzles
             ApplyRotation(newValue);
         }
 
+        // Só o servidor gira o cano; o NetworkTransform (o dono é o servidor) leva a rotação aos clientes.
+        // Antes os clientes também giravam, com a rotação base zerada (o Setup só roda no servidor),
+        // e o cano podia piscar errado até o NetworkTransform corrigir.
         private void ApplyRotation(int step)
         {
+            if (!IsServer || !_hasBaseRotation) return;
+
             List<float> angles = PossibleAngles;
             if (angles == null || angles.Count == 0) return;
 

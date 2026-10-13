@@ -1,4 +1,5 @@
 using System;
+using Components.Sound;
 using Unity.Netcode;
 using UnityEngine;
 using UnityEngine.AI;
@@ -10,7 +11,7 @@ namespace Monster
         public event Action OnAttackStartedAnimation;
         public event Action OnAttackEndedAnimation;
         public static Action<Vector3> OnMonsterAttackSound;
-        
+
         [SerializeField] private float distanceToAttack;
         [SerializeField] private float damageAmountPerAttack;
         [SerializeField] private float attackCooldown;
@@ -53,7 +54,7 @@ namespace Monster
             _agent = agent;
             _defaultAvoidance = agent.obstacleAvoidanceType;
         }
-        
+
         /// <summary>
         /// Swings, unless already swinging or still on cooldown. Returns whether it actually
         /// started, so callers can keep asking every frame without having to track the rhythm.
@@ -70,10 +71,16 @@ namespace Monster
             _agent.ResetPath();
             _agent.obstacleAvoidanceType = ObstacleAvoidanceType.NoObstacleAvoidance;
 
-            OnMonsterAttackSound?.Invoke(transform.position);
+            // The attack is decided here, on the server; this used to raise a local event, so only
+            // the host ever heard the monster swing.
+            WorldSound.Play(attackSound, transform.position, NetworkObject);
             OnAttackStartedAnimation?.Invoke();
             hitbox.ResetHits();
             hitbox.EnableHitbox();
+
+            // TESTE: glitch do VHS no começo do ataque (roda uma vez por golpe)
+            if (VHSGlitchController.Instance != null)
+                VHSGlitchController.Instance.TriggerGlitch();
 
             return true;
         }
@@ -123,7 +130,6 @@ namespace Monster
             // cooling down must not top the timer back up.
             if (wasSwinging) _cooldownRemaining = attackCooldown;
         }
-        
-    } 
-}
 
+    }
+}

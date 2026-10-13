@@ -9,6 +9,10 @@ namespace Missions.Donations
         public double SpawnTime;
         public double ExpireTime;
 
+        /// <summary>The player it is addressed to: their voice reads it out, so whoever is near them hears it.</summary>
+        public ulong RecipientClientId;
+        public string RecipientName;
+
         public DonationState State;
         public float Progress;
 

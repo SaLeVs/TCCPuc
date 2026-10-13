@@ -1,4 +1,5 @@
 using Components.Perception;
+using Components.Sound;
 using Interfaces;
 using Network;
 using Unity.Netcode;
@@ -10,18 +11,14 @@ namespace Player
     public class PlayerMicReporter : NetworkBehaviour
     {
         [SerializeField] private MonoBehaviour micWatcherBehaviour;
-        [SerializeField] private float audioEnergyThreshold = 0.4f;
+
+        [Tooltip("Whisper, talking and shout thresholds — the same asset the other players' " +
+                 "RemoteVoiceFilter reads, so the monster and the players agree on how loud a voice is.")]
+        [SerializeField] private VoiceProfileSO voiceProfile;
 
         [Header("Noise heard by the monster")]
         [Tooltip("Off to make this player's voice inaudible to the AI.")]
         [SerializeField] private bool voiceMakesNoise = true;
-
-        [Tooltip("Mic energy above which normal talking starts making noise. Below it the player " +
-                 "is effectively whispering and the monster hears nothing.")]
-        [SerializeField, Range(0f, 1f)] private float speechEnergyThreshold = 0.35f;
-
-        [Tooltip("Mic energy above which it counts as a shout instead of talking.")]
-        [SerializeField, Range(0f, 1f)] private float shoutEnergyThreshold = 0.72f;
 
         [Tooltip("How far normal talking carries, in meters.")]
         [SerializeField, Min(0f)] private float speechLoudness = 10f;
@@ -129,7 +126,7 @@ namespace Player
                 // player talking?" for the donation watcher; the noise tiers answer "how much of
                 // this can the monster hear?". Routing the noise through the speaking flag meant
                 // normal talking never reported, because that flag sits far higher.
-                bool isSpeaking = energy >= audioEnergyThreshold;
+                bool isSpeaking = voiceProfile != null && energy >= voiceProfile.TalkingEnergy;
 
                 if (isSpeaking != _isReportingSpeech)
                 {
@@ -178,8 +175,9 @@ namespace Player
 
         private VoiceTier TierFor(float energy)
         {
-            if (energy >= shoutEnergyThreshold) return VoiceTier.Shout;
-            if (energy >= speechEnergyThreshold) return VoiceTier.Speech;
+            if (voiceProfile == null) return VoiceTier.Silent;
+            if (energy >= voiceProfile.ShoutEnergy) return VoiceTier.Shout;
+            if (energy >= voiceProfile.SpeechEnergy) return VoiceTier.Speech;
 
             return VoiceTier.Silent;
         }

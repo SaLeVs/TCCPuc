@@ -39,7 +39,8 @@ namespace Objects.UsableItems
         {
             if (playerInteractor.TryGetComponent(out PlayerState playerState))
             {
-                return !playerState.IsDead;
+                // Travado = num minigame ou painel: o clique ali não é para a bateria.
+                return !playerState.IsDead && !playerState.IsInputLocked;
             }
             
             return true;

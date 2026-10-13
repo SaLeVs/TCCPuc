@@ -1,4 +1,5 @@
 using System;
+using Components.Sound;
 using Interfaces;
 using Monster;
 using Monster.MonsterSabotages;
@@ -9,11 +10,12 @@ namespace Systems
 {
     public class ElectricCircuit : NetworkBehaviour, IInteractable
     {
-        public static Action<Vector3> OnCircuitRestoredSound;
         public event Action OnCircuitRestored;
 
         [Tooltip("How long the panel refuses a second pull, so holding the key does not spam it.")]
         [SerializeField] private float interactCooldown = 1f;
+
+        [SerializeField] private SoundDefinitionSO restoredSound;
 
         private MonsterSabotage _monsterSabotage;
         private float _nextInteractTime;
@@ -46,13 +48,13 @@ namespace Systems
             int restored = sabotage.RestoreAll(SabotageType.Light);
             if (restored == 0) return;
 
-            PlayRestoredRpc();
+            WorldSound.Play(restoredSound, transform.position, NetworkObject);
+            NotifyRestoredRpc();
         }
 
         [Rpc(SendTo.ClientsAndHost)]
-        private void PlayRestoredRpc()
+        private void NotifyRestoredRpc()
         {
-            OnCircuitRestoredSound?.Invoke(transform.position);
             OnCircuitRestored?.Invoke();
         }
 

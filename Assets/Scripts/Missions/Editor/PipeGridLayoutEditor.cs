@@ -1,5 +1,6 @@
 ﻿#if UNITY_EDITOR
 using System.Collections.Generic;
+using Missions.Puzzles;
 using ScriptableObjects;
 using UnityEditor;
 using UnityEngine;
@@ -12,6 +13,12 @@ namespace Missions.Editor
         private PipeGridLayout _layout;
         private int _selectedColumn = -1;
         private int _selectedRow = -1;
+
+        private PipesPuzzleManager _manager;
+        private bool _searchedManager;
+        private string _message;
+        private MessageType _messageType;
+        private bool _canFixSteps;
 
         private void OnEnable()
         {
@@ -41,6 +48,8 @@ namespace Missions.Editor
                 DrawSelectedCellEditor();
             }
 
+            EditorGUILayout.Space(10);
+            DrawFitSection();
             EditorGUILayout.Space(10);
 
             if (GUILayout.Button("Clean grid"))
@@ -134,6 +143,20 @@ namespace Missions.Editor
 
             EditorGUILayout.LabelField($"Selected cell: column {_selectedColumn}, row {_selectedRow}", EditorStyles.boldLabel);
 
+            // Só leitura: quem escreve é o botão de encaixe.
+            using (new EditorGUI.DisabledScope(true))
+            {
+                if (_layout.HasFittedPositions)
+                {
+                    EditorGUILayout.Vector3Field(new GUIContent("Posição salva", "Onde o cano desta célula nasce, local ao SpawnList."),
+                        cell.spawnPosition);
+                }
+                else
+                {
+                    EditorGUILayout.LabelField("Posição salva", "nenhuma (grid não encaixado)");
+                }
+            }
+
             EditorGUI.BeginChangeCheck();
 
             GameObject newPrefab = (GameObject)EditorGUILayout.ObjectField(
@@ -142,12 +165,27 @@ namespace Missions.Editor
             EditorGUILayout.LabelField("Correct Steps (índices de possibleAngles)");
 
             List<int> steps = cell.correctSteps ?? new List<int>();
+            List<float> angles = ManagerAngles();
             int removeIndex = -1;
 
             for (int i = 0; i < steps.Count; i++)
             {
                 EditorGUILayout.BeginHorizontal();
                 steps[i] = EditorGUILayout.IntField(steps[i]);
+
+                if (angles != null)
+                {
+                    string angle = "fora da lista";
+
+                    if (steps[i] >= 0 && steps[i] < angles.Count)
+                    {
+                        string sides = PipeGridFitter.OpenSidesText(_manager, newPrefab, angles[steps[i]]);
+                        angle = $"= {angles[steps[i]]}°" + (sides != null ? $"  abre: {sides}" : "");
+                    }
+
+                    EditorGUILayout.LabelField(angle, GUILayout.MinWidth(80));
+                }
+
                 if (GUILayout.Button("-", GUILayout.Width(24))) removeIndex = i;
                 EditorGUILayout.EndHorizontal();
             }
@@ -178,6 +216,143 @@ namespace Missions.Editor
                 _selectedRow = -1;
                 EditorUtility.SetDirty(_layout);
             }
+        }
+
+        // ---------- encaixe dos spawns ----------
+
+        private void DrawFitSection()
+        {
+            EditorGUILayout.LabelField("Encaixe dos spawns", EditorStyles.boldLabel);
+
+            if (!_searchedManager)
+            {
+                _manager = PipeGridFitter.FindManager(_layout);
+                _searchedManager = true;
+            }
+
+            EditorGUI.BeginChangeCheck();
+            _manager = (PipesPuzzleManager)EditorGUILayout.ObjectField(
+                new GUIContent("Pipes Manager", "Prefab do PipesManager: de onde vêm os ângulos, o cano padrão e o SpawnList."),
+                _manager, typeof(PipesPuzzleManager), false);
+
+            if (EditorGUI.EndChangeCheck())
+            {
+                PipeGridFitter.Remember(_layout, _manager);
+                _message = null;
+                _canFixSteps = false;
+            }
+
+            PipeGridFitStatus status = PipeGridFitter.Status(_layout, _manager);
+            string saved = _layout.HasFittedPositions
+                ? $"\nSalvo em {AssetDatabase.GetAssetPath(_layout)}: uma posição por célula ({_layout.Cells.Count}). " +
+                  "Selecione uma célula para ver a dela."
+                : "";
+
+            EditorGUILayout.HelpBox(PipeGridFitter.StatusText(status) + saved,
+                status == PipeGridFitStatus.Fitted ? MessageType.Info : MessageType.Warning);
+
+            if (_manager == null)
+            {
+                EditorGUILayout.HelpBox("Escolha o prefab do PipesManager para encaixar.", MessageType.None);
+                return;
+            }
+
+            if (!PipeGridFitter.IsInManager(_layout, _manager))
+            {
+                EditorGUILayout.HelpBox("Este grid ainda não está em Possible Grid Layouts do PipesManager: o jogo nunca vai sortear ele.",
+                    MessageType.Warning);
+
+                if (GUILayout.Button("Adicionar ao PipesManager"))
+                {
+                    PipeGridFitter.AddToManager(_layout, _manager);
+                }
+            }
+
+            if (GUILayout.Button("Encaixar spawns deste grid", GUILayout.Height(28)))
+            {
+                Fit();
+            }
+
+            EditorGUILayout.BeginHorizontal();
+
+            if (GUILayout.Button(new GUIContent("Prévia na cena", "Mostra os canos na rotação correta embaixo do SpawnList. Nada é salvo.")))
+            {
+                _message = PipeGridFitter.ShowPreview(_layout, _manager, out string error) ? null : error;
+                _messageType = MessageType.Warning;
+            }
+
+            using (new EditorGUI.DisabledScope(!PipeGridFitter.HasPreview(_manager)))
+            {
+                if (GUILayout.Button("Limpar prévia"))
+                {
+                    PipeGridFitter.ClearPreview(_manager);
+                }
+            }
+
+            EditorGUILayout.EndHorizontal();
+
+            if (!string.IsNullOrEmpty(_message))
+            {
+                EditorGUILayout.HelpBox(_message, _messageType);
+            }
+
+            if (_canFixSteps &&
+                GUILayout.Button(new GUIContent("Corrigir passos e encaixar",
+                    "Deixa em cada célula todos os passos em que o cano fica igual ao primeiro passo da lista, e encaixa de novo.")))
+            {
+                // Recalcula na hora: o grid pode ter mudado desde o aviso.
+                if (PipeGridFitter.TryCalculate(_layout, _manager, out PipeFitResult fresh, out _))
+                {
+                    PipeGridFitter.ApplySuggestedSteps(_layout, fresh);
+                }
+
+                Fit();
+            }
+        }
+
+        private void Fit()
+        {
+            _canFixSteps = false;
+
+            if (!PipeGridFitter.TryCalculate(_layout, _manager, out PipeFitResult result, out string error))
+            {
+                _message = error;
+                _messageType = MessageType.Warning;
+                return;
+            }
+
+            Debug.Log(result.Report, _layout);
+
+            if (!result.CanApply)
+            {
+                _message = result.Report;
+                _messageType = MessageType.Error;
+
+                _canFixSteps = result.SuggestedSteps.Count > 0;
+                return;
+            }
+
+            PipeGridFitter.Apply(_layout, _manager, result);
+
+            if (PipeGridFitter.HasPreview(_manager))
+            {
+                PipeGridFitter.ShowPreview(_layout, _manager, out _);
+            }
+
+            _message = result.Report + "\n\nPosições salvas neste grid.";
+            _messageType = result.Notes.Count > 0 ? MessageType.Warning : MessageType.Info;
+        }
+
+        private List<float> ManagerAngles()
+        {
+            if (_manager == null) return null;
+
+            SerializedProperty list = new SerializedObject(_manager).FindProperty("possibleAngles");
+            List<float> angles = new();
+
+            for (int i = 0; i < list.arraySize; i++) angles.Add(list.GetArrayElementAtIndex(i).floatValue);
+
+            return angles;
         }
     }
 }

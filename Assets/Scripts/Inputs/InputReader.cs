@@ -23,15 +23,22 @@ namespace Inputs
         public event Action OnChatEvent;
         public event Action OnHideMissionsEvent;
         public event Action OnHideDonateEvent;
-        
+
+        /// <summary>Whether the crouch key is down right now, for when the last event can't be trusted.</summary>
+        public bool IsCrouchHeld => _playerActions != null && _playerActions.Game.Crouch.IsPressed();
+
 
         /// <summary>The key the player presses to interact, as the HUD should print it ("E").</summary>
-        public string GetInteractBindingDisplay()
-        {
-            if (_playerActions == null) return string.Empty;
+        public string GetInteractBindingDisplay() => GetBindingDisplay(_playerActions?.Game.Interact);
 
-            return _playerActions.Game.Interact.GetBindingDisplayString(
-                InputBinding.DisplayStringOptions.DontIncludeInteractions);
+        /// <summary>The key that pauses, and also closes whatever screen is open ("Esc").</summary>
+        public string GetPauseBindingDisplay() => GetBindingDisplay(_playerActions?.Game.Pause);
+
+        private static string GetBindingDisplay(InputAction action)
+        {
+            if (action == null) return string.Empty;
+
+            return action.GetBindingDisplayString(InputBinding.DisplayStringOptions.DontIncludeInteractions);
         }
 
         private void OnEnable()

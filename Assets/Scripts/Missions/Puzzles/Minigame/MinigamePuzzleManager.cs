@@ -1,4 +1,5 @@
 using Components.Perception;
+using Components.Sound;
 using Interfaces;
 using Unity.Netcode;
 using UnityEngine;
@@ -13,6 +14,9 @@ namespace Missions.Puzzles
 
         [Tooltip("Opcional: barulho emitido na estação quando o jogador erra (atrai o monstro).")]
         [SerializeField] private NoiseEmitter failNoise;
+
+        [Tooltip("O som do erro na estação, ouvido por todos por perto.")]
+        [SerializeField] private SoundDefinitionSO failSound;
 
 
         // A própria estação é o puzzle: não há peças para spawnar.
@@ -56,10 +60,12 @@ namespace Missions.Puzzles
         [Rpc(SendTo.Server)]
         private void NotifyMinigameFailedRpc(RpcParams rpcParams = default)
         {
-            if (IsComplete || failNoise == null) return;
+            if (IsComplete) return;
             if (OwnershipSelector == null || !OwnershipSelector.IsMissionOwner(rpcParams.Receive.SenderClientId)) return;
 
-            failNoise.Emit();
+            WorldSound.Play(failSound, transform.position, NetworkObject);
+
+            if (failNoise != null) failNoise.Emit();
         }
 
     }

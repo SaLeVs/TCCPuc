@@ -11,9 +11,9 @@ namespace Missions.Puzzles
         [SerializeField] private Transform spawnListRoot;
         [SerializeField] private GameObject defaultPipePrefab;
         [SerializeField] private List<PipeGridLayout> possibleGridLayouts;
-        [SerializeField] private List<PipeSpawnConfig> pipeConfigs = new();
-
+       
         public List<float> PossiblePipesAngles => possibleAngles;
+        private List<PipeSpawnConfig> pipeConfigs = new();
 
 
         protected override void SpawnPuzzle()
@@ -63,13 +63,23 @@ namespace Missions.Puzzles
                     continue;
                 }
 
-                if (config.spawnPoint == null || config.spawnPoint.Count == 0)
+                Pose pose;
+
+                if (config.fittedPose.HasValue)
                 {
-                    Debug.LogWarning($"Pipe {i} spawnpoint null");
+                    pose = config.fittedPose.Value;
+                }
+                else if (config.spawnPoint != null && config.spawnPoint.Count > 0 && config.spawnPoint[0] != null)
+                {
+                    pose = new Pose(config.spawnPoint[0].position, config.spawnPoint[0].rotation);
+                }
+                else
+                {
+                    Debug.LogWarning($"Pipe {i} spawn null");
                     continue;
                 }
 
-                PipeTotem pipe = SpawnPiece<PipeTotem>(config.prefab, config.spawnPoint[0]);
+                PipeTotem pipe = SpawnPiece<PipeTotem>(config.prefab, pose.position, pose.rotation);
 
                 if (pipe == null) continue;
 

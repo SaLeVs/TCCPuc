@@ -1,3 +1,4 @@
+using Components.Sound;
 using Unity.Netcode;
 using UnityEngine;
 using Interfaces;
@@ -8,6 +9,7 @@ namespace Systems
     {
         [SerializeField] private PlayersReady playersReady;
         [SerializeField] private GameObject totemVisual;
+        [SerializeField] private SoundDefinitionSO activatedSound;
 
         private NetworkVariable<ulong> _ownerClientId = new NetworkVariable<ulong>(
             0,
@@ -74,6 +76,7 @@ namespace Systems
 
             _isActivated.Value = true;
             playersReady.SetPlayerReadyServer(playerNetworkObject.OwnerClientId);
+            WorldSound.Play(activatedSound, transform.position, NetworkObject);
         }
 
         public bool CanInteract(GameObject interactor)

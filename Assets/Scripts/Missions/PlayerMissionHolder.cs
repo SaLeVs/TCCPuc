@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using Components.Sound;
 using ScriptableObjects;
 using Unity.Netcode;
 using UnityEngine;
@@ -9,14 +10,22 @@ namespace Missions
     public class PlayerMissionHolder : NetworkBehaviour
     {
         [SerializeField] private PlayerMissionHolderUi _playerMissionHolderUi;
-        
+
+        [Header("HUD sounds")]
+        [SerializeField] private SoundDefinitionSO missionReceivedSound;
+        [SerializeField] private SoundDefinitionSO missionCompletedSound;
+
         public event Action<MissionSO> OnPersonalMissionReceived;
         public event Action<MissionSO> OnPersonalMissionCompleted;
         public event Action<MissionSO> OnMainMissionReceived;
         public event Action<MissionSO> OnMainMissionCompleted;
         public event Action<string> OnMessageReceived;
-        public static event Action<Vector3> OnMissionRecievedSound;
-        public static event Action<Vector3> OnMissionCompletedSound;
+
+        /// <summary>Any mission, personal or main, reached this machine's own player. Owner-side only.</summary>
+        public static event Action OnLocalMissionReceived;
+
+        /// <summary>This machine's own player finished a mission, personal or main. Owner-side only.</summary>
+        public static event Action OnLocalMissionCompleted;
 
         private readonly List<MissionSO> _personalMissions = new List<MissionSO>();
         private MissionSO _mainMission;
@@ -38,7 +47,7 @@ namespace Missions
 
             _personalMissions.Add(mission);
             OnPersonalMissionReceived?.Invoke(mission);
-            OnMissionRecievedSound?.Invoke(transform.position);
+            AnnounceReceived();
         }
         
         public void CompletePersonalMission(MissionSO mission)
@@ -48,7 +57,7 @@ namespace Missions
 
             _personalMissions.Remove(mission);
             OnPersonalMissionCompleted?.Invoke(mission);
-            OnMissionCompletedSound?.Invoke(transform.position);
+            AnnounceCompleted();
         }
 
         public void ReceiveMainMission(MissionSO mission)
@@ -57,7 +66,7 @@ namespace Missions
 
             _mainMission = mission;
             OnMainMissionReceived?.Invoke(mission);
-            OnMissionRecievedSound?.Invoke(transform.position);
+            AnnounceReceived();
         }
 
         public void CompleteMainMission()
@@ -68,7 +77,19 @@ namespace Missions
             MissionSO completed = _mainMission;
             _mainMission = null;
             OnMainMissionCompleted?.Invoke(completed);
-            OnMissionCompletedSound?.Invoke(transform.position);
+            AnnounceCompleted();
+        }
+
+        private void AnnounceReceived()
+        {
+            OnLocalMissionReceived?.Invoke();
+            UiSound.Play(missionReceivedSound);
+        }
+
+        private void AnnounceCompleted()
+        {
+            OnLocalMissionCompleted?.Invoke();
+            UiSound.Play(missionCompletedSound);
         }
         
         [Rpc(SendTo.Owner)]

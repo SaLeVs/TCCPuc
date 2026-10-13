@@ -100,8 +100,9 @@ namespace Player
             
             _targetMoveX = 0f;
             _targetMoveY = 0f;
+            // Crouch is left to PlayerCrouch: locked under a low ceiling the body stays down, and
+            // its event already stands the animation up whenever there is room.
             animator.SetBool(_isRunningHash, false);
-            animator.SetBool(_isCrouchingHash, false);
             animator.SetBool(_heldItemHash, false);
         }
         

@@ -122,9 +122,9 @@ GameObject:
   - component: {fileID: 8278700710531437911}
   - component: {fileID: 2039552922767006566}
   - component: {fileID: 3447546147562934396}
+  - component: {fileID: 5943491169431039833}
   - component: {fileID: 7828946981762781041}
   - component: {fileID: 1419901614884215495}
-  - component: {fileID: 2693078478171459728}
   m_Layer: 8
   m_Name: PipeJoint
   m_TagString: Untagged
@@ -232,6 +232,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Missions::Missions.MissionPipe
   ShowTopMostFoldoutHeaderGroup: 1
+  changedSound: {fileID: 11400000, guid: 294026659fa296d47a792d9ff73ce5db, type: 2}
   rotationAxis: {x: 1, y: 0, z: 0}
 --- !u!114 &3447546147562934396
 MonoBehaviour:
@@ -246,6 +247,21 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Components::Highlight
   outline: {fileID: 7954877685857274771}
+--- !u!114 &5943491169431039833
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4234447682429228620}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6e079cac865f317449e8df9d83d42f31, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Components::Components.InteractionMarker
+  actionLabel: Pick up
+  framedRenderers: []
+  revealDistance: 0
 --- !u!65 &7828946981762781041
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -288,16 +304,3 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 0.14798293, y: 0.18474019, z: 0.121276155}
   m_Center: {x: -0.012956768, y: -0.031021029, z: -0.0016067848}
---- !u!114 &2693078478171459728
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 4234447682429228620}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: bd2fe73823b53f54c912fd75b8e5958c, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Objects::Objects.DoorLeafInteractable
-  door: {fileID: 0}

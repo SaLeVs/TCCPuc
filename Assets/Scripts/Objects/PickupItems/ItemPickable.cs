@@ -1,3 +1,4 @@
+using Components.Sound;
 using Interfaces;
 using Missions;
 using Missions.Puzzles;
@@ -11,7 +12,9 @@ namespace Objects.PickupItems
     public class ItemPickable : NetworkBehaviour, IInteractable, IMissionOwnerAware
     {
         [SerializeField] private ItemDataSO itemData;
-        
+
+        [SerializeField] private SoundDefinitionSO pickupSound;
+
         private MissionOwnershipFilter _ownershipFilter;
 
         public int ItemId => itemData.itemId;
@@ -90,6 +93,9 @@ namespace Objects.PickupItems
         {
             if (!IsServer)
                 return;
+
+            // No emitter: this object is despawned on the next line, before the sound reaches anyone.
+            WorldSound.Play(pickupSound, transform.position);
 
             if (NetworkObject != null && NetworkObject.IsSpawned)
             {

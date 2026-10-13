@@ -16,11 +16,6 @@ namespace Missions.Donations
     /// </summary>
     public class DonationUIController : MonoBehaviour
     {
-        /// <summary>Carries a position so SfxManager can play it like every other sound.</summary>
-        public static event Action<Vector3> OnDonationReceivedSound;
-
-        public static event Action<Vector3> OnDonationCompletedSound;
-
         [Header("Card slot")]
         [Tooltip("Where the single card is spawned. One card is reused for every donation.")]
         [SerializeField] private Transform cardContainer;
@@ -67,9 +62,6 @@ namespace Missions.Donations
         private string _selectedId;
         private float _alertEndsAt;
         private bool _isCardShown;
-
-        /// <summary>SfxManager reads Vector3.zero as "this is an interface sound": 2D, no occlusion.</summary>
-        private static readonly Vector3 UiSoundPosition = Vector3.zero;
 
         private void OnEnable()
         {
@@ -152,19 +144,17 @@ namespace Missions.Donations
 
         private void HandleState(DonationNetworkState state)
         {
+            // A donation is its recipient's mission: only they get the card and the chip. Everyone
+            // else hears it happen — the sound and the reading come from the recipient, in the world.
+            NetworkManager network = NetworkManager.Singleton;
+            if (network == null || state.RecipientClientId != network.LocalClientId) return;
+
             string id = state.InstanceId.ToString();
             bool isNew = !_states.ContainsKey(id);
 
             _states[id] = state;
 
-            if (state.State == DonationState.Completed)
-            {
-                OnDonationCompletedSound?.Invoke(UiSoundPosition);
-                Drop(id);
-                return;
-            }
-
-            if (state.State == DonationState.Expired)
+            if (state.State != DonationState.Active)
             {
                 Drop(id);
                 return;
@@ -172,7 +162,6 @@ namespace Missions.Donations
 
             if (isNew)
             {
-                OnDonationReceivedSound?.Invoke(UiSoundPosition);
                 _pendingAlerts.Enqueue(id);
                 return;
             }

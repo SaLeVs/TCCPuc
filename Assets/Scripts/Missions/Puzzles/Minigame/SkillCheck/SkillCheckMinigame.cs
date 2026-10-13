@@ -33,7 +33,8 @@ namespace Missions.Puzzles
 
         public override void Stop() => _isRunning = false;
 
-        // Ligado no OnClick do botão "Check".
+        public override void Confirm() => Check();
+
         public void Check()
         {
             if (!_isRunning || generator.CurrentSlot == null) return;

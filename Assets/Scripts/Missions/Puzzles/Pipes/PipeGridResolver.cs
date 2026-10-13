@@ -25,11 +25,20 @@ namespace Missions.Puzzles
 
             List<Transform> orderedSpawnPoints = GetOrderedSpawnPoints(spawnListRoot);
 
+            // Encaixado: cada célula tem a própria posição, local ao SpawnList. Senão, cai na grade do SpawnList.
+            bool fitted = layout.HasFittedPositions;
+
+            if (!fitted)
+            {
+                Debug.LogWarning($"PipeGridResolver: layout '{layout.name}' is not fitted (or changed after fitting). " +
+                                 "Using the SpawnList grid, pipes may not connect. Press 'Encaixar spawns deste grid' on the layout.");
+            }
+
             foreach (PipeCellData cell in layout.Cells)
             {
                 Transform spawnPoint = GetSpawnPoint(orderedSpawnPoints, cell.row, cell.column, layout.columns);
 
-                if (spawnPoint == null)
+                if (spawnPoint == null && !fitted)
                 {
                     Debug.LogWarning($"PipeGridResolver: Spawn point not found for column {cell.column}, row {cell.row}. Skipping this cell.");
                     continue;
@@ -46,8 +55,11 @@ namespace Missions.Puzzles
                 PipeSpawnConfig config = new PipeSpawnConfig
                 {
                     prefab = prefab,
-                    spawnPoint = new List<Transform> { spawnPoint },
-                    correctSteps = (cell.correctSteps != null && cell.correctSteps.Count > 0) ? new List<int>(cell.correctSteps) : new List<int> { 0 }
+                    spawnPoint = spawnPoint != null ? new List<Transform> { spawnPoint } : new List<Transform>(),
+                    correctSteps = (cell.correctSteps != null && cell.correctSteps.Count > 0) ? new List<int>(cell.correctSteps) : new List<int> { 0 },
+                    fittedPose = fitted
+                        ? new Pose(spawnListRoot.TransformPoint(cell.spawnPosition), spawnListRoot.rotation)
+                        : null
                 };
 
                 configs.Add(config);
@@ -57,7 +69,7 @@ namespace Missions.Puzzles
         }
 
 
-        private static List<Transform> GetOrderedSpawnPoints(Transform spawnListRoot)
+        internal static List<Transform> GetOrderedSpawnPoints(Transform spawnListRoot)
         {
             List<Transform> points = new();
 

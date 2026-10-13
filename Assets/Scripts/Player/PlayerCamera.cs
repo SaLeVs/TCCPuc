@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using Enums;
 using Inputs;
 using Unity.Cinemachine;
@@ -29,6 +30,7 @@ namespace Player
         [SerializeField, Min(0.1f)] private float fallenLevelSpeed = 5f;
 
         public CinemachineCamera playerCinemachineCamera => cinemachineCamera;
+        public bool IsPaused => _isPaused;
 
         private bool _isDead;
         private bool _isLocked;
@@ -45,6 +47,8 @@ namespace Player
         private float _baseLookXGain;
         private float _baseLookYGain;
         private float _yaw;
+
+        private readonly List<Func<bool>> _escapeHandlers = new();
 
 
         public override void OnNetworkSpawn()
@@ -77,7 +81,31 @@ namespace Player
             cinemachineCamera.Priority = isSpectating ? 0 : ownerCameraPriority;
         }
 
-        private void ToggleMouse() => SetPauseState(!_isPaused);
+        /// <summary>
+        /// Lets an open screen (a minigame) take Esc before the pause menu does. The handler
+        /// returns true when it used the key. While paused, Esc always resumes first.
+        /// </summary>
+        public void AddEscapeHandler(Func<bool> handler) => _escapeHandlers.Add(handler);
+
+        public void RemoveEscapeHandler(Func<bool> handler) => _escapeHandlers.Remove(handler);
+
+        private void ToggleMouse()
+        {
+            if (!_isPaused && TryConsumeEscape()) return;
+
+            SetPauseState(!_isPaused);
+        }
+
+        // The last one added is the screen on top, so it gets the key first.
+        private bool TryConsumeEscape()
+        {
+            for (int i = _escapeHandlers.Count - 1; i >= 0; i--)
+            {
+                if (_escapeHandlers[i]()) return true;
+            }
+
+            return false;
+        }
 
         /// <summary>
         /// The one way in and out of pause, for the key and for the menu's Resume button alike.

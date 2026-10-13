@@ -52,7 +52,13 @@ namespace UI
 
         private void PlayerCamera_OnPauseToggled(bool paused)
         {
-            if (!paused) return;
+            if (!paused)
+            {
+                // The sliders only write to PlayerPrefs in memory; closing the menu is when they are
+                // done moving, so that is when the choices go to disk and survive a crash.
+                PlayerPrefs.Save();
+                return;
+            }
 
             // Late enough that the Vivox channel is always live by now, which the spawn frame
             // never is: joining it is asynchronous and only starts as the player spawns.
@@ -108,7 +114,8 @@ namespace UI
             if (_rosterEntries.ContainsKey(participant.PlayerId)) return;
 
             PlayerListItemUi entry = Instantiate(playerListItemUi, playerListContent);
-            entry.Setup(participant, OnVolumeChanged, OnMuteChanged);
+            entry.Setup(participant, _vivox.GetParticipantVolume(participant.PlayerId), _vivox.IsParticipantLocallyMuted(participant.PlayerId),
+                OnVolumeChanged, OnMuteChanged);
             _rosterEntries[participant.PlayerId] = entry;
         }
 

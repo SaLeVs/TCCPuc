@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using Components.Sound;
 using Unity.Netcode;
 using UnityEngine;
 using UnityEngine.AI;
@@ -14,7 +15,8 @@ namespace Monster
         /// <summary>Standing its ground because the target cannot be reached.</summary>
         public event Action OnBlockedAnimation;
 
-        public static Action<Vector3> OnMonsterSeeTargetSound;
+        [Tooltip("Played once when the monster first spots someone.")]
+        [SerializeField] private SoundDefinitionSO spottedSound;
 
         [SerializeField] private float chaseSpeed = 8f;
         [SerializeField] private float targetReevaluationInterval = 1f;
@@ -155,16 +157,10 @@ namespace Monster
 
             if (wasWithoutTarget)
             {
-                PlaySpottedSoundClientRpc();
+                WorldSound.Play(spottedSound, transform.position, NetworkObject);
             }
         }
-        
-        [Rpc(SendTo.ClientsAndHost)]
-        private void PlaySpottedSoundClientRpc()
-        {
-            OnMonsterSeeTargetSound?.Invoke(transform.position);
-        }
-        
+
         private void ClearTarget()
         {
             _currentTarget = null;

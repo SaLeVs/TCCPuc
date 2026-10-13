@@ -1,4 +1,5 @@
 using System;
+using Components.Sound;
 using Interfaces;
 using Unity.Netcode;
 using UnityEngine;
@@ -9,13 +10,12 @@ namespace Components
     {
         public event Action<Health> OnDie;
         public event Action<float> OnHealthChanged;
-        public static Action<Vector3> OnDamageSound;
 
         /// <summary>
         /// Every health change on every client, with the old and new value.
         ///
-        /// <para>OnDie and the damage RPC are raised from ModifyHealth, which only ever runs
-        /// on the server, so neither is usable by client-side systems. The backing
+        /// <para>OnDie is raised from ModifyHealth, which only ever runs on the server, so it is
+        /// not usable by client-side systems. The backing
         /// NetworkVariable does replicate, and this rides its change callback - so a listener
         /// on any client sees any player getting hurt or dying, not just the host and not just
         /// its own player. Check IsOwner on the sender to tell yours apart from the rest.</para>
@@ -23,7 +23,10 @@ namespace Components
         public static event Action<Health, float, float> OnAnyHealthChanged;
         
         [field: SerializeField] public float MaxHealth {get; private set;}
-        
+
+        [Tooltip("Played where the hit landed, for everyone.")]
+        [SerializeField] private SoundDefinitionSO damageSound;
+
         public NetworkVariable<float> currentHealth = new NetworkVariable<float>();
         private bool _isDead;
     
@@ -94,7 +97,7 @@ namespace Components
             
             if (value > 0f && currentHealth.Value < previousHealth)
             {
-                DamageClientRpc();
+                WorldSound.Play(damageSound, transform.position, NetworkObject);
             }
 
             if (currentHealth.Value <= 0f)
@@ -104,12 +107,6 @@ namespace Components
             }
         }
 
-        [Rpc(SendTo.ClientsAndHost)]
-        private void DamageClientRpc()
-        {
-            OnDamageSound?.Invoke(new Vector3(transform.position.x, transform.position.y + 0.6f, transform.position.z));
-        }
-        
         public override void OnNetworkDespawn()
         {
             currentHealth.OnValueChanged -= CurrentHealth_OnValueChanged;

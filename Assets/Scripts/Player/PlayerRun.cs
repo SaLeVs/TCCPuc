@@ -26,6 +26,7 @@ namespace Player
         private float _stamina;
         private bool _isExhausted;
         private bool _isRunning;
+        private bool _isSprinting;
         private bool _isDead;
         private bool _isLocked;
         private Vector2 _movementInput; 
@@ -56,6 +57,7 @@ namespace Player
             
             if (_isDead)
             {
+                _isSprinting = false;
                 OnRunEvent?.Invoke(false);
             }
         }
@@ -66,6 +68,7 @@ namespace Player
 
             if (_isLocked)
             {
+                _isSprinting = false;
                 OnRunEvent?.Invoke(false);
             }
         }
@@ -80,7 +83,8 @@ namespace Player
         
         private void UpdateStamina(bool isRunning)
         {
-            bool canRun = isRunning && IsMoving && !_isExhausted;
+            bool canRun = isRunning && IsMoving && !_isExhausted && playerState.CanRun;
+            _isSprinting = canRun;
             OnRunEvent?.Invoke(canRun);
             
             if (canRun)
@@ -109,7 +113,8 @@ namespace Player
         
         public float ModifySpeed(float baseSpeed)
         {
-            if (_isRunning && !_isExhausted)
+            // The same answer the stamina and the animation got, so speed can't disagree with them.
+            if (_isSprinting)
             {
                 return baseSpeed * speedModifier;
             }

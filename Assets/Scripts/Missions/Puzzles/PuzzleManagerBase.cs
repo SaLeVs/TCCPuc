@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using Components.Sound;
 using Interfaces;
 using Unity.Netcode;
 using UnityEngine;
@@ -18,6 +19,9 @@ namespace Missions.Puzzles
 
         [SerializeField] private MissionOwnershipSelector ownershipSelector;
         [SerializeField] private MissionCompleter missionCompleter;
+
+        [Tooltip("Heard by everyone near the puzzle when it is solved — the owner's own HUD sound is separate.")]
+        [SerializeField] private SoundDefinitionSO solvedSound;
 
         public MissionOwnershipSelector OwnershipSelector => ownershipSelector;
         public bool IsComplete => _isComplete.Value;
@@ -83,6 +87,7 @@ namespace Missions.Puzzles
 
             _isComplete.Value = true;
             missionCompleter.Complete();
+            WorldSound.Play(solvedSound, transform.position, NetworkObject);
             NotifyOwnerPuzzleCompletedRpc(RpcTarget.Single(clientId, RpcTargetUse.Temp));
         }
 
@@ -98,9 +103,12 @@ namespace Missions.Puzzles
         }
 
         // Instancia, faz Spawn na rede e registra para o despawn automático.
-        protected GameObject SpawnTracked(GameObject prefab, Transform spawnPoint)
+        protected GameObject SpawnTracked(GameObject prefab, Transform spawnPoint) =>
+            SpawnTracked(prefab, spawnPoint.position, spawnPoint.rotation);
+
+        protected GameObject SpawnTracked(GameObject prefab, Vector3 position, Quaternion rotation)
         {
-            GameObject spawned = Instantiate(prefab, spawnPoint.position, spawnPoint.rotation);
+            GameObject spawned = Instantiate(prefab, position, rotation);
 
             if (spawned.TryGetComponent(out NetworkObject netObj))
             {
@@ -112,9 +120,12 @@ namespace Missions.Puzzles
         }
 
         // SpawnTracked + liga a peça a este puzzle e inclui ela na checagem do IsSolved().
-        protected T SpawnPiece<T>(GameObject prefab, Transform spawnPoint) where T : PuzzlePieceBase
+        protected T SpawnPiece<T>(GameObject prefab, Transform spawnPoint) where T : PuzzlePieceBase =>
+            SpawnPiece<T>(prefab, spawnPoint.position, spawnPoint.rotation);
+
+        protected T SpawnPiece<T>(GameObject prefab, Vector3 position, Quaternion rotation) where T : PuzzlePieceBase
         {
-            GameObject spawned = SpawnTracked(prefab, spawnPoint);
+            GameObject spawned = SpawnTracked(prefab, position, rotation);
 
             if (!spawned.TryGetComponent(out T piece))
             {

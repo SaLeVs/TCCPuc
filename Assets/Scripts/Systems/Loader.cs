@@ -16,6 +16,13 @@ namespace Systems
 
         private static Scene _targetScene;
 
+        /// <summary>
+        /// Provisional, for testing: a level from Assets/Scenes/Prototypes (Game1, Game2...) the host
+        /// picked in the lobby. When set, a network load of Game goes there instead. Null means the
+        /// normal game.
+        /// </summary>
+        public static string GameSceneOverride;
+
         public static void Load(Scene targetScene)
         {
             Loader._targetScene = targetScene;
@@ -25,7 +32,11 @@ namespace Systems
         public static void LoadNetwork(Scene targetScene)
         {
             // We can make here a logic for wait all players load scene
-            NetworkManager.Singleton.SceneManager.LoadScene(targetScene.ToString(), LoadSceneMode.Single);
+            string sceneName = targetScene == Scene.Game && !string.IsNullOrEmpty(GameSceneOverride)
+                ? GameSceneOverride
+                : targetScene.ToString();
+
+            NetworkManager.Singleton.SceneManager.LoadScene(sceneName, LoadSceneMode.Single);
         }
 
         public static void LoaderCallback()

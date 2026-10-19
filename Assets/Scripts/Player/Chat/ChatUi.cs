@@ -50,7 +50,7 @@ namespace Player.Chat
 
         private void Awake()
         {
-            if (SceneManager.GetActiveScene().name != nameof(Scenes.Game)) return;
+            if (!SceneNames.IsGame(SceneManager.GetActiveScene().name)) return;
 
             for (int i = 0; i < activeMessagesCount; i++)
             {
@@ -85,7 +85,7 @@ namespace Player.Chat
 
         private void OnEnable()
         {
-            if (SceneManager.GetActiveScene().name != nameof(Scenes.Game)) return;
+            if (!SceneNames.IsGame(SceneManager.GetActiveScene().name)) return;
 
             chatManager.OnMessageSent += ChatManager_OnMessageSent;
         }
@@ -164,7 +164,7 @@ namespace Player.Chat
 
         private void OnDisable()
         {
-            if (SceneManager.GetActiveScene().name != nameof(Scenes.Game)) return;
+            if (!SceneNames.IsGame(SceneManager.GetActiveScene().name)) return;
 
             chatManager.OnMessageSent -= ChatManager_OnMessageSent;
         }

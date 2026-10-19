@@ -268,12 +268,12 @@ namespace Prototypes.Editor
             float gap = 6f;
             if (D.Bars.Any(b => b.Color != BarColor.Red && H(b) && b.Px.yMin > bil.Px.yMax && b.Px.yMax < aud.Px.yMin)) gap = 12f; // a balcony branch crosses the links
             float bz = 25.38f + gap + 12.36f;
-            float ez = bz + 12.36f + 5f + 12.36f;
+            float ez = bz + 12.36f + 5f + 4.40f; // the Escape entrance (its single door stub) 5 m north of the Bilheteria
 
             // North-south anchors: real walls and doors of the hub rooms.
             _zAnchors.Clear();
-            _zAnchors.Add((esc.Px.yMin, ez + 4.40f));
-            _zAnchors.Add((esc.Px.yMax, ez - 12.36f));
+            _zAnchors.Add((esc.Px.yMin, ez + 12.36f));
+            _zAnchors.Add((esc.Px.yMax, ez - 4.40f));
             _zAnchors.Add((bil.Px.yMin, bz + 12.36f));
             _zAnchors.Add((bil.Px.yMax, bz - 12.36f));
             _zAnchors.Add((aud.Px.yMin, 25.38f));
@@ -311,17 +311,18 @@ namespace Prototypes.Editor
                     case Side.Left: b0.DoorPoints[d] = new Vector3(-12.36f, UpperFloor, bz + 2f); Force(d.Bar, bz + 2f, "porta oeste da bilheteria"); break;
                     case Side.Right: b0.DoorPoints[d] = new Vector3(12.36f, UpperFloor, bz + 2f); Force(d.Bar, bz + 2f, "porta leste da bilheteria"); break;
                     case Side.Bottom:
-                        float x = d.Bar.Px.center.x < bil.CenterPx.x ? -6f : 6f;
+                        float x = d.Bar.Px.center.x < bil.CenterPx.x ? -6.95f : 6.95f; // in line with the auditorium rear doors
                         b0.DoorPoints[d] = new Vector3(x, UpperFloor, bz - 12.36f);
                         Force(d.Bar, x, "porta da bilheteria p/ auditório");
                         break;
                 }
             }
 
-            // Escape north of the Bilheteria; its entrance (double door) lines up with the Bilheteria's.
-            var e = Add(esc, new Vector3(-1.05f, UpperFloor, ez), 90f);
-            e.Footprint = new Rect(-1.05f - 4.48f, ez - 12.36f, 10.96f, 16.76f);
-            e.DoorPoints[esc.Doors[0]] = new Vector3(0f, UpperFloor, ez - 12.36f);
+            // Escape north of the Bilheteria, turned so you come in through its main (single) door and the
+            // escape exit (the double door of EscapeDoorManager) is the far wall, facing away from the level.
+            var e = Add(esc, new Vector3(1.0f, UpperFloor, ez), 270f); // its door stub is centred 1 m off the pivot
+            e.Footprint = new Rect(1.0f - 6.48f, ez - 4.40f, 10.96f, 16.76f);
+            e.DoorPoints[esc.Doors[0]] = new Vector3(0f, UpperFloor, ez - 4.40f);
         }
 
         // ---------------------------------------------------------------- rooms

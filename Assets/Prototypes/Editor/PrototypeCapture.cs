@@ -17,6 +17,9 @@ namespace Prototypes.Editor
     {
         public struct Shot { public string Name; public Vector3 Position; public Vector3 LookAt; public float Fov; }
 
+        /// <summary>Adds a lamp on the camera for inspection shots (the scene is dark until the light is baked).</summary>
+        public static bool Lamp;
+
         /// <summary>Top-down close-up of one area (world x/z rect), ceilings hidden, flat light.</summary>
         public static string CaptureArea(string scenePath, string outFile, Rect area, float topY = 40f)
         {
@@ -110,6 +113,15 @@ namespace Prototypes.Editor
             data.renderPostProcessing = true;
             cam.nearClipPlane = 0.05f;
             cam.farClipPlane = 600f;
+            if (Lamp)
+            {
+                var lamp = new GameObject("__ProtoCaptureLamp");
+                lamp.transform.SetParent(camGo.transform, false);
+                var lt = lamp.AddComponent<Light>();
+                lt.type = LightType.Point; lt.range = 30f; lt.intensity = 5f; lt.shadows = LightShadows.None;
+                data.renderPostProcessing = false;
+                cam.clearFlags = CameraClearFlags.SolidColor; cam.backgroundColor = Color.magenta; // any gap to the void shows pink
+            }
             var rt = new RenderTexture(width, height, 24, RenderTextureFormat.ARGB32) { antiAliasing = 4 };
             cam.targetTexture = rt;
 
@@ -127,7 +139,7 @@ namespace Prototypes.Editor
                     Render(cam, rt, Path.Combine(outFolder, "visao_de_cima.png"));
                     log.AppendLine("visao_de_cima.png");
                     Object.DestroyImmediate(sun);
-                    data.renderPostProcessing = true;
+                    data.renderPostProcessing = !Lamp;
                 }
 
                 cam.orthographic = false;

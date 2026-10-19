@@ -80,6 +80,79 @@ namespace Prototypes.Editor
             return m;
         }
 
+        public static Material Mat(string path)
+        {
+            if (MaterialCache.TryGetValue(path, out var m) && m != null) return m;
+            m = AssetDatabase.LoadAssetAtPath<Material>(path);
+            if (m == null) Debug.LogWarning("Protótipo: material não encontrado: " + path);
+            MaterialCache[path] = m;
+            return m;
+        }
+
+        /// <summary>The hallway wall pieces carry their wallpaper as M_WallHallway_2: swap it for another one.</summary>
+        public static void SwapPaper(GameObject go, Material paper)
+        {
+            foreach (var mr in go.GetComponentsInChildren<MeshRenderer>(true))
+            {
+                var mats = mr.sharedMaterials;
+                bool changed = false;
+                for (int i = 0; i < mats.Length; i++)
+                    if (mats[i] != null && mats[i].name == "M_WallHallway_2") { mats[i] = paper; changed = true; }
+                if (changed) mr.sharedMaterials = mats;
+            }
+        }
+
+        // ------------------------------------------------------------------ props
+
+        /// <summary>Wall props modelled with their back on x = 0 and the front towards local -x (posters, frames, boards).</summary>
+        public static Quaternion FacingX(Vector3 inward) => Quaternion.LookRotation(Vector3.Cross(Vector3.up, inward), Vector3.up);
+
+        /// <summary>Props whose front is local +z (signs, menus, mirror, sofas, lockers).</summary>
+        public static Quaternion FacingZ(Vector3 inward) => Quaternion.LookRotation(inward, Vector3.up);
+
+        /// <summary>Bounds of a prefab's meshes in its own local space (unscaled).</summary>
+        public static Bounds LocalBounds(GameObject prefab)
+        {
+            Bounds b = new Bounds(); bool first = true;
+            foreach (var mf in prefab.GetComponentsInChildren<MeshFilter>(true))
+            {
+                if (mf.sharedMesh == null) continue;
+                Bounds mb = mf.sharedMesh.bounds;
+                for (int i = 0; i < 8; i++)
+                {
+                    Vector3 c = mb.center + Vector3.Scale(mb.extents, new Vector3((i & 1) == 0 ? -1 : 1, (i & 2) == 0 ? -1 : 1, (i & 4) == 0 ? -1 : 1));
+                    Vector3 p = prefab.transform.InverseTransformPoint(mf.transform.TransformPoint(c));
+                    if (first) { b = new Bounds(p, Vector3.zero); first = false; } else b.Encapsulate(p);
+                }
+            }
+            return b;
+        }
+
+        /// <summary>A box collider around the object's meshes (in its local space), capped in height.</summary>
+        public static BoxCollider FitBoxCollider(GameObject go, int layer, float maxHeight = 99f)
+        {
+            if (go == null) return null;
+            Bounds b = LocalBounds(go);
+            if (b.size.sqrMagnitude < 1e-6f) return null;
+            float h = Mathf.Min(b.size.y, maxHeight);
+            var col = go.AddComponent<BoxCollider>();
+            col.center = new Vector3(b.center.x, b.min.y + h * 0.5f, b.center.z);
+            col.size = new Vector3(b.size.x, h, b.size.z);
+            go.layer = layer;
+            return col;
+        }
+
+        /// <summary>Places a prefab so the centre of its footprint lands on floorPoint (for sets modelled away from their pivot).</summary>
+        public static GameObject PlaceCentered(string path, Transform parent, Vector3 floorPoint, Quaternion rotation, Vector3? scale = null)
+        {
+            GameObject prefab = Prefab(path);
+            if (prefab == null) return null;
+            Bounds b = LocalBounds(prefab);
+            Vector3 s = scale ?? Vector3.one;
+            Vector3 offset = rotation * Vector3.Scale(new Vector3(b.center.x, b.min.y, b.center.z), s);
+            return Place(path, parent, floorPoint - offset, rotation, scale);
+        }
+
         // ------------------------------------------------------------------ meshes
 
         /// <summary>A flat horizontal quad grid covering rects, UVs in metres so tiled textures keep their size.</summary>
@@ -171,7 +244,7 @@ namespace Prototypes.Editor
         /// the last one scaled to fit; openings leave a gap with a lintel above when they are lower
         /// than the wall. One box collider per solid stretch.
         /// </summary>
-        public static void Wall(Transform parent, Vector3 start, Vector3 dir, float length, float baseY, float height, IList<Opening> openings, int seed, bool collider = true, Material tint = null)
+        public static void Wall(Transform parent, Vector3 start, Vector3 dir, float length, float baseY, float height, IList<Opening> openings, int seed, bool collider = true, Material tint = null, Material paper = null, float rowHeight = WallHeight)
         {
             dir.y = 0; dir.Normalize();
             var solid = new List<(float a, float b, float y0, float h)>();
@@ -195,12 +268,11 @@ namespace Prototypes.Editor
             {
                 float len = s.b - s.a;
                 if (len < 0.02f) continue;
-                int rows = Mathf.CeilToInt(s.h / WallHeight - 0.01f);
+                int rows = Mathf.CeilToInt(s.h / rowHeight - 0.01f);
                 for (int row = 0; row < rows; row++)
                 {
-                    float rowY = baseY + s.y0 + row * WallHeight;
-                    float rowH = Mathf.Min(WallHeight, s.y0 + s.h - row * WallHeight - s.y0 + 0f);
-                    rowH = Mathf.Min(WallHeight, (s.y0 + s.h) - (s.y0 + row * WallHeight));
+                    float rowY = baseY + s.y0 + row * rowHeight;
+                    float rowH = Mathf.Min(rowHeight, s.h - row * rowHeight);
                     float yScale = rowH / WallHeight;
                     float pos = s.a;
                     while (pos < s.b - 0.01f)
@@ -217,6 +289,7 @@ namespace Prototypes.Editor
                         {
                             SetLayerRecursive(go, Walls);
                             if (tint != null) foreach (var mr in go.GetComponentsInChildren<MeshRenderer>()) { var mats = mr.sharedMaterials; if (mats.Length > 1) { mats[1] = tint; mr.sharedMaterials = mats; } }
+                            if (paper != null) SwapPaper(go, paper);
                         }
                         pos += pieceLen;
                     }
@@ -276,8 +349,37 @@ namespace Prototypes.Editor
                 }
             }
 
-            /// <summary>Boundary runs: start, direction (interior on the left of dir when looking down... see Wall), length.</summary>
-            public IEnumerable<(Vector3 start, Vector3 dir, float length, Vector3 inward)> Boundary()
+            /// <summary>
+            /// Boundary runs: start, direction (see Wall), length, inward normal. At an inner corner
+            /// (three of the four cells around it inside) both walls would grow their thickness into
+            /// the same outside corner and their faces overlap; trimReflex shortens the run along x
+            /// there, so the run along z alone fills that corner.
+            /// </summary>
+            public IEnumerable<(Vector3 start, Vector3 dir, float length, Vector3 inward)> Boundary(float trimReflex = 0f)
+            {
+                foreach (var (start, dir, length, inward) in RawBoundary())
+                {
+                    if (trimReflex <= 0f || Mathf.Abs(dir.x) < 0.5f) { yield return (start, dir, length, inward); continue; }
+                    Vector3 s = start, e = start + dir * length;
+                    float trimStart = Reflex(s) ? trimReflex : 0f, trimEnd = Reflex(e) ? trimReflex : 0f;
+                    float len = length - trimStart - trimEnd;
+                    if (len < 0.02f) continue;
+                    yield return (s + dir * trimStart, dir, len, inward);
+                }
+            }
+
+            private bool Reflex(Vector3 p)
+            {
+                int i = System.Array.FindIndex(X, v => Mathf.Abs(v - p.x) < 0.002f);
+                int j = System.Array.FindIndex(Z, v => Mathf.Abs(v - p.z) < 0.002f);
+                if (i < 0 || j < 0) return false;
+                int nx = In.GetLength(0), nz = In.GetLength(1);
+                bool Get(int a, int b) => a >= 0 && b >= 0 && a < nx && b < nz && In[a, b];
+                int n = (Get(i - 1, j - 1) ? 1 : 0) + (Get(i, j - 1) ? 1 : 0) + (Get(i - 1, j) ? 1 : 0) + (Get(i, j) ? 1 : 0);
+                return n == 3;
+            }
+
+            private IEnumerable<(Vector3 start, Vector3 dir, float length, Vector3 inward)> RawBoundary()
             {
                 int nx = In.GetLength(0), nz = In.GetLength(1);
                 bool Get(int i, int j) => i >= 0 && j >= 0 && i < nx && j < nz && In[i, j];

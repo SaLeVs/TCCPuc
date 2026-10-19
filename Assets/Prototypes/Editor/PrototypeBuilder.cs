@@ -80,6 +80,7 @@ namespace Prototypes.Editor
 
                 FixHubColliders(ctx);
                 PrototypeDressing.Dress(ctx);
+                PrototypeFoyer.Dress(ctx);
                 PlaceSystems(ctx, contract);
                 PrototypeLighting.Setup(ctx);
 
@@ -181,10 +182,9 @@ namespace Prototypes.Editor
             // Backstage door behind the stage when the drawing connects the dressing room straight to it.
             if (a.Room.Doors.Any(dd => dd.Side == Side.Bottom)) Backstage(ctx, a, hub);
 
-            // Bilheteria (upper floor).
-            WRoom b = l.Hub(RoomKind.Bilheteria);
-            ctx.Bilheteria = Place("Assets/Prefabs/Rooms/Fixed/Box_Office_Room.prefab", hub, b.Pivot, Quaternion.Euler(0f, b.Yaw, 0f));
-            if (ctx.Bilheteria != null) FixBilheteria(ctx, b);
+            // Bilheteria (upper floor): built by the corridors as part of their outline and furnished by
+            // PrototypeFoyer. The Box_Office_Room prefab is still a work in progress (its walls do not meet
+            // the corridors, it carries a second Monster), so it is not used.
 
             // Escape room (upper floor): the existing instance, with its managers, moves.
             WRoom e = l.Hub(RoomKind.Escape);
@@ -226,54 +226,55 @@ namespace Prototypes.Editor
         }
 
         /// <summary>
-        /// The Box Office prefab is still being built: it carries a full networked Monster (a second
-        /// monster in the match), and its floor (20 m) and ceiling (16 m) do not reach its 24.7 m walls.
+        /// A door through the stage's back wall, without opening the wall: the two middle panels
+        /// (5 x 12 m each) are swapped for copies of themselves cut around a door-sized hole. The
+        /// steps down to the corridor are built by the corridors (a stair with a landing).
         /// </summary>
-        private static void FixBilheteria(Context ctx, WRoom b)
-        {
-            PrefabUtility.UnpackPrefabInstance(ctx.Bilheteria, PrefabUnpackMode.OutermostRoot, InteractionMode.AutomatedAction);
-            Transform monster = ctx.Bilheteria.transform.Find("Monster");
-            if (monster != null) { Object.DestroyImmediate(monster.gameObject); ctx.Report.AppendLine("  bilheteria: segundo monstro do prefab removido"); }
-
-            Rect inner = new Rect(b.Pivot.x - 12.0f, b.Pivot.z - 12.0f, 24.0f, 24.0f);
-            var fix = Group("Bilheteria_PisoTeto", ctx.Bilheteria.transform).transform;
-            MeshObject("Piso", fix, FlatMesh(new[] { inner }, b.Pivot.y - 0.005f, true, 1f, "PisoBilheteria"), MaterialOf(Hallway + "SM_Unique_Floor_Hallway.prefab"), Ground);
-            var roofMat = Prefab(Hallway + "SM_Roof_2.prefab")?.GetComponentInChildren<MeshRenderer>(true)?.sharedMaterial;
-            MeshObject("Teto", fix, FlatMesh(new[] { inner }, b.Pivot.y + 4.0f, false, 1f, "TetoBilheteria"), roofMat, Scenary);
-            BoxColliderAt("Col_Piso", fix, new Vector3(b.Pivot.x, b.Pivot.y - 0.1f, b.Pivot.z), new Vector3(24.7f, 0.2f, 24.7f), Ground);
-            // A few warm ceiling lamps: the foyer is the calmest, best-lit place of the level.
-            foreach (var off in new[] { new Vector3(-6f, 0, -6f), new Vector3(6f, 0, -6f), new Vector3(-6f, 0, 6f), new Vector3(6f, 0, 6f), Vector3.zero })
-                CeilingLight(fix, new Vector3(b.Pivot.x + off.x, 0f, b.Pivot.z + off.z), b.Pivot.y + 4.0f, new Color(1f, 0.82f, 0.6f), 5f, 11f, true, ctx.ExtraSabotage);
-            MarkStatic(fix.gameObject);
-        }
-
         private static void Backstage(Context ctx, WRoom a, Transform hub)
         {
-            // Open the stage's back wall at the centre and step down to the corridor behind it.
-            Vector3 doorPos = a.Pivot + new Vector3(0f, 1.5f, -15.7f);
-            foreach (Transform t in ctx.Auditorium.GetComponentsInChildren<Transform>(true).Where(t => t.name.StartsWith("SM_Stage_Wall")).ToList())
+            Vector3 doorAt = a.DoorPoints.First(kv => kv.Key.Side == Side.Bottom).Value;
+            var panels = ctx.Auditorium.GetComponentsInChildren<MeshRenderer>(true)
+                .Where(r => r.name.StartsWith("SM_Stage_Wall_V3") && r.bounds.max.z < a.Pivot.z - 14f && r.bounds.min.x < doorAt.x + 4.9f && r.bounds.max.x > doorAt.x - 4.9f).ToList();
+            if (panels.Count == 0) { ctx.Report.AppendLine("  PROBLEMA: painéis do fundo do palco não encontrados"); return; }
+            Bounds hole = panels[0].bounds;
+            foreach (var r in panels) hole.Encapsulate(r.bounds);
+            MeshRenderer source = panels[0];
+            foreach (var r in panels) r.gameObject.SetActive(false);
+
+            const float half = 0.95f, doorTop = 2.1f;
+            float floor = PrototypeCorridors.StageFloor, zc = hole.center.z;
+            var fill = Group("FundoDoPalco_Porta", hub).transform;
+            void Piece(string name, float x0, float x1, float y0, float y1)
             {
-                var r = t.GetComponent<Renderer>();
-                if (r == null) continue;
-                Bounds bb = r.bounds;
-                if (bb.min.x < 1f && bb.max.x > -1f && bb.max.z < -14f) t.gameObject.SetActive(false);
+                var target = new Bounds(new Vector3((x0 + x1) * 0.5f, (y0 + y1) * 0.5f, zc), new Vector3(x1 - x0, y1 - y0, hole.size.z));
+                var go = Object.Instantiate(source.gameObject, fill);
+                go.name = name;
+                go.SetActive(true);
+                go.transform.SetPositionAndRotation(source.transform.position, source.transform.rotation);
+                go.transform.localScale = source.transform.lossyScale;
+                Bounds b0 = go.GetComponent<Renderer>().bounds;
+                // Stretch each local axis by the ratio of the world axis it lines up with.
+                Vector3 s = go.transform.localScale, ratio = new Vector3(target.size.x / b0.size.x, target.size.y / b0.size.y, target.size.z / b0.size.z);
+                Matrix4x4 m = Matrix4x4.Rotate(go.transform.rotation);
+                for (int i = 0; i < 3; i++)
+                {
+                    Vector3 axis = m.GetColumn(i);
+                    int k = Mathf.Abs(axis.x) > Mathf.Abs(axis.y) && Mathf.Abs(axis.x) > Mathf.Abs(axis.z) ? 0 : Mathf.Abs(axis.y) > Mathf.Abs(axis.z) ? 1 : 2;
+                    s[i] *= ratio[k];
+                }
+                go.transform.localScale = s;
+                go.transform.position += target.center - go.GetComponent<Renderer>().bounds.center;
+                SetLayerRecursive(go, Walls);
+                foreach (var c in go.GetComponentsInChildren<Collider>(true)) Object.DestroyImmediate(c);
+                BoxColliderAt("Col_" + name, fill, target.center, target.size, Walls);
             }
-            var wall = Place(Hallway + "SM_Sophisticated_Wall_Double_Door_4m_V1.prefab", hub, doorPos + new Vector3(-2f, 0f, 0f), Quaternion.Euler(0f, 90f, 0f));
-            if (wall != null) SetLayerRecursive(wall, Walls);
-            var door = Place("Assets/Prefabs/Rooms/Props/Doors/Door_Double_Black.prefab", hub, doorPos, Quaternion.identity);
+            Piece("Painel_Esquerda", hole.min.x, doorAt.x - half, hole.min.y, hole.max.y);
+            Piece("Painel_Direita", doorAt.x + half, hole.max.x, hole.min.y, hole.max.y);
+            Piece("Painel_SobreAPorta", doorAt.x - half, doorAt.x + half, floor + doorTop, hole.max.y);
+            MarkStatic(fill.gameObject);
+
+            var door = Place("Assets/Prefabs/Rooms/Props/Doors/Door_Double_Black.prefab", hub, new Vector3(doorAt.x, floor, zc), Quaternion.identity);
             if (door != null) ctx.ExtraSabotage.Add(door);
-            // Steps from the stage (1.5 m) down to the corridor floor, outside the back wall.
-            var steps = Group("Degraus_Bastidores", hub).transform;
-            int n = 6; float rise = 1.5f / n, tread = 0.32f;
-            for (int i = 0; i < n; i++)
-            {
-                float top = 1.5f - (i + 1) * rise + rise; // first step just under the stage level
-                top = 1.5f - i * rise - rise * 0.5f;
-                Vector3 c = a.Pivot + new Vector3(0f, top * 0.5f, -16.13f - tread * (i + 0.5f));
-                Vector3 size = new Vector3(ClearWidth, top, tread);
-                MeshObject("Degrau", steps, BoxMesh(size), MaterialOf(Hallway + "SM_Unique_Floor_Hallway.prefab"), Ground, c);
-                BoxColliderAt("Col_Degrau", steps, c, size, Ground);
-            }
         }
 
         // ------------------------------------------------------------------ rooms

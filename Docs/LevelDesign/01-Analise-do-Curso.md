@@ -22,7 +22,7 @@ Os comportamentos marcados como **medido no GYM** foram testados em Play na cena
 ## 2. As métricas — o "passo 1" do curso
 
 O curso pede para fechar gênero, pulo, velocidade, habilidades e distâncias **antes** de
-desenhar. Estes são os valores atuais:
+desenhar. Estes são os valores atuais (ajustados em 2026-10-19: perseguição, rastreio, barulho de corrida, sabotagem e interação):
 
 | Métrica | Valor | O que significa para o mapa |
 |---|---|---|
@@ -30,14 +30,16 @@ desenhar. Estes são os valores atuais:
 | Stamina | 4 s de corrida (24 m) | Exausto, só volta a correr depois de 5,3 s. |
 | Altura em pé / agachado | 1,40 m / 1,16 m | Túnel de 1,2–1,3 m só passa agachado. |
 | Degrau máximo do jogador | 0,30 m (**só na layer Ground**) | Degrau em outra layer vira parede. |
-| Monstro: patrulha / investiga / persegue | 2 / 3,5 / 4 m/s | Correndo você abre 2 m/s; andando ele tira 1 m/s. |
+| Monstro: patrulha / investiga / persegue | 2 / 3,5 / **5** m/s | Correndo você abre 1 m/s (4 m num sprint); andando ele tira 2 m/s. A fuga é pelo mapa: porta, túnel, rampa ou loop a cada ~25 m. |
 | Monstro: altura / raio | 1,8 m / 0,35 m | Teto abaixo de 1,8 m ou vão < 0,7 m é rota de fuga. |
 | NavMesh do monstro | rampa ≤ 10°, degrau ≤ 0,5 m | Rampa de 20° o jogador sobe, o monstro não. |
 | Visão do monstro (configurada) | 40 m, 90° | Ver o achado A abaixo: na prática é bem menos. |
-| Audição | 60 m, perde força por parede | Correr faz 1,8× o barulho de andar; agachado 0,3×. |
+| Rastreio depois de perder de vista | **2 s** | Virar numa bifurcação ou passar uma porta despista de verdade. |
+| Audição | 60 m, perde força por parede | Correr faz **3×** o barulho de andar; agachado 0,3×. |
 | Ataque | 1 m, 15 de dano, 1 s | 7 golpes zeram a vida. |
-| Portas | seguram o monstro ~3 s | Uma porta fechada é um "respiro" de 3 s. |
-| Interação | 1 m | Itens e totens precisam estar a 1 m de onde o jogador para. |
+| Portas | seguram o monstro ~3 s | Uma porta fechada é um "respiro" de 3 s. Fechar com alguém no caminho empurra a pessoa para o lado dela; quem abre nunca é derrubado pela própria porta. |
+| Interação | **1,5 m** | Itens e totens precisam estar a 1,5 m de onde o jogador para. |
+| Sabotagem do monstro | a cada **20–40 s** | Luz apagando vira evento, não ruído de fundo. |
 | Lanterna | 100 s de bateria, 10 m | Pilhas viram recurso de decisão. |
 
 ### Achados medidos no GYM (importantes para balancear)
@@ -53,9 +55,10 @@ visão que não herde a rotação da cabeça (filho da raiz do monstro), ou faze
 em espaço de mundo. Decidam depois de jogar o GYM com e sem a correção — isso muda todo o
 tamanho dos espaços.
 
-**B. Porta fechada não bloqueia a visão.** A layer `Doors` não está em `occlusionLayers` do
-monstro. Testado (monstro a 3 m, porta fechada no meio): ele te vê. Idem para a layer `Props`.
-`Walls`, `Scenary` e `Default` bloqueiam.
+**B. Porta fechada não bloqueava a visão — só no prefab.** O prefab `Monster` (usado pelo GYM) não
+tinha `Doors` nem `Props` em `occlusionLayers`; a cena Game já sobrescrevia isso com as duas.
+Corrigido no prefab em 2026-10-19. A audição tem a mesma diferença: na Game a layer `Doors`
+abafa o som, no prefab não — o GYM ainda ouve através de portas.
 
 **C. Paredes e pisos modulares não têm colisor.** `SM_Sophisticated_Wall_*`, `SM_Unique_Floor*`
 e a maioria das paredes só têm a malha; a cena Game usa grupos separados (`Coliders Walls`,
@@ -65,10 +68,10 @@ e a maioria das paredes só têm a malha; a cena Game usa grupos separados (`Col
 `LampTotem` recusam interação fora de uma missão montada. Pilhas, disquete e portas funcionam
 soltos.
 
-**E. Perseguição em números.** Um sprint inteiro abre 8 m (6 − 4 m/s × 4 s). Somado ao achado
+**E. Perseguição em números.** Um sprint inteiro abre 4 m (6 − 5 m/s × 4 s). Somado ao achado
 A, isso quer dizer que um sprint costuma tirar você da visão; o monstro ainda segue sua posição
-real por 4 s ("graça") e só então esfria e vai investigar. Se nesses 4 s ele fechar a distância
-(você andando a 3, ele a 4 m/s), ele te reencontra. O GYM tem a pista e os loops para medir isso.
+real por 2 s ("graça") e só então esfria e vai investigar. Cansado (você andando a 3, ele a
+5 m/s), ele fecha 2 m por segundo — por isso o mapa precisa de uma saída a cada ~25 m. O GYM tem a pista e os loops para medir isso.
 
 **F. Avisos que já existem no projeto:** a lista `DefaultNetworkPrefabs` tem uma entrada vazia e
 o `PipeConnection` não tem `NetworkObject` (o Netcode avisa em todo Play).

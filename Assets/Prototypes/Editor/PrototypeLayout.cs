@@ -67,6 +67,7 @@ namespace Prototypes.Editor
             PlaceHub();
             PlaceRooms();
             BuildPieces();
+            ExtendDuctEnds();
             Validate();
         }
 
@@ -284,12 +285,16 @@ namespace Prototypes.Editor
             var a = Add(aud, Vector3.zero, 0f);
             a.Footprint = new Rect(-16.23f, -16.13f, 32.46f, 41.51f);
 
+            // The side doors themselves stand 3.6 m inside the auditorium's outer wall (at x ±12.8): the corridor
+            // runs in to them, so the strip between wall and door has a corridor floor, walls and a cap round
+            // the door. Stopping at the outer wall left that strip off the NavMesh and the monster could not
+            // get in from the sides (Game1 was fixed like this by hand).
             foreach (DDoor d in aud.Doors)
             {
                 switch (d.Side)
                 {
-                    case Side.Left: a.DoorPoints[d] = new Vector3(-16.23f, 0f, -1.85f); Force(d.Bar, -1.85f, "porta lateral do auditório"); break;
-                    case Side.Right: a.DoorPoints[d] = new Vector3(16.23f, 0f, -1.85f); Force(d.Bar, -1.85f, "porta lateral do auditório"); break;
+                    case Side.Left: a.DoorPoints[d] = new Vector3(-12.59f, 0f, -1.85f); Force(d.Bar, -1.85f, "porta lateral do auditório"); break;
+                    case Side.Right: a.DoorPoints[d] = new Vector3(12.59f, 0f, -1.85f); Force(d.Bar, -1.85f, "porta lateral do auditório"); break;
                     case Side.Bottom: a.DoorPoints[d] = new Vector3(0f, 0f, -16.13f); Force(d.Bar, 0f, "porta dos bastidores"); break;
                     case Side.Top:
                         float x = d.Bar.Px.center.x < aud.CenterPx.x ? -6.95f : 6.95f;
@@ -468,6 +473,32 @@ namespace Prototypes.Editor
                 p.FloorA = p.FloorB = FloorOf(bar);
                 if (bar.Color == BarColor.Yellow) DuctFloors(p);
                 Pieces.Add(p);
+            }
+        }
+
+        /// <summary>
+        /// A corridor that ends where a duct crosses it, with nothing carrying on past it, used to stop on
+        /// the duct's centre line: half of the 1.5 m mouth then fell beyond the end wall (level 4: a lintel
+        /// bent round the corner over the mouth, the tube's side showing and a hole in the floor). It now
+        /// runs on past the duct by half its clear width, so the mouth sits whole in its side wall.
+        /// </summary>
+        private void ExtendDuctEnds()
+        {
+            float extra = PrototypeGeometry.ClearWidth * 0.5f;
+            foreach (WPiece p in Pieces.Where(p => p.Color != BarColor.Yellow))
+            foreach (WPiece y in Pieces.Where(y => y.Color == BarColor.Yellow && y.Horizontal != p.Horizontal && p.Bar.Touching.Contains(y.Bar)))
+            foreach (bool atA in new[] { true, false })
+            {
+                float end = atA ? p.A : p.B;
+                if (Mathf.Abs(end - y.Line) > 0.05f) continue;
+                bool SameFloor(WPiece q) => Mathf.Abs(q.FloorA - p.FloorA) < 1f;
+                // A corridor turning away at the same corner does not cover the duct's side of it, and one running
+                // straight across already contains the extension: only a straight continuation means "not an end".
+                bool continued = Pieces.Any(q => q != p && q.Color != BarColor.Yellow && q.Horizontal == p.Horizontal && SameFloor(q)
+                                                 && Mathf.Abs(q.Line - p.Line) < 0.6f && (Mathf.Abs(q.A - end) < 0.05f || Mathf.Abs(q.B - end) < 0.05f));
+                if (continued) continue;
+                if (atA) p.A -= extra; else p.B += extra;
+                Notes.Add($"corredor estendido além do duto: {p}");
             }
         }
 

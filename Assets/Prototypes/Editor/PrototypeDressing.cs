@@ -66,6 +66,15 @@ namespace Prototypes.Editor
             bool Free(Vector3 pos, float clearance) => blocked.All(b => Mathf.Abs(b.y - pos.y) > 1.5f || Vector2.Distance(new Vector2(b.x, b.z), new Vector2(pos.x, pos.z)) > clearance);
             bool NearFixture(Vector3 wallPoint) => c.WallFixtures.Any(f => Mathf.Abs(f.y - 2.05f - wallPoint.y) < 1f && Vector2.Distance(new Vector2(f.x, f.z), new Vector2(wallPoint.x, wallPoint.z)) < 1.3f);
 
+            // The Bilheteria's two portraits (placed further down) hang in its side corridors: keep them clear too.
+            WRoom bil = l.Hub(RoomKind.Bilheteria);
+            var portraits = bil.DoorPoints.Values.Where(p => Mathf.Abs(p.z - bil.Pivot.z - 2f) < 0.5f)
+                .Select(dp => (dp, outward: new Vector3(Mathf.Sign(dp.x - bil.Pivot.x), 0f, 0f))).ToList();
+            blocked.AddRange(portraits.Select(p => p.dp + p.outward * 4f));
+
+            // Audience objects go first, so the kits below keep clear of their crates.
+            int audience = Audience(ctx, d, Free, blocked);
+
             foreach (var kv in c.Flat)
             {
                 WPiece p = kv.Key;
@@ -101,7 +110,7 @@ namespace Prototypes.Editor
                     d.Count[kit] = d.Count.TryGetValue(kit, out int n) ? n + 1 : 1;
 
                     if (upper && d.Rnd.NextDouble() < 0.35)
-                        Put(d, HW + Carpets[d.Rnd.Next(Carpets.Length)] + ".prefab", floor + along * d.R(-0.5f, 0.5f) + Vector3.up * 0.004f, Quaternion.LookRotation(along) * Quaternion.Euler(0f, d.R(-4f, 4f), 0f), Props, new Vector3(2.0f, 1f, 2.3f));
+                        Put(d, HW + Carpets[d.Rnd.Next(Carpets.Length)] + ".prefab", floor + along * d.R(-0.5f, 0.5f) + Vector3.up * 0.004f, Quaternion.LookRotation(along) * Quaternion.Euler(0f, d.R(-4f, 4f), 0f), DefaultLayer, new Vector3(2.0f, 1f, 2.3f));
                 }
             }
 
@@ -112,42 +121,29 @@ namespace Prototypes.Editor
                 Vector3 over = s.Bottom + Vector3.up * 2.62f - s.Dir * 0.02f;
                 if (Put(d, HW + "SM_Exit_Light.prefab", over, Quaternion.LookRotation(-s.Dir, Vector3.up), Scenary) != null) signs++;
             }
-            foreach (float x in new[] { -16.4f, 16.4f })
+            // Inside the auditorium, facing its side doors (where Game1 had them moved to by hand).
+            WRoom aud = l.Hub(RoomKind.Auditorium);
+            foreach (var door in aud.DoorPoints.Keys.Where(k => k.Side == Side.Left || k.Side == Side.Right))
+            {
+                float x = door.Side == Side.Right ? 13.15f : -13.2f;
                 if (Put(d, HW + "SM_Exit_Light.prefab", new Vector3(x, 2.62f, -1.85f), Quaternion.LookRotation(new Vector3(Mathf.Sign(x), 0f, 0f), Vector3.up), Scenary) != null) signs++;
 
-            // Worth filming, risky to stop for: at duct mouths (the monster cannot follow, but you are cornered
-            // until you crawl) and next to dead-end bathrooms.
-            int audience = 0;
-            string[] valuable = { "Sword", "SM_Crown", "Happy_Mask_Low", "Sad_Mask_Low" };
-            var spots = new List<Vector3>();
-            spots.AddRange(c.Ducts.Select(du => du.A.y < 1f ? du.A : du.B));
-            spots.AddRange(l.Rooms.Where(r => r.Room.Kind == RoomKind.Bathroom).SelectMany(r => r.DoorPoints.Values));
-            foreach (Vector3 spot in spots.Take(6))
-            {
-                // On a crate against the corridor wall beside the mouth/door: never floating, never in the way.
-                WPiece host = l.Pieces.Where(p => p.Color != BarColor.Yellow && Mathf.Abs(p.FloorA - spot.y) < 1f)
-                    .OrderBy(p => p.Horizontal ? Mathf.Abs(p.Line - spot.z) + Mathf.Max(0f, p.A - spot.x) + Mathf.Max(0f, spot.x - p.B)
-                                               : Mathf.Abs(p.Line - spot.x) + Mathf.Max(0f, p.A - spot.z) + Mathf.Max(0f, spot.z - p.B)).FirstOrDefault();
-                if (host == null) continue;
-                Vector3 along = host.Horizontal ? Vector3.right : Vector3.forward;
-                Vector3 across = host.Horizontal ? Vector3.forward : Vector3.right;
-                Vector3 onLine = host.Horizontal ? new Vector3(spot.x, host.FloorA, host.Line) : new Vector3(host.Line, host.FloorA, spot.z);
-                float sideSign = Vector3.Dot(spot - onLine, across) >= 0f ? -1f : 1f; // the wall opposite the mouth
-                Vector3 at = onLine + along * 1.6f + across * sideSign * (ClearWidth * 0.5f - 0.45f);
-                var crate = Put(d, DR + "SM_Cardboard_Box.prefab", at, Quaternion.Euler(0f, audience * 37f, 0f), Scenary);
-                float top = 0.57f;
-                string prop = valuable[audience % valuable.Length];
-                Quaternion rot = prop == "Sword" ? Quaternion.LookRotation(along, Vector3.up) * Quaternion.Euler(0f, 0f, 90f) : Quaternion.Euler(0f, audience * 67f, 0f);
-                var go = Place("Assets/Prefabs/Audience_Objects/" + prop + ".prefab", d.Root, at + Vector3.up * (top + (prop == "Sword" ? 0.03f : 0.0f)), rot);
-                if (go != null) audience++;
+                // The bare strip of floor between the seats and the side door gets a runner of carpet tiles.
+                float[] xs = door.Side == Side.Right ? new[] { 13.758f, 15.008f, 15.608f } : new[] { -15.642f, -14.392f, -13.742f };
+                for (int row = 0; row < 4; row++)
+                for (int col = 0; col < xs.Length; col++)
+                {
+                    // Neighbouring tiles overlap: alternate their height so they never fight.
+                    float y = (row == 0 || row == 3 ? -0.002f : 0f) + (col == 1 ? 0.001f : 0f);
+                    Put(d, HW + "SM_Carpet_01.prefab", new Vector3(xs[col], y, -3.285f + row), Quaternion.identity, DefaultLayer);
+                }
             }
 
             // A framed portrait in the Bilheteria's side corridors: the foyer's showpiece (150 audience).
-            WRoom bil = l.Hub(RoomKind.Bilheteria);
-            foreach (var dp in bil.DoorPoints.Values.Where(p => Mathf.Abs(p.z - bil.Pivot.z - 2f) < 0.5f))
+            foreach (var (dp, outward) in portraits)
             {
-                Vector3 outward = new Vector3(Mathf.Sign(dp.x - bil.Pivot.x), 0f, 0f);
-                Vector3 at = dp + outward * 4f + Vector3.forward * (ClearWidth * 0.5f - 0.05f) + Vector3.up * 0.6f;
+                // At eye level: at 0.6 m it hung by the skirting (raised by hand on Game2 and Game5).
+                Vector3 at = dp + outward * 4f + Vector3.forward * (ClearWidth * 0.5f - 0.05f) + Vector3.up * 1.5f;
                 var go = Place("Assets/Prefabs/Audience_Objects/SM_Sophisticated_Frame.prefab", d.Root, at, Quaternion.LookRotation(Vector3.back, Vector3.up));
                 if (go != null) audience++;
             }
@@ -155,6 +151,82 @@ namespace Prototypes.Editor
             MarkStatic(d.Root.gameObject);
             string kits = string.Join(", ", d.Count.OrderByDescending(x => x.Value).Select(x => $"{x.Key} {x.Value}"));
             ctx.Report.AppendLine($"  decoração: {d.Pieces} peças ({kits}), {d.Stains} manchas, {signs} placas de saída, {audience} objetos de audiência");
+        }
+
+        /// <summary>
+        /// Worth filming, spread over the whole map so every wing has something to find. A few sit at
+        /// risky spots (duct mouths: the monster cannot follow, but you are cornered until you crawl;
+        /// dead-end bathrooms); the rest go as far from each other and from the players' spawn as the
+        /// corridors allow. One for every ~80 m of corridor, 7 to 11 per level. Each stands on a crate
+        /// against the wall: never floating, never in the way.
+        /// </summary>
+        private static int Audience(PrototypeBuilder.Context ctx, Ctx d, System.Func<Vector3, float, bool> free, List<Vector3> blocked)
+        {
+            PrototypeLayout l = ctx.Layout;
+            PrototypeCorridors c = ctx.Corridors;
+            string[] valuable = { "Sword", "SM_Crown", "Happy_Mask_Low", "Sad_Mask_Low" };
+            Vector3 spawn = l.Rooms.First(r => r.Room.Kind == RoomKind.Dressing).Pivot;
+
+            float length = c.Flat.Where(kv => kv.Key.Color != BarColor.Yellow).Sum(kv => kv.Value.b - kv.Value.a);
+            int target = Mathf.Clamp(Mathf.RoundToInt(length / 80f), 7, 11);
+
+            var spots = new List<(Vector3 at, WPiece host, bool risky)>();
+            var taken = new List<Vector3> { spawn };
+
+            var risky = new List<Vector3>();
+            risky.AddRange(c.Ducts.Select(du => du.A.y < 1f ? du.A : du.B));
+            risky.AddRange(l.Rooms.Where(r => r.Room.Kind == RoomKind.Bathroom).SelectMany(r => r.DoorPoints.Values));
+            foreach (Vector3 spot in risky.OrderByDescending(p => Vector3.Distance(p, spawn)))
+            {
+                if (spots.Count >= Mathf.Min(4, target / 2)) break;
+                if (taken.Any(t => Vector3.Distance(t, spot) < 18f)) continue;
+                WPiece host = l.Pieces.Where(p => p.Color != BarColor.Yellow && Mathf.Abs(p.FloorA - spot.y) < 1f)
+                    .OrderBy(p => p.Horizontal ? Mathf.Abs(p.Line - spot.z) + Mathf.Max(0f, p.A - spot.x) + Mathf.Max(0f, spot.x - p.B)
+                                               : Mathf.Abs(p.Line - spot.x) + Mathf.Max(0f, p.A - spot.z) + Mathf.Max(0f, spot.z - p.B)).FirstOrDefault();
+                if (host == null) continue;
+                spots.Add((spot, host, true));
+                taken.Add(spot);
+            }
+
+            // The rest: candidate points along every corridor where both walls are solid.
+            var candidates = new List<(Vector3 at, WPiece host)>();
+            foreach (var kv in c.Flat)
+            {
+                WPiece p = kv.Key;
+                if (p.Color == BarColor.Yellow) continue;
+                for (float t = kv.Value.a + 3f; t < kv.Value.b - 3f; t += 2f)
+                {
+                    Vector3 floor = p.Horizontal ? new Vector3(t, p.FloorA, p.Line) : new Vector3(p.Line, p.FloorA, t);
+                    if (free(floor, 3.0f) && Vector3.Distance(floor, spawn) > 20f) candidates.Add((floor, p));
+                }
+            }
+            while (spots.Count < target && candidates.Count > 0)
+            {
+                var best = candidates.OrderByDescending(cand => taken.Min(t => Vector3.Distance(cand.at, t))).First();
+                if (taken.Min(t => Vector3.Distance(best.at, t)) < 14f) break; // the map is covered
+                spots.Add((best.at, best.host, false));
+                taken.Add(best.at);
+                candidates.Remove(best);
+            }
+
+            int placed = 0;
+            foreach (var (spot, host, isRisky) in spots)
+            {
+                Vector3 along = host.Horizontal ? Vector3.right : Vector3.forward;
+                Vector3 across = host.Horizontal ? Vector3.forward : Vector3.right;
+                Vector3 onLine = host.Horizontal ? new Vector3(spot.x, host.FloorA, host.Line) : new Vector3(host.Line, host.FloorA, spot.z);
+                float off = Vector3.Dot(spot - onLine, across);
+                float sideSign = isRisky ? (off >= 0f ? -1f : 1f) : (placed % 2 == 0 ? 1f : -1f); // risky: the wall opposite the mouth
+                Vector3 at = onLine + (isRisky ? along * 1.6f : Vector3.zero) + across * sideSign * (ClearWidth * 0.5f - 0.45f);
+                Put(d, DR + "SM_Cardboard_Box.prefab", at, Quaternion.Euler(0f, placed * 37f, 0f), Scenary);
+                string prop = valuable[placed % valuable.Length];
+                Quaternion rot = prop == "Sword" ? Quaternion.LookRotation(along, Vector3.up) * Quaternion.Euler(0f, 0f, 90f) : Quaternion.Euler(0f, placed * 67f, 0f);
+                var go = Place("Assets/Prefabs/Audience_Objects/" + prop + ".prefab", d.Root, at + Vector3.up * (0.57f + (prop == "Sword" ? 0.03f : 0.0f)), rot);
+                if (go == null) continue;
+                blocked.Add(at);
+                placed++;
+            }
+            return placed;
         }
 
         private static Kit Pick(Ctx d, bool upper)
@@ -227,8 +299,10 @@ namespace Prototypes.Editor
                     // Boxes stacked against the wall: cover in a chase.
                     Vector3 at = wall + inward * 0.34f;
                     Put(d, DR + "SM_Cardboard_Box.prefab", at, AlongX(along) * Quaternion.Euler(0f, d.R(-8f, 8f), 0f), Scenary);
-                    if (d.Rnd.NextDouble() < 0.7) Put(d, DR + "SM_Cardboard_Box.prefab", at + up * 0.57f + along * d.R(-0.08f, 0.08f), AlongX(along) * Quaternion.Euler(0f, d.R(-15f, 15f), 0f), Scenary);
-                    if (d.Rnd.NextDouble() < 0.4) Put(d, DR + "SM_Cardboard_Small_Box.prefab", at + up * 1.14f, Quaternion.Euler(0f, d.R(0f, 360f), 0f), Scenary);
+                    bool stacked = d.Rnd.NextDouble() < 0.7;
+                    if (stacked) Put(d, DR + "SM_Cardboard_Box.prefab", at + up * 0.57f + along * d.R(-0.08f, 0.08f), AlongX(along) * Quaternion.Euler(0f, d.R(-15f, 15f), 0f), Scenary);
+                    // On top of the stack, as high as the stack actually is: it used to float when the second box was not drawn.
+                    if (d.Rnd.NextDouble() < 0.4) Put(d, DR + "SM_Cardboard_Small_Box.prefab", at + up * (stacked ? 1.14f : 0.57f), Quaternion.Euler(0f, d.R(0f, 360f), 0f), Scenary);
                     Put(d, DR + (d.Rnd.NextDouble() < 0.5 ? "SM_Cardboard_Small_Box" : "SM_Cardboard_Box") + ".prefab", at + along * s * 0.95f, AlongX(along) * Quaternion.Euler(0f, d.R(-25f, 25f), 0f), Scenary);
                     if (d.Rnd.NextDouble() < 0.35) Put(d, ST + "SM_Pallet_V1.prefab", wall + inward * 0.62f - along * s * 1.2f, Quaternion.Euler(0f, d.R(0f, 30f), 0f), Scenary);
                     break;
@@ -303,7 +377,7 @@ namespace Prototypes.Editor
             string item = Litter[d.Rnd.Next(Litter.Length)];
             bool lying = mayLie && d.Rnd.NextDouble() < 0.5;
             Quaternion rot = Quaternion.Euler(0f, d.R(0f, 360f), 0f) * (lying ? Quaternion.Euler(90f, 0f, 0f) : Quaternion.identity);
-            Put(d, AU + item + ".prefab", at + (lying ? Vector3.up * 0.08f : Vector3.zero), rot, Props);
+            MakeLoose(Put(d, AU + item + ".prefab", at + (lying ? Vector3.up * 0.08f : Vector3.zero), rot, Props));
         }
     }
 }

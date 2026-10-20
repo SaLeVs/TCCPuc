@@ -150,14 +150,46 @@ namespace Prototypes.Editor
             Bake(s);
         }
 
+        [MenuItem("Tools/TCC/Protótipos/Assar só o NavMesh do nível aberto", priority = 41)]
+        public static void BakeNavMeshOpen()
+        {
+            Scene s = SceneManager.GetActiveScene();
+            if (!s.path.StartsWith(PrototypeBuilder.SceneFolder)) { Debug.LogWarning("Abra (sozinha) uma cena de protótipo primeiro."); return; }
+            if (SceneManager.sceneCount > 1) { Debug.LogWarning("Deixe só a cena do protótipo aberta: o NavMesh junta tudo que estiver carregado."); return; }
+            Debug.Log(BakeNavMesh(s));
+            EditorSceneManager.SaveScene(s);
+        }
+
         public static string Bake(Scene s)
         {
-            var nav = s.GetRootGameObjects().Select(g => g.GetComponentInChildren<Unity.AI.Navigation.NavMeshSurface>(true)).FirstOrDefault(n => n != null);
-            nav?.BuildNavMesh();
+            string nav = BakeNavMesh(s);
             Lightmapping.Bake();
             EditorSceneManager.MarkSceneDirty(s);
             EditorSceneManager.SaveScene(s);
-            return "assado: " + s.path;
+            return nav + "; luz assada: " + s.path;
+        }
+
+        /// <summary>
+        /// Builds the NavMesh and keeps it as an asset next to the scene (GameN/NavMesh-NavMesh.asset),
+        /// the way the NavMeshSurface's own Bake button does. Built from code it only lives in memory,
+        /// and the scene would save a reference to nothing. Only the scene being baked may be loaded:
+        /// the surface collects everything that is.
+        /// </summary>
+        public static string BakeNavMesh(Scene s)
+        {
+            var nav = s.GetRootGameObjects().Select(g => g.GetComponentInChildren<Unity.AI.Navigation.NavMeshSurface>(true)).FirstOrDefault(n => n != null);
+            if (nav == null) return "sem NavMeshSurface em " + s.path;
+            nav.BuildNavMesh();
+
+            string parent = System.IO.Path.GetDirectoryName(s.path).Replace('\\', '/');
+            string folder = parent + "/" + s.name;
+            if (!AssetDatabase.IsValidFolder(folder)) AssetDatabase.CreateFolder(parent, s.name);
+            string asset = folder + "/NavMesh-" + nav.gameObject.name + ".asset";
+            if (AssetDatabase.LoadAssetAtPath<UnityEngine.AI.NavMeshData>(asset) != null) AssetDatabase.DeleteAsset(asset);
+            AssetDatabase.CreateAsset(nav.navMeshData, asset);
+            EditorSceneManager.MarkSceneDirty(s);
+            var tri = UnityEngine.AI.NavMesh.CalculateTriangulation();
+            return $"NavMesh assado: {tri.indices.Length / 3} triângulos em {asset}";
         }
     }
 }

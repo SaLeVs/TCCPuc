@@ -56,11 +56,21 @@ namespace Prototypes.Editor
 
             ContractsSO contract = PrototypeAssets.EnsureAll(rebuildAssets);
 
-            Scene previous = SceneManager.GetActiveScene();
             string path = ScenePath(level);
+            // The level being rebuilt cannot be the only scene open: Unity will not close the last scene,
+            // so the new level would be built on top of the old one still in memory.
+            if (SceneManager.sceneCount == 1 && SceneManager.GetActiveScene().path == path)
+                EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
+            Scene previous = SceneManager.GetActiveScene();
             CloseIfOpen(path);
-            if (AssetDatabase.LoadAssetAtPath<SceneAsset>(path) != null) AssetDatabase.DeleteAsset(path);
-            AssetDatabase.CopyAsset(GameScene, path);
+            if (AssetDatabase.LoadAssetAtPath<SceneAsset>(path) != null)
+            {
+                // Overwritten in place, so the scene keeps its GUID: deleting and copying gave it a new
+                // one every time and left the Build Settings entry pointing at the old.
+                System.IO.File.Copy(GameScene, path, true);
+                AssetDatabase.ImportAsset(path, ImportAssetOptions.ForceUpdate);
+            }
+            else AssetDatabase.CopyAsset(GameScene, path);
             Scene scene = EditorSceneManager.OpenScene(path, OpenSceneMode.Additive);
             SceneManager.SetActiveScene(scene);
 
@@ -81,6 +91,8 @@ namespace Prototypes.Editor
                 FixHubColliders(ctx);
                 PrototypeDressing.Dress(ctx);
                 PrototypeFoyer.Dress(ctx);
+                report.AppendLine(PrototypeTidy.Run(ctx));
+                report.AppendLine(PrototypeWallSeal.Run(ctx.Root));
                 PlaceSystems(ctx, contract);
                 PrototypeLighting.Setup(ctx);
 
@@ -370,25 +382,8 @@ namespace Prototypes.Editor
             var floorPoints = c.LightPoints.Select(p => p + Vector3.up * 0.3f).ToList();
             var far = floorPoints.OrderByDescending(p => Vector3.Distance(p, spawn)).ToList();
 
-            // Patrol sectors: stage, auditorium, Bilheteria, dressing room, then corridors spread over the map.
-            var sectors = ctx.Find("Sectors");
-            if (sectors != null)
-            {
-                var anchors = new List<Vector3>
-                {
-                    l.Hub(RoomKind.Auditorium).Pivot + new Vector3(0f, 1.6f, -8f),
-                    l.Hub(RoomKind.Auditorium).Pivot + new Vector3(0f, 2.6f, 10f),
-                    l.Hub(RoomKind.Bilheteria).Pivot + Vector3.up * 0.2f,
-                    dressing.Pivot + Vector3.up * 0.2f,
-                };
-                anchors.AddRange(Spread(floorPoints, sectors.transform.childCount - anchors.Count, anchors));
-                int i = 0;
-                foreach (Transform s in sectors.transform)
-                {
-                    if (i < anchors.Count) s.position = anchors[i];
-                    i++;
-                }
-            }
+            // Patrol sectors made for this map (rooms, hub, corridors), wired into the monster.
+            ctx.Report.AppendLine(PrototypeSectors.Build(ctx));
 
             // Monster starts far from the players.
             var monster = ctx.Find("Monster");
@@ -403,12 +398,12 @@ namespace Prototypes.Editor
                 foreach (Transform t in lost.transform) { if (i < pts.Count) t.position = pts[i] + Vector3.up * 0.0f; i++; }
             }
 
-            // Electric circuit spots: on the side corridors of the auditorium, at wall height.
+            // Electric circuit spots: on both sides of the stage, at wall height (where Game1 had them moved to by hand).
             var circuits = ctx.Find("CircuitSpawnPoints");
             if (circuits != null && circuits.transform.childCount >= 2)
             {
-                circuits.transform.GetChild(0).position = new Vector3(-20f, 2.2f, -1.85f);
-                circuits.transform.GetChild(1).position = new Vector3(20f, 2.2f, -1.85f);
+                circuits.transform.GetChild(0).position = new Vector3(-9.8f, 2.02f, -14.55f);
+                circuits.transform.GetChild(1).position = new Vector3(9.87f, 2.2f, -14.6f);
             }
 
             // Everything the monster can sabotage: every light and door in the scene.

@@ -113,11 +113,10 @@ namespace Prototypes.Editor
             Put(DR + "SM_Cardboard_Small_Box.prefab", P(-9.4f, -11.6f, 0.57f), Quaternion.Euler(0f, 40f, 0f), Scenary);
             PrototypeGrime.Place(PrototypeGrime.Kind.Mancha, decals, P(10.2f, -9.4f, 0.002f), Vector3.up, 2.4f, 2.0f, 30f);
 
-            // ---- centre: display stand under the chandelier; the old spotlight aimed at the doors.
+            // ---- centre: display stand under the chandelier (a spotlight on it went through both, so it is gone).
             Vector3 stand = P(0f, -3f);
-            Put(HW + "SM_Carpet_04.prefab", stand + Vector3.up * 0.004f, Quaternion.identity, Props, false, 99f, new Vector3(3.4f, 1f, 3.4f));
+            Put(HW + "SM_Carpet_04.prefab", stand + Vector3.up * 0.004f, Quaternion.identity, DefaultLayer, false, 99f, new Vector3(3.4f, 1f, 3.4f));
             Put(BO + "SM_Stand.prefab", stand, Quaternion.identity, Scenary, true);
-            Put(ST + "SM_Tripod_Spotilight_V1.prefab", stand + Vector3.up * 0.2f, South, Scenary);
             Put(AU + "SM_Chandelier.prefab", stand + Vector3.up * top, Quaternion.identity, Props, false, 99f, Vector3.one * 0.45f);
             var chand = Place("Assets/Prefabs/Managers/SabotageObjects/SabotageLight.prefab", root, stand + Vector3.up * (top - 1.2f), Quaternion.identity);
             if (chand != null)
@@ -140,12 +139,12 @@ namespace Prototypes.Editor
             int ci = 0;
             foreach (float x in new[] { -6.95f, 6.95f })
                 for (float z = -10.9f; z < -4.5f; z += 2.45f)
-                    Put(HW + carpets[ci++ % carpets.Length] + ".prefab", P(x, z, 0.004f), Quaternion.Euler(0f, R(-2f, 2f), 0f), Props, false, 99f, new Vector3(2.0f, 1f, 2.4f));
+                    Put(HW + carpets[ci++ % carpets.Length] + ".prefab", P(x, z, 0.004f), Quaternion.Euler(0f, R(-2f, 2f), 0f), DefaultLayer, false, 99f, new Vector3(2.0f, 1f, 2.4f));
             for (float x = -10.6f; x <= 10.7f; x += 2.65f)
                 if (Mathf.Abs(x) > 1.5f)
-                    Put(HW + carpets[ci++ % carpets.Length] + ".prefab", P(x, 2f, 0.004f), Quaternion.Euler(0f, 90f + R(-2f, 2f), 0f), Props, false, 99f, new Vector3(2.0f, 1f, 2.6f));
+                    Put(HW + carpets[ci++ % carpets.Length] + ".prefab", P(x, 2f, 0.004f), Quaternion.Euler(0f, 90f + R(-2f, 2f), 0f), DefaultLayer, false, 99f, new Vector3(2.0f, 1f, 2.6f));
             for (float z = 6.2f; z < 11.5f; z += 2.45f)
-                Put(HW + carpets[ci++ % carpets.Length] + ".prefab", P(0f, z, 0.004f), Quaternion.identity, Props, false, 99f, new Vector3(2.0f, 1f, 2.4f));
+                Put(HW + carpets[ci++ % carpets.Length] + ".prefab", P(0f, z, 0.004f), Quaternion.identity, DefaultLayer, false, 99f, new Vector3(2.0f, 1f, 2.4f));
 
             // ---- the way on: exit sign over the north door (to the Escape).
             Put(HW + "SM_Exit_Light.prefab", P(0f, half - 0.05f, 2.62f), South, Props);
@@ -168,7 +167,7 @@ namespace Prototypes.Editor
                 string item = items[r.Next(items.Length)];
                 bool lying = r.NextDouble() < 0.45;
                 Quaternion rot = Quaternion.Euler(0f, (float)r.NextDouble() * 360f, 0f) * (lying ? Quaternion.Euler(90f, 0f, 0f) : Quaternion.identity);
-                Put(AU + item + ".prefab", at + (lying ? Vector3.up * 0.08f : Vector3.zero), rot, Props);
+                MakeLoose(Put(AU + item + ".prefab", at + (lying ? Vector3.up * 0.08f : Vector3.zero), rot, Props));
             }
         }
 

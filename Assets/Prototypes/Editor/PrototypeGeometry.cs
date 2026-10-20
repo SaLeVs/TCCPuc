@@ -20,6 +20,7 @@ namespace Prototypes.Editor
         public static readonly int Scenary = LayerMask.NameToLayer("Scenary");
         public static readonly int Props = LayerMask.NameToLayer("Props");
         public static readonly int Doors = LayerMask.NameToLayer("Doors");
+        public const int DefaultLayer = 0; // carpets: flat on the floor, not props
 
         private static readonly Dictionary<string, GameObject> PrefabCache = new Dictionary<string, GameObject>();
 
@@ -60,8 +61,29 @@ namespace Prototypes.Editor
             foreach (Transform t in go.GetComponentsInChildren<Transform>(true))
             {
                 if (t.GetComponentInParent<Unity.Netcode.NetworkObject>(true) != null) continue;
+                if (t.GetComponentInParent<Rigidbody>(true) != null) continue; // static batching would freeze what physics moves
                 GameObjectUtility.SetStaticEditorFlags(t.gameObject, flags);
             }
+        }
+
+        /// <summary>
+        /// Litter the players kick about as they run (cups, popcorn buckets): a light rigidbody on its
+        /// own box, never static. Local physics only, not synced: each player sees their own kicks.
+        /// </summary>
+        public static void MakeLoose(GameObject go)
+        {
+            if (go == null) return;
+            if (go.GetComponentInChildren<Collider>(true) == null) FitBoxCollider(go, go.layer);
+            var rb = go.GetComponent<Rigidbody>();
+            if (rb == null) rb = go.AddComponent<Rigidbody>();
+            rb.isKinematic = false;
+            rb.useGravity = true;
+            rb.mass = 0.08f;
+            rb.linearDamping = 0.4f;
+            rb.angularDamping = 0.6f;
+            rb.interpolation = RigidbodyInterpolation.None;
+            rb.collisionDetectionMode = CollisionDetectionMode.Discrete;
+            foreach (Transform t in go.GetComponentsInChildren<Transform>(true)) GameObjectUtility.SetStaticEditorFlags(t.gameObject, 0);
         }
 
         // ------------------------------------------------------------------ materials
@@ -89,7 +111,13 @@ namespace Prototypes.Editor
             return m;
         }
 
-        /// <summary>The hallway wall pieces carry their wallpaper as M_WallHallway_2: swap it for another one.</summary>
+        public const string DefaultPaperPath = "Assets/Materials/Scenary/Hallway/Walls/V2/M_WallHallway_2.mat";
+
+        /// <summary>
+        /// The hallway wall pieces carry their wallpaper as M_WallHallway_2, except the column piece, which
+        /// ships with M_WallHallway_1: swap either for another one. Matching only the first left every
+        /// column in its own blue paper in the middle of a green or purple wing.
+        /// </summary>
         public static void SwapPaper(GameObject go, Material paper)
         {
             foreach (var mr in go.GetComponentsInChildren<MeshRenderer>(true))
@@ -97,7 +125,7 @@ namespace Prototypes.Editor
                 var mats = mr.sharedMaterials;
                 bool changed = false;
                 for (int i = 0; i < mats.Length; i++)
-                    if (mats[i] != null && mats[i].name == "M_WallHallway_2") { mats[i] = paper; changed = true; }
+                    if (mats[i] != null && (mats[i].name == "M_WallHallway_2" || mats[i].name == "M_WallHallway_1")) { mats[i] = paper; changed = true; }
                 if (changed) mr.sharedMaterials = mats;
             }
         }
@@ -175,6 +203,8 @@ namespace Prototypes.Editor
             mesh.SetVertices(v); mesh.SetUVs(0, uv); mesh.SetNormals(n); mesh.SetTriangles(tri, 0);
             mesh.RecalculateTangents();
             mesh.RecalculateBounds();
+            // UV0 tiles in metres; the lightmapper needs its own non-overlapping set.
+            Unwrapping.GenerateSecondaryUVSet(mesh);
             return mesh;
         }
 
@@ -202,6 +232,7 @@ namespace Prototypes.Editor
             Face(Vector3.left, Vector3.back, Vector3.up, size.z, size.y);
             mesh.SetVertices(v); mesh.SetUVs(0, uv); mesh.SetNormals(n); mesh.SetTriangles(tri, 0);
             mesh.RecalculateTangents(); mesh.RecalculateBounds();
+            Unwrapping.GenerateSecondaryUVSet(mesh);
             return mesh;
         }
 
@@ -289,7 +320,8 @@ namespace Prototypes.Editor
                         {
                             SetLayerRecursive(go, Walls);
                             if (tint != null) foreach (var mr in go.GetComponentsInChildren<MeshRenderer>()) { var mats = mr.sharedMaterials; if (mats.Length > 1) { mats[1] = tint; mr.sharedMaterials = mats; } }
-                            if (paper != null) SwapPaper(go, paper);
+                            // Always, even with the default paper: the column piece's own is a different one.
+                            SwapPaper(go, paper != null ? paper : Mat(DefaultPaperPath));
                         }
                         pos += pieceLen;
                     }

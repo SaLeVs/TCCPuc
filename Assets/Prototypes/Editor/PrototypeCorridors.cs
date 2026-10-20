@@ -14,7 +14,11 @@ namespace Prototypes.Editor
     /// </summary>
     public class PrototypeCorridors
     {
-        public class Stair { public Vector3 Top, Bottom, Dir; public float Length, Landing; public int Steps; public bool Exit = true; }
+        public class Stair
+        {
+            public Vector3 Top, Bottom, Dir; public float Length, Landing; public int Steps; public bool Exit = true;
+            public Vector3? Foot; // where the crossing corridor's line is, when the flight stops short of it at the wall face
+        }
         public class Duct { public WPiece Piece; public Vector3 A, B; public float FloorA, FloorB; public bool Tunnel; }
 
         /// <summary>A hub room built from the corridor outline instead of its prefab walls: the corridors run into it with no seam.</summary>
@@ -127,11 +131,19 @@ namespace Prototypes.Editor
 
         private void PlanStairs()
         {
+            var ends = new HashSet<(WPiece, bool)>();
             foreach (WPiece g in _l.Pieces.Where(p => p.Color == BarColor.Green))
             {
-                // Green meets red: a corridor of the other floor touching it.
-                foreach (WPiece r in _l.Pieces.Where(p => p.Color == BarColor.Red && g.Bar.Touching.Contains(p.Bar)))
+                // Green meets red: a corridor of the other floor touching it. One flight per green end: where
+                // a red crosses it and another carries straight on from the same end (level 3), each used to
+                // get its own flight, 1.7 m apart and interleaved, and neither could be climbed. The crossing
+                // wins: its flight stops at the crossing's wall and the straight red runs on from there.
+                foreach (WPiece r in _l.Pieces.Where(p => p.Color == BarColor.Red && g.Bar.Touching.Contains(p.Bar)).OrderBy(p => p.Horizontal == g.Horizontal ? 1 : 0))
+                {
+                    float j = r.Horizontal == g.Horizontal ? (Mathf.Abs(r.A - g.B) < Mathf.Abs(r.B - g.A) ? g.B : g.A) : r.Line;
+                    if (!ends.Add((g, Mathf.Abs(j - g.B) < Mathf.Abs(j - g.A)))) continue;
                     AddStair(g, r, null);
+                }
 
                 // Green into a ground-floor room other than the auditorium (whose rear doors are upstairs).
                 foreach (var (room, _) in g.Bar.Rooms)
@@ -186,7 +198,11 @@ namespace Prototypes.Editor
             _flat[g] = atB ? (fa, Mathf.Min(fb, topT)) : (Mathf.Max(fa, topT), fb);
 
             Vector3 dir = Dir(g) * (atB ? 1f : -1f);
-            Stairs.Add(new Stair { Top = At(g, topT, PrototypeLayout.UpperFloor), Bottom = At(g, bottomT, 0f), Dir = dir, Length = length, Steps = steps });
+            Stairs.Add(new Stair
+            {
+                Top = At(g, topT, PrototypeLayout.UpperFloor), Bottom = At(g, bottomT, 0f), Dir = dir, Length = length, Steps = steps,
+                Foot = margin > 0f ? At(g, j, 0f) : (Vector3?)null,
+            });
         }
 
         private void AddStairInRed(WPiece g, WPiece r, bool greenEndsAtB)
@@ -286,6 +302,23 @@ namespace Prototypes.Editor
                 if (!_rects.TryGetValue(y, out var list)) _rects[y] = list = new List<Rect>();
                 list.Add(r);
                 _rectZone[r] = ZoneOf(At(p, (p.A + p.B) * 0.5f, y));
+            }
+
+            // The floor in front of a flight that stops at a crossing corridor's wall face. When that corridor
+            // only starts at the junction (an L, not a T), nothing covered the strip between its line and the
+            // first step: level 3 had a 1.7 m hole there, straight down into the void.
+            foreach (Stair s in Stairs)
+            {
+                if (!s.Foot.HasValue) continue;
+                Vector3 f = s.Foot.Value, b = s.Bottom;
+                float half = ClearWidth * 0.5f;
+                Rect r = Mathf.Abs(s.Dir.x) > 0.5f
+                    ? Rect.MinMaxRect(Mathf.Min(f.x, b.x), b.z - half, Mathf.Max(f.x, b.x), b.z + half)
+                    : Rect.MinMaxRect(b.x - half, Mathf.Min(f.z, b.z), b.x + half, Mathf.Max(f.z, b.z));
+                if (r.width < 0.05f || r.height < 0.05f) continue;
+                if (!_rects.TryGetValue(b.y, out var list)) _rects[b.y] = list = new List<Rect>();
+                list.Add(r);
+                _rectZone[r] = ZoneOf(b);
             }
         }
 

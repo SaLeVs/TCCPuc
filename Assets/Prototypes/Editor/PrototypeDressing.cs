@@ -288,7 +288,9 @@ namespace Prototypes.Editor
                 case Kit.Avisos:
                 {
                     // Notice board crowded with call sheets and post-its.
-                    Put(d, HW + "SM_Notice_Board.prefab", wall + up * 0.9f + inward * 0.005f, onWall, Props);
+                    var board = Put(d, HW + "SM_Notice_Board.prefab", wall + up * 0.9f + inward * 0.005f, onWall, Props);
+                    // The prefab ships with its outline switched on; only what the player can use is outlined.
+                    if (board != null) foreach (Outline o in board.GetComponentsInChildren<Outline>(true)) Object.DestroyImmediate(o);
                     int papers = d.Rnd.Next(3, 7);
                     for (int i = 0; i < papers; i++)
                         Put(d, HW + PrototypeFoyer.Paper(d.Rnd) + ".prefab", wall + along * d.R(-1.05f, 1.05f) + up * d.R(1.15f, 2.0f) + inward * (0.058f + i * 0.002f), Quaternion.AngleAxis(d.R(-6f, 6f), inward) * onWall, Props);

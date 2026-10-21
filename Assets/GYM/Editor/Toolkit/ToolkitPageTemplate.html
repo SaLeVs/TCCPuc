@@ -1,0 +1,477 @@
+<title>Inventário de Cena</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Acme&family=Barlow:wght@400;500;600&family=IBM+Plex+Mono:wght@400;600&display=swap">
+<style>
+/* Layout: a stage manager's prop inventory laid over the GYM's 1 m blockout grid —
+   ficha técnica on top, filters pinned, pieces grouped by family below. */
+:root {
+  --bg: #e9ecf1;
+  --surface: #ffffff;
+  --sunken: #f4f6f9;
+  --ink: #1a1e27;
+  --muted: #5a6273;
+  --line: #d3d8e1;
+  --grid: rgba(26, 30, 39, 0.045);
+  --grid-major: rgba(26, 30, 39, 0.09);
+  --accent: #9e2238;
+  --accent-soft: rgba(158, 34, 56, 0.1);
+  --on-accent: #ffffff;
+  --thumb-bg: #262931;
+  --ok: #23734a;
+  --warn: #9a6512;
+  --bad: #b3261e;
+  --info: #2c5aa0;
+  --chip: #eef1f5;
+
+  --font-display: "Acme", "Trebuchet MS", system-ui, sans-serif;
+  --font-body: "Barlow", "Segoe UI", system-ui, sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, "Cascadia Mono", Consolas, monospace;
+
+  --step--1: 0.8125rem;
+  --step-0: 0.9375rem;
+  --step-1: 1.125rem;
+  --step-2: 1.5rem;
+  --step-3: 2.25rem;
+  --radius: 6px;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0f1218; --surface: #171b23; --sunken: #12151c; --ink: #e6e9ef; --muted: #98a1b1; --line: #2a303b;
+    --grid: rgba(230, 233, 239, 0.035); --grid-major: rgba(230, 233, 239, 0.07);
+    --accent: #e2566c; --accent-soft: rgba(226, 86, 108, 0.14); --on-accent: #16090c;
+    --thumb-bg: #1f222a; --ok: #5cc48c; --warn: #e0ae4f; --bad: #f2786b; --info: #7ea8f2; --chip: #20252f;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0f1218; --surface: #171b23; --sunken: #12151c; --ink: #e6e9ef; --muted: #98a1b1; --line: #2a303b;
+  --grid: rgba(230, 233, 239, 0.035); --grid-major: rgba(230, 233, 239, 0.07);
+  --accent: #e2566c; --accent-soft: rgba(226, 86, 108, 0.14); --on-accent: #16090c;
+  --thumb-bg: #1f222a; --ok: #5cc48c; --warn: #e0ae4f; --bad: #f2786b; --info: #7ea8f2; --chip: #20252f;
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  background-color: var(--bg);
+  background-image:
+    linear-gradient(var(--grid-major) 1px, transparent 1px),
+    linear-gradient(90deg, var(--grid-major) 1px, transparent 1px),
+    linear-gradient(var(--grid) 1px, transparent 1px),
+    linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+  background-size: 120px 120px, 120px 120px, 24px 24px, 24px 24px;
+  color: var(--ink);
+  font-family: var(--font-body);
+  font-size: var(--step-0);
+  line-height: 1.5;
+}
+.wrap {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+}
+h1, h2, h3 { text-wrap: balance; margin: 0; font-weight: 400; }
+.mono, code { font-family: var(--font-mono); }
+.num { font-variant-numeric: tabular-nums; }
+
+/* Header */
+header.top { padding-block: 32px 20px; display: grid; gap: 10px; }
+.eyebrow { font-family: var(--font-mono); font-size: var(--step--1); letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
+h1 { font-family: var(--font-display); font-size: var(--step-3); line-height: 1.05; }
+h1 .curtain { color: var(--accent); }
+.lede { max-width: 68ch; color: var(--muted); margin: 0; }
+.stamp { font-family: var(--font-mono); font-size: var(--step--1); color: var(--muted); }
+
+/* Ficha técnica */
+.sheet { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 12px; padding-block: 8px 20px; }
+.panel { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 14px 16px; min-width: 0; }
+.panel h2 { font-family: var(--font-display); font-size: var(--step-1); margin-bottom: 8px; }
+.panel dl { display: grid; grid-template-columns: 1fr auto; gap: 4px 12px; margin: 0; }
+.panel dt { color: var(--muted); }
+.panel dd { margin: 0; text-align: right; font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+.panel.findings { border-color: var(--accent); background: linear-gradient(var(--accent-soft), var(--accent-soft)), var(--surface); }
+.findings ul { margin: 0; padding-left: 18px; display: grid; gap: 6px; }
+.findings strong { color: var(--accent); }
+.layers { font-size: var(--step--1); color: var(--muted); display: grid; gap: 4px; margin-top: 10px; }
+.layers b { color: var(--ink); font-weight: 600; }
+
+/* Filters */
+.filters {
+  position: sticky; top: env(safe-area-inset-top, 0px); z-index: 5;
+  background: color-mix(in srgb, var(--bg) 92%, transparent);
+  backdrop-filter: blur(6px);
+  border-bottom: 1px solid var(--line);
+}
+.filters .wrap { padding-block: 10px; display: grid; gap: 8px; }
+.row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+.search { flex: 1 1 240px; min-width: 0; display: flex; align-items: center; gap: 8px; background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 6px 10px; }
+.search input { flex: 1; min-width: 0; border: 0; background: transparent; color: var(--ink); font: inherit; outline: none; }
+.search:focus-within { border-color: var(--accent); }
+.toggle { font: inherit; font-size: var(--step--1); border: 1px solid var(--line); background: var(--surface); color: var(--ink); border-radius: 999px; padding: 4px 10px; cursor: pointer; }
+.toggle[aria-pressed="true"] { background: var(--ink); color: var(--bg); border-color: var(--ink); }
+.toggle:focus-visible, .cat:focus-visible, .card:focus-visible, .btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.cats { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 2px; scrollbar-width: thin; }
+.cat { flex: 0 0 auto; font: inherit; font-size: var(--step--1); border: 1px solid var(--line); background: var(--surface); color: var(--ink); border-radius: var(--radius); padding: 4px 8px; cursor: pointer; white-space: nowrap; }
+.cat .p { font-family: var(--font-mono); font-weight: 600; margin-right: 4px; }
+.cat .n { color: var(--muted); margin-left: 4px; font-variant-numeric: tabular-nums; }
+.cat[aria-pressed="true"] { border-color: var(--accent); background: var(--accent); color: var(--on-accent); }
+.cat[aria-pressed="true"] .n { color: inherit; opacity: 0.8; }
+.count { font-size: var(--step--1); color: var(--muted); margin-left: auto; font-variant-numeric: tabular-nums; }
+
+/* Groups and cards */
+main { padding-block: 16px 64px; }
+section.group { display: grid; gap: 12px; padding-block: 18px; }
+.group-head { display: grid; gap: 2px; }
+.group-head h2 { font-family: var(--font-display); font-size: var(--step-2); }
+.group-head h2 .p { font-family: var(--font-mono); font-size: var(--step-1); color: var(--accent); margin-right: 8px; }
+.group-head p { margin: 0; color: var(--muted); max-width: 72ch; }
+.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(156px, 1fr)); gap: 10px; }
+.card { display: grid; grid-template-rows: auto 1fr; text-align: left; font: inherit; color: inherit; background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 0; overflow: hidden; cursor: pointer; }
+.card:hover { border-color: var(--muted); }
+.thumb { aspect-ratio: 1; max-width: 100%; background: var(--thumb-bg); display: grid; place-items: center; position: relative; }
+.thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.thumb .ph { font-family: var(--font-mono); color: #8c93a3; font-size: var(--step-1); }
+.thumb .warn-flag { position: absolute; top: 6px; right: 6px; font-family: var(--font-mono); font-size: 11px; padding: 1px 6px; border-radius: 4px; background: #f4c84a; color: #1a1e27; }
+.meta { padding: 8px 10px 10px; display: grid; gap: 4px; min-width: 0; }
+.code { font-family: var(--font-mono); font-weight: 600; font-size: var(--step-0); }
+.name { font-size: var(--step--1); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.size { font-family: var(--font-mono); font-size: 12px; color: var(--muted); font-variant-numeric: tabular-nums; }
+.chips { display: flex; flex-wrap: wrap; gap: 4px; }
+.chip { font-size: 11px; line-height: 1.5; padding: 0 6px; border-radius: 4px; background: var(--chip); color: var(--muted); border: 1px solid transparent; }
+.chip.ok { color: var(--ok); border-color: color-mix(in srgb, var(--ok) 40%, transparent); }
+.chip.warn { color: var(--warn); border-color: color-mix(in srgb, var(--warn) 40%, transparent); }
+.chip.bad { color: var(--bad); border-color: color-mix(in srgb, var(--bad) 45%, transparent); }
+.chip.info { color: var(--info); border-color: color-mix(in srgb, var(--info) 40%, transparent); }
+.empty { padding: 40px 0; color: var(--muted); text-align: center; }
+
+/* Detail drawer */
+.scrim { position: fixed; inset: 0; background: rgba(8, 10, 14, 0.45); z-index: 9; }
+aside.detail {
+  position: fixed; z-index: 10; top: 0; right: 0; bottom: 0; width: min(440px, 100%);
+  background: var(--surface); border-left: 1px solid var(--line);
+  padding: calc(16px + env(safe-area-inset-top, 0px)) calc(18px + env(safe-area-inset-right, 0px)) calc(24px + env(safe-area-inset-bottom, 0px)) 18px;
+  overflow-y: auto; display: grid; gap: 12px; align-content: start;
+}
+.detail .head { display: flex; align-items: start; gap: 10px; }
+.detail .head .code { font-size: var(--step-2); }
+.detail .head h3 { font-family: var(--font-display); font-size: var(--step-1); }
+.detail .close { margin-left: auto; }
+.btn { font: inherit; font-size: var(--step--1); border: 1px solid var(--line); background: var(--sunken); color: var(--ink); border-radius: var(--radius); padding: 6px 10px; cursor: pointer; }
+.btn.primary { background: var(--accent); color: var(--on-accent); border-color: var(--accent); }
+.detail .big { border-radius: var(--radius); overflow: hidden; }
+.detail dl { display: grid; grid-template-columns: auto 1fr; gap: 4px 12px; margin: 0; font-size: var(--step--1); }
+.detail dt { color: var(--muted); }
+.detail dd { margin: 0; min-width: 0; overflow-wrap: anywhere; }
+.note { background: var(--sunken); border: 1px solid var(--line); border-radius: var(--radius); padding: 10px 12px; font-size: var(--step--1); }
+.note.mine { border-color: var(--accent); }
+.howto { font-size: var(--step--1); color: var(--muted); }
+.howto code { color: var(--ink); }
+
+footer { padding-block: 24px 40px; color: var(--muted); font-size: var(--step--1); border-top: 1px solid var(--line); }
+
+@media (max-width: 520px) {
+  h1 { font-size: var(--step-2); }
+  .grid { grid-template-columns: repeat(auto-fill, minmax(132px, 1fr)); }
+  aside.detail { top: auto; height: 86%; width: 100%; border-left: 0; border-top: 1px solid var(--line); border-radius: 12px 12px 0 0; padding-left: max(16px, env(safe-area-inset-left, 0px)); }
+}
+@media (prefers-reduced-motion: no-preference) {
+  aside.detail { animation: slide 0.18s ease-out; }
+  @keyframes slide { from { transform: translateX(16px); opacity: 0.6; } to { transform: none; opacity: 1; } }
+}
+</style>
+
+<header class="top wrap">
+  <span class="eyebrow">TCC · Toolkit de level design</span>
+  <h1>Inventário de <span class="curtain">Cena</span></h1>
+  <p class="lede">Cada peça que dá para pôr num mapa do teatro, com o código para escrever na planta, o tamanho real e as regras do jogo que ela carrega: se tem colisor, se esconde você do monstro, se precisa de rede.</p>
+  <span class="stamp" id="stamp"></span>
+</header>
+
+<section class="wrap sheet" id="sheet" aria-label="Ficha técnica"></section>
+
+<div class="filters">
+  <div class="wrap">
+    <div class="row">
+      <label class="search" for="q">
+        <span aria-hidden="true">⌕</span>
+        <input id="q" type="search" placeholder="Buscar por código, nome ou tema (ex.: POR-03, locker, palco)" autocomplete="off">
+      </label>
+      <button class="toggle" id="f-collider" aria-pressed="false" type="button">Com colisor</button>
+      <button class="toggle" id="f-vision" aria-pressed="false" type="button">Bloqueia a visão</button>
+      <button class="toggle" id="f-interactive" aria-pressed="false" type="button">Interativo</button>
+      <button class="toggle" id="f-nocollider" aria-pressed="false" type="button">Sem colisor</button>
+    </div>
+    <div class="row">
+      <div class="cats" id="cats" role="group" aria-label="Categorias"></div>
+      <span class="count" id="count"></span>
+    </div>
+  </div>
+</div>
+
+<main class="wrap" id="list"></main>
+
+<div class="scrim" id="scrim" hidden></div>
+<aside class="detail" id="detail" hidden aria-label="Detalhe da peça"></aside>
+
+<footer class="wrap">
+  Gerado por <code>Tools/TCC/Level Design/Exportar toolkit</code>. Para colocar uma peça no Unity:
+  <code>Tools/TCC/Level Design/Toolkit (janela)</code>, busque o código e arraste para a cena.
+</footer>
+
+<script id="toolkit-data" type="application/json">__TOOLKIT_DATA__</script>
+<script id="toolkit-thumbs" type="application/json">__TOOLKIT_THUMBS__</script>
+<script>
+(function () {
+  const DATA = JSON.parse(document.getElementById('toolkit-data').textContent);
+  const THUMBS = JSON.parse(document.getElementById('toolkit-thumbs').textContent || '{}');
+  const M = DATA.metrics;
+  const nf1 = new Intl.NumberFormat('pt-BR', { maximumFractionDigits: 1 });
+  const nf2 = new Intl.NumberFormat('pt-BR', { maximumFractionDigits: 2 });
+  const n1 = v => nf1.format(v);
+  const n2 = v => nf2.format(v);
+  const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+
+  const STRUCTURAL = new Set(['PAR', 'PIS', 'COR']);
+  const FLAG_CLASS = {
+    'Bloqueia visão': 'ok', 'Interativo': 'warn', 'Precisa NetworkObject': 'bad', 'Luz': 'info',
+    'Sabotável': 'bad', 'Audiência': 'info', 'Piso/degrau': 'ok', 'Teto p/ agachar': 'ok'
+  };
+  const FLAG_HELP = {
+    'Colisor': 'O jogador e o monstro esbarram nele.',
+    'Bloqueia visão': 'Algum colisor está numa layer que o monstro não enxerga através.',
+    'Piso/degrau': 'Colisor na layer Ground: dá para pisar e subir degraus de até ' + n2(M.maxStepHeight) + ' m.',
+    'Teto p/ agachar': 'Conta como teto: o jogador não levanta embaixo dele.',
+    'Interativo': 'O jogador interage a até ' + n2(M.interactDistance) + ' m.',
+    'Rede': 'Tem NetworkObject próprio.',
+    'Precisa NetworkObject': 'Tem lógica de rede mas nenhum NetworkObject: ponha um na instância.',
+    'Luz': 'Emite luz.',
+    'Sabotável': 'O monstro pode sabotar (apagar luz, travar porta).',
+    'Audiência': 'Dá audiência quando a câmera do jogador filma.',
+    'Física': 'Tem Rigidbody: pode ser empurrado.',
+    'Obstáculo NavMesh': 'Recorta o NavMesh: o monstro desvia.',
+    'Faz barulho': 'Emite barulho que o monstro ouve.'
+  };
+
+  const entries = DATA.entries.map(e => ({
+    ...e,
+    noCollider: !e.flags.includes('Colisor'),
+    hay: (e.code + ' ' + e.name + ' ' + e.prefab + ' ' + (e.theme || '') + ' ' + (e.notes || '') + ' ' + e.categoryLabel).toLowerCase()
+  }));
+
+  const state = { q: '', cat: null, collider: false, vision: false, interactive: false, nocollider: false };
+  try {
+    const saved = JSON.parse(localStorage.getItem('inventario-cena') || 'null');
+    if (saved) Object.assign(state, saved);
+  } catch (_) { /* storage unavailable: start clean */ }
+  const save = () => { try { localStorage.setItem('inventario-cena', JSON.stringify(state)); } catch (_) {} };
+
+  const sizeText = s => (s[0] || s[1] || s[2]) ? `${n1(s[0])} × ${n1(s[1])} × ${n1(s[2])} m` : '—';
+  const thumbSrc = e => THUMBS[e.code] || (e.thumb ? 'thumbs/' + e.thumb : null);
+
+  // ---- ficha técnica
+  const sprint = M.runSpeed * (M.staminaMax / M.staminaDrainPerSecond);
+  document.getElementById('stamp').textContent = `${entries.length} peças · exportado em ${DATA.generatedAt}`;
+  document.getElementById('sheet').innerHTML = `
+    <div class="panel">
+      <h2>Jogador</h2>
+      <dl>
+        <dt>Anda / corre / agachado</dt><dd>${n1(M.walkSpeed)} / ${n1(M.runSpeed)} / ${n1(M.crouchSpeed)} m/s</dd>
+        <dt>Sprint inteiro</dt><dd>${n1(M.staminaMax / M.staminaDrainPerSecond)} s · ${n1(sprint)} m</dd>
+        <dt>Volta a correr (exausto)</dt><dd>${n1(M.staminaRecoverThreshold / M.staminaGainPerSecond)} s</dd>
+        <dt>Altura em pé / agachado</dt><dd>${n2(M.standHeight)} / ${n2(M.crouchHeight)} m</dd>
+        <dt>Degrau máximo</dt><dd>${n2(M.maxStepHeight)} m</dd>
+        <dt>Interação</dt><dd>${n2(M.interactDistance)} m</dd>
+        <dt>Vida · lanterna</dt><dd>${n1(M.playerHealth)} · ${n1(M.flashlightSeconds)} s</dd>
+      </dl>
+    </div>
+    <div class="panel">
+      <h2>Monstro</h2>
+      <dl>
+        <dt>Patrulha / investiga / persegue</dt><dd>${n1(M.monsterWalkSpeed)} / ${n1(M.monsterInvestigateSpeed)} / ${n1(M.monsterChaseSpeed)} m/s</dd>
+        <dt>Visão configurada</dt><dd>${n1(M.visionDistance)} m · ${n1(M.visionAngle)}°</dd>
+        <dt>Audição</dt><dd>${n1(M.hearingRange)} m</dd>
+        <dt>Segue sem ver</dt><dd>${n1(M.trackingGraceSeconds)} s</dd>
+        <dt>Ataque</dt><dd>${n2(M.attackDistance)} m · ${n1(M.attackDamage)} · ${n1(M.attackCooldown)} s</dd>
+        <dt>Altura · diâmetro</dt><dd>${n1(M.monsterHeight)} m · ${n2(M.monsterRadius * 2)} m</dd>
+        <dt>Porta segura</dt><dd>~${n1(M.doorLockSeconds)} s</dd>
+      </dl>
+    </div>
+    <div class="panel findings">
+      <h2>Medido no GYM</h2>
+      <ul>
+        <li><strong>Visão real de ~5–10 m</strong>, não ${n1(M.visionDistance)} m: o olho do monstro segue a cabeça animada, inclinada para cima.</li>
+        <li><strong>Porta fechada não esconde</strong> (layer Doors), nem caixa na layer Props.</li>
+        <li><strong>Paredes e pisos modulares sem colisor</strong>: some um BoxCollider. Marcados com ∅.</li>
+        <li>Um sprint abre <strong>${n1((M.runSpeed - M.monsterChaseSpeed) * M.staminaMax / M.staminaDrainPerSecond)} m</strong>; andando o monstro tira ${n1(M.monsterChaseSpeed - M.walkSpeed)} m/s.</li>
+      </ul>
+      <div class="layers">
+        <span><b>Bloqueiam a visão:</b> ${esc(M.monsterOcclusionLayers)}</span>
+        <span><b>Degraus sobem em:</b> ${esc(M.stepLayers)} · <b>Teto p/ agachar:</b> ${esc(M.crouchCeilingLayers)}</span>
+      </div>
+    </div>`;
+
+  // ---- filters
+  const catsEl = document.getElementById('cats');
+  const cats = DATA.categories.filter(c => c.count > 0);
+  catsEl.innerHTML = `<button class="cat" type="button" data-cat="">Todas<span class="n">${entries.length}</span></button>` +
+    cats.map(c => `<button class="cat" type="button" data-cat="${c.prefix}"><span class="p">${c.prefix}</span>${esc(c.label)}<span class="n">${c.count}</span></button>`).join('');
+  catsEl.addEventListener('click', ev => {
+    const b = ev.target.closest('.cat');
+    if (!b) return;
+    state.cat = b.dataset.cat || null;
+    save(); render();
+  });
+
+  const q = document.getElementById('q');
+  q.value = state.q;
+  q.addEventListener('input', () => { state.q = q.value; save(); render(); });
+
+  [['f-collider', 'collider'], ['f-vision', 'vision'], ['f-interactive', 'interactive'], ['f-nocollider', 'nocollider']].forEach(([id, key]) => {
+    const b = document.getElementById(id);
+    b.addEventListener('click', () => {
+      state[key] = !state[key];
+      if (key === 'collider' && state.collider) state.nocollider = false;
+      if (key === 'nocollider' && state.nocollider) state.collider = false;
+      save(); render();
+    });
+  });
+
+  function matches(e) {
+    if (state.cat && e.category !== state.cat) return false;
+    if (state.collider && e.noCollider) return false;
+    if (state.nocollider && !e.noCollider) return false;
+    if (state.vision && !e.flags.includes('Bloqueia visão')) return false;
+    if (state.interactive && !e.flags.includes('Interativo')) return false;
+    const term = state.q.trim().toLowerCase();
+    return !term || term.split(/\s+/).every(t => e.hay.includes(t));
+  }
+
+  function chipsFor(e, max) {
+    const list = e.flags.filter(f => f !== 'Colisor' && f !== 'Rede');
+    const chips = [];
+    if (e.noCollider && STRUCTURAL.has(e.category)) chips.push('<span class="chip bad">∅ sem colisor</span>');
+    list.slice(0, max).forEach(f => chips.push(`<span class="chip ${FLAG_CLASS[f] || ''}">${esc(f)}</span>`));
+    if (list.length > max) chips.push(`<span class="chip">+${list.length - max}</span>`);
+    return chips.join('');
+  }
+
+  function card(e) {
+    const src = thumbSrc(e);
+    const warn = e.flags.includes('Precisa NetworkObject') ? '<span class="warn-flag">rede!</span>' : '';
+    return `<button class="card" type="button" data-code="${e.code}">
+      <div class="thumb">${src ? `<img src="${src}" alt="${esc(e.name)}" loading="lazy" width="256" height="256">` : `<span class="ph">${e.category}</span>`}${warn}</div>
+      <div class="meta">
+        <span class="code">${e.code}</span>
+        <span class="name" title="${esc(e.name)}">${esc(e.name)}</span>
+        <span class="size">${sizeText(e.size)}</span>
+        <div class="chips">${chipsFor(e, 2)}</div>
+      </div>
+    </button>`;
+  }
+
+  const listEl = document.getElementById('list');
+  function render() {
+    q.value = state.q;
+    document.querySelectorAll('.cat').forEach(b => b.setAttribute('aria-pressed', String((b.dataset.cat || null) === state.cat)));
+    document.getElementById('f-collider').setAttribute('aria-pressed', String(state.collider));
+    document.getElementById('f-vision').setAttribute('aria-pressed', String(state.vision));
+    document.getElementById('f-interactive').setAttribute('aria-pressed', String(state.interactive));
+    document.getElementById('f-nocollider').setAttribute('aria-pressed', String(state.nocollider));
+
+    const shown = entries.filter(matches);
+    document.getElementById('count').textContent = `${shown.length} de ${entries.length}`;
+
+    if (!shown.length) {
+      listEl.innerHTML = '<p class="empty">Nenhuma peça com esses filtros. Limpe a busca ou escolha "Todas".</p>';
+      return;
+    }
+
+    listEl.innerHTML = cats.map(c => {
+      const items = shown.filter(e => e.category === c.prefix);
+      if (!items.length) return '';
+      return `<section class="group" id="g-${c.prefix}">
+        <div class="group-head"><h2><span class="p">${c.prefix}</span>${esc(c.label)}</h2><p>${esc(c.purpose)}</p></div>
+        <div class="grid">${items.map(card).join('')}</div>
+      </section>`;
+    }).join('');
+  }
+
+  // ---- detail
+  const detail = document.getElementById('detail');
+  const scrim = document.getElementById('scrim');
+  let lastFocus = null;
+
+  function open(code) {
+    const e = entries.find(x => x.code === code);
+    if (!e) return;
+    lastFocus = document.activeElement;
+    const src = thumbSrc(e);
+    const flags = e.flags.map(f => `<li><span class="chip ${FLAG_CLASS[f] || ''}">${esc(f)}</span> ${esc(FLAG_HELP[f] || '')}</li>`).join('');
+    detail.innerHTML = `
+      <div class="head">
+        <div><div class="code" id="d-code">${e.code}</div><h3>${esc(e.name)}</h3></div>
+        <button class="btn close" type="button" id="d-close">Fechar</button>
+      </div>
+      ${src ? `<div class="big thumb"><img src="${src}" alt="${esc(e.name)}" width="256" height="256"></div>` : ''}
+      <div class="row">
+        <button class="btn primary" type="button" id="d-copy">Copiar código</button>
+        <span class="howto" id="d-copied" hidden>Copiado.</span>
+      </div>
+      <dl>
+        <dt>Categoria</dt><dd>${esc(e.categoryLabel)}</dd>
+        <dt>Tema</dt><dd>${esc(e.theme)}</dd>
+        <dt>Tamanho</dt><dd class="mono">${sizeText(e.size)}</dd>
+        <dt>Layer</dt><dd class="mono">${esc(e.layer)}</dd>
+        <dt>Prefab</dt><dd class="mono">${esc(e.path)}</dd>
+        ${e.components ? `<dt>Scripts</dt><dd class="mono">${esc(e.components)}</dd>` : ''}
+      </dl>
+      ${e.noCollider && STRUCTURAL.has(e.category) ? '<div class="note">∅ Sem colisor: no mapa, some um BoxCollider (layer Walls para parede, Ground para piso).</div>' : ''}
+      ${flags ? `<ul class="howto" style="list-style:none;padding:0;margin:0;display:grid;gap:4px">${flags}</ul>` : ''}
+      ${e.autoNotes ? `<div class="note">${esc(e.autoNotes)}</div>` : ''}
+      ${e.notes ? `<div class="note mine"><strong>Notas</strong><br>${esc(e.notes)}</div>` : ''}
+      <p class="howto">No Unity: <code>Tools/TCC/Level Design/Toolkit (janela)</code> → busque <code>${e.code}</code> → arraste para a cena ou dê dois cliques.</p>`;
+    detail.hidden = false;
+    scrim.hidden = false;
+    document.getElementById('d-close').addEventListener('click', close);
+    document.getElementById('d-copy').addEventListener('click', () => copy(e.code));
+    document.getElementById('d-close').focus();
+    if (location.hash !== '#' + code) history.replaceState(null, '', '#' + code);
+  }
+
+  function close() {
+    detail.hidden = true;
+    scrim.hidden = true;
+    if (location.hash) history.replaceState(null, '', location.pathname + location.search);
+    if (lastFocus) lastFocus.focus();
+  }
+
+  function copy(text) {
+    const done = () => { const m = document.getElementById('d-copied'); if (m) m.hidden = false; };
+    const select = () => {
+      const el = document.getElementById('d-code');
+      const range = document.createRange();
+      range.selectNodeContents(el);
+      const sel = window.getSelection();
+      sel.removeAllRanges(); sel.addRange(range);
+    };
+    try {
+      navigator.clipboard.writeText(text).then(done, select);
+    } catch (_) { select(); }
+  }
+
+  listEl.addEventListener('click', ev => {
+    const c = ev.target.closest('.card');
+    if (c) open(c.dataset.code);
+  });
+  scrim.addEventListener('click', close);
+  document.addEventListener('keydown', ev => { if (ev.key === 'Escape' && !detail.hidden) close(); });
+
+  render();
+  const fromHash = location.hash.slice(1);
+  if (fromHash && entries.some(e => e.code === fromHash)) open(fromHash);
+})();
+</script>

@@ -22,7 +22,7 @@ public class RecTimeUi : MonoBehaviour
 
     private void Start()
     {
-        if (SceneManager.GetActiveScene().name == nameof(Scenes.Game))
+        if (SceneNames.IsGame(SceneManager.GetActiveScene().name))
         {
             recTimePanel.SetActive(true);
             _initialized = true;

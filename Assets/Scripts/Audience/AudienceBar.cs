@@ -36,7 +36,7 @@ namespace Audience
         private void Start()
         {
             _startHasRun = true;
-            _isGameScene = SceneManager.GetActiveScene().name == nameof(Scenes.Game);
+            _isGameScene = SceneNames.IsGame(SceneManager.GetActiveScene().name);
 
             audienceBarUi.SetActive(_isGameScene);
 

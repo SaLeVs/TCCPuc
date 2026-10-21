@@ -1,0 +1,4684 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4ec5ba79c34a9774ca66ad4d91754c42, type: 3}
+  m_Name: LevelToolkitCatalog
+  m_EditorClassIdentifier: Assembly-CSharp-Editor::LevelDesign.Toolkit.LevelToolkitCatalog
+  metricsSnapshot: "Jogador: anda 3 m/s \xB7 corre 6 m/s \xB7 agachado 1,5 m/s\nStamina:
+    4 s de corrida \xB7 exausto volta a correr em 5,3 s\nCorpo: 1,4 m em p\xE9 \xB7
+    1,16 m agachado \xB7 degrau m\xE1x. 0,3 m \xB7 alcance de intera\xE7\xE3o 1 m\nVida:
+    100 \xB7 lanterna 100 s, alcance 10 m\nMonstro: patrulha 2 m/s \xB7 investiga
+    3,5 m/s \xB7 persegue 4 m/s\nSentidos: vis\xE3o 40 m / 90\xB0 \xB7 audi\xE7\xE3o
+    60 m \xB7 segue sem ver por 4 s\nAtaque: 1 m \xB7 15 de dano \xB7 1 s de recarga
+    \xB7 7 golpes zeram a vida\nPersegui\xE7\xE3o: um sprint abre 8 m; andando o
+    monstro tira 1 m/s, alcan\xE7a em 8 s\nBloqueia vis\xE3o do monstro: Default,
+    Ground, Interactable, Scenary, DeadPlayer, MainStage, Recordable, Walls\nTeto
+    para agachar: Ground, Scenary, Recordable, Walls, Lights, Doors, Props\nDegraus
+    sobem em: Ground\nIntera\xE7\xE3o (raio): Interactable, Doors"
+  lastScan: 2026-10-18 23:06
+  entries:
+  - code: SAL-01
+    displayName: LootRoom
+    category: 0
+    theme: Sala de loot
+    prefab: {fileID: 7749526452151723234, guid: 4524570364987a745ab519ad19c8ba8a, type: 3}
+    guid: 4524570364987a745ab519ad19c8ba8a
+    assetPath: Assets/Prefabs/Rooms/Loot/LootRoom.prefab
+    size: {x: 18.5, y: 4, z: 18.5}
+    layer: Default
+    flags: 35
+    components: 
+    autoNotes: 
+    notes: 
+    lockCategory: 0
+  - code: SAL-02
+    displayName: Mission Room Default
+    category: 0
+    theme: "Sala de miss\xE3o"
+    prefab: {fileID: 7749526452151723234, guid: 030058a5ea086934b83e9309448028b4, type: 3}
+    guid: 030058a5ea086934b83e9309448028b4
+    assetPath: Assets/Prefabs/Rooms/Missions/Mission Room Default.prefab
+    size: {x: 14.704944, y: 3.0017855, z: 14.711598}
+    layer: Default
+    flags: 6459
+    components: Door, DoorLeafCollisionRelay, DoorLeafInteractable, DoorSabotage,
+      NoiseEmitter, SteamAudioGeometry
+    autoNotes: "Interag\xEDvel a at\xE9 1 m. O monstro pode sabotar."
+    notes: 
+    lockCategory: 0
+  - code: SAL-03
+    displayName: MissionRoomBox
+    category: 0
+    theme: "Sala de miss\xE3o"
+    prefab: {fileID: 7749526452151723234, guid: 65663bea3f2c499499688f1afb0f0898, type: 3}
+    guid: 65663bea3f2c499499688f1afb0f0898
+    assetPath: Assets/Prefabs/Rooms/Missions/MissionRoomBox.prefab
+    size: {x: 14.704944, y: 3.0312161, z: 14.711598}
+    layer: Default
+    flags: 6463
+    components: Door, DoorLeafCollisionRelay, DoorLeafInteractable, DoorSabotage,
+      NoiseEmitter, SteamAudioGeometry
+    autoNotes: "Interag\xEDvel a at\xE9 1 m. O monstro pode sabotar."
+    notes: 
+    lockCategory: 0
+  - code: SAL-04
+    displayName: MissionRoomLights
+    category: 0
+    theme: "Sala de miss\xE3o"
+    prefab: {fileID: 7749526452151723234, guid: d52d5369c7c11f144ab3951dc4ebb4ef, type: 3}
+    guid: d52d5369c7c11f144ab3951dc4ebb4ef
+    assetPath: Assets/Prefabs/Rooms/Missions/MissionRoomLights.prefab
+    size: {x: 14.704944, y: 3.0354877, z: 14.711598}
+    layer: Default
+    flags: 6463
+    components: Door, DoorLeafCollisionRelay, DoorLeafInteractable, DoorSabotage,
+      NoiseEmitter, SteamAudioGeometry
+    autoNotes: "Interag\xEDvel a at\xE9 1 m. O monstro pode sabotar."
+    notes: 
+    lockCategory: 0
+  - code: SAL-05
+    displayName: MissionRoomPipes
+    category: 0
+    theme: "Sala de miss\xE3o"
+    prefab: {fileID: 7749526452151723234, guid: 0912eb4a7d269ab4ea72e531f021582a, type: 3}
+    guid: 0912eb4a7d269ab4ea72e531f021582a
+    assetPath: Assets/Prefabs/Rooms/Missions/MissionRoomPipes.prefab
+    size: {x: 14.704944, y: 3.036843, z: 14.711598}
+    layer: Default
+    flags: 7487
+    components: Door, DoorLeafCollisionRelay, DoorLeafInteractable, DoorSabotage,
+      NoiseEmitter, SteamAudioGeometry
+    autoNotes: "Interag\xEDvel a at\xE9 1 m. O monstro pode sabotar."
+    notes: 
+    lockCategory: 0
+  - code: SAL-06
+    displayName: MissionRoomSound
+    category: 0
+    theme: "Sala de miss\xE3o"
+    prefab: {fileID: 7749526452151723234, guid: 7f3854d016b071644a117167ba62e593, type: 3}
+    guid: 7f3854d016b071644a117167ba62e593
+    assetPath: Assets/Prefabs/Rooms/Missions/MissionRoomSound.prefab
+    size: {x: 14.704944, y: 3.0405612, z: 14.711598}
+    layer: Default
+    flags: 6463
+    components: Door, DoorLeafCollisionRelay, DoorLeafInteractable, DoorSabotage,
+      NoiseEmitter, SteamAudioGeometry
+    autoNotes: "Interag\xEDvel a at\xE9 1 m. O monstro pode sabotar."
+    notes: 
+    lockCategory: 0
+  - code: SAL-07
+    displayName: Auditorium
+    category: 0
+    theme: Sala especial
+    prefab: {fileID: 2091960896595837860, guid: 3b0ec3c2d69fb064f95600fc06561b11, type: 3}
+    guid: 3b0ec3c2d69fb064f95600fc06561b11
+    assetPath: Assets/Prefabs/Rooms/Auditorium.prefab
+    size: {x: 32.46699, y: 22.396423, z: 41.5113}
+    layer: Default
+    flags: 1935
+    components: LightSabotage, RecordableIdentifier
+    autoNotes: "O monstro pode sabotar. D\xE1 audi\xEAncia quando filmado."
+    notes: 
+    lockCategory: 0
+  - code: SAL-08
+    displayName: DressingRoom  Game
+    category: 0
+    theme: Sala especial
+    prefab: {fileID: 8476312925725251487, guid: f70de79d09c9f9541a10cdd3c9a0e0ff, type: 3}
+    guid: f70de79d09c9f9541a10cdd3c9a0e0ff
+    assetPath: Assets/Prefabs/Rooms/DressingRoom _Game.prefab
+    size: {x: 10.032024, y: 3.0360003, z: 10.156002}
+    layer: Default
+    flags: 6623
+    components: Door, DoorLeafCollisionRelay, DoorLeafInteractable, DoorSabotage,
+      LightSabotage, MirrorCamera, NoiseEmitter, SteamAudioGeometry
+    autoNotes: "Precisa de NetworkObject: Tools/TCC/Portas/Adicionar NetworkObject
+      nas portas sem rede. Interag\xEDvel a at\xE9 1 m. O monstro pode sabotar."
+    notes: 
+    lockCategory: 0
+  - code: SAL-09
+    displayName: DressingRoom Lobby
+    category: 0
+    theme: Sala especial
+    prefab: {fileID: 8476312925725251487, guid: 8004bd30cfb138a4e9b82a44d92cafe4, type: 3}
+    guid: 8004bd30cfb138a4e9b82a44d92cafe4
+    assetPath: Assets/Prefabs/Rooms/DressingRoom_Lobby.prefab
+    size: {x: 10.032024, y: 3.0360003, z: 10.156002}
+    layer: Default
+    flags: 399
+    components: LightSabotage, MirrorCamera
+    autoNotes: O monstro pode sabotar.
+    notes: 
+    lockCategory: 0
+  - code: SAL-10
+    displayName: Escape Room
+    category: 0
+    theme: Sala especial
+    prefab: {fileID: 6990512062316282492, guid: 35b0a0c335703414fba63512f06e510f, type: 3}
+    guid: 35b0a0c335703414fba63512f06e510f
+    assetPath: Assets/Prefabs/Rooms/Escape_Room.prefab
+    size: {x: 16.757835, y: 3.064546, z: 10.960442}
+    layer: Default
+    flags: 1471
+    components: EscapeRoomManager, EscapeTrigger, FloppyDiskTotem, LightSabotage,
+      MainDoorEscapeManager
+    autoNotes: "Interag\xEDvel a at\xE9 1 m. O monstro pode sabotar."
+    notes: 
+    lockCategory: 0
+  - code: SAL-11
+    displayName: BaseRoom Decorated 1
+    category: 0
+    theme: Sala fixa
+    prefab: {fileID: 7749526452151723234, guid: 9cd1b8d7b79248245a7541a8f2aa22d4, type: 3}
+    guid: 9cd1b8d7b79248245a7541a8f2aa22d4
+    assetPath: Assets/Prefabs/Rooms/Fixed/BaseRoom_Decorated_1.prefab
+    size: {x: 14.70508, y: 3.042507, z: 14.711598}
+    layer: Default
+    flags: 6463
+    components: Door, DoorLeafCollisionRelay, DoorLeafInteractable, DoorSabotage,
+      NoiseEmitter, SteamAudioGeometry
+    autoNotes: "Interag\xEDvel a at\xE9 1 m. O monstro pode sabotar."
+    notes: 
+    lockCategory: 0
+  - code: SAL-12
+    displayName: BaseRoom Decorated 2
+    category: 0
+    theme: Sala fixa
+    prefab: {fileID: 7749526452151723234, guid: a5674c6235b3c2c4589462e7beec8963, type: 3}
+    guid: a5674c6235b3c2c4589462e7beec8963
+    assetPath: Assets/Prefabs/Rooms/Fixed/BaseRoom_Decorated_2.prefab
+    size: {x: 14.704944, y: 3.0294921, z: 14.711598}
+    layer: Default
+    flags: 7999
+    components: Door, DoorLeafCollisionRelay, DoorLeafInteractable, DoorSabotage,
+      NoiseEmitter, RecordableIdentifier, SteamAudioGeometry
+    autoNotes: "Interag\xEDvel a at\xE9 1 m. O monstro pode sabotar. D\xE1 audi\xEAncia
+      quando filmado."
+    notes: 
+    lockCategory: 0
+  - code: SAL-13
+    displayName: BaseRoom Decorated 3
+    category: 0
+    theme: Sala fixa
+    prefab: {fileID: 7749526452151723234, guid: 55b95140defda3b45992e92f20af319a, type: 3}
+    guid: 55b95140defda3b45992e92f20af319a
+    assetPath: Assets/Prefabs/Rooms/Fixed/BaseRoom_Decorated_3.prefab
+    size: {x: 14.704944, y: 3.0306, z: 14.711598}
+    layer: Default
+    flags: 6463
+    components: Door, DoorLeafCollisionRelay, DoorLeafInteractable, DoorSabotage,
+      NoiseEmitter, SteamAudioGeometry
+    autoNotes: "Interag\xEDvel a at\xE9 1 m. O monstro pode sabotar."
+    notes: 
+    lockCategory: 0
+  - code: SAL-14
+    displayName: BaseRoom Decorated 4
+    category: 0
+    theme: Sala fixa
+    prefab: {fileID: 7749526452151723234, guid: be300aa88f565dd49bc94acdb2078a43, type: 3}
+    guid: be300aa88f565dd49bc94acdb2078a43
+    assetPath: Assets/Prefabs/Rooms/Fixed/BaseRoom_Decorated_4.prefab
+    size: {x: 14.704944, y: 3.046815, z: 14.711598}
+    layer: Default
+    flags: 6463
+    components: Door, DoorLeafCollisionRelay, DoorLeafInteractable, DoorSabotage,
+      NoiseEmitter, SteamAudioGeometry
+    autoNotes: "Interag\xEDvel a at\xE9 1 m. O monstro pode sabotar."
+    notes: 
+    lockCategory: 0
+  - code: SAL-15
+    displayName: BaseRoom Decorated 5
+    category: 0
+    theme: Sala fixa
+    prefab: {fileID: 7749526452151723234, guid: e701cc0316bd4e24fb3c40745ea3e844, type: 3}
+    guid: e701cc0316bd4e24fb3c40745ea3e844
+    assetPath: Assets/Prefabs/Rooms/Fixed/BaseRoom_Decorated_5.prefab
+    size: {x: 14.704944, y: 3.0082934, z: 14.711598}
+    layer: Default
+    flags: 6459
+    components: Door, DoorLeafCollisionRelay, DoorLeafInteractable, DoorSabotage,
+      NoiseEmitter, SteamAudioGeometry
+    autoNotes: "Interag\xEDvel a at\xE9 1 m. O monstro pode sabotar."
+    notes: 
+    lockCategory: 0
+  - code: SAL-16
+    displayName: BaseRoom Default
+    category: 0
+    theme: Sala fixa
+    prefab: {fileID: 7749526452151723234, guid: d873357fec1afc24b95afc704b9fba40, type: 3}
+    guid: d873357fec1afc24b95afc704b9fba40
+    assetPath: Assets/Prefabs/Rooms/Fixed/BaseRoom Default.prefab
+    size: {x: 14.704944, y: 3.0017855, z: 14.711598}
+    layer: Default
+    flags: 6459
+    components: Door, DoorLeafCollisionRelay, DoorLeafInteractable, DoorSabotage,
+      NoiseEmitter, SteamAudioGeometry
+    autoNotes: "Interag\xEDvel a at\xE9 1 m. O monstro pode sabotar."
+    notes: 
+    lockCategory: 0
+  - code: SAL-17
+    displayName: BaseRoomDefault
+    category: 0
+    theme: Sala fixa
+    prefab: {fileID: 7749526452151723234, guid: f411f3eb8d4d9a94a852cc2ff3ffa5b4, type: 3}
+    guid: f411f3eb8d4d9a94a852cc2ff3ffa5b4
+    assetPath: Assets/Prefabs/Rooms/Fixed/BaseRoomDefault.prefab
+    size: {x: 18.500004, y: 4, z: 18.5}
+    layer: Default
+    flags: 35
+    components: 
+    autoNotes: 
+    notes: 
+    lockCategory: 0
+  - code: SAL-18
+    displayName: Bathroom
+    category: 0
+    theme: Sala fixa
+    prefab: {fileID: 7749526452151723234, guid: 788b915d71f3771459f00293342eb2d4, type: 3}
+    guid: 788b915d71f3771459f00293342eb2d4
+    assetPath: Assets/Prefabs/Rooms/Fixed/Bathroom.prefab
+    size: {x: 12.663228, y: 3.002427, z: 6.6162186}
+    layer: Default
+    flags: 32
+    components: 
+    autoNotes: 
+    notes: 
+    lockCategory: 0
+  - code: SAL-19
+    displayName: Box Office Room
+    category: 0
+    theme: Sala fixa
+    prefab: {fileID: 7749526452151723234, guid: 8967b195530f4b4418924f9158b99916, type: 3}
+    guid: 8967b195530f4b4418924f9158b99916
+    assetPath: Assets/Prefabs/Rooms/Fixed/Box_Office_Room.prefab
+    size: {x: 24.710478, y: 4.113364, z: 24.71085}
+    layer: Default
+    flags: 801
+    components: DonationRecordableZone, FootstepEmitter, HearingSensor, MonsterAnimator,
+      MonsterAttack, MonsterAwareness, MonsterBrain, MonsterChase, MonsterDoorForcer,
+      MonsterHitbox, MonsterInvestigate, MonsterSabotage, MonsterSearch, MonsterWander,
+      RecordableIdentifier, VisionSensor
+    autoNotes: "Colisor na layer Default: N\xC3O bloqueia a vis\xE3o do monstro.
+      O monstro pode sabotar. D\xE1 audi\xEAncia quando filmado."
+    notes: 
+    lockCategory: 0
+  - code: SAL-20
+    displayName: Dressing Room
+    category: 0
+    theme: Sala fixa
+    prefab: {fileID: 7749526452151723234, guid: 5a9fab6c8ba28b048b80669f086ab740, type: 3}
+    guid: 5a9fab6c8ba28b048b80669f086ab740
+    assetPath: Assets/Prefabs/Rooms/Fixed/Dressing_Room.prefab
+    size: {x: 14.700437, y: 3.0360003, z: 14.711598}
+    layer: Default
+    flags: 6463
+    components: Door, DoorLeafCollisionRelay, DoorLeafInteractable, DoorSabotage,
+      MirrorCamera, NoiseEmitter, SteamAudioGeometry
+    autoNotes: "Interag\xEDvel a at\xE9 1 m. O monstro pode sabotar."
+    notes: 
+    lockCategory: 0
+  - code: COR-01
+    displayName: Hallway 01
+    category: 1
+    theme: Corredor
+    prefab: {fileID: 4201528409970721945, guid: f37293ab1d9ec09468121af442e78943, type: 3}
+    guid: f37293ab1d9ec09468121af442e78943
+    assetPath: Assets/Prefabs/Rooms/Props/Hallway/Walls_To_Mount/Hallway_01.prefab
+    size: {x: 4.439436, y: 3.0953102, z: 8.470224}
+    layer: Default
+    flags: 1035
+    components: 
+    autoNotes: 
+    notes: 
+    lockCategory: 0
+  - code: COR-02
+    displayName: Hallway 02
+    category: 1
+    theme: Corredor
+    prefab: {fileID: 2382908657456335658, guid: 670aeb8373bf865499b47fc53bf32dac, type: 3}
+    guid: 670aeb8373bf865499b47fc53bf32dac
+    assetPath: Assets/Prefabs/Rooms/Props/Hallway/Walls_To_Mount/Hallway_02.prefab
+    size: {x: 4.478897, y: 3.0741258, z: 8.470222}
+    layer: Default
+    flags: 139
+    components: 
+    autoNotes: 
+    notes: 
+    lockCategory: 0
+  - code: COR-03
+    displayName: Hallway 03
+    category: 1
+    theme: Corredor
+    prefab: {fileID: 6718169860376105455, guid: fcfe3e600e848294db8c8d8ea4706529, type: 3}
+    guid: fcfe3e600e848294db8c8d8ea4706529
+    assetPath: Assets/Prefabs/Rooms/Props/Hallway/Walls_To_Mount/Hallway_03.prefab
+    size: {x: 4.4961157, y: 3.0561256, z: 8.470222}
+    layer: Default
+    flags: 139
+    components: 
+    autoNotes: 
+    notes: 
+    lockCategory: 0
+  - code: COR-04
+    displayName: Hallway 04
+    category: 1
+    theme: Corredor
+    prefab: {fileID: 7687670373759865060, guid: 600bd772a1dbf4943b8b9c5dff004474, type: 3}
+    guid: 600bd772a1dbf4943b8b9c5dff004474
+    assetPath: Assets/Prefabs/Rooms/Props/Hallway/Walls_To_Mount/Hallway_04.prefab
+    size: {x: 4.4444675, y: 3.0953102, z: 8.470223}
+    layer: Default
+    flags: 1035
+    components: 
+    autoNotes: 
+    notes: 
+    lockCategory: 0
+  - code: COR-05
+    displayName: Hallway 05
+    category: 1
+    theme: Corredor
+    prefab: {fileID: 7521444989681811381, guid: 9f3c9127389cba44fbcae99700772b52, type: 3}
+    guid: 9f3c9127389cba44fbcae99700772b52
+    assetPath: Assets/Prefabs/Rooms/Props/Hallway/Walls_To_Mount/Hallway_05.prefab
+    size: {x: 2.7112327, y: 3.1505198, z: 4.0337224}
+    layer: Default
+    flags: 1163
+    components: 
+    autoNotes: 
+    notes: 
+    lockCategory: 0
+  - code: COR-06
+    displayName: Hallway 06
+    category: 1
+    theme: Corredor
+    prefab: {fileID: 6658848742941327908, guid: fdad53ae4ff2a2841a6b9b86d698104c, type: 3}
+    guid: fdad53ae4ff2a2841a6b9b86d698104c
+    assetPath: Assets/Prefabs/Rooms/Props/Hallway/Walls_To_Mount/Hallway_06.prefab
+    size: {x: 2.4806082, y: 3.000328, z: 6.4799995}
+    layer: Default
+    flags: 0
+    components: 
+    autoNotes: 'Sem colisor: o jogador e o monstro atravessam. Some um BoxCollider
+      (layer Walls).'
+    notes: 
+    lockCategory: 0
+  - code: COR-07
+    displayName: Hallway 07
+    category: 1
+    theme: Corredor
+    prefab: {fileID: 4109248086674527745, guid: 20cd0d2833179d242af25752ee6d60b9, type: 3}
+    guid: 20cd0d2833179d242af25752ee6d60b9
+    assetPath: Assets/Prefabs/Rooms/Props/Hallway/Walls_To_Mount/Hallway_07.prefab
+    size: {x: 2.480626, y: 3.000328, z: 6.4804697}
+    layer: Default
+    flags: 0
+    components: 
+    autoNotes: 'Sem colisor: o jogador e o monstro atravessam. Some um BoxCollider
+      (layer Walls).'
+    notes: 
+    lockCategory: 0
+  - code: COR-08
+    displayName: Hallway Collumn Light
+    category: 1
+    theme: Corredor
+    prefab: {fileID: 5217784123563791791, guid: 936cb7966dcb5594c8aa1a6052bff11a, type: 3}
+    guid: 936cb7966dcb5594c8aa1a6052bff11a
+    assetPath: Assets/Prefabs/Rooms/Props/Hallway/Walls_To_Mount/Hallway_Collumn_Light.prefab
+    size: {x: 4.000743, y: 3.000164, z: 4.35558}
+    layer: Default
+    flags: 0
+    components: 
+    autoNotes: 'Sem colisor: o jogador e o monstro atravessam. Some um BoxCollider
+      (layer Walls).'
+    notes: 
+    lockCategory: 0
+  - code: COR-09
+    displayName: Hallway Collumn No Light
+    category: 1
+    theme: Corredor
+    prefab: {fileID: 3083457439584768850, guid: eeca63b5371ace947ad13961a2b132d2, type: 3}
+    guid: eeca63b5371ace947ad13961a2b132d2
+    assetPath: Assets/Prefabs/Rooms/Props/Hallway/Walls_To_Mount/Hallway_Collumn_No_Light.prefab
+    size: {x: 4.000743, y: 3.000164, z: 4.35558}
+    layer: Default
+    flags: 0
+    components: 
+    autoNotes: 'Sem colisor: o jogador e o monstro atravessam. Some um BoxCollider
+      (layer Walls).'
+    notes: 
+    lockCategory: 0
+  - code: COR-10
+    displayName: Hallway Corner No Light
+    category: 1
+    theme: Corredor
+    prefab: {fileID: 5603919508964616655, guid: 648c040a0c604d94e8773433a39a8c86, type: 3}
+    guid: 648c040a0c604d94e8773433a39a8c86
+    assetPath: Assets/Prefabs/Rooms/Props/Hallway/Walls_To_Mount/Hallway_Corner_No_Light.prefab
+    size: {x: 8.000078, y: 3.0003285, z: 6.004126}
+    layer: Default
+    flags: 0
+    components: 
+    autoNotes: 'Sem colisor: o jogador e o monstro atravessam. Some um BoxCollider
+      (layer Walls).'
+    notes: 
+    lockCategory: 0
+  - code: COR-11
+    displayName: Hallway Light
+    category: 1
+    theme: Corredor
+    prefab: {fileID: 8875522399498200076, guid: 7977054649a0bf14b9ff350d4a92c462, type: 3}
+    guid: 7977054649a0bf14b9ff350d4a92c462
+    assetPath: Assets/Prefabs/Rooms/Props/Hallway/Walls_To_Mount/Hallway_Light.prefab
+    size: {x: 4.0004945, y: 3.0003283, z: 4.3555803}
+    layer: Default
+    flags: 0
+    components: 
+    autoNotes: 'Sem colisor: o jogador e o monstro atravessam. Some um BoxCollider
+      (layer Walls).'
+    notes: 
+    lockCategory: 0
+  - code: COR-12
+    displayName: Hallway No Light
+    category: 1
+    theme: Corredor
+    prefab: {fileID: 269543034877208267, guid: 616586d19b4d6ab48b8cadb2dd8c38e1, type: 3}
+    guid: 616586d19b4d6ab48b8cadb2dd8c38e1
+    assetPath: Assets/Prefabs/Rooms/Props/Hallway/Walls_To_Mount/Hallway_No_Light.prefab
+    size: {x: 4.0004945, y: 3.0003283, z: 4.3555803}
+    layer: Default
+    flags: 0
+    components: 
+    autoNotes: 'Sem colisor: o jogador e o monstro atravessam. Some um BoxCollider
+      (layer Walls).'
+    notes: 
+    lockCategory: 0
+  - code: PAR-01
+    displayName: Wall Bathroom 2m
+    category: 2
+    theme: Banheiro
+    prefab: {fileID: 4320200491492989247, guid: 1e325f793458b744793145cada22c92f, type: 3}
+    guid: 1e325f793458b744793145cada22c92f
+    assetPath: Assets/Prefabs/Rooms/Props/Bathroom/SM_Wall_Bathroom_2m.prefab
+    size: {x: 0.30807862, y: 3.002263, z: 2}
+    layer: Walls
+    flags: 0
+    components: 
+    autoNotes: 'Sem colisor: o jogador e o monstro atravessam. Some um BoxCollider
+      (layer Walls).'
+    notes: 
+    lockCategory: 0
+  - code: PAR-02
+    displayName: Wall Bathroom 4m
+    category: 2
+    theme: Banheiro
+    prefab: {fileID: 3456424461652264454, guid: 894bfaa5ec8c63d48920109c1c0d1190, type: 3}
+    guid: 894bfaa5ec8c63d48920109c1c0d1190
+    assetPath: Assets/Prefabs/Rooms/Props/Bathroom/SM_Wall_Bathroom_4m.prefab
+    size: {x: 0.3080996, y: 3, z: 3.9999998}
+    layer: Walls
+    flags: 0
+    components: 
+    autoNotes: 'Sem colisor: o jogador e o monstro atravessam. Some um BoxCollider
+      (layer Walls).'
+    notes: 
+    lockCategory: 0
+  - code: PAR-03
+    displayName: Wall Bathroom Corner
+    category: 2
+    theme: Banheiro
+    prefab: {fileID: 4197061015042124316, guid: be867a97cb8b1714fa445fe10dfbf286, type: 3}
+    guid: be867a97cb8b1714fa445fe10dfbf286
+    assetPath: Assets/Prefabs/Rooms/Props/Bathroom/SM_Wall_Bathroom_Corner.prefab
+    size: {x: 1.3080996, y: 3.002263, z: 1.3080785}
+    layer: Walls
+    flags: 0
+    components: 
+    autoNotes: 'Sem colisor: o jogador e o monstro atravessam. Some um BoxCollider
+      (layer Walls).'
+    notes: 
+    lockCategory: 0
+  - code: PAR-04
+    displayName: Wall Bathroom Single Door
+    category: 2
+    theme: Banheiro
+    prefab: {fileID: 1747229369854547788, guid: 27092ea098823d74ea85b6a369a4f9f5, type: 3}
+    guid: 27092ea098823d74ea85b6a369a4f9f5
+    assetPath: Assets/Prefabs/Rooms/Props/Bathroom/SM_Wall_Bathroom_Single_Door.prefab
+    size: {x: 2.3551488, y: 3.000164, z: 4}
+    layer: Walls
+    flags: 0
+    components: 
+    autoNotes: 'Sem colisor: o jogador e o monstro atravessam. Some um BoxCollider
+      (layer Walls).'
+    notes: 
+    lockCategory: 0
+  - code: PAR-05
+    displayName: Wall Foyer 2m
+    category: 2
+    theme: Bilheteria
+    prefab: {fileID: 2416036741809699025, guid: 3640fd924cc1f2143aff23dbabfc7e9a, type: 3}
+    guid: 3640fd924cc1f2143aff23dbabfc7e9a
+    assetPath: Assets/Prefabs/Rooms/Props/Box_Office/SM_Wall_Foyer_2m.prefab
+    size: {x: 0.35561603, y: 4, z: 2.0002594}
+    layer: Walls
+    flags: 0
+    components: 
+    autoNotes: 'Sem colisor: o jogador e o monstro atravessam. Some um BoxCollider
+      (layer Walls).'
+    notes: 
+    lockCategory: 0
+  - code: PAR-06
+    displayName: Wall Foyer 4m
+    category: 2
+    theme: Bilheteria
+    prefab: {fileID: 907376611169627779, guid: 2ce76fe13698a15479a52d7575fe1523, type: 3}
+    guid: 2ce76fe13698a15479a52d7575fe1523
+    assetPath: Assets/Prefabs/Rooms/Props/Box_Office/SM_Wall_Foyer_4m.prefab
+    size: {x: 0.35563648, y: 4, z: 4}
+    layer: Walls
+    flags: 0
+    components: 
+    autoNotes: 'Sem colisor: o jogador e o monstro atravessam. Some um BoxCollider
+      (layer Walls).'
+    notes: 
+    lockCategory: 0
+  - code: PAR-07
+    displayName: Wall Foyer Corner
+    category: 2
+    theme: Bilheteria
+    prefab: {fileID: 7313357719352931091, guid: 291d091379a7f9341af61a7dd11fedde, type: 3}
+    guid: 291d091379a7f9341af61a7dd11fedde
+    assetPath: Assets/Prefabs/Rooms/Props/Box_Office/SM_Wall_Foyer_Corner.prefab
+    size: {x: 2.3556163, y: 4, z: 2.3556166}
+    layer: Walls
+    flags: 0
+    components: 
+    autoNotes: 'Sem colisor: o jogador e o monstro atravessam. Some um BoxCollider
+      (layer Walls).'
+    notes: 
+    lockCategory: 0
+  - code: PAR-08
+    displayName: Wall Foyer Double Door
+    category: 2
+    theme: Bilheteria
+    prefab: {fileID: 5899164102914877086, guid: 5e02073fbf33b07448cab2cb5078094f, type: 3}
+    guid: 5e02073fbf33b07448cab2cb5078094f
+    assetPath: Assets/Prefabs/Rooms/Props/Box_Office/SM_Wall_Foyer_Double_Door.prefab
+    size: {x: 3.9997694, y: 4.000082, z: 2.3551295}
+    layer: Walls
+    flags: 0
+    components: 
+    autoNotes: 'Sem colisor: o jogador e o monstro atravessam. Some um BoxCollider
+      (layer Walls).'
+    notes: 
+    lockCategory: 0
+  - code: PAR-09
+    displayName: Wall Foyer Single Door
+    category: 2
+    theme: Bilheteria
+    prefab: {fileID: 2770392092426219629, guid: 274491ff82db90c4bb7f6062a4a6bdfe, type: 3}
+    guid: 274491ff82db90c4bb7f6062a4a6bdfe
+    assetPath: Assets/Prefabs/Rooms/Props/Box_Office/SM_Wall_Foyer_Single_Door.prefab
+    size: {x: 4.0000005, y: 4.000164, z: 2.35515}
+    layer: Walls
+    flags: 0
+    components: 
+    autoNotes: 'Sem colisor: o jogador e o monstro atravessam. Some um BoxCollider
+      (layer Walls).'
+    notes: 
+    lockCategory: 0
+  - code: PAR-10
+    displayName: Wall Tickets
+    category: 2
+    theme: Bilheteria
+    prefab: {fileID: 6663437638576857954, guid: 549de492b9ee67e49931440032793113, type: 3}
+    guid: 549de492b9ee67e49931440032793113
+    assetPath: Assets/Prefabs/Rooms/Props/Box_Office/SM_Wall_Tickets.prefab
+    size: {x: 4.826927, y: 4, z: 11.081491}
+    layer: Walls
+    flags: 0
+    components: 
+    autoNotes: 'Sem colisor: o jogador e o monstro atravessam. Some um BoxCollider
+      (layer Walls).'
+    notes: 
+    lockCategory: 0
+  - code: PAR-11
+    displayName: Smooth Big Wall
+    category: 2
+    theme: Camarim
+    prefab: {fileID: 8495525619198046234, guid: 02da517fbbeb6ad4a85c301851c73660, type: 3}
+    guid: 02da517fbbeb6ad4a85c301851c73660
+    assetPath: Assets/Prefabs/Rooms/Props/Dressing_Room/SM_Smooth_Big_Wall.prefab
+    size: {x: 0.3555803, y: 3.0000002, z: 4.0000024}
+    layer: Walls
+    flags: 11
+    components: 
+    autoNotes: 
+    notes: 
+    lockCategory: 0
+  - code: PAR-12
+    displayName: Smooth Corner Wall
+    category: 2
+    theme: Camarim
+    prefab: {fileID: 6148585459600088430, guid: fef1c0e8b471a66498db855975397ba8, type: 3}
+    guid: fef1c0e8b471a66498db855975397ba8
+    assetPath: Assets/Prefabs/Rooms/Props/Dressing_Room/SM_Smooth_Corner_Wall.prefab
+    size: {x: 2.0009058, y: 2.9999995, z: 2.000023}
+    layer: Walls
+    flags: 11
+    components: 
+    autoNotes: 
+    notes: 
+    lockCategory: 0
+  - code: PAR-13
+    displayName: Smooth Small Wall
+    category: 2
+    theme: Camarim
+    prefab: {fileID: 8147723486722567665, guid: ede970eb09a2c2b468158ae4a01bdf53, type: 3}
+    guid: ede970eb09a2c2b468158ae4a01bdf53
+    assetPath: Assets/Prefabs/Rooms/Props/Dressing_Room/SM_Smooth_Small_Wall.prefab
+    size: {x: 0.35564935, y: 3.0000002, z: 1.9999987}
+    layer: Walls
+    flags: 0
+    components: 
+    autoNotes: 'Sem colisor: o jogador e o monstro atravessam. Some um BoxCollider
+      (layer Walls).'
+    notes: 
+    lockCategory: 0
+  - code: PAR-14
+    displayName: Hallway Corner Wall
+    category: 2
+    theme: Corredor
+    prefab: {fileID: 577310226142993816, guid: 4c34b854d16b3744ebd2aa3d299c9039, type: 3}
+    guid: 4c34b854d16b3744ebd2aa3d299c9039
+    assetPath: Assets/Prefabs/Rooms/Props/Hallway/SM_Hallway_Corner_Wall.prefab
+    size: {x: 2.0007296, y: 3.0001652, z: 2.0000648}
+    layer: Default
+    flags: 0
+    components: 
+    autoNotes: 'Sem colisor: o jogador e o monstro atravessam. Some um BoxCollider
+      (layer Walls).'
+    notes: 
+    lockCategory: 0
+  - code: PAR-15
+    displayName: Sophisticated Wall 2m
+    category: 2
+    theme: Corredor
+    prefab: {fileID: 5366994102686877666, guid: 4215b666ce001964d996078cae3d07c4, type: 3}
+    guid: 4215b666ce001964d996078cae3d07c4
+    assetPath: Assets/Prefabs/Rooms/Props/Hallway/SM_Sophisticated_Wall_2m.prefab
+    size: {x: 0.35561636, y: 3.0000985, z: 2.0001297}
+    layer: Walls
+    flags: 0
+    components: 
+    autoNotes: 'Sem colisor: o jogador e o monstro atravessam. Some um BoxCollider
+      (layer Walls).'
+    notes: 
+    lockCategory: 0
+  - code: PAR-16
+    displayName: Sophisticated Wall 4m
+    category: 2
+    theme: Corredor
+    prefab: {fileID: 9065282325285205932, guid: 72c85ed2f69326b4fa151834a2fe122e, type: 3}
+    guid: 72c85ed2f69326b4fa151834a2fe122e
+    assetPath: Assets/Prefabs/Rooms/Props/Hallway/SM_Sophisticated_Wall_4m.prefab
+    size: {x: 0.3556383, y: 3.0003283, z: 4.0000014}
+    layer: Walls
+    flags: 0
+    components: 
+    autoNotes: 'Sem colisor: o jogador e o monstro atravessam. Some um BoxCollider
+      (layer Walls).'
+    notes: 
+    lockCategory: 0
+  - code: PAR-17
+    displayName: Sophisticated Wall Column 4m
+    category: 2
+    theme: Corredor
+    prefab: {fileID: 346250044381569921, guid: e13653d6727d7e64489f38a043a3eaf1, type: 3}
+    guid: e13653d6727d7e64489f38a043a3eaf1
+    assetPath: Assets/Prefabs/Rooms/Props/Hallway/SM_Sophisticated_Wall_Column_4m.prefab
+    size: {x: 0.48063648, y: 3.000164, z: 4.000248}
+    layer: Walls
+    flags: 0
+    components: 
+    autoNotes: 'Sem colisor: o jogador e o monstro atravessam. Some um BoxCollider
+      (layer Walls).'
+    notes: 
+    lockCategory: 0
+  - code: PAR-18
+    displayName: Sophisticated Wall Corner 1m Left
+    category: 2
+    theme: Corredor
+    prefab: {fileID: 4013891274004145793, guid: ff8f3b1de78f38a468e23246d2b4a944, type: 3}
+    guid: ff8f3b1de78f38a468e23246d2b4a944
+    assetPath: Assets/Prefabs/Rooms/Props/Hallway/SM_Sophisticated_Wall_Corner_1m_Left.prefab
+    size: {x: 1.0027289, y: 3.0000806, z: 2.3548822}
+    layer: Walls
+    flags: 0
+    components: 
+    autoNotes: 'Sem colisor: o jogador e o monstro atravessam. Some um BoxCollider
+      (layer Walls).'
+    notes: 
+    lockCategory: 0
+  - code: PAR-19
+    displayName: Sophisticated Wall Corner 1m Right
+    category: 2
+    theme: Corredor
+    prefab: {fileID: 3193407495180241842, guid: 14a1dbac97d7361478ed8234b383d0b7, type: 3}
+    guid: 14a1dbac97d7361478ed8234b383d0b7
+    assetPath: Assets/Prefabs/Rooms/Props/Hallway/SM_Sophisticated_Wall_Corner_1m_Right.prefab
+    size: {x: 0.9999999, y: 3.000165, z: 2.3556128}
+    layer: Walls
+    flags: 0
+    components: 
+    autoNotes: 'Sem colisor: o jogador e o monstro atravessam. Some um BoxCollider
+      (layer Walls).'
+    notes: 
+    lockCategory: 0
+  - code: PAR-20
+    displayName: Sophisticated Wall Corner Camarim Left
+    category: 2
+    theme: Corredor
+    prefab: {fileID: 7351285282981236624, guid: 26605174b758f8842a26f313dcf2e9fc, type: 3}
+    guid: 26605174b758f8842a26f313dcf2e9fc
+    assetPath: Assets/Prefabs/Rooms/Props/Hallway/SM_Sophisticated_Wall_Corner_Camarim_Left.prefab
+    size: {x: 2.0013087, y: 3.000081, z: 2.3548827}
+    layer: Walls
+    flags: 0
+    components: 
+    autoNotes: 'Sem colisor: o jogador e o monstro atravessam. Some um BoxCollider
+      (layer Walls).'
+    notes: 
+    lockCategory: 0
+  - code: PAR-21
+    displayName: Sophisticated Wall Corner Camarim Right
+    category: 2
+    theme: Corredor
+    prefab: {fileID: 1102941196172777486, guid: 1311722716bb7bc46b972d7bd3c74a0e, type: 3}
+    guid: 1311722716bb7bc46b972d7bd3c74a0e
+    assetPath: Assets/Prefabs/Rooms/Props/Hallway/SM_Sophisticated_Wall_Corner_Camarim_Right.prefab
+    size: {x: 2.0007296, y: 3.000165, z: 2.3556142}
+    layer: Walls
+    flags: 0
+    components: 
+    autoNotes: 'Sem colisor: o jogador e o monstro atravessam. Some um BoxCollider
+      (layer Walls).'
+    notes: 
+    lockCategory: 0
+  - code: PAR-22
+    displayName: Sophisticated Wall Corner Column 4m
+    category: 2
+    theme: Corredor
+    prefab: {fileID: 506818009954482884, guid: f4c89a5c5211f7a44ae434d9d94ade34, type: 3}
+    guid: f4c89a5c5211f7a44ae434d9d94ade34
+    assetPath: Assets/Prefabs/Rooms/Props/Hallway/SM_Sophisticated_Wall_Corner_Column_4m.prefab
+    size: {x: 2.4806082, y: 3.000328, z: 2.4806077}
+    layer: Walls
+    flags: 0
+    components: 
+    autoNotes: 'Sem colisor: o jogador e o monstro atravessam. Some um BoxCollider
+      (layer Walls).'
+    notes: 
+    lockCategory: 0
+  - code: PAR-23
+    displayName: Sophisticated Wall Corner Hallway
+    category: 2
+    theme: Corredor
+    prefab: {fileID: 3034256783363593542, guid: e909562f4d72fea498247d20e48d531c, type: 3}
+    guid: e909562f4d72fea498247d20e48d531c
+    assetPath: Assets/Prefabs/Rooms/Props/Hallway/SM_Sophisticated_Wall_Corner_Hallway.prefab
+    size: {x: 2.356002, y: 2.9999995, z: 2.3563178}
+    layer: Walls
+    flags: 0
+    components: 
+    autoNotes: 'Sem colisor: o jogador e o monstro atravessam. Some um BoxCollider
+      (layer Walls).'
+    notes: 
+    lockCategory: 0
+  - code: PAR-24
+    displayName: Sophisticated Wall Corner Hallway 282
+    category: 2
+    theme: Corredor
+    prefab: {fileID: 1681459742471638783, guid: 900dba7ed4791054aab339834571ba53, type: 3}
+    guid: 900dba7ed4791054aab339834571ba53
+    assetPath: Assets/Prefabs/Rooms/Props/Hallway/SM_Sophisticated_Wall_Corner_Hallway_282.prefab
+    size: {x: 2.83, y: 3.000328, z: 2.83}
+    layer: Walls
+    flags: 0
+    components: 
+    autoNotes: 'Sem colisor: o jogador e o monstro atravessam. Some um BoxCollider
+      (layer Walls).'
+    notes: 
+    lockCategory: 0
+  - code: PAR-25
+    displayName: Sophisticated Wall Corner Hallway Inside
+    category: 2
+    theme: Corredor
+    prefab: {fileID: 528253405792418941, guid: 1761e13a028666b47907bf925a01bd9f, type: 3}
+    guid: 1761e13a028666b47907bf925a01bd9f
+    assetPath: Assets/Prefabs/Rooms/Props/Hallway/SM_Sophisticated_Wall_Corner_Hallway_Inside.prefab
+    size: {x: 2.4806082, y: 3.000328, z: 2.4806077}
+    layer: Walls
+    flags: 0
+    components: 
+    autoNotes: 'Sem colisor: o jogador e o monstro atravessam. Some um BoxCollider
+      (layer Walls).'
+    notes: 
+    lockCategory: 0
+  - code: PAR-26
+    displayName: Sophisticated Wall Corner Hallway V2
+    category: 2
+    theme: Corredor
+    prefab: {fileID: 649546350171828511, guid: 92fddefe4e2955a4b9300eede680ce5d, type: 3}
+    guid: 92fddefe4e2955a4b9300eede680ce5d
+    assetPath: Assets/Prefabs/Rooms/Props/Hallway/SM_Sophisticated_Wall_Corner_Hallway_V2.prefab
+    size: {x: 2.8235908, y: 3.000328, z: 2.4806077}
+    layer: Walls
+    flags: 0
+    components: 
+    autoNotes: 'Sem colisor: o jogador e o monstro atravessam. Some um BoxCollider
+      (layer Walls).'
+    notes: 
+    lockCategory: 0
+  - code: PAR-27
+    displayName: Sophisticated Wall Corner Hallway V3
+    category: 2
+    theme: Corredor
+    prefab: {fileID: 6062129406795906613, guid: d62156b7f7d83ba4ba29231fe900a34a, type: 3}
+    guid: d62156b7f7d83ba4ba29231fe900a34a
+    assetPath: Assets/Prefabs/Rooms/Props/Hallway/SM_Sophisticated_Wall_Corner_Hallway_V3.prefab
+    size: {x: 2.4806082, y: 3.000328, z: 2.8233724}
+    layer: Walls
+    flags: 0
+    components: 
+    autoNotes: 'Sem colisor: o jogador e o monstro atravessam. Some um BoxCollider
+      (layer Walls).'
+    notes: 
+    lockCategory: 0
+  - code: PAR-28
+    displayName: Sophisticated Wall Corner V1
+    category: 2
+    theme: Corredor
+    prefab: {fileID: 107654730440929534, guid: b5498b212787f9047ab350388686f44b, type: 3}
+    guid: b5498b212787f9047ab350388686f44b
+    assetPath: Assets/Prefabs/Rooms/Props/Hallway/SM_Sophisticated_Wall_Corner_V1.prefab
+    size: {x: 2.355272, y: 3.000328, z: 2.3566842}
+    layer: Walls
+    flags: 0
+    components: 
+    autoNotes: 'Sem colisor: o jogador e o monstro atravessam. Some um BoxCollider
+      (layer Walls).'
+    notes: 
+    lockCategory: 0
+  - code: PAR-29
+    displayName: Sophisticated Wall Corner V2
+    category: 2
+    theme: Corredor
+    prefab: {fileID: 4887947688055104230, guid: a8fb0d25f62f0fa4ead3fb6294875b63, type: 3}
+    guid: a8fb0d25f62f0fa4ead3fb6294875b63
+    assetPath: Assets/Prefabs/Rooms/Props/Hallway/SM_Sophisticated_Wall_Corner_V2.prefab
+    size: {x: 2.3561816, y: 3.000328, z: 2.0002646}
+    layer: Walls
+    flags: 0
+    components: 
+    autoNotes: 'Sem colisor: o jogador e o monstro atravessam. Some um BoxCollider
+      (layer Walls).'
+    notes: 
+    lockCategory: 0
+  - code: PAR-30
+    displayName: Sophisticated Wall Double Door 4m V1
+    category: 2
+    theme: Corredor
+    prefab: {fileID: 4033770278106620593, guid: 4cc1db5c817e2834da702ba0e4bf3f06, type: 3}
+    guid: 4cc1db5c817e2834da702ba0e4bf3f06
+    assetPath: Assets/Prefabs/Rooms/Props/Hallway/SM_Sophisticated_Wall_Double_Door_4m_V1.prefab
+    size: {x: 0.3556538, y: 3.0001647, z: 3.9999003}
+    layer: Walls
+    flags: 11
+    components: 
+    autoNotes: 
+    notes: 
+    lockCategory: 0
+  - code: PAR-31
+    displayName: Sophisticated Wall Double Door 4m V2
+    category: 2
+    theme: Corredor
+    prefab: {fileID: 7962097144114726405, guid: c61e75fa2c1ea9e4c873d137e692ade7, type: 3}
+    guid: c61e75fa2c1ea9e4c873d137e692ade7
+    assetPath: Assets/Prefabs/Rooms/Props/Hallway/SM_Sophisticated_Wall_Double_Door_4m_V2.prefab
+    size: {x: 0.35565302, y: 3.0001647, z: 3.9997482}
+    layer: Walls
+    flags: 0
+    components: 
+    autoNotes: 'Sem colisor: o jogador e o monstro atravessam. Some um BoxCollider
+      (layer Walls).'
+    notes: 
+    lockCategory: 0
+  - code: PAR-32
+    displayName: Sophisticated Wall Single Door 2m V1
+    category: 2
+    theme: Corredor
+    prefab: {fileID: 1602488985503531102, guid: 3ca8b5a59c5b22c4f9a6014879ffe1ae, type: 3}
+    guid: 3ca8b5a59c5b22c4f9a6014879ffe1ae
+    assetPath: Assets/Prefabs/Rooms/Props/Hallway/SM_Sophisticated_Wall_Single_Door_2m_V1.prefab
+    size: {x: 0.35589755, y: 3, z: 2.000365}
+    layer: Walls
+    flags: 11
+    components: 
+    autoNotes: 
+    notes: 
+    lockCategory: 0
+  - code: PAR-33
+    displayName: Sophisticated Wall Single Door 2m V2
+    category: 2
+    theme: Corredor
+    prefab: {fileID: 3973041858942891686, guid: 184eb6f22df6c5d4392a0e873bcf1bdc, type: 3}
+    guid: 184eb6f22df6c5d4392a0e873bcf1bdc
+    assetPath: Assets/Prefabs/Rooms/Props/Hallway/SM_Sophisticated_Wall_Single_Door_2m_V2.prefab
+    size: {x: 0.35589692, y: 3.0000002, z: 2.0001538}
+    layer: Walls
+    flags: 0
+    components: 
+    autoNotes: 'Sem colisor: o jogador e o monstro atravessam. Some um BoxCollider
+      (layer Walls).'
+    notes: 
+    lockCategory: 0
+  - code: PAR-34
+    displayName: Wall Room Single Door
+    category: 2
+    theme: Corredor
+    prefab: {fileID: 624943992262529941, guid: e1b6e551b04b63548a0d65bd4a4dcecf, type: 3}
+    guid: e1b6e551b04b63548a0d65bd4a4dcecf
+    assetPath: Assets/Prefabs/Rooms/Props/Hallway/SM_Wall_Room_Single_Door.prefab
+    size: {x: 4.000511, y: 3.0011299, z: 2.3554153}
+    layer: Walls
+    flags: 0
+    components: 
+    autoNotes: 'Sem colisor: o jogador e o monstro atravessam. Some um BoxCollider
+      (layer Walls).'
+    notes: 
+    lockCategory: 0
+  - code: PIS-01
+    displayName: Foyer Floor
+    category: 3
+    theme: Bilheteria
+    prefab: {fileID: 111561989884335807, guid: 8dad80376c4ba96438ac8a3600bdeb16, type: 3}
+    guid: 8dad80376c4ba96438ac8a3600bdeb16
+    assetPath: Assets/Prefabs/Rooms/Props/Box_Office/SM_Foyer_Floor.prefab
+    size: {x: 4, y: 0, z: 4}
+    layer: Default
+    flags: 0
+    components: 
+    autoNotes: "Sem colisor: o ch\xE3o precisa de um BoxCollider separado na layer
+      Ground."
+    notes: 
+    lockCategory: 0
+  - code: PIS-02
+    displayName: Unique Floor
+    category: 3
+    theme: Camarim
+    prefab: {fileID: 2037474766357606097, guid: aced1305cf05c9e4ebf0e1c3a2e36c0b, type: 3}
+    guid: aced1305cf05c9e4ebf0e1c3a2e36c0b
+    assetPath: Assets/Prefabs/Rooms/Props/Dressing_Room/SM_Unique_Floor.prefab
+    size: {x: 1, y: 0, z: 1}
+    layer: Ground
+    flags: 0
+    components: 
+    autoNotes: "Sem colisor: o ch\xE3o precisa de um BoxCollider separado na layer
+      Ground."
+    notes: 
+    lockCategory: 0
+  - code: PIS-03
+    displayName: Unique Floor V2
+    category: 3
+    theme: Camarim
+    prefab: {fileID: 5127186645153872419, guid: b44d7770112c6f744af05816b0a6a286, type: 3}
+    guid: b44d7770112c6f744af05816b0a6a286
+    assetPath: Assets/Prefabs/Rooms/Props/Dressing_Room/SM_Unique_Floor_V2.prefab
+    size: {x: 1.355, y: 0.00000007549789, z: 1}
+    layer: Ground
+    flags: 0
+    components: 
+    autoNotes: "Sem colisor: o ch\xE3o precisa de um BoxCollider separado na layer
+      Ground."
+    notes: 
+    lockCategory: 0
+  - code: PIS-04
+    displayName: Unique Floor V3
+    category: 3
+    theme: Camarim
+    prefab: {fileID: 5501660344721024868, guid: b5ef4118be34af04b89ad04c2bf4c29b, type: 3}
+    guid: b5ef4118be34af04b89ad04c2bf4c29b
+    assetPath: Assets/Prefabs/Rooms/Props/Dressing_Room/SM_Unique_Floor_V3.prefab
+    size: {x: 0.355, y: 0.00000007549789, z: 1}
+    layer: Ground
+    flags: 0
+    components: 
+    autoNotes: "Sem colisor: o ch\xE3o precisa de um BoxCollider separado na layer
+      Ground."
+    notes: 
+    lockCategory: 0
+  - code: PIS-05
+    displayName: Unique Floor V4
+    category: 3
+    theme: Camarim
+    prefab: {fileID: 3004054447100282450, guid: 22840a84a45ddf64f8c894544a7c282e, type: 3}
+    guid: 22840a84a45ddf64f8c894544a7c282e
+    assetPath: Assets/Prefabs/Rooms/Props/Dressing_Room/SM_Unique_Floor_V4.prefab
+    size: {x: 0.355, y: 0.00000007549789, z: 1.01}
+    layer: Ground
+    flags: 0
+    components: 
+    autoNotes: "Sem colisor: o ch\xE3o precisa de um BoxCollider separado na layer
+      Ground."
+    notes: 
+    lockCategory: 0
+  - code: PIS-06
+    displayName: Floor Hallway
+    category: 3
+    theme: Corredor
+    prefab: {fileID: 902752944632610949, guid: ae257fdc49a720b4b8670d0e259a1973, type: 3}
+    guid: ae257fdc49a720b4b8670d0e259a1973
+    assetPath: Assets/Prefabs/Rooms/Props/Hallway/Walls_To_Mount/Floor_Hallway.prefab
+    size: {x: 2.3550007, y: 0.00000007549789, z: 2.0000021}
+    layer: Default
+    flags: 0
+    components: 
+    autoNotes: "Sem colisor: o ch\xE3o precisa de um BoxCollider separado na layer
+      Ground."
+    notes: 
+    lockCategory: 0
+  - code: PIS-07
+    displayName: Floor Hallway 1
+    category: 3
+    theme: Corredor
+    prefab: {fileID: 902752944632610949, guid: 2c5a0b486709f944d905f64b2f789faf, type: 3}
+    guid: 2c5a0b486709f944d905f64b2f789faf
+    assetPath: Assets/Prefabs/Rooms/Props/Hallway/Walls_To_Mount/Floor_Hallway 1.prefab
+    size: {x: 2.0000012, y: 0, z: 2.0000014}
+    layer: Default
+    flags: 0
+    components: 
+    autoNotes: "Sem colisor: o ch\xE3o precisa de um BoxCollider separado na layer
+      Ground."
+    notes: 
+    lockCategory: 0
+  - code: PIS-08
+    displayName: Floor Hallway 2
+    category: 3
+    theme: Corredor
+    prefab: {fileID: 902752944632610949, guid: 1d2fc92287b62074eb9c0dbe31f0e92c, type: 3}
+    guid: 1d2fc92287b62074eb9c0dbe31f0e92c
+    assetPath: Assets/Prefabs/Rooms/Props/Hallway/Walls_To_Mount/Floor_Hallway 2.prefab
+    size: {x: 1.3550007, y: 0.00000007549789, z: 2.0000007}
+    layer: Default
+    flags: 0
+    components: 
+    autoNotes: "Sem colisor: o ch\xE3o precisa de um BoxCollider separado na layer
+      Ground."
+    notes: 
+    lockCategory: 0
+  - code: PIS-09
+    displayName: Unique Floor Hallway
+    category: 3
+    theme: Corredor
+    prefab: {fileID: 9218486315172885833, guid: dba425813f088694e90bcab8ad7591cc, type: 3}
+    guid: dba425813f088694e90bcab8ad7591cc
+    assetPath: Assets/Prefabs/Rooms/Props/Hallway/SM_Unique_Floor_Hallway.prefab
+    size: {x: 1, y: 0, z: 1}
+    layer: Ground
+    flags: 0
+    components: 
+    autoNotes: "Sem colisor: o ch\xE3o precisa de um BoxCollider separado na layer
+      Ground."
+    notes: 
+    lockCategory: 0
+  - code: PIS-10
+    displayName: Unique Floor V3 Hallway
+    category: 3
+    theme: Corredor
+    prefab: {fileID: 8712144242428119936, guid: e3c291b9507094d4180ac0d60d62fb86, type: 3}
+    guid: e3c291b9507094d4180ac0d60d62fb86
+    assetPath: Assets/Prefabs/Rooms/Props/Hallway/SM_Unique_Floor_V3_Hallway.prefab
+    size: {x: 0.355, y: 0.00000007549789, z: 1}
+    layer: Ground
+    flags: 0
+    components: 
+    autoNotes: "Sem colisor: o ch\xE3o precisa de um BoxCollider separado na layer
+      Ground."
+    notes: 
+    lockCategory: 0
+  - code: PIS-11
+    displayName: Unique Floor V4 Hallway
+    category: 3
+    theme: Corredor
+    prefab: {fileID: 875652549392433240, guid: 64308562ab783234eaf4c840a03ae202, type: 3}
+    guid: 64308562ab783234eaf4c840a03ae202
+    assetPath: Assets/Prefabs/Rooms/Props/Hallway/SM_Unique_Floor_V4_Hallway.prefab
+    size: {x: 0.355, y: 0.00000007549789, z: 1.01}
+    layer: Ground
+    flags: 0
+    components: 
+    autoNotes: "Sem colisor: o ch\xE3o precisa de um BoxCollider separado na layer
+      Ground."
+    notes: 
+    lockCategory: 0
+  - code: TET-01
+    displayName: Roof Bathroom
+    category: 4
+    theme: Banheiro
+    prefab: {fileID: 6026208592290942779, guid: 42eb6f5eb07d3ed40a12a296ad638f8c, type: 3}
+    guid: 42eb6f5eb07d3ed40a12a296ad638f8c
+    assetPath: Assets/Prefabs/Rooms/Props/Bathroom/SM_Roof_Bathroom.prefab
+    size: {x: 1, y: 0, z: 1}
+    layer: Default
+    flags: 0
+    components: 
+    autoNotes: 
+    notes: 
+    lockCategory: 0
+  - code: TET-02
+    displayName: Unique Roof
+    category: 4
+    theme: Camarim
+    prefab: {fileID: 3952189212537484227, guid: 46f5d0acdfcf0f441a3e8b27f5a8e247, type: 3}
+    guid: 46f5d0acdfcf0f441a3e8b27f5a8e247
+    assetPath: Assets/Prefabs/Rooms/Props/Dressing_Room/SM_Unique_Roof.prefab
+    size: {x: 0.9999998, y: 0, z: 1}
+    layer: Default
+    flags: 0
+    components: 
+    autoNotes: 
+    notes: 
+    lockCategory: 0
+  - code: TET-03
+    displayName: Unique Roof V2
+    category: 4
+    theme: Camarim
+    prefab: {fileID: 8990174297948742904, guid: 38c69825f25a6ee428028ff4a4e601ed, type: 3}
+    guid: 38c69825f25a6ee428028ff4a4e601ed
+    assetPath: Assets/Prefabs/Rooms/Props/Dressing_Room/SM_Unique_Roof_V2.prefab
+    size: {x: 0.355, y: 0.00000007549789, z: 1}
+    layer: Default
+    flags: 0
+    components: 
+    autoNotes: 
+    notes: 
+    lockCategory: 0
+  - code: TET-04
+    displayName: Roof
+    category: 4
+    theme: Corredor
+    prefab: {fileID: 1814627962522482726, guid: 7aa4b145c8ce06c43b5fc050e9fb35b4, type: 3}
+    guid: 7aa4b145c8ce06c43b5fc050e9fb35b4
+    assetPath: Assets/Prefabs/Rooms/Props/Hallway/Walls_To_Mount/Roof.prefab
+    size: {x: 1.9999998, y: 0, z: 2}
+    layer: Default
+    flags: 0
+    components: 
+    autoNotes: 
+    notes: 
+    lockCategory: 0
+  - code: TET-05
+    displayName: Roof 2
+    category: 4
+    theme: Corredor
+    prefab: {fileID: 5413990354045318193, guid: fb3e562e6e545a04f933241c6cd4371b, type: 3}
+    guid: fb3e562e6e545a04f933241c6cd4371b
+    assetPath: Assets/Prefabs/Rooms/Props/Hallway/SM_Roof_2.prefab
+    size: {x: 1, y: 0, z: 1}
+    layer: Default
+    flags: 0
+    components: 
+    autoNotes: 
+    notes: 
+    lockCategory: 0
+  - code: TET-06
+    displayName: Roof 2
+    category: 4
+    theme: Corredor
+    prefab: {fileID: 8338299558646648843, guid: 726e635c57ccf1442a6c9e0010997b99, type: 3}
+    guid: 726e635c57ccf1442a6c9e0010997b99
+    assetPath: Assets/Prefabs/Rooms/Props/Hallway/Walls_To_Mount/Roof_2.prefab
+    size: {x: 2, y: 0.00000015034755, z: 2.355}
+    layer: Default
+    flags: 0
+    components: 
+    autoNotes: 
+    notes: 
+    lockCategory: 0
+  - code: POR-01
+    displayName: EscapeDoorManager
+    category: 5
+    theme: Managers
+    prefab: {fileID: 1360668069099076661, guid: 3529278e88694164eac1e51bf818cb74, type: 3}
+    guid: 3529278e88694164eac1e51bf818cb74
+    assetPath: Assets/Prefabs/Managers/EscapeDoorManager.prefab
+    size: {x: 1.8382325, y: 2.0851943, z: 0.23770905}
+    layer: Default
+    flags: 43
+    components: EscapeRoomManager
+    autoNotes: "Segura o monstro ~3 s quando ele for\xE7a."
+    notes: 
+    lockCategory: 0
+  - code: POR-02
+    displayName: MainDoorEscape
+    category: 5
+    theme: Managers
+    prefab: {fileID: 2175115075427635789, guid: 92699837405165044800b3273bc179e3, type: 3}
+    guid: 92699837405165044800b3273bc179e3
+    assetPath: Assets/Prefabs/Managers/MainDoorEscape.prefab
+    size: {x: 0.93822414, y: 2.0851943, z: 0.17535758}
+    layer: Default
+    flags: 43
+    components: MainDoorEscapeManager
+    autoNotes: "Segura o monstro ~3 s quando ele for\xE7a."
+    notes: 
+    lockCategory: 0
+  - code: POR-03
+    displayName: Door Black
+    category: 5
+    theme: Portas
+    prefab: {fileID: 5154175870565505241, guid: d9635df5ebd0b8d4db022924b6d9ab4c, type: 3}
+    guid: d9635df5ebd0b8d4db022924b6d9ab4c
+    assetPath: Assets/Prefabs/Rooms/Props/Doors/Door_Black.prefab
+    size: {x: 0.93822414, y: 2.0851943, z: 0.17535758}
+    layer: Doors
+    flags: 6489
+    components: Door, DoorLeafCollisionRelay, DoorLeafInteractable, DoorSabotage,
+      NoiseEmitter, SteamAudioGeometry
+    autoNotes: "Colisor na layer Doors: N\xC3O bloqueia a vis\xE3o do monstro. Precisa
+      de NetworkObject: Tools/TCC/Portas/Adicionar NetworkObject nas portas sem rede.
+      Interag\xEDvel a at\xE9 1 m. O monstro pode sabotar. Segura o monstro ~3 s
+      quando ele for\xE7a."
+    notes: 
+    lockCategory: 0
+  - code: POR-04
+    displayName: Door Blue
+    category: 5
+    theme: Portas
+    prefab: {fileID: 5154175870565505241, guid: f2beb3241e6c5134391ae235a0aba99b, type: 3}
+    guid: f2beb3241e6c5134391ae235a0aba99b
+    assetPath: Assets/Prefabs/Rooms/Props/Doors/Door_Blue.prefab
+    size: {x: 0.93843585, y: 2.0851943, z: 0.20394015}
+    layer: Doors
+    flags: 6489
+    components: Door, DoorLeafCollisionRelay, DoorLeafInteractable, DoorSabotage,
+      NoiseEmitter, SteamAudioGeometry
+    autoNotes: "Colisor na layer Doors: N\xC3O bloqueia a vis\xE3o do monstro. Precisa
+      de NetworkObject: Tools/TCC/Portas/Adicionar NetworkObject nas portas sem rede.
+      Interag\xEDvel a at\xE9 1 m. O monstro pode sabotar. Segura o monstro ~3 s
+      quando ele for\xE7a."
+    notes: 
+    lockCategory: 0
+  - code: POR-05
+    displayName: Door Double Black
+    category: 5
+    theme: Portas
+    prefab: {fileID: 5154175870565505241, guid: ad639e42d1564d0439a4e6ae4baf14a9, type: 3}
+    guid: ad639e42d1564d0439a4e6ae4baf14a9
+    assetPath: Assets/Prefabs/Rooms/Props/Doors/Door_Double_Black.prefab
+    size: {x: 1.8768703, y: 2.0851943, z: 0.1753576}
+    layer: Doors
+    flags: 6489
+    components: Door, DoorLeafCollisionRelay, DoorLeafInteractable, DoorSabotage,
+      NoiseEmitter, SteamAudioGeometry
+    autoNotes: "Colisor na layer Doors: N\xC3O bloqueia a vis\xE3o do monstro. Precisa
+      de NetworkObject: Tools/TCC/Portas/Adicionar NetworkObject nas portas sem rede.
+      Interag\xEDvel a at\xE9 1 m. O monstro pode sabotar. Segura o monstro ~3 s
+      quando ele for\xE7a."
+    notes: 
+    lockCategory: 0
+  - code: POR-06
+    displayName: Door Double Blue
+    category: 5
+    theme: Portas
+    prefab: {fileID: 5154175870565505241, guid: ec077d80286ef9e49a6af6713ff69ba5, type: 3}
+    guid: ec077d80286ef9e49a6af6713ff69ba5
+    assetPath: Assets/Prefabs/Rooms/Props/Doors/Door_Double_Blue.prefab
+    size: {x: 1.8768703, y: 2.0851943, z: 0.20394015}
+    layer: Doors
+    flags: 6489
+    components: Door, DoorLeafCollisionRelay, DoorLeafInteractable, DoorSabotage,
+      NoiseEmitter, SteamAudioGeometry
+    autoNotes: "Colisor na layer Doors: N\xC3O bloqueia a vis\xE3o do monstro. Precisa
+      de NetworkObject: Tools/TCC/Portas/Adicionar NetworkObject nas portas sem rede.
+      Interag\xEDvel a at\xE9 1 m. O monstro pode sabotar. Segura o monstro ~3 s
+      quando ele for\xE7a."
+    notes: 
+    lockCategory: 0
+  - code: POR-07
+    displayName: Door Double Exit
+    category: 5
+    theme: Portas
+    prefab: {fileID: 5154175870565505241, guid: 21e7de16c3dd13f44a3d7c10f6f6e6df, type: 3}
+    guid: 21e7de16c3dd13f44a3d7c10f6f6e6df
+    assetPath: Assets/Prefabs/Rooms/Props/Doors/Door_Double_Exit.prefab
+    size: {x: 1.8768703, y: 2.0851943, z: 0.23770773}
+    layer: Doors
+    flags: 6489
+    components: Door, DoorLeafCollisionRelay, DoorLeafInteractable, DoorSabotage,
+      NoiseEmitter, SteamAudioGeometry
+    autoNotes: "Colisor na layer Doors: N\xC3O bloqueia a vis\xE3o do monstro. Precisa
+      de NetworkObject: Tools/TCC/Portas/Adicionar NetworkObject nas portas sem rede.
+      Interag\xEDvel a at\xE9 1 m. O monstro pode sabotar. Segura o monstro ~3 s
+      quando ele for\xE7a."
+    notes: 
+    lockCategory: 0
+  - code: POR-08
+    displayName: Door Double Red
+    category: 5
+    theme: Portas
+    prefab: {fileID: 5154175870565505241, guid: 4e9b0a2b730ed4640857c8245020abbc, type: 3}
+    guid: 4e9b0a2b730ed4640857c8245020abbc
+    assetPath: Assets/Prefabs/Rooms/Props/Doors/Door_Double_Red.prefab
+    size: {x: 1.8768703, y: 2.0851943, z: 0.13322529}
+    layer: Doors
+    flags: 6489
+    components: Door, DoorLeafCollisionRelay, DoorLeafInteractable, DoorSabotage,
+      NoiseEmitter, SteamAudioGeometry
+    autoNotes: "Colisor na layer Doors: N\xC3O bloqueia a vis\xE3o do monstro. Precisa
+      de NetworkObject: Tools/TCC/Portas/Adicionar NetworkObject nas portas sem rede.
+      Interag\xEDvel a at\xE9 1 m. O monstro pode sabotar. Segura o monstro ~3 s
+      quando ele for\xE7a."
+    notes: 
+    lockCategory: 0
+  - code: POR-09
+    displayName: Door Dressing Room
+    category: 5
+    theme: Portas
+    prefab: {fileID: 5154175870565505241, guid: d21978c4db3331146803aab2a008c4f5, type: 3}
+    guid: d21978c4db3331146803aab2a008c4f5
+    assetPath: Assets/Prefabs/Rooms/Props/Doors/Door_Dressing_Room.prefab
+    size: {x: 0.93822396, y: 2.0851943, z: 0.1736874}
+    layer: Doors
+    flags: 6457
+    components: Door, DoorLeafCollisionRelay, DoorLeafInteractable, DoorSabotage,
+      NoiseEmitter, SteamAudioGeometry
+    autoNotes: "Colisor na layer Doors: N\xC3O bloqueia a vis\xE3o do monstro. Interag\xEDvel
+      a at\xE9 1 m. O monstro pode sabotar. Segura o monstro ~3 s quando ele for\xE7a."
+    notes: 
+    lockCategory: 0
+  - code: POR-10
+    displayName: Door Exit
+    category: 5
+    theme: Portas
+    prefab: {fileID: 5154175870565505241, guid: 6a65bcec449e9814ba695290c4b75423, type: 3}
+    guid: 6a65bcec449e9814ba695290c4b75423
+    assetPath: Assets/Prefabs/Rooms/Props/Doors/Door_Exit.prefab
+    size: {x: 0.9382324, y: 2.0851943, z: 0.23770773}
+    layer: Doors
+    flags: 6489
+    components: Door, DoorLeafCollisionRelay, DoorLeafInteractable, DoorSabotage,
+      NoiseEmitter, SteamAudioGeometry
+    autoNotes: "Colisor na layer Doors: N\xC3O bloqueia a vis\xE3o do monstro. Precisa
+      de NetworkObject: Tools/TCC/Portas/Adicionar NetworkObject nas portas sem rede.
+      Interag\xEDvel a at\xE9 1 m. O monstro pode sabotar. Segura o monstro ~3 s
+      quando ele for\xE7a."
+    notes: 
+    lockCategory: 0
+  - code: POR-11
+    displayName: Door Red
+    category: 5
+    theme: Portas
+    prefab: {fileID: 5154175870565505241, guid: b093d2b93bca00d40895dad9f89ae0d5, type: 3}
+    guid: b093d2b93bca00d40895dad9f89ae0d5
+    assetPath: Assets/Prefabs/Rooms/Props/Doors/Door_Red.prefab
+    size: {x: 0.9384353, y: 2.0851943, z: 0.13322528}
+    layer: Doors
+    flags: 6489
+    components: Door, DoorLeafCollisionRelay, DoorLeafInteractable, DoorSabotage,
+      NoiseEmitter, SteamAudioGeometry
+    autoNotes: "Colisor na layer Doors: N\xC3O bloqueia a vis\xE3o do monstro. Precisa
+      de NetworkObject: Tools/TCC/Portas/Adicionar NetworkObject nas portas sem rede.
+      Interag\xEDvel a at\xE9 1 m. O monstro pode sabotar. Segura o monstro ~3 s
+      quando ele for\xE7a."
+    notes: 
+    lockCategory: 0
+  - code: COB-01
+    displayName: Biombo
+    category: 6
+    theme: Camarim
+    prefab: {fileID: 2566115365969373633, guid: 6aeb21b5e37de2b4e9a02f6c521d6f23, type: 3}
+    guid: 6aeb21b5e37de2b4e9a02f6c521d6f23
+    assetPath: Assets/Prefabs/Rooms/Props/Dressing_Room/SM_Biombo.prefab
+    size: {x: 2.8958864, y: 2.278441, z: 0.2909161}
+    layer: Scenary
+    flags: 11
+    components: 
+    autoNotes: "Esconde o jogador em p\xE9 (1,4 m)."
+    notes: 
+    lockCategory: 0
+  - code: COB-02
+    displayName: BoxConjunto
+    category: 6
+    theme: Camarim
+    prefab: {fileID: 6118612189460783479, guid: c44b0ea14131c944cb3b3e6aea539d6c, type: 3}
+    guid: c44b0ea14131c944cb3b3e6aea539d6c
+    assetPath: Assets/Prefabs/Rooms/Props/Dressing_Room/BoxConjunto.prefab
+    size: {x: 1.8608558, y: 1.4409652, z: 1.5427284}
+    layer: Scenary
+    flags: 11
+    components: 
+    autoNotes: "Esconde o jogador em p\xE9 (1,4 m)."
+    notes: 
+    lockCategory: 0
+  - code: COB-03
+    displayName: Clothes Rack
+    category: 6
+    theme: Camarim
+    prefab: {fileID: 4529749684761346648, guid: 63dfcf1442accbc41908fdefbf2a4c75, type: 3}
+    guid: 63dfcf1442accbc41908fdefbf2a4c75
+    assetPath: Assets/Prefabs/Rooms/Props/Dressing_Room/SM_Clothes_Rack.prefab
+    size: {x: 0.5580469, y: 2.1447437, z: 1.298523}
+    layer: Scenary
+    flags: 11
+    components: 
+    autoNotes: "Esconde o jogador em p\xE9 (1,4 m)."
+    notes: 
+    lockCategory: 0
+  - code: COB-04
+    displayName: ConjuntoCardboard
+    category: 6
+    theme: Camarim
+    prefab: {fileID: 8939752092633817508, guid: e5fe19d2aa8c720418d9f82dd844dae7, type: 3}
+    guid: e5fe19d2aa8c720418d9f82dd844dae7
+    assetPath: Assets/Prefabs/Rooms/Props/Dressing_Room/ConjuntoCardboard.prefab
+    size: {x: 1.645649, y: 1.4449649, z: 1.3690984}
+    layer: Scenary
+    flags: 11
+    components: 
+    autoNotes: "Esconde o jogador em p\xE9 (1,4 m)."
+    notes: 
+    lockCategory: 0
+  - code: COB-05
+    displayName: ConjuntoCardboard (1) Variant
+    category: 6
+    theme: Camarim
+    prefab: {fileID: 8880873567785994001, guid: 2b63363278605be4aa5df06e6803df6d, type: 3}
+    guid: 2b63363278605be4aa5df06e6803df6d
+    assetPath: Assets/Prefabs/Rooms/Props/Dressing_Room/ConjuntoCardboard (1) Variant.prefab
+    size: {x: 1.7673454, y: 1.4449649, z: 1.8199081}
+    layer: Scenary
+    flags: 11
+    components: 
+    autoNotes: "Esconde o jogador em p\xE9 (1,4 m)."
+    notes: 
+    lockCategory: 0
+  - code: COB-06
+    displayName: ConjuntoFlightCases
+    category: 6
+    theme: Camarim
+    prefab: {fileID: 717967976484432426, guid: 4116d6d059183a74996cbab3474b2d81, type: 3}
+    guid: 4116d6d059183a74996cbab3474b2d81
+    assetPath: Assets/Prefabs/Rooms/Props/Dressing_Room/ConjuntoFlightCases.prefab
+    size: {x: 2.5083418, y: 1.57287, z: 1.6499486}
+    layer: Scenary
+    flags: 11
+    components: 
+    autoNotes: "Esconde o jogador em p\xE9 (1,4 m)."
+    notes: 
+    lockCategory: 0
+  - code: COB-07
+    displayName: ConjuntoRack
+    category: 6
+    theme: Camarim
+    prefab: {fileID: 7593117605024428602, guid: f8ae69bfc4e1b7c47a7c62dae3c980b7, type: 3}
+    guid: f8ae69bfc4e1b7c47a7c62dae3c980b7
+    assetPath: Assets/Prefabs/Rooms/Props/Dressing_Room/ConjuntoRack.prefab
+    size: {x: 1.3213558, y: 2.144744, z: 0.81003}
+    layer: Scenary
+    flags: 11
+    components: 
+    autoNotes: "Esconde o jogador em p\xE9 (1,4 m)."
+    notes: 
+    lockCategory: 0
+  - code: COB-08
+    displayName: Dressing Table
+    category: 6
+    theme: Camarim
+    prefab: {fileID: 9117538304915398597, guid: 4118d3e91841be1488cee53ca5337d62, type: 3}
+    guid: 4118d3e91841be1488cee53ca5337d62
+    assetPath: Assets/Prefabs/Rooms/Props/Dressing_Room/SM_Dressing_Table.prefab
+    size: {x: 6.248395, y: 1.5032839, z: 0.66076624}
+    layer: Default
+    flags: 3
+    components: 
+    autoNotes: "Esconde o jogador em p\xE9 (1,4 m)."
+    notes: 
+    lockCategory: 0
+  - code: COB-09
+    displayName: Iron Locker
+    category: 6
+    theme: "Dep\xF3sito"
+    prefab: {fileID: 224524327977369240, guid: d13bb35bc27e1044ead0a20221115474, type: 3}
+    guid: d13bb35bc27e1044ead0a20221115474
+    assetPath: Assets/Prefabs/Rooms/Props/Other_Rooms/SM_Iron_Locker.prefab
+    size: {x: 1.2, y: 2.000093, z: 0.5181353}
+    layer: Scenary
+    flags: 11
+    components: 
+    autoNotes: "Esconde o jogador em p\xE9 (1,4 m)."
+    notes: 
+    lockCategory: 0
+  - code: COB-10
+    displayName: LockerConjunto
+    category: 6
+    theme: "Dep\xF3sito"
+    prefab: {fileID: 1304098555119995781, guid: 5885d43ea00322642b7d1291f65201e3, type: 3}
+    guid: 5885d43ea00322642b7d1291f65201e3
+    assetPath: Assets/Prefabs/Rooms/Props/Other_Rooms/LockerConjunto.prefab
+    size: {x: 0.5733694, y: 2.4491358, z: 1.2000003}
+    layer: Scenary
+    flags: 11
+    components: 
+    autoNotes: "Esconde o jogador em p\xE9 (1,4 m)."
+    notes: 
+    lockCategory: 0
+  - code: COB-11
+    displayName: Metal Shelf V1
+    category: 6
+    theme: "Dep\xF3sito"
+    prefab: {fileID: 4791617299573715712, guid: 51543448c06ab60449caab99216404d1, type: 3}
+    guid: 51543448c06ab60449caab99216404d1
+    assetPath: Assets/Prefabs/Rooms/Props/Other_Rooms/SM_Metal_Shelf_V1.prefab
+    size: {x: 1.5871769, y: 1.7657411, z: 0.46530184}
+    layer: Scenary
+    flags: 11
+    components: 
+    autoNotes: "Esconde o jogador em p\xE9 (1,4 m)."
+    notes: 
+    lockCategory: 0
+  - code: COB-12
+    displayName: Metal Shelf V2
+    category: 6
+    theme: "Dep\xF3sito"
+    prefab: {fileID: 5340584050380373491, guid: a94d27725c7994c43b9971d44bd2af95, type: 3}
+    guid: a94d27725c7994c43b9971d44bd2af95
+    assetPath: Assets/Prefabs/Rooms/Props/Other_Rooms/SM_Metal_Shelf_V2.prefab
+    size: {x: 1.5856979, y: 1.7657412, z: 0.48569736}
+    layer: Scenary
+    flags: 11
+    components: 
+    autoNotes: "Esconde o jogador em p\xE9 (1,4 m)."
+    notes: 
+    lockCategory: 0
+  - code: COB-13
+    displayName: ShelfConjunto
+    category: 6
+    theme: "Dep\xF3sito"
+    prefab: {fileID: 8174890020161956147, guid: 06db44d42e548bb47b603567a414f581, type: 3}
+    guid: 06db44d42e548bb47b603567a414f581
+    assetPath: Assets/Prefabs/Rooms/Props/Other_Rooms/ShelfConjunto.prefab
+    size: {x: 0.58562565, y: 2.2864637, z: 1.5856981}
+    layer: Scenary
+    flags: 11
+    components: 
+    autoNotes: "Esconde o jogador em p\xE9 (1,4 m)."
+    notes: 
+    lockCategory: 0
+  - code: COB-14
+    displayName: Tripod SoundBox
+    category: 6
+    theme: Palco
+    prefab: {fileID: 5677034147746433165, guid: 1ac3db2b0fadb2e4687d06dbaae22418, type: 3}
+    guid: 1ac3db2b0fadb2e4687d06dbaae22418
+    assetPath: Assets/Prefabs/Rooms/Props/Stage/SM_Tripod_SoundBox.prefab
+    size: {x: 0.90648794, y: 2.471221, z: 0.785815}
+    layer: Scenary
+    flags: 11
+    components: 
+    autoNotes: "Esconde o jogador em p\xE9 (1,4 m)."
+    notes: 
+    lockCategory: 0
+  - code: OBS-01
+    displayName: Cardboard Box
+    category: 7
+    theme: Camarim
+    prefab: {fileID: 7266670575176620019, guid: 1c1a6cabb00254440b429563dcdba63e, type: 3}
+    guid: 1c1a6cabb00254440b429563dcdba63e
+    assetPath: Assets/Prefabs/Rooms/Props/Dressing_Room/SM_Cardboard_Box.prefab
+    size: {x: 0.86392975, y: 0.57053155, z: 0.57053155}
+    layer: Scenary
+    flags: 11
+    components: 
+    autoNotes: Baixo demais para esconder; atrapalha a rota.
+    notes: 
+    lockCategory: 0
+  - code: OBS-02
+    displayName: Cardboard Small Box
+    category: 7
+    theme: Camarim
+    prefab: {fileID: 8856450231824033324, guid: 0f049bfe6ae414d48a7f77c8105f483a, type: 3}
+    guid: 0f049bfe6ae414d48a7f77c8105f483a
+    assetPath: Assets/Prefabs/Rooms/Props/Dressing_Room/SM_Cardboard_Small_Box.prefab
+    size: {x: 0.4752935, y: 0.43413556, z: 0.47454438}
+    layer: Scenary
+    flags: 11
+    components: 
+    autoNotes: Baixo demais para esconder; atrapalha a rota.
+    notes: 
+    lockCategory: 0
+  - code: OBS-03
+    displayName: Costume Box
+    category: 7
+    theme: Camarim
+    prefab: {fileID: 2691336797919468269, guid: 97c2e56b56f97f749adaa957bfe70460, type: 3}
+    guid: 97c2e56b56f97f749adaa957bfe70460
+    assetPath: Assets/Prefabs/Rooms/Props/Dressing_Room/SM_Costume_Box.prefab
+    size: {x: 0.8653629, y: 0.5264637, z: 0.5754664}
+    layer: Scenary
+    flags: 11
+    components: 
+    autoNotes: Baixo demais para esconder; atrapalha a rota.
+    notes: 
+    lockCategory: 0
+  - code: OBS-04
+    displayName: Costume Box Metal
+    category: 7
+    theme: Camarim
+    prefab: {fileID: 3133036646456982745, guid: e8bf0840551e50649b669dc384713a2b, type: 3}
+    guid: e8bf0840551e50649b669dc384713a2b
+    assetPath: Assets/Prefabs/Rooms/Props/Dressing_Room/SM_Costume_Box_Metal.prefab
+    size: {x: 0.8653629, y: 0.5264637, z: 0.5754664}
+    layer: Scenary
+    flags: 11
+    components: 
+    autoNotes: Baixo demais para esconder; atrapalha a rota.
+    notes: 
+    lockCategory: 0
+  - code: OBS-05
+    displayName: Costume Box Open
+    category: 7
+    theme: Camarim
+    prefab: {fileID: 3147763439046669077, guid: 5d53aa3532559ba408ec1f29098b9952, type: 3}
+    guid: 5d53aa3532559ba408ec1f29098b9952
+    assetPath: Assets/Prefabs/Rooms/Props/Dressing_Room/SM_Costume_Box_Open.prefab
+    size: {x: 0.84012425, y: 0.51870453, z: 0.5586827}
+    layer: Scenary
+    flags: 11
+    components: 
+    autoNotes: Baixo demais para esconder; atrapalha a rota.
+    notes: 
+    lockCategory: 0
+  - code: OBS-06
+    displayName: Costume Box Open Cover
+    category: 7
+    theme: Camarim
+    prefab: {fileID: 2576155479690584123, guid: 691666d4293fcea40a89d0e967a410a7, type: 3}
+    guid: 691666d4293fcea40a89d0e967a410a7
+    assetPath: Assets/Prefabs/Rooms/Props/Dressing_Room/SM_Costume_Box_Open_Cover.prefab
+    size: {x: 0.8653628, y: 0.106458485, z: 0.5754663}
+    layer: Scenary
+    flags: 11
+    components: 
+    autoNotes: Baixo demais para esconder; atrapalha a rota.
+    notes: 
+    lockCategory: 0
+  - code: OBS-07
+    displayName: Costume Box Open Metal
+    category: 7
+    theme: Camarim
+    prefab: {fileID: 5736441698044838988, guid: 6d00b232dbac035449c028eb51e3843b, type: 3}
+    guid: 6d00b232dbac035449c028eb51e3843b
+    assetPath: Assets/Prefabs/Rooms/Props/Dressing_Room/SM_Costume_Box_Open_Metal.prefab
+    size: {x: 0.84726566, y: 0.5187045, z: 0.5586827}
+    layer: Scenary
+    flags: 11
+    components: 
+    autoNotes: Baixo demais para esconder; atrapalha a rota.
+    notes: 
+    lockCategory: 0
+  - code: OBS-08
+    displayName: Costume Box Open Metal Cover
+    category: 7
+    theme: Camarim
+    prefab: {fileID: 4048622426429787695, guid: f2aa4b0689b49ff4fb1c0baa542210c2, type: 3}
+    guid: f2aa4b0689b49ff4fb1c0baa542210c2
+    assetPath: Assets/Prefabs/Rooms/Props/Dressing_Room/SM_Costume_Box_Open_Metal_Cover.prefab
+    size: {x: 0.8653629, y: 0.106458426, z: 0.57546633}
+    layer: Scenary
+    flags: 11
+    components: 
+    autoNotes: Baixo demais para esconder; atrapalha a rota.
+    notes: 
+    lockCategory: 0
+  - code: OBS-09
+    displayName: Flight Case Big
+    category: 7
+    theme: Camarim
+    prefab: {fileID: 6598216761103575113, guid: b826eb95a814c55439d598a890f17a09, type: 3}
+    guid: b826eb95a814c55439d598a890f17a09
+    assetPath: Assets/Prefabs/Rooms/Props/Dressing_Room/SM_Flight_Case_Big.prefab
+    size: {x: 1.2205179, y: 0.7583422, z: 0.6154623}
+    layer: Scenary
+    flags: 11
+    components: 
+    autoNotes: Baixo demais para esconder; atrapalha a rota.
+    notes: 
+    lockCategory: 0
+  - code: OBS-10
+    displayName: Flight Case Big Wheels
+    category: 7
+    theme: Camarim
+    prefab: {fileID: 8022280003605331081, guid: e3c858e69295b8341bbe0ae4fafc0aa6, type: 3}
+    guid: e3c858e69295b8341bbe0ae4fafc0aa6
+    assetPath: Assets/Prefabs/Rooms/Props/Dressing_Room/SM_Flight_Case_Big_Wheels.prefab
+    size: {x: 1.2205179, y: 0.9023753, z: 0.6154623}
+    layer: Scenary
+    flags: 11
+    components: 
+    autoNotes: Baixo demais para esconder; atrapalha a rota.
+    notes: 
+    lockCategory: 0
+  - code: OBS-11
+    displayName: Flight Case Small
+    category: 7
+    theme: Camarim
+    prefab: {fileID: 3752568606946280160, guid: 3250e5ba12b9f76439b0f4347f2cc376, type: 3}
+    guid: 3250e5ba12b9f76439b0f4347f2cc376
+    assetPath: Assets/Prefabs/Rooms/Props/Dressing_Room/SM_Flight_Case_Small.prefab
+    size: {x: 0.62611353, y: 0.75723344, z: 0.61649}
+    layer: Scenary
+    flags: 11
+    components: 
+    autoNotes: Baixo demais para esconder; atrapalha a rota.
+    notes: 
+    lockCategory: 0
+  - code: OBS-12
+    displayName: Flight Case Small Wheels
+    category: 7
+    theme: Camarim
+    prefab: {fileID: 4529016500107312245, guid: 4b397c302d2e7b845b3156a4fb0c1593, type: 3}
+    guid: 4b397c302d2e7b845b3156a4fb0c1593
+    assetPath: Assets/Prefabs/Rooms/Props/Dressing_Room/SM_Flight_Case_Small_Wheels.prefab
+    size: {x: 0.62611353, y: 0.90007186, z: 0.61649}
+    layer: Scenary
+    flags: 11
+    components: 
+    autoNotes: Baixo demais para esconder; atrapalha a rota.
+    notes: 
+    lockCategory: 0
+  - code: OBS-13
+    displayName: High Stool
+    category: 7
+    theme: Camarim
+    prefab: {fileID: 4893574873638083662, guid: 14c060ec73df9d24880c5f54c47785a8, type: 3}
+    guid: 14c060ec73df9d24880c5f54c47785a8
+    assetPath: Assets/Prefabs/Rooms/Props/Dressing_Room/SM_High_Stool.prefab
+    size: {x: 0.42861524, y: 1.1568053, z: 0.5016769}
+    layer: Scenary
+    flags: 11
+    components: 
+    autoNotes: "Esconde s\xF3 quem est\xE1 agachado (1,16 m)."
+    notes: 
+    lockCategory: 0
+  - code: OBS-14
+    displayName: Big Bench
+    category: 7
+    theme: Corredor
+    prefab: {fileID: 5485095569794775635, guid: e61bec2084f435e49a1121bb13e4ce32, type: 3}
+    guid: e61bec2084f435e49a1121bb13e4ce32
+    assetPath: Assets/Prefabs/Rooms/Props/Hallway/SM_Big_Bench.prefab
+    size: {x: 0.65939194, y: 0.5233175, z: 1.5044632}
+    layer: Scenary
+    flags: 11
+    components: 
+    autoNotes: Baixo demais para esconder; atrapalha a rota.
+    notes: 
+    lockCategory: 0
+  - code: OBS-15
+    displayName: Small Bench
+    category: 7
+    theme: Corredor
+    prefab: {fileID: 4258750793662693805, guid: d60491b0cfbc7dd4da4c79c7dc88aea5, type: 3}
+    guid: d60491b0cfbc7dd4da4c79c7dc88aea5
+    assetPath: Assets/Prefabs/Rooms/Props/Hallway/SM_Small_Bench.prefab
+    size: {x: 0.65939194, y: 0.5233175, z: 1.0044632}
+    layer: Props
+    flags: 9
+    components: 
+    autoNotes: Baixo demais para esconder; atrapalha a rota.
+    notes: 
+    lockCategory: 0
+  - code: OBS-16
+    displayName: Trash Can V1
+    category: 7
+    theme: "Dep\xF3sito"
+    prefab: {fileID: 8527045453670045923, guid: 4cb3432c067c23940a3898bd5e26d808, type: 3}
+    guid: 4cb3432c067c23940a3898bd5e26d808
+    assetPath: Assets/Prefabs/Rooms/Props/Other_Rooms/SM_Trash_Can_V1.prefab
+    size: {x: 0.40432867, y: 0.75378567, z: 0.40432867}
+    layer: Scenary
+    flags: 11
+    components: 
+    autoNotes: Baixo demais para esconder; atrapalha a rota.
+    notes: 
+    lockCategory: 0
+  - code: OBS-17
+    displayName: Obstacle
+    category: 7
+    theme: Geral
+    prefab: {fileID: 1930167763120381473, guid: 67da02b31997ee0429b0c177b0314d3d, type: 3}
+    guid: 67da02b31997ee0429b0c177b0314d3d
+    assetPath: Assets/Prefabs/Obstacle.prefab
+    size: {x: 1, y: 1, z: 1}
+    layer: Default
+    flags: 3
+    components: 
+    autoNotes: Baixo demais para esconder; atrapalha a rota.
+    notes: 
+    lockCategory: 0
+  - code: OBS-18
+    displayName: ConjuntoPallets
+    category: 7
+    theme: Palco
+    prefab: {fileID: 7559693446674828180, guid: 4c5230b7c2e041b4ab94ab32fd907449, type: 3}
+    guid: 4c5230b7c2e041b4ab94ab32fd907449
+    assetPath: Assets/Prefabs/Rooms/Props/Stage/ConjuntoPallets.prefab
+    size: {x: 1.5545387, y: 1.2148969, z: 1.2000003}
+    layer: Scenary
+    flags: 11
+    components: 
+    autoNotes: "Esconde s\xF3 quem est\xE1 agachado (1,16 m)."
+    notes: 
+    lockCategory: 0
+  - code: OBS-19
+    displayName: Dolly Cart
+    category: 7
+    theme: Palco
+    prefab: {fileID: 5750667540560966867, guid: 3e0f4aa47af661e46b53fc4dce2c9c8e, type: 3}
+    guid: 3e0f4aa47af661e46b53fc4dce2c9c8e
+    assetPath: Assets/Prefabs/Rooms/Props/Stage/SM_Dolly_Cart.prefab
+    size: {x: 0.7836384, y: 1.2896862, z: 1.4384394}
+    layer: Scenary
+    flags: 11
+    components: 
+    autoNotes: "Esconde s\xF3 quem est\xE1 agachado (1,16 m)."
+    notes: 
+    lockCategory: 0
+  - code: OBS-20
+    displayName: Microphone
+    category: 7
+    theme: Palco
+    prefab: {fileID: 5090321797982025366, guid: 6bac9a1e341bd8d4b93b8f85ba0a021b, type: 3}
+    guid: 6bac9a1e341bd8d4b93b8f85ba0a021b
+    assetPath: Assets/Prefabs/Rooms/Props/Stage/SM_Microphone.prefab
+    size: {x: 0.3441127, y: 1.5389068, z: 0.3441127}
+    layer: Scenary
+    flags: 11
+    components: 
+    autoNotes: "Esconde o jogador em p\xE9 (1,4 m)."
+    notes: 
+    lockCategory: 0
+  - code: OBS-21
+    displayName: Pallet V1
+    category: 7
+    theme: Palco
+    prefab: {fileID: 7820930346191728986, guid: 763b2257295358b49ab42c2b0a95a963, type: 3}
+    guid: 763b2257295358b49ab42c2b0a95a963
+    assetPath: Assets/Prefabs/Rooms/Props/Stage/SM_Pallet_V1.prefab
+    size: {x: 1.2000003, y: 0.09999999, z: 1.1200002}
+    layer: Scenary
+    flags: 11
+    components: 
+    autoNotes: Baixo demais para esconder; atrapalha a rota.
+    notes: 
+    lockCategory: 0
+  - code: OBS-22
+    displayName: Pallet V2
+    category: 7
+    theme: Palco
+    prefab: {fileID: 7005685099776510826, guid: d68930a699e1b1a489a0ca7363502c4b, type: 3}
+    guid: d68930a699e1b1a489a0ca7363502c4b
+    assetPath: Assets/Prefabs/Rooms/Props/Stage/SM_Pallet_V2.prefab
+    size: {x: 1.2000003, y: 0.14999999, z: 1.1200002}
+    layer: Scenary
+    flags: 11
+    components: 
+    autoNotes: Baixo demais para esconder; atrapalha a rota.
+    notes: 
+    lockCategory: 0
+  - code: OBS-23
+    displayName: Pallet V3
+    category: 7
+    theme: Palco
+    prefab: {fileID: 3212743037153999892, guid: cbdd2713c97d63946abc6c33357c4d7f, type: 3}
+    guid: cbdd2713c97d63946abc6c33357c4d7f
+    assetPath: Assets/Prefabs/Rooms/Props/Stage/SM_Pallet_V3.prefab
+    size: {x: 1.2000004, y: 0.26551402, z: 1.1288987}
+    layer: Scenary
+    flags: 11
+    components: 
+    autoNotes: Baixo demais para esconder; atrapalha a rota.
+    notes: 
+    lockCategory: 0
+  - code: OBS-24
+    displayName: SoundBox
+    category: 7
+    theme: Palco
+    prefab: {fileID: 1785563522303062011, guid: 593992d05cad9d941877ee55ca98983d, type: 3}
+    guid: 593992d05cad9d941877ee55ca98983d
+    assetPath: Assets/Prefabs/Rooms/Props/Stage/SM_SoundBox.prefab
+    size: {x: 0.84, y: 1.2, z: 0.58877605}
+    layer: Scenary
+    flags: 11
+    components: 
+    autoNotes: "Esconde s\xF3 quem est\xE1 agachado (1,16 m)."
+    notes: 
+    lockCategory: 0
+  - code: OBS-25
+    displayName: SoundBox Floor
+    category: 7
+    theme: Palco
+    prefab: {fileID: 788114839365214956, guid: 38184b80599cd5d48970ae1f7fcbf043, type: 3}
+    guid: 38184b80599cd5d48970ae1f7fcbf043
+    assetPath: Assets/Prefabs/Rooms/Props/Stage/SM_SoundBox_Floor.prefab
+    size: {x: 0.96717703, y: 0.30328333, z: 0.3782314}
+    layer: Scenary
+    flags: 11
+    components: 
+    autoNotes: Baixo demais para esconder; atrapalha a rota.
+    notes: 
+    lockCategory: 0
+  - code: PAL-01
+    displayName: Chair
+    category: 8
+    theme: "Audit\xF3rio"
+    prefab: {fileID: 334169450981084615, guid: be49199d503dd0d4b8874f3838af9346, type: 3}
+    guid: be49199d503dd0d4b8874f3838af9346
+    assetPath: Assets/Prefabs/Rooms/Props/Auditorium/SM_Chair.prefab
+    size: {x: 0.7311431, y: 1.2463415, z: 0.66242504}
+    layer: Scenary
+    flags: 11
+    components: 
+    autoNotes: 
+    notes: 
+    lockCategory: 0
+  - code: PAL-02
+    displayName: Chair Closed
+    category: 8
+    theme: "Audit\xF3rio"
+    prefab: {fileID: 3553158738949129858, guid: bf06f8df58648ce4d917056f196b9192, type: 3}
+    guid: bf06f8df58648ce4d917056f196b9192
+    assetPath: Assets/Prefabs/Rooms/Props/Auditorium/SM_Chair_Closed.prefab
+    size: {x: 0.7311431, y: 1.2463415, z: 0.62258255}
+    layer: Scenary
+    flags: 11
+    components: 
+    autoNotes: 
+    notes: 
+    lockCategory: 0
+  - code: PAL-03
+    displayName: Arch
+    category: 8
+    theme: Palco
+    prefab: {fileID: 6175939999193919013, guid: 90c81cbe9be20ed4cbf9efa3d2f1e438, type: 3}
+    guid: 90c81cbe9be20ed4cbf9efa3d2f1e438
+    assetPath: Assets/Prefabs/Rooms/Props/Stage/SM_Arch.prefab
+    size: {x: 20, y: 13.441588, z: 1.2068756}
+    layer: Default
+    flags: 3
+    components: 
+    autoNotes: 
+    notes: 
+    lockCategory: 0
+  - code: PAL-04
+    displayName: Auditorium Stage Wall Big
+    category: 8
+    theme: Palco
+    prefab: {fileID: 1041810902814102563, guid: 4427b99c023fc284ca27208af30fc5ee, type: 3}
+    guid: 4427b99c023fc284ca27208af30fc5ee
+    assetPath: Assets/Prefabs/Rooms/Props/Stage/SM_Auditorium_Stage_Wall_Big.prefab
+    size: {x: 20.000002, y: 14.960229, z: 0.478755}
+    layer: Default
+    flags: 0
+    components: 
+    autoNotes: 
+    notes: 
+    lockCategory: 0
+  - code: PAL-05
+    displayName: Auditorium Top
+    category: 8
+    theme: Palco
+    prefab: {fileID: 8046803029276555934, guid: bcbeaca05974cd44b84696b4b7d0e667, type: 3}
+    guid: bcbeaca05974cd44b84696b4b7d0e667
+    assetPath: Assets/Prefabs/Rooms/Props/Stage/SM_Auditorium_Top.prefab
+    size: {x: 32.44705, y: 1.6442986, z: 31.487087}
+    layer: Default
+    flags: 0
+    components: 
+    autoNotes: 
+    notes: 
+    lockCategory: 0
+  - code: PAL-06
+    displayName: Curtain Folded Left
+    category: 8
+    theme: Palco
+    prefab: {fileID: 8778321600571166859, guid: 8e69f2b93b69d12478a501bfe27535db, type: 3}
+    guid: 8e69f2b93b69d12478a501bfe27535db
+    assetPath: Assets/Prefabs/Rooms/Props/Stage/SM_Curtain_Folded_Left.prefab
+    size: {x: 7.8456306, y: 13.437765, z: 2.9986982}
+    layer: Default
+    flags: 0
+    components: 
+    autoNotes: 
+    notes: 
+    lockCategory: 0
+  - code: PAL-07
+    displayName: Curtain Folded Right
+    category: 8
+    theme: Palco
+    prefab: {fileID: 1920566809450349659, guid: 7d7687dd46d38cf46a9fa811505134c5, type: 3}
+    guid: 7d7687dd46d38cf46a9fa811505134c5
+    assetPath: Assets/Prefabs/Rooms/Props/Stage/SM_Curtain_Folded_Right.prefab
+    size: {x: 7.8456306, y: 13.437764, z: 2.9986982}
+    layer: Default
+    flags: 0
+    components: 
+    autoNotes: 
+    notes: 
+    lockCategory: 0
+  - code: PAL-08
+    displayName: Curtain Left
+    category: 8
+    theme: Palco
+    prefab: {fileID: 4135414340376382578, guid: ce11b883f7d721c49845bc501ec04c5f, type: 3}
+    guid: ce11b883f7d721c49845bc501ec04c5f
+    assetPath: Assets/Prefabs/Rooms/Props/Stage/SM_Curtain_Left.prefab
+    size: {x: 8.754233, y: 13.497967, z: 1.9098315}
+    layer: Default
+    flags: 0
+    components: 
+    autoNotes: 
+    notes: 
+    lockCategory: 0
+  - code: PAL-09
+    displayName: Curtain Right
+    category: 8
+    theme: Palco
+    prefab: {fileID: 7048149704617333370, guid: 985c56b7b55107b4db1f5e8506a1e201, type: 3}
+    guid: 985c56b7b55107b4db1f5e8506a1e201
+    assetPath: Assets/Prefabs/Rooms/Props/Stage/SM_Curtain_Right.prefab
+    size: {x: 8.754233, y: 13.497967, z: 1.9098315}
+    layer: Default
+    flags: 0
+    components: 
+    autoNotes: 
+    notes: 
+    lockCategory: 0
+  - code: PAL-10
+    displayName: Layher Tower
+    category: 8
+    theme: Palco
+    prefab: {fileID: 4513121838682614693, guid: a4541f5925c5cd544926ea9c3ade8785, type: 3}
+    guid: a4541f5925c5cd544926ea9c3ade8785
+    assetPath: Assets/Prefabs/Rooms/Props/Stage/SM_Layher_Tower.prefab
+    size: {x: 1.8933575, y: 3.4936283, z: 1.8729212}
+    layer: Scenary
+    flags: 11
+    components: 
+    autoNotes: 
+    notes: 
+    lockCategory: 0
+  - code: PAL-11
+    displayName: Stage
+    category: 8
+    theme: Palco
+    prefab: {fileID: 2685271445336650108, guid: 36bd9525fd72a5c43bd507bcfe8a2289, type: 3}
+    guid: 36bd9525fd72a5c43bd507bcfe8a2289
+    assetPath: Assets/Prefabs/Rooms/Props/Stage/SM_Stage.prefab
+    size: {x: 20, y: 1.5, z: 15.705797}
+    layer: Default
+    flags: 0
+    components: 
+    autoNotes: 
+    notes: 
+    lockCategory: 0
+  - code: PAL-12
+    displayName: Stage Wall V1
+    category: 8
+    theme: Palco
+    prefab: {fileID: 6155226580354114967, guid: 8af2ea008040b444fabaec8c9644428c, type: 3}
+    guid: 8af2ea008040b444fabaec8c9644428c
+    assetPath: Assets/Prefabs/Rooms/Props/Stage/SM_Stage_Wall_V1.prefab
+    size: {x: 3, y: 12, z: 0.5000005}
+    layer: Scenary
+    flags: 11
+    components: 
+    autoNotes: 
+    notes: 
+    lockCategory: 0
+  - code: PAL-13
+    displayName: Stage Wall V2
+    category: 8
+    theme: Palco
+    prefab: {fileID: 3870645867263426366, guid: 16b79b22ddf70c940ba1187d67ef1a6c, type: 3}
+    guid: 16b79b22ddf70c940ba1187d67ef1a6c
+    assetPath: Assets/Prefabs/Rooms/Props/Stage/SM_Stage_Wall_V2.prefab
+    size: {x: 4, y: 12, z: 0.5000005}
+    layer: Scenary
+    flags: 11
+    components: 
+    autoNotes: 
+    notes: 
+    lockCategory: 0
+  - code: PAL-14
+    displayName: Stage Wall V3
+    category: 8
+    theme: Palco
+    prefab: {fileID: 8370558049439090637, guid: 16c8b4ca4b467a847a65313bc825505f, type: 3}
+    guid: 16c8b4ca4b467a847a65313bc825505f
+    assetPath: Assets/Prefabs/Rooms/Props/Stage/SM_Stage_Wall_V3.prefab
+    size: {x: 5, y: 12, z: 0.5000005}
+    layer: Scenary
+    flags: 11
+    components: 
+    autoNotes: 
+    notes: 
+    lockCategory: 0
+  - code: PAL-15
+    displayName: Truss Curve
+    category: 8
+    theme: Palco
+    prefab: {fileID: 7231018884694177995, guid: 9d75c65abe831724cb40643ac764afee, type: 3}
+    guid: 9d75c65abe831724cb40643ac764afee
+    assetPath: Assets/Prefabs/Rooms/Props/Stage/SM_Truss_Curve.prefab
+    size: {x: 0.6122244, y: 0.5525626, z: 0.33636957}
+    layer: Default
+    flags: 3
+    components: 
+    autoNotes: 
+    notes: 
+    lockCategory: 0
+  - code: PAL-16
+    displayName: Truss Straight
+    category: 8
+    theme: Palco
+    prefab: {fileID: 4976751803212413549, guid: 301e86b9f73431c409d745cccfb94fd9, type: 3}
+    guid: 301e86b9f73431c409d745cccfb94fd9
+    assetPath: Assets/Prefabs/Rooms/Props/Stage/SM_Truss_Straight.prefab
+    size: {x: 0.3375597, y: 1.999949, z: 0.33623388}
+    layer: Scenary
+    flags: 11
+    components: 
+    autoNotes: 
+    notes: 
+    lockCategory: 0
+  - code: ILU-01
+    displayName: Chandelier
+    category: 9
+    theme: "Audit\xF3rio"
+    prefab: {fileID: 6942137053323965931, guid: 800192728f3e45e4c9eed320e4941549, type: 3}
+    guid: 800192728f3e45e4c9eed320e4941549
+    assetPath: Assets/Prefabs/Rooms/Props/Auditorium/SM_Chandelier.prefab
+    size: {x: 4.852888, y: 4.694977, z: 4.852888}
+    layer: Default
+    flags: 0
+    components: 
+    autoNotes: 
+    notes: 
+    lockCategory: 0
+  - code: ILU-02
+    displayName: Ceiling Light
+    category: 9
+    theme: Camarim
+    prefab: {fileID: 4981332599850765133, guid: 9fd47dc6f3dd7c8419079318eaa82035, type: 3}
+    guid: 9fd47dc6f3dd7c8419079318eaa82035
+    assetPath: Assets/Prefabs/Rooms/Props/Dressing_Room/SM_Ceiling_Light.prefab
+    size: {x: 0.38992804, y: 0.54966253, z: 0.20603818}
+    layer: Default
+    flags: 0
+    components: 
+    autoNotes: 
+    notes: 
+    lockCategory: 0
+  - code: ILU-03
+    displayName: Light Support
+    category: 9
+    theme: Camarim
+    prefab: {fileID: 228753862635075333, guid: c542ef29896ce4e449a0928dcc874f02, type: 3}
+    guid: c542ef29896ce4e449a0928dcc874f02
+    assetPath: Assets/Prefabs/Rooms/Props/Dressing_Room/SM_Light_Support.prefab
+    size: {x: 0.13480012, y: 0.07244851, z: 2.696}
+    layer: Scenary
+    flags: 0
+    components: 
+    autoNotes: 
+    notes: 
+    lockCategory: 0
+  - code: ILU-04
+    displayName: LightRoof
+    category: 9
+    theme: Camarim
+    prefab: {fileID: 536279295075875058, guid: 76d6db6178947354cbd2bb5e0b0b47e2, type: 3}
+    guid: 76d6db6178947354cbd2bb5e0b0b47e2
+    assetPath: Assets/Prefabs/Rooms/Props/Dressing_Room/LightRoof.prefab
+    size: {x: 0.42605972, y: 0.6011114, z: 7.886}
+    layer: Default
+    flags: 3
+    components: 
+    autoNotes: 
+    notes: 
+    lockCategory: 0
+  - code: ILU-05
+    displayName: LightRoof Variant
+    category: 9
+    theme: Camarim
+    prefab: {fileID: 1951022778143821725, guid: 26cbf3e7ec0c1df4d9b84324266df721, type: 3}
+    guid: 26cbf3e7ec0c1df4d9b84324266df721
+    assetPath: Assets/Prefabs/Rooms/Props/Dressing_Room/LightRoof Variant.prefab
+    size: {x: 0.42605782, y: 0.6011114, z: 9.886}
+    layer: Default
+    flags: 3
+    components: 
+    autoNotes: 
+    notes: 
+    lockCategory: 0
+  - code: ILU-06
+    displayName: Straight Ceiling Light
+    category: 9
+    theme: Camarim
+    prefab: {fileID: 2982461088428156731, guid: 883ccfdac77af4a42a3ffe5193acd57e, type: 3}
+    guid: 883ccfdac77af4a42a3ffe5193acd57e
+    assetPath: Assets/Prefabs/Rooms/Props/Dressing_Room/SM_Straight_Ceiling_Light.prefab
+    size: {x: 0.42605838, y: 0.5273215, z: 0.18206926}
+    layer: Default
+    flags: 3
+    components: 
+    autoNotes: 
+    notes: 
+    lockCategory: 0
+  - code: ILU-07
+    displayName: Double Light
+    category: 9
+    theme: Corredor
+    prefab: {fileID: 2351396386049438660, guid: 8b8186accb0c7464fba869d49190c9ae, type: 3}
+    guid: 8b8186accb0c7464fba869d49190c9ae
+    assetPath: Assets/Prefabs/Rooms/Props/Hallway/SM_Double_Light.prefab
+    size: {x: 0.40160215, y: 0.5670541, z: 0.8576418}
+    layer: Scenary
+    flags: 0
+    components: 
+    autoNotes: 
+    notes: 
+    lockCategory: 0
+  - code: ILU-08
+    displayName: Hallway Light Roof
+    category: 9
+    theme: Corredor
+    prefab: {fileID: 4029443590315346756, guid: b5b38cfa101ba5e48aa0c3dabd8d579a, type: 3}
+    guid: b5b38cfa101ba5e48aa0c3dabd8d579a
+    assetPath: Assets/Prefabs/Rooms/Props/Hallway/SM_Hallway_Light_Roof.prefab
+    size: {x: 0.5319609, y: 0.7956233, z: 0.53196096}
+    layer: Default
+    flags: 0
+    components: 
+    autoNotes: 
+    notes: 
+    lockCategory: 0
+  - code: ILU-09
+    displayName: Single Light
+    category: 9
+    theme: Corredor
+    prefab: {fileID: 5651866475065154459, guid: e6c2317b0f8a4f84abdb4cd8c65618c5, type: 3}
+    guid: e6c2317b0f8a4f84abdb4cd8c65618c5
+    assetPath: Assets/Prefabs/Rooms/Props/Hallway/SM_Single_Light.prefab
+    size: {x: 0.51775783, y: 0.5408561, z: 0.26448542}
+    layer: Props
+    flags: 0
+    components: 
+    autoNotes: 
+    notes: 
+    lockCategory: 0
+  - code: ILU-10
+    displayName: Light Ceiling Rectangular
+    category: 9
+    theme: "Dep\xF3sito"
+    prefab: {fileID: 5257103639376153668, guid: 5e0ab999a5b306443a3e210d48af20a1, type: 3}
+    guid: 5e0ab999a5b306443a3e210d48af20a1
+    assetPath: Assets/Prefabs/Rooms/Props/Other_Rooms/SM_Light_Ceiling_Rectangular.prefab
+    size: {x: 1.4999996, y: 0.06598303, z: 0.23999995}
+    layer: Scenary
+    flags: 0
+    components: 
+    autoNotes: 
+    notes: 
+    lockCategory: 0
+  - code: ILU-11
+    displayName: SabotageLight
+    category: 9
+    theme: Managers
+    prefab: {fileID: 6713110056931503498, guid: 6fd5a3f689829124d8d234957ae0faac, type: 3}
+    guid: 6fd5a3f689829124d8d234957ae0faac
+    assetPath: Assets/Prefabs/Managers/SabotageObjects/SabotageLight.prefab
+    size: {x: 0, y: 0, z: 0}
+    layer: Default
+    flags: 384
+    components: LightSabotage
+    autoNotes: O monstro pode sabotar.
+    notes: 
+    lockCategory: 0
+  - code: ILU-12
+    displayName: Tripod Spotilight V1
+    category: 9
+    theme: Palco
+    prefab: {fileID: 7646568596409525770, guid: 2ec7d88ff504582449f8f55afeffd782, type: 3}
+    guid: 2ec7d88ff504582449f8f55afeffd782
+    assetPath: Assets/Prefabs/Rooms/Props/Stage/SM_Tripod_Spotilight_V1.prefab
+    size: {x: 0.90527034, y: 1.810798, z: 0.785815}
+    layer: Scenary
+    flags: 11
+    components: 
+    autoNotes: 
+    notes: 
+    lockCategory: 0
+  - code: ILU-13
+    displayName: Tripod Spotilight V2
+    category: 9
+    theme: Palco
+    prefab: {fileID: 269668612519800231, guid: 0b0e5fe88e745314c8d2f9f088f480b6, type: 3}
+    guid: 0b0e5fe88e745314c8d2f9f088f480b6
+    assetPath: Assets/Prefabs/Rooms/Props/Stage/SM_Tripod_Spotilight_V2.prefab
+    size: {x: 0.90648794, y: 1.6975, z: 0.785815}
+    layer: Scenary
+    flags: 11
+    components: 
+    autoNotes: 
+    notes: 
+    lockCategory: 0
+  - code: SIN-01
+    displayName: Bathroom Monster Sign
+    category: 10
+    theme: Banheiro
+    prefab: {fileID: 7619784150615425958, guid: 750560fb206a31f4699444e50738a48a, type: 3}
+    guid: 750560fb206a31f4699444e50738a48a
+    assetPath: Assets/Prefabs/Rooms/Props/Bathroom/SM_Bathroom_Monster_Sign.prefab
+    size: {x: 0.20000005, y: 0.20000003, z: 0.0050000083}
+    layer: Default
+    flags: 0
+    components: 
+    autoNotes: 
+    notes: 
+    lockCategory: 0
+  - code: SIN-02
+    displayName: Menu Board Big 1
+    category: 10
+    theme: Bilheteria
+    prefab: {fileID: 9195192111266765721, guid: fc396747812088a47bd3a7f04eb87be9, type: 3}
+    guid: fc396747812088a47bd3a7f04eb87be9
+    assetPath: Assets/Prefabs/Rooms/Props/Box_Office/SM_Menu_Board_Big_1.prefab
+    size: {x: 0.61, y: 1.08, z: 0.08549301}
+    layer: Default
+    flags: 0
+    components: 
+    autoNotes: 
+    notes: 
+    lockCategory: 0
+  - code: SIN-03
+    displayName: Menu Board Big 2
+    category: 10
+    theme: Bilheteria
+    prefab: {fileID: 3381681357897667825, guid: 7f9c240e043330f4eadfe9a7af4157b6, type: 3}
+    guid: 7f9c240e043330f4eadfe9a7af4157b6
+    assetPath: Assets/Prefabs/Rooms/Props/Box_Office/SM_Menu_Board_Big_2.prefab
+    size: {x: 0.61, y: 1.08, z: 0.08549301}
+    layer: Default
+    flags: 0
+    components: 
+    autoNotes: 
+    notes: 
+    lockCategory: 0
+  - code: SIN-04
+    displayName: Menu Board Small 1
+    category: 10
+    theme: Bilheteria
+    prefab: {fileID: 6648596490794435908, guid: 3e8d01695b08cd14db5d7adef30343f9, type: 3}
+    guid: 3e8d01695b08cd14db5d7adef30343f9
+    assetPath: Assets/Prefabs/Rooms/Props/Box_Office/SM_Menu_Board_Small_1.prefab
+    size: {x: 0.54, y: 0.96, z: 0.08549301}
+    layer: Default
+    flags: 0
+    components: 
+    autoNotes: 
+    notes: 
+    lockCategory: 0
+  - code: SIN-05
+    displayName: Menu Board Small 2
+    category: 10
+    theme: Bilheteria
+    prefab: {fileID: 1270526942399505713, guid: 8db93093289d24744b011a1f33effede, type: 3}
+    guid: 8db93093289d24744b011a1f33effede
+    assetPath: Assets/Prefabs/Rooms/Props/Box_Office/SM_Menu_Board_Small_2.prefab
+    size: {x: 0.54, y: 0.96, z: 0.08549301}
+    layer: Default
+    flags: 0
+    components: 
+    autoNotes: 
+    notes: 
+    lockCategory: 0
+  - code: SIN-06
+    displayName: Snacks Sign
+    category: 10
+    theme: Bilheteria
+    prefab: {fileID: 1750016108239972026, guid: b005bcf3cff726448938d69ce2e8fc1e, type: 3}
+    guid: b005bcf3cff726448938d69ce2e8fc1e
+    assetPath: Assets/Prefabs/Rooms/Props/Box_Office/SM_Snacks_Sign.prefab
+    size: {x: 3.3489661, y: 0.60250556, z: 0.10996271}
+    layer: Default
+    flags: 0
+    components: 
+    autoNotes: 
+    notes: 
+    lockCategory: 0
+  - code: SIN-07
+    displayName: Snacks Sign New
+    category: 10
+    theme: Bilheteria
+    prefab: {fileID: 6437528623802161048, guid: 88f00e0947e29284d9240021bb702f6b, type: 3}
+    guid: 88f00e0947e29284d9240021bb702f6b
+    assetPath: Assets/Prefabs/Rooms/Props/Box_Office/SM_Snacks_Sign_New.prefab
+    size: {x: 3.420001, y: 0.63856816, z: 0.105727986}
+    layer: Default
+    flags: 0
+    components: 
+    autoNotes: 
+    notes: 
+    lockCategory: 0
+  - code: SIN-08
+    displayName: Tickets Sign
+    category: 10
+    theme: Bilheteria
+    prefab: {fileID: 80857331857952318, guid: 31d5d8bcef9f6754b8802ef46bb5d221, type: 3}
+    guid: 31d5d8bcef9f6754b8802ef46bb5d221
+    assetPath: Assets/Prefabs/Rooms/Props/Box_Office/SM_Tickets_Sign.prefab
+    size: {x: 3.5253186, y: 0.7095208, z: 0.10996297}
+    layer: Default
+    flags: 0
+    components: 
+    autoNotes: 
+    notes: 
+    lockCategory: 0
+  - code: SIN-09
+    displayName: Tickets Sign New
+    category: 10
+    theme: Bilheteria
+    prefab: {fileID: 3885511454994563189, guid: 096146c9986bb034b9f4cc5358142b36, type: 3}
+    guid: 096146c9986bb034b9f4cc5358142b36
+    assetPath: Assets/Prefabs/Rooms/Props/Box_Office/SM_Tickets_Sign_New.prefab
+    size: {x: 3.7232108, y: 0.63706726, z: 0.10572756}
+    layer: Default
+    flags: 0
+    components: 
+    autoNotes: 
+    notes: 
+    lockCategory: 0
+  - code: SIN-10
+    displayName: Notice Board
+    category: 10
+    theme: Camarim
+    prefab: {fileID: 4825033635961551953, guid: fa6f1e35cc286344f80964eb9faa654a, type: 3}
+    guid: fa6f1e35cc286344f80964eb9faa654a
+    assetPath: Assets/Prefabs/Rooms/Props/Dressing_Room/SM_Notice_Board.prefab
+    size: {x: 0.0508106, y: 1.3416181, z: 2.6216125}
+    layer: Scenary
+    flags: 11
+    components: 
+    autoNotes: 
+    notes: 
+    lockCategory: 0
+  - code: SIN-11
+    displayName: Exit Light
+    category: 10
+    theme: Corredor
+    prefab: {fileID: 361787665388830164, guid: dc3c320baaf5a2743bd8027089a8df6b, type: 3}
+    guid: dc3c320baaf5a2743bd8027089a8df6b
+    assetPath: Assets/Prefabs/Rooms/Props/Hallway/SM_Exit_Light.prefab
+    size: {x: 0.40000007, y: 0.15000004, z: 0.040000003}
+    layer: Scenary
+    flags: 0
+    components: 
+    autoNotes: 
+    notes: 
+    lockCategory: 0
+  - code: SIN-12
+    displayName: Exit Sign
+    category: 10
+    theme: Corredor
+    prefab: {fileID: 2116437344645805947, guid: 9660c6789086f5b4681d344b0dd6128a, type: 3}
+    guid: 9660c6789086f5b4681d344b0dd6128a
+    assetPath: Assets/Prefabs/Rooms/Props/Hallway/SM_Exit_Sign.prefab
+    size: {x: 0.03, y: 0.23999998, z: 0.42}
+    layer: Scenary
+    flags: 0
+    components: 
+    autoNotes: 
+    notes: 
+    lockCategory: 0
+  - code: SIN-13
+    displayName: Notice Board
+    category: 10
+    theme: Corredor
+    prefab: {fileID: 6336409731402172033, guid: e18f6c497d5019d4b806f96049e56725, type: 3}
+    guid: e18f6c497d5019d4b806f96049e56725
+    assetPath: Assets/Prefabs/Rooms/Props/Hallway/SM_Notice_Board.prefab
+    size: {x: 2.6216128, y: 1.3416181, z: 0.050809592}
+    layer: Default
+    flags: 0
+    components: 
+    autoNotes: 
+    notes: 
+    lockCategory: 0
+  - code: SIN-14
+    displayName: Paper 12x16
+    category: 10
+    theme: Corredor
+    prefab: {fileID: 4869371842619939577, guid: 316b7fc2ee4bef443835da8daed1064b, type: 3}
+    guid: 316b7fc2ee4bef443835da8daed1064b
+    assetPath: Assets/Prefabs/Rooms/Props/Hallway/SM_Paper_12x16.prefab
+    size: {x: 0.000000012239188, y: 0.16, z: 0.12}
+    layer: Default
+    flags: 0
+    components: 
+    autoNotes: 
+    notes: 
+    lockCategory: 0
+  - code: SIN-15
+    displayName: Paper 12x16 V2
+    category: 10
+    theme: Corredor
+    prefab: {fileID: 5141730616795543884, guid: de2469e461f5d4b499ca2a798bc00077, type: 3}
+    guid: de2469e461f5d4b499ca2a798bc00077
+    assetPath: Assets/Prefabs/Rooms/Props/Hallway/SM_Paper_12x16_V2.prefab
+    size: {x: 0.000000012239188, y: 0.16000007, z: 0.12}
+    layer: Default
+    flags: 0
+    components: 
+    autoNotes: 
+    notes: 
+    lockCategory: 0
+  - code: SIN-16
+    displayName: Paper 16x9
+    category: 10
+    theme: Corredor
+    prefab: {fileID: 241403573469020455, guid: 730c8f13248de8f4eab4b4dc9c9bb43b, type: 3}
+    guid: 730c8f13248de8f4eab4b4dc9c9bb43b
+    assetPath: Assets/Prefabs/Rooms/Props/Hallway/SM_Paper_16x9.prefab
+    size: {x: 0.000000010927847, y: 0.089999996, z: 0.16}
+    layer: Default
+    flags: 0
+    components: 
+    autoNotes: 
+    notes: 
+    lockCategory: 0
+  - code: SIN-17
+    displayName: Paper 16x9 V2
+    category: 10
+    theme: Corredor
+    prefab: {fileID: 3632836509588287098, guid: b8a261446d83ec84199d12561fd8d146, type: 3}
+    guid: b8a261446d83ec84199d12561fd8d146
+    assetPath: Assets/Prefabs/Rooms/Props/Hallway/SM_Paper_16x9_V2.prefab
+    size: {x: 0.000000010927847, y: 0.089999996, z: 0.16}
+    layer: Default
+    flags: 0
+    components: 
+    autoNotes: 
+    notes: 
+    lockCategory: 0
+  - code: SIN-18
+    displayName: Paper 25x30
+    category: 10
+    theme: Corredor
+    prefab: {fileID: 6363376905086013011, guid: 5925075a5fe779a488ebbfb7a3616257, type: 3}
+    guid: 5925075a5fe779a488ebbfb7a3616257
+    assetPath: Assets/Prefabs/Rooms/Props/Hallway/SM_Paper_25x30.prefab
+    size: {x: 0.00000002988552, y: 0.3, z: 0.25}
+    layer: Default
+    flags: 0
+    components: 
+    autoNotes: 
+    notes: 
+    lockCategory: 0
+  - code: SIN-19
+    displayName: Paper 25x30 V2
+    category: 10
+    theme: Corredor
+    prefab: {fileID: 5857718658086994091, guid: a0573ce7facd5e643bd01b50f56be65f, type: 3}
+    guid: a0573ce7facd5e643bd01b50f56be65f
+    assetPath: Assets/Prefabs/Rooms/Props/Hallway/SM_Paper_25x30_V2.prefab
+    size: {x: 0.00000002988552, y: 0.29999995, z: 0.25}
+    layer: Default
+    flags: 0
+    components: 
+    autoNotes: 
+    notes: 
+    lockCategory: 0
+  - code: SIN-20
+    displayName: Paper 28x40
+    category: 10
+    theme: Corredor
+    prefab: {fileID: 8433856087976372499, guid: 19a29a2ef1ae0a841b50f19289d8fb26, type: 3}
+    guid: 19a29a2ef1ae0a841b50f19289d8fb26
+    assetPath: Assets/Prefabs/Rooms/Props/Hallway/SM_Paper_28x40.prefab
+    size: {x: 0.00000002988552, y: 0.39999998, z: 0.28}
+    layer: Default
+    flags: 0
+    components: 
+    autoNotes: 
+    notes: 
+    lockCategory: 0
+  - code: SIN-21
+    displayName: Paper 28x40 V2
+    category: 10
+    theme: Corredor
+    prefab: {fileID: 865366857363770725, guid: c3292eba4df74a84ea2f379754d6eddb, type: 3}
+    guid: c3292eba4df74a84ea2f379754d6eddb
+    assetPath: Assets/Prefabs/Rooms/Props/Hallway/SM_Paper_28x40_V2.prefab
+    size: {x: 0.00000002988552, y: 0.4, z: 0.28}
+    layer: Default
+    flags: 0
+    components: 
+    autoNotes: 
+    notes: 
+    lockCategory: 0
+  - code: SIN-22
+    displayName: Paper 32x18
+    category: 10
+    theme: Corredor
+    prefab: {fileID: 2572997432975986859, guid: 7d3fa3864f7014f48881fb2475f598f5, type: 3}
+    guid: 7d3fa3864f7014f48881fb2475f598f5
+    assetPath: Assets/Prefabs/Rooms/Props/Hallway/SM_Paper_32x18.prefab
+    size: {x: 0.000000021855694, y: 0.17999999, z: 0.32}
+    layer: Default
+    flags: 0
+    components: 
+    autoNotes: 
+    notes: 
+    lockCategory: 0
+  - code: SIN-23
+    displayName: Paper 32x18 V2
+    category: 10
+    theme: Corredor
+    prefab: {fileID: 8467388559156076855, guid: 5192ab1d801d06546939a076c04d6239, type: 3}
+    guid: 5192ab1d801d06546939a076c04d6239
+    assetPath: Assets/Prefabs/Rooms/Props/Hallway/SM_Paper_32x18_V2.prefab
+    size: {x: 0.000000021855694, y: 0.18000007, z: 0.32}
+    layer: Default
+    flags: 0
+    components: 
+    autoNotes: 
+    notes: 
+    lockCategory: 0
+  - code: SIN-24
+    displayName: Paper 45x63
+    category: 10
+    theme: Corredor
+    prefab: {fileID: 5875659604806051322, guid: dd9f4e3754b583b419d101b11e50fa4b, type: 3}
+    guid: dd9f4e3754b583b419d101b11e50fa4b
+    assetPath: Assets/Prefabs/Rooms/Props/Hallway/SM_Paper_45x63.prefab
+    size: {x: 0.0005504703, y: 0.6300003, z: 0.45}
+    layer: Default
+    flags: 0
+    components: 
+    autoNotes: 
+    notes: 
+    lockCategory: 0
+  - code: SIN-25
+    displayName: Paper 45x63 V2
+    category: 10
+    theme: Corredor
+    prefab: {fileID: 7872530255873322932, guid: bb66c06d9533af14582d1c3dcd5267bf, type: 3}
+    guid: bb66c06d9533af14582d1c3dcd5267bf
+    assetPath: Assets/Prefabs/Rooms/Props/Hallway/SM_Paper_45x63_V2.prefab
+    size: {x: 0.0005504703, y: 0.63000035, z: 0.45}
+    layer: Default
+    flags: 0
+    components: 
+    autoNotes: 
+    notes: 
+    lockCategory: 0
+  - code: SIN-26
+    displayName: Pin V1
+    category: 10
+    theme: Corredor
+    prefab: {fileID: 5347306554636845634, guid: 66073e3dbcd884e4187b412f81eb9d85, type: 3}
+    guid: 66073e3dbcd884e4187b412f81eb9d85
+    assetPath: Assets/Prefabs/Rooms/Props/Hallway/SM_Pin_V1.prefab
+    size: {x: 0.027707227, y: 0.0316473, z: 0.0316473}
+    layer: Default
+    flags: 0
+    components: 
+    autoNotes: 
+    notes: 
+    lockCategory: 0
+  - code: SIN-27
+    displayName: Pin V2
+    category: 10
+    theme: Corredor
+    prefab: {fileID: 6747741097364117222, guid: 5df988b56c39a844c815565f202acb4a, type: 3}
+    guid: 5df988b56c39a844c815565f202acb4a
+    assetPath: Assets/Prefabs/Rooms/Props/Hallway/SM_Pin_V2.prefab
+    size: {x: 0.027707227, y: 0.0316473, z: 0.0316473}
+    layer: Default
+    flags: 0
+    components: 
+    autoNotes: 
+    notes: 
+    lockCategory: 0
+  - code: SIN-28
+    displayName: Post Its
+    category: 10
+    theme: Corredor
+    prefab: {fileID: 6455205387863397463, guid: 3566723824d3e824080facca8a01145e, type: 3}
+    guid: 3566723824d3e824080facca8a01145e
+    assetPath: Assets/Prefabs/Rooms/Props/Hallway/SM_Post_Its.prefab
+    size: {x: 0.030585065, y: 0.40406212, z: 1.1028143}
+    layer: Default
+    flags: 0
+    components: 
+    autoNotes: 
+    notes: 
+    lockCategory: 0
+  - code: SIN-29
+    displayName: Post Its V2
+    category: 10
+    theme: Corredor
+    prefab: {fileID: 1307105328499287065, guid: 100a0529faf003a4daa2b74b577f7655, type: 3}
+    guid: 100a0529faf003a4daa2b74b577f7655
+    assetPath: Assets/Prefabs/Rooms/Props/Hallway/SM_Post_Its_V2.prefab
+    size: {x: 0.04032304, y: 0.48620012, z: 1.3414632}
+    layer: Default
+    flags: 0
+    components: 
+    autoNotes: 
+    notes: 
+    lockCategory: 0
+  - code: SIN-30
+    displayName: Poster
+    category: 10
+    theme: Corredor
+    prefab: {fileID: 660793683981963949, guid: d0bf8d3d9903dd741bcdb864093988e2, type: 3}
+    guid: d0bf8d3d9903dd741bcdb864093988e2
+    assetPath: Assets/Prefabs/Rooms/Props/Hallway/SM_Poster.prefab
+    size: {x: 0.0007339604, y: 0.8400004, z: 0.6}
+    layer: Default
+    flags: 0
+    components: 
+    autoNotes: 
+    notes: 
+    lockCategory: 0
+  - code: SIN-31
+    displayName: Poster V2
+    category: 10
+    theme: Corredor
+    prefab: {fileID: 1581183960516261552, guid: 94fc28d0cb1c9b143a6640526986cd20, type: 3}
+    guid: 94fc28d0cb1c9b143a6640526986cd20
+    assetPath: Assets/Prefabs/Rooms/Props/Hallway/SM_Poster_V2.prefab
+    size: {x: 0.0007339604, y: 0.84000015, z: 0.6}
+    layer: Default
+    flags: 0
+    components: 
+    autoNotes: 
+    notes: 
+    lockCategory: 0
+  - code: SIN-32
+    displayName: Poster
+    category: 10
+    theme: "Miss\xF5es"
+    prefab: {fileID: 1339505012529218238, guid: 42067a1155478b3409adb60e323abd91, type: 3}
+    guid: 42067a1155478b3409adb60e323abd91
+    assetPath: Assets/Prefabs/Missions/Contracts/SM_Poster.prefab
+    size: {x: 0.0007339604, y: 0.8400004, z: 0.6}
+    layer: Default
+    flags: 0
+    components: 
+    autoNotes: 
+    notes: 
+    lockCategory: 0
+  - code: SIN-33
+    displayName: Poster 2
+    category: 10
+    theme: "Miss\xF5es"
+    prefab: {fileID: 2056930855403236291, guid: af2606af1019e2649893d15de4d4b46e, type: 3}
+    guid: af2606af1019e2649893d15de4d4b46e
+    assetPath: Assets/Prefabs/Missions/Contracts/SM_Poster_2.prefab
+    size: {x: 0.0007339604, y: 0.84000015, z: 0.6}
+    layer: Default
+    flags: 0
+    components: 
+    autoNotes: 
+    notes: 
+    lockCategory: 0
+  - code: SIN-34
+    displayName: Poster 3
+    category: 10
+    theme: "Miss\xF5es"
+    prefab: {fileID: 7130234770872256641, guid: b468ff5c033d73244ac4211b702957d6, type: 3}
+    guid: b468ff5c033d73244ac4211b702957d6
+    assetPath: Assets/Prefabs/Missions/Contracts/SM_Poster_3.prefab
+    size: {x: 0.0007339604, y: 0.8400004, z: 0.6}
+    layer: Default
+    flags: 0
+    components: 
+    autoNotes: 
+    notes: 
+    lockCategory: 0
+  - code: SIN-35
+    displayName: Poster 4
+    category: 10
+    theme: "Miss\xF5es"
+    prefab: {fileID: 4450203457229617105, guid: 979b9add83451ff4aa128af8831aa2c3, type: 3}
+    guid: 979b9add83451ff4aa128af8831aa2c3
+    assetPath: Assets/Prefabs/Missions/Contracts/SM_Poster_4.prefab
+    size: {x: 0.0007339604, y: 0.8400004, z: 0.6}
+    layer: Default
+    flags: 0
+    components: 
+    autoNotes: 
+    notes: 
+    lockCategory: 0
+  - code: SIN-36
+    displayName: Poster 5
+    category: 10
+    theme: "Miss\xF5es"
+    prefab: {fileID: 7145255479354420033, guid: c26a0c9c6ef82d24bbc11c5c13cc6c75, type: 3}
+    guid: c26a0c9c6ef82d24bbc11c5c13cc6c75
+    assetPath: Assets/Prefabs/Missions/Contracts/SM_Poster_5.prefab
+    size: {x: 0.0007339604, y: 0.8400004, z: 0.6}
+    layer: Default
+    flags: 0
+    components: 
+    autoNotes: 
+    notes: 
+    lockCategory: 0
+  - code: SIN-37
+    displayName: Poster 6
+    category: 10
+    theme: "Miss\xF5es"
+    prefab: {fileID: 584006558921348723, guid: c12725e0f6330094e9cd9321d6361e9f, type: 3}
+    guid: c12725e0f6330094e9cd9321d6361e9f
+    assetPath: Assets/Prefabs/Missions/Contracts/SM_Poster_6.prefab
+    size: {x: 0.0007339604, y: 0.84000015, z: 0.6}
+    layer: Default
+    flags: 0
+    components: 
+    autoNotes: 
+    notes: 
+    lockCategory: 0
+  - code: DEC-01
+    displayName: Cup Big
+    category: 11
+    theme: "Audit\xF3rio"
+    prefab: {fileID: 7202666169071295119, guid: f3ca4f16b3ae91f499257fe3440453ed, type: 3}
+    guid: f3ca4f16b3ae91f499257fe3440453ed
+    assetPath: Assets/Prefabs/Rooms/Props/Auditorium/SM_Cup_Big.prefab
+    size: {x: 0.15960187, y: 0.3033963, z: 0.15960187}
+    layer: Scenary
+    flags: 1035
+    components: 
+    autoNotes: 
+    notes: 
+    lockCategory: 0
+  - code: DEC-02
+    displayName: Cup Small
+    category: 11
+    theme: "Audit\xF3rio"
+    prefab: {fileID: 2937237816292433440, guid: 4689c43b65e1cd04dbb0337900e1dbb5, type: 3}
+    guid: 4689c43b65e1cd04dbb0337900e1dbb5
+    assetPath: Assets/Prefabs/Rooms/Props/Auditorium/SM_Cup_Small.prefab
+    size: {x: 0.15960187, y: 0.2727129, z: 0.15960187}
+    layer: Scenary
+    flags: 1035
+    components: 
+    autoNotes: 
+    notes: 
+    lockCategory: 0
+  - code: DEC-03
+    displayName: Popcorn Paper Big
+    category: 11
+    theme: "Audit\xF3rio"
+    prefab: {fileID: 4124974886743633156, guid: b73e423a1e010ea4ebcea7e5ebd58644, type: 3}
+    guid: b73e423a1e010ea4ebcea7e5ebd58644
+    assetPath: Assets/Prefabs/Rooms/Props/Auditorium/SM_Popcorn_Paper_Big.prefab
+    size: {x: 0.15843852, y: 0.21702851, z: 0.15843852}
+    layer: Scenary
+    flags: 11
+    components: 
+    autoNotes: 
+    notes: 
+    lockCategory: 0
+  - code: DEC-04
+    displayName: Popcorn Paper Big Amount
+    category: 11
+    theme: "Audit\xF3rio"
+    prefab: {fileID: 4057044407313202054, guid: 14bb8c8e876c1904f88001f7f62c3423, type: 3}
+    guid: 14bb8c8e876c1904f88001f7f62c3423
+    assetPath: Assets/Prefabs/Rooms/Props/Auditorium/SM_Popcorn_Paper_Big_Amount.prefab
+    size: {x: 0.15843852, y: 0.31469136, z: 0.15843852}
+    layer: Scenary
+    flags: 11
+    components: 
+    autoNotes: 
+    notes: 
+    lockCategory: 0
+  - code: DEC-05
+    displayName: Popcorn Paper Small
+    category: 11
+    theme: "Audit\xF3rio"
+    prefab: {fileID: 7895510993511018832, guid: fa824acc47cda9b4bb4240bc700a6559, type: 3}
+    guid: fa824acc47cda9b4bb4240bc700a6559
+    assetPath: Assets/Prefabs/Rooms/Props/Auditorium/SM_Popcorn_Paper_Small.prefab
+    size: {x: 0.15843852, y: 0.18085708, z: 0.15843852}
+    layer: Scenary
+    flags: 11
+    components: 
+    autoNotes: 
+    notes: 
+    lockCategory: 0
+  - code: DEC-06
+    displayName: Popcorn Paper Small Amount
+    category: 11
+    theme: "Audit\xF3rio"
+    prefab: {fileID: 7249970892328278247, guid: ce0f50531b672a04a99570e43991e9bb, type: 3}
+    guid: ce0f50531b672a04a99570e43991e9bb
+    assetPath: Assets/Prefabs/Rooms/Props/Auditorium/SM_Popcorn_Paper_Small_Amount.prefab
+    size: {x: 0.15843852, y: 0.2622428, z: 0.15843852}
+    layer: Scenary
+    flags: 11
+    components: 
+    autoNotes: 
+    notes: 
+    lockCategory: 0
+  - code: DEC-07
+    displayName: Bathroom Cabin
+    category: 11
+    theme: Banheiro
+    prefab: {fileID: 4604053854797956174, guid: 7fbe640a28d02914398778288c3b0b35, type: 3}
+    guid: 7fbe640a28d02914398778288c3b0b35
+    assetPath: Assets/Prefabs/Rooms/Props/Bathroom/SM_Bathroom_Cabin.prefab
+    size: {x: 0.27134204, y: 2, z: 2.014733}
+    layer: Default
+    flags: 0
+    components: 
+    autoNotes: 
+    notes: 
+    lockCategory: 0
+  - code: DEC-08
+    displayName: Bathroom Door
+    category: 11
+    theme: Banheiro
+    prefab: {fileID: 7683771501786478243, guid: 6c0143796a23386469e280590ccc03b6, type: 3}
+    guid: 6c0143796a23386469e280590ccc03b6
+    assetPath: Assets/Prefabs/Rooms/Props/Bathroom/SM_Bathroom_Door.prefab
+    size: {x: 1.1559752, y: 1.75, z: 0.0992683}
+    layer: Default
+    flags: 0
+    components: 
+    autoNotes: 
+    notes: 
+    lockCategory: 0
+  - code: DEC-09
+    displayName: Bathroom Mirror
+    category: 11
+    theme: Banheiro
+    prefab: {fileID: 390714837119009300, guid: 32a686d2158437a4997f0b6ed97b21b7, type: 3}
+    guid: 32a686d2158437a4997f0b6ed97b21b7
+    assetPath: Assets/Prefabs/Rooms/Props/Bathroom/SM_Bathroom_Mirror.prefab
+    size: {x: 0.7, y: 1, z: 0.020000044}
+    layer: Default
+    flags: 0
+    components: 
+    autoNotes: 
+    notes: 
+    lockCategory: 0
+  - code: DEC-10
+    displayName: Bathroom Mirror 2
+    category: 11
+    theme: Banheiro
+    prefab: {fileID: 4821729880477525934, guid: c6f95fb0dff7ac74a85de9bab82a29ec, type: 3}
+    guid: c6f95fb0dff7ac74a85de9bab82a29ec
+    assetPath: Assets/Prefabs/Rooms/Props/Bathroom/SM_Bathroom_Mirror_2.prefab
+    size: {x: 0.70000005, y: 1, z: 0.020000044}
+    layer: Default
+    flags: 0
+    components: 
+    autoNotes: 
+    notes: 
+    lockCategory: 0
+  - code: DEC-11
+    displayName: Bathroom Papel Towel Dispenser
+    category: 11
+    theme: Banheiro
+    prefab: {fileID: 7030497822588638128, guid: 522b11afa7265314fb847ed636a5f7bc, type: 3}
+    guid: 522b11afa7265314fb847ed636a5f7bc
+    assetPath: Assets/Prefabs/Rooms/Props/Bathroom/SM_Bathroom_Papel_Towel_Dispenser.prefab
+    size: {x: 0.33599997, y: 0.47549826, z: 0.12933576}
+    layer: Default
+    flags: 0
+    components: 
+    autoNotes: 
+    notes: 
+    lockCategory: 0
+  - code: DEC-12
+    displayName: Bathroom Soap Dish
+    category: 11
+    theme: Banheiro
+    prefab: {fileID: 4330149847904616915, guid: 2403d487c27f0124d8d83fbc25c422fb, type: 3}
+    guid: 2403d487c27f0124d8d83fbc25c422fb
+    assetPath: Assets/Prefabs/Rooms/Props/Bathroom/SM_Bathroom_Soap_Dish.prefab
+    size: {x: 0.15878348, y: 0.25777382, z: 0.12900524}
+    layer: Default
+    flags: 0
+    components: 
+    autoNotes: 
+    notes: 
+    lockCategory: 0
+  - code: DEC-13
+    displayName: Bathroom Trash
+    category: 11
+    theme: Banheiro
+    prefab: {fileID: 9007142034667725386, guid: 8a4df957655e97e4b8550172f14cf415, type: 3}
+    guid: 8a4df957655e97e4b8550172f14cf415
+    assetPath: Assets/Prefabs/Rooms/Props/Bathroom/SM_Bathroom_Trash.prefab
+    size: {x: 0.5763174, y: 0.60298884, z: 0.46654272}
+    layer: Default
+    flags: 0
+    components: 
+    autoNotes: 
+    notes: 
+    lockCategory: 0
+  - code: DEC-14
+    displayName: Bathroom Trash Can
+    category: 11
+    theme: Banheiro
+    prefab: {fileID: 5887812216868517385, guid: 9e263dcae9cd12f4fa0a2f59e8b84d7e, type: 3}
+    guid: 9e263dcae9cd12f4fa0a2f59e8b84d7e
+    assetPath: Assets/Prefabs/Rooms/Props/Bathroom/SM_Bathroom_Trash_Can.prefab
+    size: {x: 0.21375391, y: 0.4435829, z: 0.32872704}
+    layer: Default
+    flags: 0
+    components: 
+    autoNotes: 
+    notes: 
+    lockCategory: 0
+  - code: DEC-15
+    displayName: Sink
+    category: 11
+    theme: Banheiro
+    prefab: {fileID: 1743411380965674911, guid: 58ea7ce62f0d62e438015e8e96c6fa29, type: 3}
+    guid: 58ea7ce62f0d62e438015e8e96c6fa29
+    assetPath: Assets/Prefabs/Rooms/Props/Bathroom/SM_Sink.prefab
+    size: {x: 0.73774344, y: 0.6206313, z: 0.5920147}
+    layer: Default
+    flags: 0
+    components: 
+    autoNotes: 
+    notes: 
+    lockCategory: 0
+  - code: DEC-16
+    displayName: Toilet
+    category: 11
+    theme: Banheiro
+    prefab: {fileID: 8359550396212069878, guid: e2d4154a33d00064386428d9a5d5f077, type: 3}
+    guid: e2d4154a33d00064386428d9a5d5f077
+    assetPath: Assets/Prefabs/Rooms/Props/Bathroom/SM_Toilet.prefab
+    size: {x: 0.55241543, y: 1.0850307, z: 0.83653927}
+    layer: Default
+    flags: 0
+    components: 
+    autoNotes: 
+    notes: 
+    lockCategory: 0
+  - code: DEC-17
+    displayName: Toilet Paper Normal 1
+    category: 11
+    theme: Banheiro
+    prefab: {fileID: 1824168812246174482, guid: c0e967396cef65b4d8107126a0f3d281, type: 3}
+    guid: c0e967396cef65b4d8107126a0f3d281
+    assetPath: Assets/Prefabs/Rooms/Props/Bathroom/SM_Toilet_Paper_Normal_1.prefab
+    size: {x: 0.13557132, y: 0.17745227, z: 0.16276246}
+    layer: Default
+    flags: 0
+    components: 
+    autoNotes: 
+    notes: 
+    lockCategory: 0
+  - code: DEC-18
+    displayName: Toilet Paper Normal 2
+    category: 11
+    theme: Banheiro
+    prefab: {fileID: 1182956818926874230, guid: 6f54ac10a0653f647b1a9553b020fcb6, type: 3}
+    guid: 6f54ac10a0653f647b1a9553b020fcb6
+    assetPath: Assets/Prefabs/Rooms/Props/Bathroom/SM_Toilet_Paper_Normal_2.prefab
+    size: {x: 0.1322988, y: 0.1346067, z: 0.1346067}
+    layer: Default
+    flags: 0
+    components: 
+    autoNotes: 
+    notes: 
+    lockCategory: 0
+  - code: DEC-19
+    displayName: Cabinet
+    category: 11
+    theme: Bilheteria
+    prefab: {fileID: 7903569085905660440, guid: 320cdd496ef15f848a28a29d4e674537, type: 3}
+    guid: 320cdd496ef15f848a28a29d4e674537
+    assetPath: Assets/Prefabs/Rooms/Props/Box_Office/SM_Cabinet.prefab
+    size: {x: 4.378254, y: 1.095, z: 1.2073013}
+    layer: Default
+    flags: 0
+    components: 
+    autoNotes: 
+    notes: 
+    lockCategory: 0
+  - code: DEC-20
+    displayName: Cabinet New
+    category: 11
+    theme: Bilheteria
+    prefab: {fileID: 5860808159900930443, guid: 959754028ed6ca143b6c4b11120dc9b7, type: 3}
+    guid: 959754028ed6ca143b6c4b11120dc9b7
+    assetPath: Assets/Prefabs/Rooms/Props/Box_Office/SM_Cabinet_New.prefab
+    size: {x: 10.453754, y: 1.1003735, z: 4.453681}
+    layer: Default
+    flags: 0
+    components: 
+    autoNotes: 
+    notes: 
+    lockCategory: 0
+  - code: DEC-21
+    displayName: Cash Register
+    category: 11
+    theme: Bilheteria
+    prefab: {fileID: 3740809595831203752, guid: bc0290263e844e84abe43e24e10c1765, type: 3}
+    guid: bc0290263e844e84abe43e24e10c1765
+    assetPath: Assets/Prefabs/Rooms/Props/Box_Office/SM_Cash_Register.prefab
+    size: {x: 0.55059505, y: 0.4889818, z: 1.0621028}
+    layer: Default
+    flags: 0
+    components: 
+    autoNotes: 
+    notes: 
+    lockCategory: 0
+  - code: DEC-22
+    displayName: Chair Foyer
+    category: 11
+    theme: Bilheteria
+    prefab: {fileID: 5795490013226771003, guid: 7ecf3537b720f854ea6a44fb050185f3, type: 3}
+    guid: 7ecf3537b720f854ea6a44fb050185f3
+    assetPath: Assets/Prefabs/Rooms/Props/Box_Office/SM_Chair_Foyer.prefab
+    size: {x: 0.6314464, y: 1.3408401, z: 0.7781911}
+    layer: Default
+    flags: 0
+    components: 
+    autoNotes: 
+    notes: 
+    lockCategory: 0
+  - code: DEC-23
+    displayName: Floor Cabinet
+    category: 11
+    theme: Bilheteria
+    prefab: {fileID: 1450818017211228908, guid: b100f16912c28104380cb7e32a95743e, type: 3}
+    guid: b100f16912c28104380cb7e32a95743e
+    assetPath: Assets/Prefabs/Rooms/Props/Box_Office/SM_Floor_Cabinet.prefab
+    size: {x: 3, y: 1.0395073, z: 1.1071105}
+    layer: Default
+    flags: 0
+    components: 
+    autoNotes: 
+    notes: 
+    lockCategory: 0
+  - code: DEC-24
+    displayName: Floor Cabinet Player
+    category: 11
+    theme: Bilheteria
+    prefab: {fileID: 2781570595138004577, guid: 95890905aeb202d429a570154112cccd, type: 3}
+    guid: 95890905aeb202d429a570154112cccd
+    assetPath: Assets/Prefabs/Rooms/Props/Box_Office/SM_Floor_Cabinet_Player.prefab
+    size: {x: 3, y: 1.0395073, z: 1.1071105}
+    layer: Default
+    flags: 0
+    components: 
+    autoNotes: 
+    notes: 
+    lockCategory: 0
+  - code: DEC-25
+    displayName: Popcorn Machine
+    category: 11
+    theme: Bilheteria
+    prefab: {fileID: 2388686016380926641, guid: f048be48c0fa1454ea9691a4e981a75c, type: 3}
+    guid: f048be48c0fa1454ea9691a4e981a75c
+    assetPath: Assets/Prefabs/Rooms/Props/Box_Office/SM_Popcorn_Machine.prefab
+    size: {x: 0.7041493, y: 1.002379, z: 0.5920713}
+    layer: Default
+    flags: 0
+    components: 
+    autoNotes: 
+    notes: 
+    lockCategory: 0
+  - code: DEC-26
+    displayName: Soda Machine
+    category: 11
+    theme: Bilheteria
+    prefab: {fileID: 3796051838559182298, guid: 77670e4c540d9ff42be10f79f880965a, type: 3}
+    guid: 77670e4c540d9ff42be10f79f880965a
+    assetPath: Assets/Prefabs/Rooms/Props/Box_Office/SM_Soda_Machine.prefab
+    size: {x: 0.64523137, y: 0.8399394, z: 0.71895194}
+    layer: Default
+    flags: 0
+    components: 
+    autoNotes: 
+    notes: 
+    lockCategory: 0
+  - code: DEC-27
+    displayName: Sofa
+    category: 11
+    theme: Bilheteria
+    prefab: {fileID: 2815465124133256506, guid: 855efbd2d7bd40b48b3c5fbe78de6b87, type: 3}
+    guid: 855efbd2d7bd40b48b3c5fbe78de6b87
+    assetPath: Assets/Prefabs/Rooms/Props/Box_Office/SM_Sofa.prefab
+    size: {x: 2.368241, y: 1.2887133, z: 1.0043792}
+    layer: Default
+    flags: 0
+    components: 
+    autoNotes: 
+    notes: 
+    lockCategory: 0
+  - code: DEC-28
+    displayName: Stand
+    category: 11
+    theme: Bilheteria
+    prefab: {fileID: 4957987110851820081, guid: 46c86c9904e22b340bedc696ca3b5b59, type: 3}
+    guid: 46c86c9904e22b340bedc696ca3b5b59
+    assetPath: Assets/Prefabs/Rooms/Props/Box_Office/SM_Stand.prefab
+    size: {x: 1.8241383, y: 0.2025, z: 1.8241383}
+    layer: Default
+    flags: 0
+    components: 
+    autoNotes: 
+    notes: 
+    lockCategory: 0
+  - code: DEC-29
+    displayName: Ticket Counter
+    category: 11
+    theme: Bilheteria
+    prefab: {fileID: 5512397316586971996, guid: 1302d2be67010ee4bba4e54625f5292f, type: 3}
+    guid: 1302d2be67010ee4bba4e54625f5292f
+    assetPath: Assets/Prefabs/Rooms/Props/Box_Office/SM_Ticket_Counter.prefab
+    size: {x: 8.26543, y: 3.830992, z: 1.0104831}
+    layer: Default
+    flags: 0
+    components: 
+    autoNotes: 
+    notes: 
+    lockCategory: 0
+  - code: DEC-30
+    displayName: Wall Cabinet
+    category: 11
+    theme: Bilheteria
+    prefab: {fileID: 3652629472859380823, guid: 04ed09dfc70c1764b847cf513fbf3dba, type: 3}
+    guid: 04ed09dfc70c1764b847cf513fbf3dba
+    assetPath: Assets/Prefabs/Rooms/Props/Box_Office/SM_Wall_Cabinet.prefab
+    size: {x: 2.9377697, y: 0.9495072, z: 0.76181334}
+    layer: Default
+    flags: 0
+    components: 
+    autoNotes: 
+    notes: 
+    lockCategory: 0
+  - code: DEC-31
+    displayName: Frame V2
+    category: 11
+    theme: Camarim
+    prefab: {fileID: 960664828575333408, guid: eb221c4a5747ac544a18c714f1d76963, type: 3}
+    guid: eb221c4a5747ac544a18c714f1d76963
+    assetPath: Assets/Prefabs/Rooms/Props/Dressing_Room/SM_Frame_V2.prefab
+    size: {x: 0.75, y: 0.9999999, z: 0.030562457}
+    layer: Scenary
+    flags: 11
+    components: 
+    autoNotes: 
+    notes: 
+    lockCategory: 0
+  - code: DEC-32
+    displayName: Hanger
+    category: 11
+    theme: Camarim
+    prefab: {fileID: 1301081188198074692, guid: c15c0c3bfa2104c43b1fc96e48607e15, type: 3}
+    guid: c15c0c3bfa2104c43b1fc96e48607e15
+    assetPath: Assets/Prefabs/Rooms/Props/Dressing_Room/SM_Hanger.prefab
+    size: {x: 0.2600356, y: 0.011798522, z: 0.4512173}
+    layer: Scenary
+    flags: 0
+    components: 
+    autoNotes: 
+    notes: 
+    lockCategory: 0
+  - code: DEC-33
+    displayName: Top Hat
+    category: 11
+    theme: Camarim
+    prefab: {fileID: 215637102619020367, guid: 2fa1e171d0050f448bb866c93b9949e8, type: 3}
+    guid: 2fa1e171d0050f448bb866c93b9949e8
+    assetPath: Assets/Prefabs/Rooms/Props/Dressing_Room/SM_Top_Hat.prefab
+    size: {x: 0.41499838, y: 0.31284928, z: 0.4346223}
+    layer: Scenary
+    flags: 11
+    components: 
+    autoNotes: 
+    notes: 
+    lockCategory: 0
+  - code: DEC-34
+    displayName: Carpet 01
+    category: 11
+    theme: Corredor
+    prefab: {fileID: 4700054301762843284, guid: eaa63b6fe43f15342a020fb863cdbeed, type: 3}
+    guid: eaa63b6fe43f15342a020fb863cdbeed
+    assetPath: Assets/Prefabs/Rooms/Props/Hallway/SM_Carpet_01.prefab
+    size: {x: 1.25, y: 0.0020469476, z: 1}
+    layer: Default
+    flags: 0
+    components: 
+    autoNotes: 
+    notes: 
+    lockCategory: 0
+  - code: DEC-35
+    displayName: Carpet 02
+    category: 11
+    theme: Corredor
+    prefab: {fileID: 7256355375842711752, guid: 9d967d685eb856644ac869575dfc5ca9, type: 3}
+    guid: 9d967d685eb856644ac869575dfc5ca9
+    assetPath: Assets/Prefabs/Rooms/Props/Hallway/SM_Carpet_02.prefab
+    size: {x: 1.25, y: 0.0020469476, z: 1}
+    layer: Default
+    flags: 0
+    components: 
+    autoNotes: 
+    notes: 
+    lockCategory: 0
+  - code: DEC-36
+    displayName: Carpet 03
+    category: 11
+    theme: Corredor
+    prefab: {fileID: 304840579699748733, guid: d4114cd01333c1246a8fc168c1dc3a83, type: 3}
+    guid: d4114cd01333c1246a8fc168c1dc3a83
+    assetPath: Assets/Prefabs/Rooms/Props/Hallway/SM_Carpet_03.prefab
+    size: {x: 1.2500004, y: 0.009182171, z: 1.0000004}
+    layer: Default
+    flags: 0
+    components: 
+    autoNotes: 
+    notes: 
+    lockCategory: 0
+  - code: DEC-37
+    displayName: Carpet 04
+    category: 11
+    theme: Corredor
+    prefab: {fileID: 3640039338673487503, guid: 31efbc55b3558894a83250d233d67679, type: 3}
+    guid: 31efbc55b3558894a83250d233d67679
+    assetPath: Assets/Prefabs/Rooms/Props/Hallway/SM_Carpet_04.prefab
+    size: {x: 1.25, y: 0.010421092, z: 1}
+    layer: Default
+    flags: 0
+    components: 
+    autoNotes: 
+    notes: 
+    lockCategory: 0
+  - code: DEC-38
+    displayName: Carpet 05
+    category: 11
+    theme: Corredor
+    prefab: {fileID: 6648824191592397714, guid: 86d20fd7fe3a4e14f89337a2647f628a, type: 3}
+    guid: 86d20fd7fe3a4e14f89337a2647f628a
+    assetPath: Assets/Prefabs/Rooms/Props/Hallway/SM_Carpet_05.prefab
+    size: {x: 1.25, y: 0.012349412, z: 1}
+    layer: Default
+    flags: 0
+    components: 
+    autoNotes: 
+    notes: 
+    lockCategory: 0
+  - code: DEC-39
+    displayName: Carpet 06
+    category: 11
+    theme: Corredor
+    prefab: {fileID: 869415197373714586, guid: db96f54c09eaeb340913d4e1252e2c64, type: 3}
+    guid: db96f54c09eaeb340913d4e1252e2c64
+    assetPath: Assets/Prefabs/Rooms/Props/Hallway/SM_Carpet_06.prefab
+    size: {x: 1.25, y: 0.0020469476, z: 1}
+    layer: Default
+    flags: 0
+    components: 
+    autoNotes: 
+    notes: 
+    lockCategory: 0
+  - code: DEC-40
+    displayName: Carpet 07
+    category: 11
+    theme: Corredor
+    prefab: {fileID: 760282502492497513, guid: 8f6ca7e25fcc8f64f88749b403f813ee, type: 3}
+    guid: 8f6ca7e25fcc8f64f88749b403f813ee
+    assetPath: Assets/Prefabs/Rooms/Props/Hallway/SM_Carpet_07.prefab
+    size: {x: 1.2379603, y: 0.03215861, z: 1.0002105}
+    layer: Default
+    flags: 0
+    components: 
+    autoNotes: 
+    notes: 
+    lockCategory: 0
+  - code: DEC-41
+    displayName: Frame V1
+    category: 11
+    theme: Corredor
+    prefab: {fileID: 7191165669684190763, guid: 74ba564ec31faa44582d32ec811f9bc4, type: 3}
+    guid: 74ba564ec31faa44582d32ec811f9bc4
+    assetPath: Assets/Prefabs/Rooms/Props/Hallway/SM_Frame_V1.prefab
+    size: {x: 0.024733307, y: 1.1619836, z: 0.74968415}
+    layer: Scenary
+    flags: 11
+    components: 
+    autoNotes: 
+    notes: 
+    lockCategory: 0
+  - code: DEC-42
+    displayName: Frame V2
+    category: 11
+    theme: Corredor
+    prefab: {fileID: 3608025180633033608, guid: 5b46a3a8d0f899a43b943984ee694364, type: 3}
+    guid: 5b46a3a8d0f899a43b943984ee694364
+    assetPath: Assets/Prefabs/Rooms/Props/Hallway/SM_Frame_V2.prefab
+    size: {x: 0.030562412, y: 0.9999999, z: 0.75}
+    layer: Scenary
+    flags: 11
+    components: 
+    autoNotes: 
+    notes: 
+    lockCategory: 0
+  - code: DEC-43
+    displayName: Mirror
+    category: 11
+    theme: "Dep\xF3sito"
+    prefab: {fileID: 5113646488415241794, guid: c1eb2455d0ea04448a9b7a4fc19a1b45, type: 3}
+    guid: c1eb2455d0ea04448a9b7a4fc19a1b45
+    assetPath: Assets/Prefabs/Rooms/Props/Other_Rooms/SM_Mirror.prefab
+    size: {x: 1.9499999, y: 2.5, z: 0.010470821}
+    layer: Scenary
+    flags: 11
+    components: 
+    autoNotes: 
+    notes: 
+    lockCategory: 0
+  - code: ITM-01
+    displayName: BoxCirclePickable
+    category: 12
+    theme: Itens
+    prefab: {fileID: 5125433734384119432, guid: 3c1beaca9fe89bf41b054f7bd653e75b, type: 3}
+    guid: 3c1beaca9fe89bf41b054f7bd653e75b
+    assetPath: Assets/Prefabs/Items/Pickables/Missions/Box/BoxCirclePickable.prefab
+    size: {x: 0.35718805, y: 0.31981704, z: 0.34958526}
+    layer: Interactable
+    flags: 51
+    components: ItemPickable, MissionOwnershipFilter
+    autoNotes: "Interag\xEDvel a at\xE9 1 m."
+    notes: 
+    lockCategory: 0
+  - code: ITM-02
+    displayName: BoxCircleUsable
+    category: 12
+    theme: Itens
+    prefab: {fileID: 1240209052274545215, guid: ef0d7fee55b4e584ebc02e44900d7396, type: 3}
+    guid: ef0d7fee55b4e584ebc02e44900d7396
+    assetPath: Assets/Prefabs/Items/Usables/Missions/BoxCircleUsable.prefab
+    size: {x: 0.35718805, y: 0.31981704, z: 0.34958526}
+    layer: Default
+    flags: 48
+    components: FollowTransform, SlotPlaceableItem
+    autoNotes: "Interag\xEDvel a at\xE9 1 m."
+    notes: 
+    lockCategory: 0
+  - code: ITM-03
+    displayName: BoxCircleVisual
+    category: 12
+    theme: Itens
+    prefab: {fileID: 12444141923750033, guid: 410d60eb192c4d342b4386f044a447ba, type: 3}
+    guid: 410d60eb192c4d342b4386f044a447ba
+    assetPath: Assets/Prefabs/Items/Visuals/BoxCircleVisual.prefab
+    size: {x: 0.35718805, y: 0.31981704, z: 0.34958526}
+    layer: Default
+    flags: 0
+    components: 
+    autoNotes: 
+    notes: 
+    lockCategory: 0
+  - code: ITM-04
+    displayName: BoxSquarePickable
+    category: 12
+    theme: Itens
+    prefab: {fileID: 5125433734384119432, guid: 738736d4c84cf884fa3933f8834bd77b, type: 3}
+    guid: 738736d4c84cf884fa3933f8834bd77b
+    assetPath: Assets/Prefabs/Items/Pickables/Missions/Box/BoxSquarePickable.prefab
+    size: {x: 0.35718805, y: 0.31981704, z: 0.34958526}
+    layer: Interactable
+    flags: 51
+    components: ItemPickable, MissionOwnershipFilter
+    autoNotes: "Interag\xEDvel a at\xE9 1 m."
+    notes: 
+    lockCategory: 0
+  - code: ITM-05
+    displayName: BoxSquareUsable
+    category: 12
+    theme: Itens
+    prefab: {fileID: 1240209052274545215, guid: 492cb1b2eb701dc4e8f08919e5f2e522, type: 3}
+    guid: 492cb1b2eb701dc4e8f08919e5f2e522
+    assetPath: Assets/Prefabs/Items/Usables/Missions/BoxSquareUsable.prefab
+    size: {x: 0.35718805, y: 0.31981704, z: 0.34958526}
+    layer: Default
+    flags: 48
+    components: FollowTransform, SlotPlaceableItem
+    autoNotes: "Interag\xEDvel a at\xE9 1 m."
+    notes: 
+    lockCategory: 0
+  - code: ITM-06
+    displayName: BoxSquareVisual
+    category: 12
+    theme: Itens
+    prefab: {fileID: 1546434289183073580, guid: 29789c8362d79b74eb9638c5105f5b86, type: 3}
+    guid: 29789c8362d79b74eb9638c5105f5b86
+    assetPath: Assets/Prefabs/Items/Visuals/BoxSquareVisual.prefab
+    size: {x: 0.35718805, y: 0.31981704, z: 0.34958526}
+    layer: Default
+    flags: 0
+    components: 
+    autoNotes: 
+    notes: 
+    lockCategory: 0
+  - code: ITM-07
+    displayName: BoxStarPickable
+    category: 12
+    theme: Itens
+    prefab: {fileID: 5125433734384119432, guid: 94c7c051ae3bdf14c9dfc27c94ae6c72, type: 3}
+    guid: 94c7c051ae3bdf14c9dfc27c94ae6c72
+    assetPath: Assets/Prefabs/Items/Pickables/Missions/Box/BoxStarPickable.prefab
+    size: {x: 0.35718805, y: 0.31981704, z: 0.34958526}
+    layer: Interactable
+    flags: 51
+    components: ItemPickable, MissionOwnershipFilter
+    autoNotes: "Interag\xEDvel a at\xE9 1 m."
+    notes: 
+    lockCategory: 0
+  - code: ITM-08
+    displayName: BoxStarUsable
+    category: 12
+    theme: Itens
+    prefab: {fileID: 1240209052274545215, guid: 3cce621059ffe7b4b9dc28702724fb91, type: 3}
+    guid: 3cce621059ffe7b4b9dc28702724fb91
+    assetPath: Assets/Prefabs/Items/Usables/Missions/BoxStarUsable.prefab
+    size: {x: 0.35718805, y: 0.31981704, z: 0.34958526}
+    layer: Default
+    flags: 48
+    components: FollowTransform, SlotPlaceableItem
+    autoNotes: "Interag\xEDvel a at\xE9 1 m."
+    notes: 
+    lockCategory: 0
+  - code: ITM-09
+    displayName: BoxStarVisual
+    category: 12
+    theme: Itens
+    prefab: {fileID: 6834639469373030946, guid: f05b46b3b9f9e5043960b1d4fd2dc546, type: 3}
+    guid: f05b46b3b9f9e5043960b1d4fd2dc546
+    assetPath: Assets/Prefabs/Items/Visuals/BoxStarVisual.prefab
+    size: {x: 0.35718805, y: 0.31981704, z: 0.34958526}
+    layer: Default
+    flags: 0
+    components: 
+    autoNotes: 
+    notes: 
+    lockCategory: 0
+  - code: ITM-10
+    displayName: BoxTrianglePickable
+    category: 12
+    theme: Itens
+    prefab: {fileID: 5125433734384119432, guid: 8657c52321e9aee40bc2b4bf8607c793, type: 3}
+    guid: 8657c52321e9aee40bc2b4bf8607c793
+    assetPath: Assets/Prefabs/Items/Pickables/Missions/Box/BoxTrianglePickable.prefab
+    size: {x: 0.35718805, y: 0.31981704, z: 0.34958526}
+    layer: Interactable
+    flags: 51
+    components: ItemPickable, MissionOwnershipFilter
+    autoNotes: "Interag\xEDvel a at\xE9 1 m."
+    notes: 
+    lockCategory: 0
+  - code: ITM-11
+    displayName: BoxTriangleUsable
+    category: 12
+    theme: Itens
+    prefab: {fileID: 1240209052274545215, guid: c23fbddfa1e33b34380c03decfcec1f9, type: 3}
+    guid: c23fbddfa1e33b34380c03decfcec1f9
+    assetPath: Assets/Prefabs/Items/Usables/Missions/BoxTriangleUsable.prefab
+    size: {x: 0.35718805, y: 0.31981704, z: 0.34958526}
+    layer: Default
+    flags: 48
+    components: FollowTransform, SlotPlaceableItem
+    autoNotes: "Interag\xEDvel a at\xE9 1 m."
+    notes: 
+    lockCategory: 0
+  - code: ITM-12
+    displayName: BoxTriangleVisual
+    category: 12
+    theme: Itens
+    prefab: {fileID: 565661691710567754, guid: cc0fbd5c4da636f439fbe464035616f9, type: 3}
+    guid: cc0fbd5c4da636f439fbe464035616f9
+    assetPath: Assets/Prefabs/Items/Visuals/BoxTriangleVisual.prefab
+    size: {x: 0.35718805, y: 0.31981704, z: 0.34958526}
+    layer: Default
+    flags: 0
+    components: 
+    autoNotes: 
+    notes: 
+    lockCategory: 0
+  - code: ITM-13
+    displayName: Disket
+    category: 12
+    theme: Itens
+    prefab: {fileID: 6287303695306035475, guid: d3fea57934b3b224ab646f66b4fed83b, type: 3}
+    guid: d3fea57934b3b224ab646f66b4fed83b
+    assetPath: Assets/Prefabs/Items/Disket.prefab
+    size: {x: 0.17578992, y: 0.1156526, z: 0.023501066}
+    layer: Interactable
+    flags: 51
+    components: FloppyDiskPickable
+    autoNotes: "Interag\xEDvel a at\xE9 1 m."
+    notes: 
+    lockCategory: 0
+  - code: ITM-14
+    displayName: FlashlightBatteryPickable
+    category: 12
+    theme: Itens
+    prefab: {fileID: 2447371455967762635, guid: 81c3902b01a208d4e863f01c4de89aae, type: 3}
+    guid: 81c3902b01a208d4e863f01c4de89aae
+    assetPath: Assets/Prefabs/Items/Pickables/FlashlightBatteryPickable.prefab
+    size: {x: 0.04984989, y: 0.089651875, z: 0.024924941}
+    layer: Interactable
+    flags: 51
+    components: ItemPickable
+    autoNotes: "Interag\xEDvel a at\xE9 1 m."
+    notes: 
+    lockCategory: 0
+  - code: ITM-15
+    displayName: FlashlightUsable
+    category: 12
+    theme: Itens
+    prefab: {fileID: 7759364994349068733, guid: 1b7bd9b79495d254a940bd07526d24fd, type: 3}
+    guid: 1b7bd9b79495d254a940bd07526d24fd
+    assetPath: Assets/Prefabs/Items/Usables/FlashlightUsable.prefab
+    size: {x: 0.04984989, y: 0.089651875, z: 0.024924941}
+    layer: Default
+    flags: 48
+    components: FlashlightBattery, FollowTransform
+    autoNotes: "Interag\xEDvel a at\xE9 1 m."
+    notes: 
+    lockCategory: 0
+  - code: ITM-16
+    displayName: ItemPickableBase
+    category: 12
+    theme: Itens
+    prefab: {fileID: 6957830180743672895, guid: 6605369d5c2dc6243987565fa9cc18f4, type: 3}
+    guid: 6605369d5c2dc6243987565fa9cc18f4
+    assetPath: Assets/Prefabs/Items/Pickables/ItemPickableBase.prefab
+    size: {x: 1, y: 1, z: 1}
+    layer: Interactable
+    flags: 51
+    components: ItemPickable
+    autoNotes: "Interag\xEDvel a at\xE9 1 m."
+    notes: 
+    lockCategory: 0
+  - code: ITM-17
+    displayName: ItemUsableBase
+    category: 12
+    theme: Itens
+    prefab: {fileID: 7562584035107514966, guid: 13ae32ee9253d894ba1a59dfb4865b69, type: 3}
+    guid: 13ae32ee9253d894ba1a59dfb4865b69
+    assetPath: Assets/Prefabs/Items/Usables/ItemUsableBase.prefab
+    size: {x: 1, y: 1, z: 1}
+    layer: Default
+    flags: 32
+    components: FollowTransform
+    autoNotes: 
+    notes: 
+    lockCategory: 0
+  - code: MIS-01
+    displayName: EletricCircuit
+    category: 13
+    theme: Itens
+    prefab: {fileID: 1205836279395089931, guid: da78d756733fa8f4a96f996f98c9607b, type: 3}
+    guid: da78d756733fa8f4a96f996f98c9607b
+    assetPath: Assets/Prefabs/Items/EletricCircuit.prefab
+    size: {x: 0.5636002, y: 0.44, z: 0.16690832}
+    layer: Interactable
+    flags: 51
+    components: ElectricCircuit
+    autoNotes: "Interag\xEDvel a at\xE9 1 m."
+    notes: 
+    lockCategory: 0
+  - code: MIS-02
+    displayName: EscapeTrigger
+    category: 13
+    theme: Managers
+    prefab: {fileID: 7488412834662529684, guid: e18c40fee9994284aa20e1f133a670dc, type: 3}
+    guid: e18c40fee9994284aa20e1f133a670dc
+    assetPath: Assets/Prefabs/Managers/EscapeTrigger.prefab
+    size: {x: 0, y: 0, z: 0}
+    layer: Default
+    flags: 32
+    components: EscapeTrigger
+    autoNotes: 
+    notes: 
+    lockCategory: 0
+  - code: MIS-03
+    displayName: FloppyDiskManager
+    category: 13
+    theme: Managers
+    prefab: {fileID: 2196850907172603705, guid: f5aa658b2de88574fa4bc2bf172174c3, type: 3}
+    guid: f5aa658b2de88574fa4bc2bf172174c3
+    assetPath: Assets/Prefabs/Managers/FloppyDiskManager.prefab
+    size: {x: 0.26250005, y: 0.072727814, z: 0.19781789}
+    layer: Interactable
+    flags: 51
+    components: FloppyDiskTotem
+    autoNotes: "Interag\xEDvel a at\xE9 1 m."
+    notes: 
+    lockCategory: 0
+  - code: MIS-04
+    displayName: ReadyBoard
+    category: 13
+    theme: Managers
+    prefab: {fileID: 9203712078508735652, guid: 0c54effe834061e4e940e8de436a4e35, type: 3}
+    guid: 0c54effe834061e4e940e8de436a4e35
+    assetPath: Assets/Prefabs/Managers/ReadyBoard.prefab
+    size: {x: 2.6216128, y: 1.3416181, z: 0.050809592}
+    layer: Interactable
+    flags: 51
+    components: ReadyBoard
+    autoNotes: "Interag\xEDvel a at\xE9 1 m."
+    notes: 
+    lockCategory: 0
+  - code: MIS-05
+    displayName: TotemReady
+    category: 13
+    theme: Managers
+    prefab: {fileID: 2117043981236563793, guid: 0f2e8f0cd03f9524097520f13083c053, type: 3}
+    guid: 0f2e8f0cd03f9524097520f13083c053
+    assetPath: Assets/Prefabs/Managers/TotemReady.prefab
+    size: {x: 0, y: 0, z: 0}
+    layer: Interactable
+    flags: 51
+    components: ReadyTotem
+    autoNotes: "Interag\xEDvel a at\xE9 1 m."
+    notes: 
+    lockCategory: 0
+  - code: MIS-06
+    displayName: Battery
+    category: 13
+    theme: "Miss\xF5es"
+    prefab: {fileID: 7908501255462028640, guid: c305dd39693b20545bca48c1e1e0d266, type: 3}
+    guid: c305dd39693b20545bca48c1e1e0d266
+    assetPath: Assets/Prefabs/Missions/Objects/SM_Battery.prefab
+    size: {x: 0.04984989, y: 0.089651875, z: 0.024924941}
+    layer: Default
+    flags: 0
+    components: 
+    autoNotes: 
+    notes: 
+    lockCategory: 0
+  - code: MIS-07
+    displayName: Cassette Recorder
+    category: 13
+    theme: "Miss\xF5es"
+    prefab: {fileID: 8815158692936532822, guid: 5eeeb431653f0a44597e0c94575b91f4, type: 3}
+    guid: 5eeeb431653f0a44597e0c94575b91f4
+    assetPath: Assets/Prefabs/Missions/Objects/SM_Cassette_Recorder.prefab
+    size: {x: 0.21195935, y: 0.045654748, z: 0.39111358}
+    layer: Default
+    flags: 0
+    components: 
+    autoNotes: 
+    notes: 
+    lockCategory: 0
+  - code: MIS-08
+    displayName: Cassette Tape
+    category: 13
+    theme: "Miss\xF5es"
+    prefab: {fileID: 3921068021784611240, guid: 7b7163fa3dd132d4fa344ae593124ce9, type: 3}
+    guid: 7b7163fa3dd132d4fa344ae593124ce9
+    assetPath: Assets/Prefabs/Missions/Objects/SM_Cassette_Tape.prefab
+    size: {x: 0.17578992, y: 0.1156526, z: 0.023501066}
+    layer: Default
+    flags: 0
+    components: 
+    autoNotes: 
+    notes: 
+    lockCategory: 0
+  - code: MIS-09
+    displayName: LampsManager
+    category: 13
+    theme: "Miss\xF5es"
+    prefab: {fileID: 1704956212497326274, guid: 4f31833fc31beb1469674ade1cb9f88c, type: 3}
+    guid: 4f31833fc31beb1469674ade1cb9f88c
+    assetPath: Assets/Prefabs/Missions/Totems/Lamps/LampsManager.prefab
+    size: {x: 0.040000055, y: 0.15000004, z: 0.40000013}
+    layer: Default
+    flags: 160
+    components: LampsFeedback, LampsPuzzleManager, MissionCompleter, MissionOwnershipSelector
+    autoNotes: 
+    notes: 
+    lockCategory: 0
+  - code: MIS-10
+    displayName: LampTotem
+    category: 13
+    theme: "Miss\xF5es"
+    prefab: {fileID: 3760331024586727149, guid: 7206f473986b6454785d8766d5cbd11e, type: 3}
+    guid: 7206f473986b6454785d8766d5cbd11e
+    assetPath: Assets/Prefabs/Missions/Totems/Lamps/LampTotem.prefab
+    size: {x: 0.18206932, y: 2.0681305, z: 1.6586187}
+    layer: Interactable
+    flags: 187
+    components: LampTotem
+    autoNotes: "Interag\xEDvel a at\xE9 1 m."
+    notes: 
+    lockCategory: 0
+  - code: MIS-11
+    displayName: MissionLaerte
+    category: 13
+    theme: "Miss\xF5es"
+    prefab: {fileID: 4894948458603414005, guid: c8a692a28d887dd448cb8f3b7cf9735b, type: 3}
+    guid: c8a692a28d887dd448cb8f3b7cf9735b
+    assetPath: Assets/Prefabs/Missions/MissionLaerte.prefab
+    size: {x: 0, y: 0, z: 0}
+    layer: Default
+    flags: 32
+    components: MissionsRecorder
+    autoNotes: 
+    notes: 
+    lockCategory: 0
+  - code: MIS-12
+    displayName: MissionTotemGroup
+    category: 13
+    theme: "Miss\xF5es"
+    prefab: {fileID: 3398627408261051502, guid: f3cbe27eb9d5e744ca20d833e7bc2ae8, type: 3}
+    guid: f3cbe27eb9d5e744ca20d833e7bc2ae8
+    assetPath: Assets/Prefabs/Missions/Totems/Box/MissionTotemGroup.prefab
+    size: {x: 0, y: 0, z: 0}
+    layer: Default
+    flags: 32
+    components: ItemSlotPuzzleManager, MissionCompleter, MissionOwnershipSelector
+    autoNotes: 
+    notes: 
+    lockCategory: 0
+  - code: MIS-13
+    displayName: Pipe Big
+    category: 13
+    theme: "Miss\xF5es"
+    prefab: {fileID: 5272434545129650107, guid: b6ebd768be4c9434d9c406ba8d1d63b7, type: 3}
+    guid: b6ebd768be4c9434d9c406ba8d1d63b7
+    assetPath: Assets/Prefabs/Missions/Objects/SM_Pipe_Big.prefab
+    size: {x: 0.15374732, y: 0.39000067, z: 0.15374726}
+    layer: Default
+    flags: 0
+    components: 
+    autoNotes: 
+    notes: 
+    lockCategory: 0
+  - code: MIS-14
+    displayName: Pipe L
+    category: 13
+    theme: "Miss\xF5es"
+    prefab: {fileID: 9043066605327682606, guid: 80a29d7bae0ab9d45b7ffbf8e56c7149, type: 3}
+    guid: 80a29d7bae0ab9d45b7ffbf8e56c7149
+    assetPath: Assets/Prefabs/Missions/Objects/SM_Pipe_L.prefab
+    size: {x: 0.24371001, y: 0.24366096, z: 0.15374732}
+    layer: Default
+    flags: 0
+    components: 
+    autoNotes: 
+    notes: 
+    lockCategory: 0
+  - code: MIS-15
+    displayName: Pipe Small
+    category: 13
+    theme: "Miss\xF5es"
+    prefab: {fileID: 1274610270431395844, guid: 6862317132f9fc6479f26e7847d914f8, type: 3}
+    guid: 6862317132f9fc6479f26e7847d914f8
+    assetPath: Assets/Prefabs/Missions/Objects/SM_Pipe_Small.prefab
+    size: {x: 0.24453932, y: 0.15374817, z: 0.15374728}
+    layer: Default
+    flags: 0
+    components: 
+    autoNotes: 
+    notes: 
+    lockCategory: 0
+  - code: MIS-16
+    displayName: Pipe Triple
+    category: 13
+    theme: "Miss\xF5es"
+    prefab: {fileID: 4459786126580373330, guid: 5c953aec647a734408c4036f6ec20f88, type: 3}
+    guid: 5c953aec647a734408c4036f6ec20f88
+    assetPath: Assets/Prefabs/Missions/Objects/SM_Pipe_Triple.prefab
+    size: {x: 0.24347286, y: 0.24370998, z: 0.23762214}
+    layer: Default
+    flags: 0
+    components: 
+    autoNotes: 
+    notes: 
+    lockCategory: 0
+  - code: MIS-17
+    displayName: PipeBigStraight
+    category: 13
+    theme: "Miss\xF5es"
+    prefab: {fileID: 8722450943533077695, guid: ca50996b656eb1a419a9b0e5d4d3d0b2, type: 3}
+    guid: ca50996b656eb1a419a9b0e5d4d3d0b2
+    assetPath: Assets/Prefabs/Missions/Totems/Pipes/FakePipes/PipeBigStraight.prefab
+    size: {x: 0.15374732, y: 0.39000067, z: 0.15374726}
+    layer: Interactable
+    flags: 51
+    components: PipeTotem
+    autoNotes: "Interag\xEDvel a at\xE9 1 m."
+    notes: 
+    lockCategory: 0
+  - code: MIS-18
+    displayName: PipeConnection
+    category: 13
+    theme: "Miss\xF5es"
+    prefab: {fileID: 4234447682429228620, guid: bfa844482446ebb468f2b25b851818f5, type: 3}
+    guid: bfa844482446ebb468f2b25b851818f5
+    assetPath: Assets/Prefabs/Missions/Totems/Pipes/FakePipes/PipeConnection.prefab
+    size: {x: 0.15374736, y: 0.24366096, z: 0.24371006}
+    layer: Default
+    flags: 0
+    components: 
+    autoNotes: 
+    notes: 
+    lockCategory: 0
+  - code: MIS-19
+    displayName: PipeConnectionTriple
+    category: 13
+    theme: "Miss\xF5es"
+    prefab: {fileID: 3953354861950406708, guid: 49b2b2eb49a605340951c28940bd8a16, type: 3}
+    guid: 49b2b2eb49a605340951c28940bd8a16
+    assetPath: Assets/Prefabs/Missions/Totems/Pipes/FakePipes/PipeConnectionTriple.prefab
+    size: {x: 0.24347286, y: 0.24370998, z: 0.23762214}
+    layer: Default
+    flags: 0
+    components: 
+    autoNotes: 
+    notes: 
+    lockCategory: 0
+  - code: MIS-20
+    displayName: PipeJoint
+    category: 13
+    theme: "Miss\xF5es"
+    prefab: {fileID: 4234447682429228620, guid: fb0127534cdf4e84ebdd4bf47722190a, type: 3}
+    guid: fb0127534cdf4e84ebdd4bf47722190a
+    assetPath: Assets/Prefabs/Missions/Totems/Pipes/PipeJoint.prefab
+    size: {x: 0.15374736, y: 0.24366096, z: 0.24371006}
+    layer: Interactable
+    flags: 51
+    components: PipeTotem
+    autoNotes: "Interag\xEDvel a at\xE9 1 m."
+    notes: 
+    lockCategory: 0
+  - code: MIS-21
+    displayName: PipeJointWall
+    category: 13
+    theme: "Miss\xF5es"
+    prefab: {fileID: 4234447682429228620, guid: a9557cd11c5083243b1f9ebaf8057f28, type: 3}
+    guid: a9557cd11c5083243b1f9ebaf8057f28
+    assetPath: Assets/Prefabs/Missions/Totems/Pipes/PipeJointWall.prefab
+    size: {x: 0.24371007, y: 0.24366096, z: 0.15374735}
+    layer: Interactable
+    flags: 51
+    components: PipeTotem
+    autoNotes: "Interag\xEDvel a at\xE9 1 m."
+    notes: 
+    lockCategory: 0
+  - code: MIS-22
+    displayName: PipeSmallStraight
+    category: 13
+    theme: "Miss\xF5es"
+    prefab: {fileID: 8722450943533077695, guid: 2a84254773f931b4582f8c05ecda4423, type: 3}
+    guid: 2a84254773f931b4582f8c05ecda4423
+    assetPath: Assets/Prefabs/Missions/Totems/Pipes/PipeSmallStraight.prefab
+    size: {x: 0.15374732, y: 0.15374817, z: 0.24453937}
+    layer: Interactable
+    flags: 51
+    components: PipeTotem
+    autoNotes: "Interag\xEDvel a at\xE9 1 m."
+    notes: 
+    lockCategory: 0
+  - code: MIS-23
+    displayName: PipesManager
+    category: 13
+    theme: "Miss\xF5es"
+    prefab: {fileID: 507757428227259254, guid: e3771529d13ea8e48a6642811a069eee, type: 3}
+    guid: e3771529d13ea8e48a6642811a069eee
+    assetPath: Assets/Prefabs/Missions/Totems/Pipes/PipesManager.prefab
+    size: {x: 0, y: 0, z: 0}
+    layer: Default
+    flags: 32
+    components: MissionCompleter, MissionOwnershipSelector, PipesPuzzleManager
+    autoNotes: 
+    notes: 
+    lockCategory: 0
+  - code: MIS-24
+    displayName: Puzzle Box V1
+    category: 13
+    theme: "Miss\xF5es"
+    prefab: {fileID: 838604756239225081, guid: ccadac986ef1d2748ab618511cf42405, type: 3}
+    guid: ccadac986ef1d2748ab618511cf42405
+    assetPath: Assets/Prefabs/Missions/Objects/SM_Puzzle_Box_V1.prefab
+    size: {x: 0.35718805, y: 0.31981704, z: 0.34958526}
+    layer: Default
+    flags: 0
+    components: 
+    autoNotes: 
+    notes: 
+    lockCategory: 0
+  - code: MIS-25
+    displayName: Puzzle Box V1 Post It
+    category: 13
+    theme: "Miss\xF5es"
+    prefab: {fileID: 7514901525457781253, guid: d9b21fc51dad8ed43b3f43c949887227, type: 3}
+    guid: d9b21fc51dad8ed43b3f43c949887227
+    assetPath: Assets/Prefabs/Missions/Objects/SM_Puzzle_Box_V1_Post_It.prefab
+    size: {x: 0.011908978, y: 0.12590003, z: 0.09526563}
+    layer: Default
+    flags: 0
+    components: 
+    autoNotes: 
+    notes: 
+    lockCategory: 0
+  - code: MIS-26
+    displayName: Puzzle Box V2
+    category: 13
+    theme: "Miss\xF5es"
+    prefab: {fileID: 7807032918071772733, guid: 0c42432e15a7f55469a02d8985b8828f, type: 3}
+    guid: 0c42432e15a7f55469a02d8985b8828f
+    assetPath: Assets/Prefabs/Missions/Objects/SM_Puzzle_Box_V2.prefab
+    size: {x: 0.35718805, y: 0.31981704, z: 0.34958526}
+    layer: Default
+    flags: 0
+    components: 
+    autoNotes: 
+    notes: 
+    lockCategory: 0
+  - code: MIS-27
+    displayName: Puzzle Box V2 Post It
+    category: 13
+    theme: "Miss\xF5es"
+    prefab: {fileID: 1117007764704093486, guid: 5cf6b8053c5361a41a8f02f6e53a1363, type: 3}
+    guid: 5cf6b8053c5361a41a8f02f6e53a1363
+    assetPath: Assets/Prefabs/Missions/Objects/SM_Puzzle_Box_V2_Post_It.prefab
+    size: {x: 0.011908978, y: 0.12590003, z: 0.09526563}
+    layer: Default
+    flags: 0
+    components: 
+    autoNotes: 
+    notes: 
+    lockCategory: 0
+  - code: MIS-28
+    displayName: Puzzle Box V3
+    category: 13
+    theme: "Miss\xF5es"
+    prefab: {fileID: 2689333746463562006, guid: cba670b939456ea408c69c1907227551, type: 3}
+    guid: cba670b939456ea408c69c1907227551
+    assetPath: Assets/Prefabs/Missions/Objects/SM_Puzzle_Box_V3.prefab
+    size: {x: 0.35718805, y: 0.31981704, z: 0.34958526}
+    layer: Default
+    flags: 0
+    components: 
+    autoNotes: 
+    notes: 
+    lockCategory: 0
+  - code: MIS-29
+    displayName: Puzzle Box V3 Post It
+    category: 13
+    theme: "Miss\xF5es"
+    prefab: {fileID: 6653310276887065816, guid: 780547e7ff0a3a8438a5f8ea20f7b641, type: 3}
+    guid: 780547e7ff0a3a8438a5f8ea20f7b641
+    assetPath: Assets/Prefabs/Missions/Objects/SM_Puzzle_Box_V3_Post_It.prefab
+    size: {x: 0.011908978, y: 0.12590003, z: 0.09526563}
+    layer: Default
+    flags: 0
+    components: 
+    autoNotes: 
+    notes: 
+    lockCategory: 0
+  - code: MIS-30
+    displayName: Puzzle Box V4
+    category: 13
+    theme: "Miss\xF5es"
+    prefab: {fileID: 4316435230798502246, guid: 18ebdb9dee5b9644d9fe38da586a01b6, type: 3}
+    guid: 18ebdb9dee5b9644d9fe38da586a01b6
+    assetPath: Assets/Prefabs/Missions/Objects/SM_Puzzle_Box_V4.prefab
+    size: {x: 0.35718805, y: 0.31981704, z: 0.34958526}
+    layer: Default
+    flags: 0
+    components: 
+    autoNotes: 
+    notes: 
+    lockCategory: 0
+  - code: MIS-31
+    displayName: Puzzle Box V4 Post It
+    category: 13
+    theme: "Miss\xF5es"
+    prefab: {fileID: 5052940835982714651, guid: 5acb580a8f54fa74a99e4a5c4bfb51b3, type: 3}
+    guid: 5acb580a8f54fa74a99e4a5c4bfb51b3
+    assetPath: Assets/Prefabs/Missions/Objects/SM_Puzzle_Box_V4_Post_It.prefab
+    size: {x: 0.011908978, y: 0.12590003, z: 0.09526563}
+    layer: Default
+    flags: 0
+    components: 
+    autoNotes: 
+    notes: 
+    lockCategory: 0
+  - code: MIS-32
+    displayName: Sound Table
+    category: 13
+    theme: "Miss\xF5es"
+    prefab: {fileID: 6095244205170304698, guid: 90d7fefe9d5c83c49a0974d324fdfd12, type: 3}
+    guid: 90d7fefe9d5c83c49a0974d324fdfd12
+    assetPath: Assets/Prefabs/Missions/Objects/SM_Sound_Table.prefab
+    size: {x: 1.216406, y: 0.33598775, z: 0.59745276}
+    layer: Default
+    flags: 3
+    components: 
+    autoNotes: 
+    notes: 
+    lockCategory: 0
+  - code: MIS-33
+    displayName: SoundManager
+    category: 13
+    theme: "Miss\xF5es"
+    prefab: {fileID: 3788075683713115688, guid: 785569b1f30233844abbe065db5cc83a, type: 3}
+    guid: 785569b1f30233844abbe065db5cc83a
+    assetPath: Assets/Prefabs/Missions/Totems/Sound/SoundManager.prefab
+    size: {x: 1.216406, y: 0.33598775, z: 0.59745276}
+    layer: Interactable
+    flags: 51
+    components: MinigamePuzzleManager, MissionCompleter, MissionOwnershipFilter,
+      MissionOwnershipSelector
+    autoNotes: "Interag\xEDvel a at\xE9 1 m."
+    notes: 
+    lockCategory: 0
+  - code: MIS-34
+    displayName: Tape Box
+    category: 13
+    theme: "Miss\xF5es"
+    prefab: {fileID: 7483569266504858287, guid: c356f3074729dc34bbdfca572c1c2dc8, type: 3}
+    guid: c356f3074729dc34bbdfca572c1c2dc8
+    assetPath: Assets/Prefabs/Missions/Objects/SM_Tape_Box.prefab
+    size: {x: 0.26250005, y: 0.072727814, z: 0.19781789}
+    layer: Default
+    flags: 0
+    components: 
+    autoNotes: 
+    notes: 
+    lockCategory: 0
+  - code: MIS-35
+    displayName: TotemBoxCircle
+    category: 13
+    theme: "Miss\xF5es"
+    prefab: {fileID: 7196284807495355785, guid: e8d994ebe393ba84f8ad906045ce4cd5, type: 3}
+    guid: e8d994ebe393ba84f8ad906045ce4cd5
+    assetPath: Assets/Prefabs/Missions/Totems/Box/TotemBoxCircle.prefab
+    size: {x: 0.09526564, y: 0.12590003, z: 0.011908991}
+    layer: Interactable
+    flags: 51
+    components: ItemSlotTotem
+    autoNotes: "Interag\xEDvel a at\xE9 1 m."
+    notes: 
+    lockCategory: 0
+  - code: MIS-36
+    displayName: TotemBoxSquare
+    category: 13
+    theme: "Miss\xF5es"
+    prefab: {fileID: 7196284807495355785, guid: 3122bdc078d0de545af0ee4cbb03f2e6, type: 3}
+    guid: 3122bdc078d0de545af0ee4cbb03f2e6
+    assetPath: Assets/Prefabs/Missions/Totems/Box/TotemBoxSquare.prefab
+    size: {x: 0.09526564, y: 0.12590003, z: 0.011908991}
+    layer: Interactable
+    flags: 51
+    components: ItemSlotTotem
+    autoNotes: "Interag\xEDvel a at\xE9 1 m."
+    notes: 
+    lockCategory: 0
+  - code: MIS-37
+    displayName: TotemBoxStar
+    category: 13
+    theme: "Miss\xF5es"
+    prefab: {fileID: 7196284807495355785, guid: 5a5a5a55371c34945bbf3d11f431a303, type: 3}
+    guid: 5a5a5a55371c34945bbf3d11f431a303
+    assetPath: Assets/Prefabs/Missions/Totems/Box/TotemBoxStar.prefab
+    size: {x: 0.09526564, y: 0.12590003, z: 0.011908991}
+    layer: Interactable
+    flags: 51
+    components: ItemSlotTotem
+    autoNotes: "Interag\xEDvel a at\xE9 1 m."
+    notes: 
+    lockCategory: 0
+  - code: MIS-38
+    displayName: TotemBoxTriangle
+    category: 13
+    theme: "Miss\xF5es"
+    prefab: {fileID: 7196284807495355785, guid: acbb4564197c49f40b74bbb938e9ceda, type: 3}
+    guid: acbb4564197c49f40b74bbb938e9ceda
+    assetPath: Assets/Prefabs/Missions/Totems/Box/TotemBoxTriangle.prefab
+    size: {x: 0.09526564, y: 0.12590003, z: 0.011908991}
+    layer: Interactable
+    flags: 51
+    components: ItemSlotTotem
+    autoNotes: "Interag\xEDvel a at\xE9 1 m."
+    notes: 
+    lockCategory: 0
+  - code: MIS-39
+    displayName: Electric Circuit
+    category: 13
+    theme: Palco
+    prefab: {fileID: 1590599219734923826, guid: 7c1cecda193b60c4d98b0cd981e51ed5, type: 3}
+    guid: 7c1cecda193b60c4d98b0cd981e51ed5
+    assetPath: Assets/Prefabs/Rooms/Props/Stage/SM_Electric_Circuit.prefab
+    size: {x: 0.5636002, y: 0.44, z: 0.16690832}
+    layer: Default
+    flags: 0
+    components: 
+    autoNotes: 
+    notes: 
+    lockCategory: 0
+  - code: AUD-01
+    displayName: Crown
+    category: 14
+    theme: "Audi\xEAncia"
+    prefab: {fileID: 6106051845034457876, guid: 668f71e86b328bc47b47abb27e63fb3b, type: 3}
+    guid: 668f71e86b328bc47b47abb27e63fb3b
+    assetPath: Assets/Prefabs/Audience_Objects/SM_Crown.prefab
+    size: {x: 0.38245434, y: 0.17089196, z: 0.37676686}
+    layer: Recordable
+    flags: 523
+    components: RecordableIdentifier
+    autoNotes: "D\xE1 audi\xEAncia quando filmado."
+    notes: 
+    lockCategory: 0
+  - code: AUD-02
+    displayName: Happy Mask Low
+    category: 14
+    theme: "Audi\xEAncia"
+    prefab: {fileID: 2870125673200824054, guid: d5fd046274ced9c4791021be4558b65d, type: 3}
+    guid: d5fd046274ced9c4791021be4558b65d
+    assetPath: Assets/Prefabs/Audience_Objects/Happy_Mask_Low.prefab
+    size: {x: 0.2242107, y: 0.30004093, z: 0.18113846}
+    layer: Recordable
+    flags: 523
+    components: RecordableIdentifier
+    autoNotes: "D\xE1 audi\xEAncia quando filmado."
+    notes: 
+    lockCategory: 0
+  - code: AUD-03
+    displayName: MainStage
+    category: 14
+    theme: "Audi\xEAncia"
+    prefab: {fileID: 6120942659200500010, guid: 60c8585077741834c81190071526023a, type: 3}
+    guid: 60c8585077741834c81190071526023a
+    assetPath: Assets/Prefabs/Audience_Objects/MainStage.prefab
+    size: {x: 0, y: 0, z: 0}
+    layer: Recordable
+    flags: 512
+    components: RecordableIdentifier
+    autoNotes: "D\xE1 audi\xEAncia quando filmado."
+    notes: 
+    lockCategory: 0
+  - code: AUD-04
+    displayName: ObjectAudience1
+    category: 14
+    theme: "Audi\xEAncia"
+    prefab: {fileID: 2888888514715067747, guid: 1d6f964a68ad51d4b90b241eff3edb02, type: 3}
+    guid: 1d6f964a68ad51d4b90b241eff3edb02
+    assetPath: Assets/Prefabs/Audience_Objects/ObjectAudience1.prefab
+    size: {x: 0, y: 0, z: 0}
+    layer: Recordable
+    flags: 523
+    components: RecordableIdentifier
+    autoNotes: "D\xE1 audi\xEAncia quando filmado."
+    notes: 
+    lockCategory: 0
+  - code: AUD-05
+    displayName: ObjectAudience3
+    category: 14
+    theme: "Audi\xEAncia"
+    prefab: {fileID: 1988286602184275177, guid: 437fb302b91cc49439ea9c93eb4358bf, type: 3}
+    guid: 437fb302b91cc49439ea9c93eb4358bf
+    assetPath: Assets/Prefabs/Audience_Objects/ObjectAudience3.prefab
+    size: {x: 0, y: 0, z: 0}
+    layer: Recordable
+    flags: 523
+    components: RecordableIdentifier
+    autoNotes: "D\xE1 audi\xEAncia quando filmado."
+    notes: 
+    lockCategory: 0
+  - code: AUD-06
+    displayName: ObjectAudience6
+    category: 14
+    theme: "Audi\xEAncia"
+    prefab: {fileID: 2281983475820283627, guid: 2ee726bfe1d107441b5d4d59e308b530, type: 3}
+    guid: 2ee726bfe1d107441b5d4d59e308b530
+    assetPath: Assets/Prefabs/Audience_Objects/ObjectAudience6.prefab
+    size: {x: 0, y: 0, z: 0}
+    layer: Recordable
+    flags: 523
+    components: RecordableIdentifier
+    autoNotes: "D\xE1 audi\xEAncia quando filmado."
+    notes: 
+    lockCategory: 0
+  - code: AUD-07
+    displayName: ObjectAudience7
+    category: 14
+    theme: "Audi\xEAncia"
+    prefab: {fileID: 2184196398567843581, guid: e30ea8cb1a4339f4296ce616f0481da7, type: 3}
+    guid: e30ea8cb1a4339f4296ce616f0481da7
+    assetPath: Assets/Prefabs/Audience_Objects/ObjectAudience7.prefab
+    size: {x: 0, y: 0, z: 0}
+    layer: Recordable
+    flags: 523
+    components: RecordableIdentifier
+    autoNotes: "D\xE1 audi\xEAncia quando filmado."
+    notes: 
+    lockCategory: 0
+  - code: AUD-08
+    displayName: Sad Mask Low
+    category: 14
+    theme: "Audi\xEAncia"
+    prefab: {fileID: 4770539044456621672, guid: 43500fcd26025b741b86cd26ecaec960, type: 3}
+    guid: 43500fcd26025b741b86cd26ecaec960
+    assetPath: Assets/Prefabs/Audience_Objects/Sad_Mask_Low.prefab
+    size: {x: 0.22576478, y: 0.29686588, z: 0.17999727}
+    layer: Recordable
+    flags: 523
+    components: RecordableIdentifier
+    autoNotes: "D\xE1 audi\xEAncia quando filmado."
+    notes: 
+    lockCategory: 0
+  - code: AUD-09
+    displayName: Sophisticated Frame
+    category: 14
+    theme: "Audi\xEAncia"
+    prefab: {fileID: 3579338070753435901, guid: d03d4b4f22a2ffa419050c663311bf69, type: 3}
+    guid: d03d4b4f22a2ffa419050c663311bf69
+    assetPath: Assets/Prefabs/Audience_Objects/SM_Sophisticated_Frame.prefab
+    size: {x: 1.3184146, y: 2.1708474, z: 0.092413515}
+    layer: Recordable
+    flags: 523
+    components: RecordableIdentifier
+    autoNotes: "D\xE1 audi\xEAncia quando filmado."
+    notes: 
+    lockCategory: 0
+  - code: AUD-10
+    displayName: Sword
+    category: 14
+    theme: "Audi\xEAncia"
+    prefab: {fileID: 7914600073688419104, guid: 952db5144866c6347ac68545c156990b, type: 3}
+    guid: 952db5144866c6347ac68545c156990b
+    assetPath: Assets/Prefabs/Audience_Objects/Sword.prefab
+    size: {x: 0.053574815, y: 1.1987362, z: 0.27999595}
+    layer: Recordable
+    flags: 523
+    components: RecordableIdentifier
+    autoNotes: "D\xE1 audi\xEAncia quando filmado."
+    notes: 
+    lockCategory: 0
+  - code: AUD-11
+    displayName: Toilet Paper Golden 1
+    category: 14
+    theme: "Audi\xEAncia"
+    prefab: {fileID: 7263768418185388432, guid: 4a3e7114cdd311d4a839cad49c0c1a89, type: 3}
+    guid: 4a3e7114cdd311d4a839cad49c0c1a89
+    assetPath: Assets/Prefabs/Audience_Objects/SM_Toilet_Paper_Golden_1.prefab
+    size: {x: 0.13557132, y: 0.17745227, z: 0.16276246}
+    layer: Default
+    flags: 0
+    components: 
+    autoNotes: 
+    notes: 
+    lockCategory: 0
+  - code: AUD-12
+    displayName: Toilet Paper Golden 2
+    category: 14
+    theme: "Audi\xEAncia"
+    prefab: {fileID: 8060022773832363128, guid: d97c9a9cd5eb7a14495614656e4ba298, type: 3}
+    guid: d97c9a9cd5eb7a14495614656e4ba298
+    assetPath: Assets/Prefabs/Audience_Objects/SM_Toilet_Paper_Golden_2.prefab
+    size: {x: 0.1322988, y: 0.1346067, z: 0.1346067}
+    layer: Default
+    flags: 0
+    components: 
+    autoNotes: 
+    notes: 
+    lockCategory: 0
+  - code: SIS-01
+    displayName: AudienceManager
+    category: 15
+    theme: Managers
+    prefab: {fileID: 3251419627107892373, guid: 9a2c4aa44d101fd4fb497516f4096373, type: 3}
+    guid: 9a2c4aa44d101fd4fb497516f4096373
+    assetPath: Assets/Prefabs/Managers/AudienceManager.prefab
+    size: {x: 0, y: 0, z: 0}
+    layer: Default
+    flags: 32
+    components: AudienceManager
+    autoNotes: 
+    notes: 
+    lockCategory: 0
+  - code: SIS-02
+    displayName: ChatEventHub
+    category: 15
+    theme: Managers
+    prefab: {fileID: 7412903558216640731, guid: 1f5aacb463a4d3c100f01fb5826281ae, type: 3}
+    guid: 1f5aacb463a4d3c100f01fb5826281ae
+    assetPath: Assets/Prefabs/Managers/ChatEventHub.prefab
+    size: {x: 0, y: 0, z: 0}
+    layer: Default
+    flags: 0
+    components: ChatEventHub
+    autoNotes: 
+    notes: 
+    lockCategory: 0
+  - code: SIS-03
+    displayName: DonationAudioManager
+    category: 15
+    theme: Managers
+    prefab: {fileID: 2308768119914404187, guid: a1ff6a5e175efbd4b9e685c326798f27, type: 3}
+    guid: a1ff6a5e175efbd4b9e685c326798f27
+    assetPath: Assets/Prefabs/Managers/DonationAudioManager.prefab
+    size: {x: 0, y: 0, z: 0}
+    layer: Default
+    flags: 0
+    components: DonationTTSManager
+    autoNotes: 
+    notes: 
+    lockCategory: 0
+  - code: SIS-04
+    displayName: DonationManager
+    category: 15
+    theme: Managers
+    prefab: {fileID: 645440318896756981, guid: f943fc059946bea478ff936c161cf66c, type: 3}
+    guid: f943fc059946bea478ff936c161cf66c
+    assetPath: Assets/Prefabs/Managers/DonationManager.prefab
+    size: {x: 0, y: 0, z: 0}
+    layer: Default
+    flags: 32
+    components: DonationManager
+    autoNotes: 
+    notes: 
+    lockCategory: 0
+  - code: SIS-05
+    displayName: EletricCircuitManager
+    category: 15
+    theme: Managers
+    prefab: {fileID: 3432678867144191359, guid: ea6178e13035c18489ae752e6c3a509b, type: 3}
+    guid: ea6178e13035c18489ae752e6c3a509b
+    assetPath: Assets/Prefabs/Managers/EletricCircuitManager.prefab
+    size: {x: 0, y: 0, z: 0}
+    layer: Default
+    flags: 32
+    components: ElectricCircuitManager
+    autoNotes: 
+    notes: 
+    lockCategory: 0
+  - code: SIS-06
+    displayName: LostItemsSpawns
+    category: 15
+    theme: Managers
+    prefab: {fileID: 6584830104823111626, guid: 6a02026c477f9aa4289bad21cd00c61c, type: 3}
+    guid: 6a02026c477f9aa4289bad21cd00c61c
+    assetPath: Assets/Prefabs/Managers/LostItemsSpawns.prefab
+    size: {x: 0, y: 0, z: 0}
+    layer: Default
+    flags: 0
+    components: LostItemsSpawn
+    autoNotes: 
+    notes: 
+    lockCategory: 0
+  - code: SIS-07
+    displayName: MissionManager
+    category: 15
+    theme: Managers
+    prefab: {fileID: 1041449049748482503, guid: 9839f73d4e9994c4b96ab3d62d990335, type: 3}
+    guid: 9839f73d4e9994c4b96ab3d62d990335
+    assetPath: Assets/Prefabs/Managers/MissionManager.prefab
+    size: {x: 0, y: 0, z: 0}
+    layer: Default
+    flags: 32
+    components: MissionManager, MissionTransferManager
+    autoNotes: 
+    notes: 
+    lockCategory: 0
+  - code: SIS-08
+    displayName: MissionRegisterManager
+    category: 15
+    theme: Managers
+    prefab: {fileID: 3226622542055902245, guid: cd243fa993981594f92b7285cc09c138, type: 3}
+    guid: cd243fa993981594f92b7285cc09c138
+    assetPath: Assets/Prefabs/Managers/MissionRegisterManager.prefab
+    size: {x: 0, y: 0, z: 0}
+    layer: Default
+    flags: 0
+    components: MissionItemRegistry
+    autoNotes: 
+    notes: 
+    lockCategory: 0
+  - code: SIS-09
+    displayName: SectorStage
+    category: 15
+    theme: Managers
+    prefab: {fileID: 1710151722030139120, guid: 54b46d9a46c02ea479d862ce00566621, type: 3}
+    guid: 54b46d9a46c02ea479d862ce00566621
+    assetPath: Assets/Prefabs/Managers/MapStages/SectorStage.prefab
+    size: {x: 0, y: 0, z: 0}
+    layer: Default
+    flags: 0
+    components: PatrolSector
+    autoNotes: 
+    notes: 
+    lockCategory: 0
+  - code: SIS-10
+    displayName: SpawnManager
+    category: 15
+    theme: Managers
+    prefab: {fileID: 27454467854116128, guid: 4003d5c40fe91064ebd17073c60f2fc4, type: 3}
+    guid: 4003d5c40fe91064ebd17073c60f2fc4
+    assetPath: Assets/Prefabs/Managers/SpawnManager.prefab
+    size: {x: 0, y: 0, z: 0}
+    layer: Default
+    flags: 32
+    components: SpawnManager, SpawnPoint
+    autoNotes: 
+    notes: 
+    lockCategory: 0
+  - code: SIS-11
+    displayName: SpawnRoomManager
+    category: 15
+    theme: Managers
+    prefab: {fileID: 8398439506435469584, guid: 1090be12c524a124dadf5ff7a5f56be3, type: 3}
+    guid: 1090be12c524a124dadf5ff7a5f56be3
+    assetPath: Assets/Prefabs/Managers/SpawnRoomManager.prefab
+    size: {x: 0, y: 0, z: 0}
+    layer: Default
+    flags: 32
+    components: SpawnRooms
+    autoNotes: 
+    notes: 
+    lockCategory: 0
+  - code: SIS-12
+    displayName: Monster
+    category: 15
+    theme: Monstro
+    prefab: {fileID: 2397166377357422809, guid: df83281545a37654988173f7c89e3785, type: 3}
+    guid: df83281545a37654988173f7c89e3785
+    assetPath: Assets/Prefabs/Monster/Monster.prefab
+    size: {x: 1.2337083, y: 1.8412094, z: 0.8837496}
+    layer: Monster
+    flags: 801
+    components: DonationRecordableZone, FootstepEmitter, HearingSensor, MonsterAnimator,
+      MonsterAttack, MonsterAwareness, MonsterBrain, MonsterChase, MonsterDoorForcer,
+      MonsterHitbox, MonsterInvestigate, MonsterSabotage, MonsterSearch, MonsterWander,
+      RecordableIdentifier, VisionSensor
+    autoNotes: "Colisor na layer Monster: N\xC3O bloqueia a vis\xE3o do monstro.
+      O monstro pode sabotar. D\xE1 audi\xEAncia quando filmado."
+    notes: 
+    lockCategory: 0
+  - code: SIS-13
+    displayName: MusicManager
+    category: 15
+    theme: Som
+    prefab: {fileID: 1830805480417351129, guid: 5bded9489c326d64b96f477b8babda6f, type: 3}
+    guid: 5bded9489c326d64b96f477b8babda6f
+    assetPath: Assets/Prefabs/Sound/MusicManager.prefab
+    size: {x: 0, y: 0, z: 0}
+    layer: Default
+    flags: 0
+    components: MusicManager
+    autoNotes: 
+    notes: 
+    lockCategory: 0
+  - code: SIS-14
+    displayName: SfxManager
+    category: 15
+    theme: Som
+    prefab: {fileID: 1085706090398703867, guid: a3c78379119143b468f06533a1542d13, type: 3}
+    guid: a3c78379119143b468f06533a1542d13
+    assetPath: Assets/Prefabs/Sound/SfxManager.prefab
+    size: {x: 0, y: 0, z: 0}
+    layer: Default
+    flags: 32
+    components: SoundPlayer, WorldSoundNetwork
+    autoNotes: 
+    notes: 
+    lockCategory: 0
+  - code: SIS-15
+    displayName: VoiceZoneTrigger
+    category: 15
+    theme: Som
+    prefab: {fileID: 6959996934185611806, guid: fbb31396cbc7d354ab43373a134ab476, type: 3}
+    guid: fbb31396cbc7d354ab43373a134ab476
+    assetPath: Assets/Prefabs/Sound/VoiceZoneTrigger.prefab
+    size: {x: 0, y: 0, z: 0}
+    layer: Default
+    flags: 0
+    components: VoiceZoneTrigger
+    autoNotes: 
+    notes: 
+    lockCategory: 0

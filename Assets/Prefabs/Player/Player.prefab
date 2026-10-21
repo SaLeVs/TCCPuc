@@ -253,10 +253,11 @@ Transform:
   m_GameObject: {fileID: 256771491213197926}
   serializedVersion: 2
   m_LocalRotation: {x: 0.000000007450581, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalPosition: {x: 0.18, y: -0.14, z: 0.05}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
-  m_Children: []
+  m_Children:
+  - {fileID: 5153802928267744398}
   m_Father: {fileID: 7631988926882076908}
   m_LocalEulerAnglesHint: {x: 90, y: 0, z: 0}
 --- !u!108 &136951641080088674
@@ -269,20 +270,20 @@ Light:
   m_Enabled: 0
   serializedVersion: 12
   m_Type: 0
-  m_Color: {r: 1, g: 1, b: 1, a: 1}
-  m_Intensity: 10
-  m_Range: 10
-  m_SpotAngle: 121.39079
-  m_InnerSpotAngle: 88.06771
+  m_Color: {r: 1, g: 0.93, b: 0.82, a: 1}
+  m_Intensity: 27
+  m_Range: 25
+  m_SpotAngle: 70
+  m_InnerSpotAngle: 28
   m_CookieSize2D: {x: 0.5, y: 0.5}
   m_Shadows:
     m_Type: 2
     m_Resolution: -1
-    m_CustomResolution: -1
+    m_CustomResolution: 1024
     m_Strength: 1
-    m_Bias: 0.05
-    m_NormalBias: 0.4
-    m_NearPlane: 0.2
+    m_Bias: 0.03
+    m_NormalBias: 0.3
+    m_NearPlane: 0.1
     m_CullingMatrixOverride:
       e00: 1
       e01: 0
@@ -336,8 +337,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 474bcb49853aa07438625e644c072ee6, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Unity.RenderPipelines.Universal.Runtime::UnityEngine.Rendering.Universal.UniversalAdditionalLightData
-  m_UsePipelineSettings: 1
-  m_AdditionalLightsShadowResolutionTier: 2
+  m_UsePipelineSettings: 0
+  m_AdditionalLightsShadowResolutionTier: -1
   m_CustomShadowLayers: 0
   m_LightCookieSize: {x: 1, y: 1}
   m_LightCookieOffset: {x: 0, y: 0}
@@ -368,10 +369,11 @@ MonoBehaviour:
   ShowTopMostFoldoutHeaderGroup: 1
   inputReader: {fileID: 11400000, guid: b8967103b22990e4685e914ae00843a6, type: 2}
   flashlight: {fileID: 136951641080088674}
+  spill: {fileID: 1064369959468239810}
   playerState: {fileID: 315419889962386199}
   clickNoise: {fileID: 7565777945021881719}
-  batteryPercentMax: 400
-  batteryPercentDecreasePerSecond: 4
+  batteryPercentMax: 2147483647
+  batteryPercentDecreasePerSecond: 2
 --- !u!114 &7565777945021881719
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -657,13 +659,13 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Game::VHSGlitchController
   vhsMaterial: {fileID: 2100000, guid: 3918879c5323dd64ab85e243f7e1982e, type: 2}
-  noiseIntensity: 0.03
-  scanlineIntensity: 0.03
+  noiseIntensity: 0
+  scanlineIntensity: 0
   scanlineCount: 800
-  chromaticAberration: 0.0015
-  vignetteIntensity: 0.077
+  chromaticAberration: 0
+  vignetteIntensity: 0
   colorTint: {r: 1, g: 0.95, b: 0.9, a: 1}
-  trackingWobble: 0.002
+  trackingWobble: 0
   glitchDuration: 0.48
   glitchCurve:
     serializedVersion: 2
@@ -3979,7 +3981,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Unity.Netcode.Runtime::Unity.Netcode.NetworkObject
-  GlobalObjectIdHash: 282796449
+  GlobalObjectIdHash: 3919488120
   InScenePlacedSourceGlobalObjectIdHash: 0
   DeferredDespawnTick: 0
   Ownership: 1
@@ -4270,7 +4272,7 @@ MonoBehaviour:
   playerView: {fileID: 5036788259409135564}
   playerCamera: {fileID: 9106684494112449477}
   rayOriginOverride: {fileID: 7631988926882076908}
-  interactDistance: 1
+  interactDistance: 1.5
   checkInterval: 0.2
   layerMask:
     serializedVersion: 2
@@ -4540,7 +4542,7 @@ MonoBehaviour:
   playerRun: {fileID: 4084110916807435523}
   crouchingMultiplier: 0.3
   walkingMultiplier: 1
-  runningMultiplier: 1.8
+  runningMultiplier: 3
 --- !u!54 &3158690138509095668
 Rigidbody:
   m_ObjectHideFlags: 0
@@ -4901,6 +4903,133 @@ MonoBehaviour:
   m_FillOrigin: 0
   m_UseSpriteMesh: 0
   m_PixelsPerUnitMultiplier: 15.88
+--- !u!1 &7407499796318524391
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 5153802928267744398}
+  - component: {fileID: 1064369959468239810}
+  - component: {fileID: 6322400861292261448}
+  m_Layer: 11
+  m_Name: FlashlightSpill
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &5153802928267744398
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7407499796318524391}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 6435377210224720547}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!108 &1064369959468239810
+Light:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7407499796318524391}
+  m_Enabled: 0
+  serializedVersion: 12
+  m_Type: 0
+  m_Color: {r: 1, g: 0.93, b: 0.82, a: 1}
+  m_Intensity: 2.5
+  m_Range: 8
+  m_SpotAngle: 120
+  m_InnerSpotAngle: 50
+  m_CookieSize2D: {x: 0.5, y: 0.5}
+  m_Shadows:
+    m_Type: 0
+    m_Resolution: -1
+    m_CustomResolution: -1
+    m_Strength: 1
+    m_Bias: 0.05
+    m_NormalBias: 0.4
+    m_NearPlane: 0.2
+    m_CullingMatrixOverride:
+      e00: 1
+      e01: 0
+      e02: 0
+      e03: 0
+      e10: 0
+      e11: 1
+      e12: 0
+      e13: 0
+      e20: 0
+      e21: 0
+      e22: 1
+      e23: 0
+      e30: 0
+      e31: 0
+      e32: 0
+      e33: 1
+    m_UseCullingMatrixOverride: 0
+  m_Cookie: {fileID: 0}
+  m_DrawHalo: 0
+  m_Flare: {fileID: 0}
+  m_RenderMode: 0
+  m_CullingMask:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_RenderingLayerMask: 1
+  m_Lightmapping: 4
+  m_LightShadowCasterMode: 0
+  m_AreaSize: {x: 1, y: 1}
+  m_BounceIntensity: 1
+  m_ColorTemperature: 6570
+  m_UseColorTemperature: 0
+  m_BoundingSphereOverride: {x: 0, y: 0, z: 0, w: 0}
+  m_UseBoundingSphereOverride: 0
+  m_UseViewFrustumForShadowCasterCull: 1
+  m_ForceVisible: 0
+  m_ShadowRadius: 0
+  m_ShadowAngle: 0
+  m_LightUnit: 1
+  m_LuxAtDistance: 1
+  m_EnableSpotReflector: 1
+--- !u!114 &6322400861292261448
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7407499796318524391}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 474bcb49853aa07438625e644c072ee6, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Unity.RenderPipelines.Universal.Runtime::UnityEngine.Rendering.Universal.UniversalAdditionalLightData
+  m_UsePipelineSettings: 1
+  m_AdditionalLightsShadowResolutionTier: 2
+  m_CustomShadowLayers: 0
+  m_LightCookieSize: {x: 1, y: 1}
+  m_LightCookieOffset: {x: 0, y: 0}
+  m_SoftShadowQuality: 0
+  m_RenderingLayersMask:
+    serializedVersion: 0
+    m_Bits: 1
+  m_ShadowRenderingLayersMask:
+    serializedVersion: 0
+    m_Bits: 1
+  m_Version: 4
+  m_LightLayerMask: 1
+  m_ShadowLayerMask: 1
+  m_RenderingLayers: 1
+  m_ShadowRenderingLayers: 1
 --- !u!1 &7486511289089711855
 GameObject:
   m_ObjectHideFlags: 0
@@ -6810,31 +6939,31 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 671226970007814649, guid: 3bc24c2d5845869428982f72dbf96afd, type: 3}
       propertyPath: m_AnchorMax.y
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 671226970007814649, guid: 3bc24c2d5845869428982f72dbf96afd, type: 3}
       propertyPath: m_AnchorMin.y
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 671226970007814649, guid: 3bc24c2d5845869428982f72dbf96afd, type: 3}
       propertyPath: m_AnchoredPosition.x
-      value: 211.0856
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 671226970007814649, guid: 3bc24c2d5845869428982f72dbf96afd, type: 3}
       propertyPath: m_AnchoredPosition.y
-      value: -30
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 1198548594242039812, guid: 3bc24c2d5845869428982f72dbf96afd, type: 3}
       propertyPath: m_AnchorMax.y
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 1198548594242039812, guid: 3bc24c2d5845869428982f72dbf96afd, type: 3}
       propertyPath: m_AnchorMin.y
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 1198548594242039812, guid: 3bc24c2d5845869428982f72dbf96afd, type: 3}
       propertyPath: m_AnchoredPosition.y
-      value: 5.542801
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 5714232411238863896, guid: 3bc24c2d5845869428982f72dbf96afd, type: 3}
       propertyPath: m_Name
@@ -7393,15 +7522,15 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4901976383760165173, guid: 69d3eb0e15e37624a88d642f46096351, type: 3}
       propertyPath: m_AnchorMax.y
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 4901976383760165173, guid: 69d3eb0e15e37624a88d642f46096351, type: 3}
       propertyPath: m_AnchorMin.y
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 4901976383760165173, guid: 69d3eb0e15e37624a88d642f46096351, type: 3}
       propertyPath: m_AnchoredPosition.y
-      value: -39.06925
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 7359559451380848459, guid: 69d3eb0e15e37624a88d642f46096351, type: 3}
       propertyPath: m_Name
@@ -7409,19 +7538,19 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 8624757506502350310, guid: 69d3eb0e15e37624a88d642f46096351, type: 3}
       propertyPath: m_AnchorMax.y
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 8624757506502350310, guid: 69d3eb0e15e37624a88d642f46096351, type: 3}
       propertyPath: m_AnchorMin.y
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 8624757506502350310, guid: 69d3eb0e15e37624a88d642f46096351, type: 3}
       propertyPath: m_AnchoredPosition.x
-      value: 195.7213
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 8624757506502350310, guid: 69d3eb0e15e37624a88d642f46096351, type: 3}
       propertyPath: m_AnchoredPosition.y
-      value: -39.06925
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 9024786202233854397, guid: 69d3eb0e15e37624a88d642f46096351, type: 3}
       propertyPath: visionSensor

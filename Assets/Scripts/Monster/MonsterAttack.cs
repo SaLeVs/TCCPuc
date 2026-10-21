@@ -10,8 +10,8 @@ namespace Monster
     {
         public event Action OnAttackStartedAnimation;
         public event Action OnAttackEndedAnimation;
-        public static Action<Vector3> OnMonsterAttackSound;
 
+        [SerializeField] private SoundDefinitionSO attackSound;
         [SerializeField] private float distanceToAttack;
         [SerializeField] private float damageAmountPerAttack;
         [SerializeField] private float attackCooldown;

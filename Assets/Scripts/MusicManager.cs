@@ -42,7 +42,7 @@ public class MusicManager : MonoBehaviour
         {
             chosenTracks = menuTracks;
         }
-        else if (scene.name == "Game" || scene.name == "Lobby")
+        else if (Enums.SceneNames.IsGame(scene.name) || scene.name == "Lobby")
         {
             chosenTracks = gameTracks;
         }

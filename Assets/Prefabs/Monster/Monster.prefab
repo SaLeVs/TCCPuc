@@ -197,7 +197,7 @@ MonoBehaviour:
   monsterDoorForcer: {fileID: 7054409550993874800}
   monsterAwareness: {fileID: 5320133689007995861}
   monsterInvestigate: {fileID: 6105359185430086693}
-  trackingGraceSeconds: 4
+  trackingGraceSeconds: 2
   logStateChanges: 1
   stuckSeconds: 2
   stuckMinProgress: 0.4
@@ -231,7 +231,7 @@ MonoBehaviour:
     m_Bits: 2048
   occlusionLayers:
     serializedVersion: 2
-    m_Bits: 95617
+    m_Bits: 882049
   detectedObjects: []
   previousDetectedObjects: []
 --- !u!114 &1764714957470938397
@@ -291,8 +291,8 @@ MonoBehaviour:
   sabotageSound: {fileID: 11400000, guid: cc2ba210d8e2d8546a9a6527bbc3d5ab, type: 2}
   audienceProviderSource: {fileID: 0}
   sabotageUnlockThreshold: 0.5
-  minSabotageCooldown: 5
-  maxSabotageCooldown: 15
+  minSabotageCooldown: 20
+  maxSabotageCooldown: 40
   minSabotageStateDuration: 5
   maxSabotageStateDuration: 7
   allSabotageObjects:
@@ -497,7 +497,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Monster::Monster.MonsterChase
   ShowTopMostFoldoutHeaderGroup: 1
   spottedSound: {fileID: 11400000, guid: aaccfaff3dc2583439c4625353d05799, type: 2}
-  chaseSpeed: 4
+  chaseSpeed: 5
   targetReevaluationInterval: 1
   rotationSpeed: 10
   faceTargetDistance: 3

@@ -14,6 +14,9 @@ namespace Missions.Puzzles
         [SerializeField] private Transform[] spawnPoints;
         [SerializeField] private LampsFeedback lampsFeedback;
 
+        [Tooltip("What every lamp points at. Empty keeps the angle each lamp has in its prefab.")]
+        [SerializeField] private Transform lightTarget;
+
         public int CorrectLampsCount => _correctLampsCount.Value;
         public int TotalLampsCount => _totalLampsCount.Value;
 
@@ -56,6 +59,11 @@ namespace Missions.Puzzles
                 bool startOn = wrongIndices.Contains(i) ? !shouldBeOn : shouldBeOn;
 
                 lamp.Setup(shouldBeOn, startOn);
+
+                if (lightTarget != null)
+                {
+                    lamp.SetAimPoint(lightTarget.position);
+                }
             }
 
             _totalLampsCount.Value = Pieces.Count;

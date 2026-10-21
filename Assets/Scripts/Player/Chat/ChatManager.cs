@@ -123,7 +123,7 @@ namespace Player.Chat
 
         private void OnEnable()
         {
-            if (SceneManager.GetActiveScene().name != nameof(Scenes.Game))
+            if (!SceneNames.IsGame(SceneManager.GetActiveScene().name))
             {
                 chatUi.SetActive(false);
                 return;

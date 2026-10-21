@@ -13,6 +13,10 @@ namespace Objects
 
         [SerializeField] private InputReader inputReader;
         [SerializeField] private Light flashlight;
+
+        [Tooltip("Optional. A wide, weak light switched with the beam, so what is around the hotspot is not pitch black.")]
+        [SerializeField] private Light spill;
+
         [SerializeField] private PlayerState playerState;
 
         [Tooltip("Optional. The click the monster can hear when this is switched on or off.")]
@@ -86,6 +90,8 @@ namespace Objects
         private void UpdateFlashlightVisual(bool state)
         {
             flashlight.enabled = state;
+
+            if (spill != null) spill.enabled = state;
         }
         
         private void Update()

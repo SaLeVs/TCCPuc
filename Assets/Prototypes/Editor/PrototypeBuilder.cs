@@ -95,6 +95,7 @@ namespace Prototypes.Editor
                 report.AppendLine(PrototypeWallSeal.Run(ctx.Root));
                 PlaceSystems(ctx, contract);
                 PrototypeLighting.Setup(ctx);
+                report.AppendLine(MatchReady(scene));
 
                 EditorSceneManager.MarkSceneDirty(scene);
                 EditorSceneManager.SaveScene(scene);
@@ -318,6 +319,55 @@ namespace Prototypes.Editor
                 so.ApplyModifiedPropertiesWithoutUndo();
             }
             ctx.Report.AppendLine($"  vagas de sala sorteada: {ctx.RoomSlots.Count} ({ctx.RoomSlots.Count(t => t.name.EndsWith("_cima"))} no 2º andar)");
+        }
+
+        // ------------------------------------------------------------------ match
+
+        [MenuItem("Tools/TCC/Protótipos/Preparar o nível aberto para a partida (portas e NavMesh)", priority = 42)]
+        private static void MatchReadyOpen()
+        {
+            Scene s = SceneManager.GetActiveScene();
+            if (!s.path.StartsWith(SceneFolder)) { Debug.LogWarning("Abra uma cena de protótipo primeiro."); return; }
+            Debug.Log(MatchReady(s));
+        }
+
+        /// <summary>
+        /// What a match needs from a finished level, and what hand edits tend to undo.
+        ///
+        /// <para>Every door with no NetworkObject above it gets its own (same rule as Tools/TCC/Portas):
+        /// a Door only works spawned, and the corridor, hub and backstage doors sit in no networked room.</para>
+        ///
+        /// <para>Nothing the NavMesh collects stays static batched. SpawnRooms rebuilds the NavMesh in the
+        /// match, and a batched renderer hands it the scene's "Combined Mesh", which cannot be read: the
+        /// editor logs an error for each one and the player build leaves those floors and walls out.</para>
+        /// </summary>
+        public static string MatchReady(Scene scene)
+        {
+            var nav = scene.GetRootGameObjects().Select(g => g.GetComponentInChildren<Unity.AI.Navigation.NavMeshSurface>(true)).FirstOrDefault(n => n != null);
+            int doors = 0, unbatched = 0;
+
+            foreach (GameObject root in scene.GetRootGameObjects())
+            {
+                foreach (Objects.Door door in root.GetComponentsInChildren<Objects.Door>(true))
+                {
+                    if (door.GetComponentInParent<Unity.Netcode.NetworkObject>(true) != null) continue;
+                    door.gameObject.AddComponent<Unity.Netcode.NetworkObject>();
+                    doors++;
+                }
+
+                if (nav == null) continue;
+                foreach (MeshRenderer mr in root.GetComponentsInChildren<MeshRenderer>(true))
+                {
+                    if ((nav.layerMask & (1 << mr.gameObject.layer)) == 0) continue;
+                    StaticEditorFlags flags = GameObjectUtility.GetStaticEditorFlags(mr.gameObject);
+                    if ((flags & StaticEditorFlags.BatchingStatic) == 0) continue;
+                    GameObjectUtility.SetStaticEditorFlags(mr.gameObject, flags & ~StaticEditorFlags.BatchingStatic);
+                    unbatched++;
+                }
+            }
+
+            if (doors + unbatched > 0) EditorSceneManager.MarkSceneDirty(scene);
+            return $"  {scene.name}: {doors} portas ganharam NetworkObject, {unbatched} renderers do NavMesh saíram do static batching";
         }
 
         // ------------------------------------------------------------------ hub colliders & layers

@@ -129,13 +129,15 @@ namespace Prototypes.Editor
                 if (Put(d, HW + "SM_Exit_Light.prefab", new Vector3(x, 2.62f, -1.85f), Quaternion.LookRotation(new Vector3(Mathf.Sign(x), 0f, 0f), Vector3.up), Scenary) != null) signs++;
 
                 // The bare strip of floor between the seats and the side door gets a runner of carpet tiles.
+                // On Ground, unlike the other carpets: where the vestibule is hand-built (Game1) the
+                // runner is the only floor drawn there, and without it the NavMesh stopped short of the door.
                 float[] xs = door.Side == Side.Right ? new[] { 13.758f, 15.008f, 15.608f } : new[] { -15.642f, -14.392f, -13.742f };
                 for (int row = 0; row < 4; row++)
                 for (int col = 0; col < xs.Length; col++)
                 {
                     // Neighbouring tiles overlap: alternate their height so they never fight.
                     float y = (row == 0 || row == 3 ? -0.002f : 0f) + (col == 1 ? 0.001f : 0f);
-                    Put(d, HW + "SM_Carpet_01.prefab", new Vector3(xs[col], y, -3.285f + row), Quaternion.identity, DefaultLayer);
+                    Put(d, HW + "SM_Carpet_01.prefab", new Vector3(xs[col], y, -3.285f + row), Quaternion.identity, Ground);
                 }
             }
 

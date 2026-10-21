@@ -28,6 +28,28 @@ namespace Prototypes.Editor
         // relative spot in the room after this shift (cores aligned, see the level design notes).
         private static readonly Vector3 MissionShift = new Vector3(-6.19f, 0f, 4.84f);
 
+        // Rooms whose new furniture did not move with the core: the box room's shelves, lockers and
+        // dolly sit 0.104 / 1.108 m further on than MissionShift puts them, so the totem post-its hung
+        // in the aisle and the boxes went into the shelves.
+        private static readonly Dictionary<string, Vector3> RoomShifts = new Dictionary<string, Vector3>
+        {
+            { "MIssionBoxRoom", new Vector3(0.104f, 0f, 1.108f) },
+        };
+
+        // Spawn points still on nothing after the shift, because what held them was rearranged in the
+        // new room: moved, in the entry's own space, onto the same piece of furniture. The entry gets a
+        // variant in Assets/Prototypes; the original still serves the backup room in Game.
+        private static readonly Dictionary<string, (string point, Vector3 localPosition)[]> EntryFixes = new Dictionary<string, (string, Vector3)[]>
+        {
+            {
+                "MIssionBoxRoom", new[]
+                {
+                    ("BoxSpawnPoints/Box2", new Vector3(8.033f, 1.025f, 4.599f)),  // on the small carton of the pile, which moved to the corner
+                    ("BoxSpawnPoints/Box4", new Vector3(-2.987f, 0.261f, 4.684f)), // bottom board of the shelf that moved to the corner
+                }
+            },
+        };
+
         private static readonly string[] BaseRooms =
         {
             "Assets/Prefabs/Rooms/Fixed/BaseRoom_Decorated_1.prefab",
@@ -125,13 +147,43 @@ namespace Prototypes.Editor
             data.networkSpawnEntries = new List<NetworkSpawnEntry>();
             if (source != null && source.networkSpawnEntries != null)
             {
+                RoomShifts.TryGetValue(source.name, out Vector3 roomShift);
                 foreach (NetworkSpawnEntry e in source.networkSpawnEntries)
                 {
-                    data.networkSpawnEntries.Add(new NetworkSpawnEntry { prefab = e.prefab, localOffset = e.localOffset + MissionShift, localRotation = e.localRotation });
+                    GameObject entry = EntryFixes.TryGetValue(source.name, out var fixes) ? EntryVariant(e.prefab, fixes) : e.prefab;
+                    data.networkSpawnEntries.Add(new NetworkSpawnEntry { prefab = entry, localOffset = e.localOffset + MissionShift + roomShift, localRotation = e.localRotation });
                 }
             }
             EditorUtility.SetDirty(data);
             return data;
+        }
+
+        /// <summary>
+        /// Proto_ variant of an entry prefab with some of its spawn points moved. Rewritten every time,
+        /// so the variant follows the original apart from those points.
+        /// </summary>
+        private static GameObject EntryVariant(GameObject entry, (string point, Vector3 localPosition)[] fixes)
+        {
+            if (entry == null) return null;
+
+            string path = RoomsFolder + "/Proto_" + entry.name + ".prefab";
+            UnityEngine.SceneManagement.Scene preview = EditorSceneManager.NewPreviewScene();
+            try
+            {
+                var go = (GameObject)PrefabUtility.InstantiatePrefab(entry, preview);
+                go.name = "Proto_" + entry.name;
+                foreach ((string point, Vector3 localPosition) in fixes)
+                {
+                    Transform t = go.transform.Find(point);
+                    if (t == null) { Debug.LogWarning($"Protótipo: {entry.name} não tem {point}."); continue; }
+                    t.position = go.transform.TransformPoint(localPosition);
+                }
+                return PrefabUtility.SaveAsPrefabAsset(go, path);
+            }
+            finally
+            {
+                EditorSceneManager.ClosePreviewScene(preview);
+            }
         }
 
         private static MissionSO MissionCopy(MissionSO m, RoomDataSO room)

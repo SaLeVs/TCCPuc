@@ -76,6 +76,21 @@ namespace Monster
 
             _hitTargets.Add(netObj);
             health.TakeDamage(_damage);
+
+            // The glitch belongs on the screen of whoever was hit. It used to fire from
+            // MonsterAttack.TryStartAttack, which only runs here on the server, so the host saw it
+            // on every swing - misses and other players' hits included - and the victim never did.
+            if (netObj.IsPlayerObject)
+            {
+                PlayHitGlitchRpc(RpcTarget.Single(netObj.OwnerClientId, RpcTargetUse.Temp));
+            }
+        }
+
+        [Rpc(SendTo.SpecifiedInParams)]
+        private void PlayHitGlitchRpc(RpcParams rpcParams = default)
+        {
+            if (VHSGlitchController.Instance != null)
+                VHSGlitchController.Instance.TriggerGlitch();
         }
 
         public override void OnNetworkDespawn()

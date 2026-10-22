@@ -78,10 +78,6 @@ namespace Monster
             hitbox.ResetHits();
             hitbox.EnableHitbox();
 
-            // TESTE: glitch do VHS no começo do ataque (roda uma vez por golpe)
-            if (VHSGlitchController.Instance != null)
-                VHSGlitchController.Instance.TriggerGlitch();
-
             return true;
         }
 

@@ -3972,6 +3972,8 @@ GameObject:
   - component: {fileID: 2600897790014608014}
   - component: {fileID: 3158690138509095668}
   - component: {fileID: 2207057075489463036}
+  - component: {fileID: 6157679320892764106}
+  - component: {fileID: 6048074957312057457}
   m_Layer: 11
   m_Name: Player
   m_TagString: Untagged
@@ -4192,10 +4194,13 @@ MonoBehaviour:
   inputReader: {fileID: 11400000, guid: b8967103b22990e4685e914ae00843a6, type: 2}
   capsuleCollider: {fileID: 2207057075489463036}
   speedModifier: 0.5
-  crouchColliderCenter: {x: 0.02667567, y: 0.57, z: 0.1080268}
+  crouchColliderCenter: {x: 0.02667567, y: 0.5741215, z: 0.1080268}
   crouchRadius: 0.3629974
-  crouchHeight: 1.156486
+  crouchHeight: 1.148243
   crouchSpeed: 10
+  squashedColliderCenter: {x: 0.02667567, y: 0.501, z: 0.1080268}
+  squashedHeight: 1.002
+  hatProbeReach: 0.2
   ceilingMask:
     serializedVersion: 2
     m_Bits: 1000576
@@ -4636,9 +4641,46 @@ CapsuleCollider:
   m_Enabled: 1
   serializedVersion: 2
   m_Radius: 0.36625275
-  m_Height: 1.3992002
+  m_Height: 1.425
   m_Direction: 1
-  m_Center: {x: 0, y: 0.72539985, z: 0.14625272}
+  m_Center: {x: 0, y: 0.7125, z: 0.14625272}
+--- !u!114 &6157679320892764106
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6252520807053122715}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 81f31ed79a330824dbbb04eb7d3017a9, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Player::Player.PlayerCrouchBlendShape
+  playerCrouch: {fileID: 2747145024143162000}
+  trigger: 0
+  renderers:
+  - {fileID: 6272514775647807649}
+  - {fileID: 4808977135970678045}
+  blendShapeName: Crouch
+  speed: 10
+--- !u!114 &6048074957312057457
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6252520807053122715}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 81f31ed79a330824dbbb04eb7d3017a9, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Player::Player.PlayerCrouchBlendShape
+  playerCrouch: {fileID: 2747145024143162000}
+  trigger: 1
+  renderers:
+  - {fileID: 6272514775647807649}
+  blendShapeName: Lattice
+  speed: 10
 --- !u!1 &6590978594038087851
 GameObject:
   m_ObjectHideFlags: 0
@@ -6256,7 +6298,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: a1bb287d834363447b66abdf10995fa2, type: 3}
       propertyPath: m_LocalPosition.z
-      value: 0
+      value: 0.15
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: a1bb287d834363447b66abdf10995fa2, type: 3}
       propertyPath: m_LocalRotation.w
@@ -6336,6 +6378,10 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: -4396642182433536433, guid: a1bb287d834363447b66abdf10995fa2, type: 3}
       propertyPath: 'm_BlendShapeWeights.Array.data[0]'
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -4396642182433536433, guid: a1bb287d834363447b66abdf10995fa2, type: 3}
+      propertyPath: 'm_BlendShapeWeights.Array.data[1]'
       value: 0
       objectReference: {fileID: 0}
     - target: {fileID: -4106785617627158090, guid: a1bb287d834363447b66abdf10995fa2, type: 3}
@@ -6748,6 +6794,11 @@ MonoBehaviour:
 --- !u!4 &1977203240146662122 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: -8176320233827722236, guid: a1bb287d834363447b66abdf10995fa2, type: 3}
+  m_PrefabInstance: {fileID: 1582891909866417902}
+  m_PrefabAsset: {fileID: 0}
+--- !u!137 &4808977135970678045 stripped
+SkinnedMeshRenderer:
+  m_CorrespondingSourceObject: {fileID: -2933139716659438605, guid: a1bb287d834363447b66abdf10995fa2, type: 3}
   m_PrefabInstance: {fileID: 1582891909866417902}
   m_PrefabAsset: {fileID: 0}
 --- !u!95 &4944136999074124671 stripped

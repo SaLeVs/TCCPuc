@@ -3969,6 +3969,7 @@ GameObject:
   - component: {fileID: 3916989616377195318}
   - component: {fileID: 1861191804149879818}
   - component: {fileID: 274594114697578275}
+  - component: {fileID: 2600897790014608014}
   - component: {fileID: 3158690138509095668}
   - component: {fileID: 2207057075489463036}
   m_Layer: 11
@@ -4220,8 +4221,7 @@ MonoBehaviour:
   inputReader: {fileID: 11400000, guid: b8967103b22990e4685e914ae00843a6, type: 2}
   orientation: {fileID: 847016756603283365}
   rb: {fileID: 3158690138509095668}
-  occlusionRenderers:
-  - {fileID: 0}
+  occlusionRenderers: []
   ownerCameraPriority: 10
   minSensitivityMultiplier: 1
   maxSensitivityMultiplier: 20
@@ -4243,8 +4243,8 @@ MonoBehaviour:
   cinemachineCamera: {fileID: 6800444975667494322}
   cameraRoot: {fileID: 5036788259409135564}
   cameraMoveSpeed: 10
-  standingOffset: {x: 0, y: 1, z: 0.35}
-  crouchOffset: {x: 0, y: 0.7, z: 0.45}
+  standingOffset: {x: 0, y: 0.95, z: 0.3}
+  crouchOffset: {x: 0, y: 0.7, z: 0.5}
   runOffset: {x: 0, y: 0.9, z: 0.5}
   deadOffset: {x: 0, y: 0, z: 0}
   fallenClipLayers:
@@ -4574,6 +4574,21 @@ MonoBehaviour:
   crouchingMultiplier: 0.3
   walkingMultiplier: 1
   runningMultiplier: 3
+--- !u!114 &2600897790014608014
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6252520807053122715}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b08d16dc791df7b4d8b47eac9304981b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Player::Player.FirstPersonHiddenRenderers
+  renderers:
+  - {fileID: 6272514775647807649}
+  bodyRoot: {fileID: 0}
 --- !u!54 &3158690138509095668
 Rigidbody:
   m_ObjectHideFlags: 0
@@ -6407,13 +6422,9 @@ PrefabInstance:
       propertyPath: m_Layer
       value: 11
       objectReference: {fileID: 0}
-    - target: {fileID: -150009337949190703, guid: a1bb287d834363447b66abdf10995fa2, type: 3}
-      propertyPath: 'm_Materials.Array.data[0]'
-      value: 
-      objectReference: {fileID: 2100000, guid: eedfd2abbbdd70f439ccc91e5e7d2cab, type: 2}
-    - target: {fileID: -150009337949190703, guid: a1bb287d834363447b66abdf10995fa2, type: 3}
-      propertyPath: 'm_BlendShapeWeights.Array.data[0]'
-      value: 0
+    - target: {fileID: -259972160606440404, guid: a1bb287d834363447b66abdf10995fa2, type: 3}
+      propertyPath: m_Layer
+      value: 11
       objectReference: {fileID: 0}
     - target: {fileID: 137182745891916054, guid: a1bb287d834363447b66abdf10995fa2, type: 3}
       propertyPath: m_Layer
@@ -6518,14 +6529,6 @@ PrefabInstance:
     - target: {fileID: 8224915165863788860, guid: a1bb287d834363447b66abdf10995fa2, type: 3}
       propertyPath: m_Layer
       value: 11
-      objectReference: {fileID: 0}
-    - target: {fileID: 8699652204047898494, guid: a1bb287d834363447b66abdf10995fa2, type: 3}
-      propertyPath: m_Layer
-      value: 11
-      objectReference: {fileID: 0}
-    - target: {fileID: 8699652204047898494, guid: a1bb287d834363447b66abdf10995fa2, type: 3}
-      propertyPath: m_IsActive
-      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 8971880416642106240, guid: a1bb287d834363447b66abdf10995fa2, type: 3}
       propertyPath: m_Layer
@@ -6750,6 +6753,11 @@ Transform:
 --- !u!95 &4944136999074124671 stripped
 Animator:
   m_CorrespondingSourceObject: {fileID: 5866666021909216657, guid: a1bb287d834363447b66abdf10995fa2, type: 3}
+  m_PrefabInstance: {fileID: 1582891909866417902}
+  m_PrefabAsset: {fileID: 0}
+--- !u!137 &6272514775647807649 stripped
+SkinnedMeshRenderer:
+  m_CorrespondingSourceObject: {fileID: -4396642182433536433, guid: a1bb287d834363447b66abdf10995fa2, type: 3}
   m_PrefabInstance: {fileID: 1582891909866417902}
   m_PrefabAsset: {fileID: 0}
 --- !u!4 &8191201027288803472 stripped

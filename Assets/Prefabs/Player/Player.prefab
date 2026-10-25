@@ -237,6 +237,8 @@ GameObject:
   - component: {fileID: 2087882945893029092}
   - component: {fileID: 1081674600101143416}
   - component: {fileID: 7565777945021881719}
+  - component: {fileID: 5096007413297177689}
+  - component: {fileID: 8590487934172687005}
   m_Layer: 11
   m_Name: Flashlight
   m_TagString: Untagged
@@ -271,10 +273,10 @@ Light:
   serializedVersion: 12
   m_Type: 0
   m_Color: {r: 1, g: 0.93, b: 0.82, a: 1}
-  m_Intensity: 27
-  m_Range: 25
-  m_SpotAngle: 70
-  m_InnerSpotAngle: 28
+  m_Intensity: 70
+  m_Range: 40
+  m_SpotAngle: 62
+  m_InnerSpotAngle: 56
   m_CookieSize2D: {x: 0.5, y: 0.5}
   m_Shadows:
     m_Type: 2
@@ -390,6 +392,49 @@ MonoBehaviour:
   loudness: 4
   cooldown: 0.2
   origin: {fileID: 0}
+--- !u!114 &5096007413297177689
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 256771491213197926}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e57d2c69d4c01ab41a017bd72f953279, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Objects::Objects.FlashlightExposure
+  beam: {fileID: 136951641080088674}
+  spill: {fileID: 1064369959468239810}
+  beamIntensity: 70
+  spillIntensity: 5
+  referenceDistance: 3
+  compensation: 1.5
+  minScale: 0.04
+  maxScale: 8
+  dimSpeed: 12
+  brightenSpeed: 4
+  innerRing: 0.2
+  outerRing: 0.6
+  outerRingWeight: 2
+  probeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+--- !u!114 &8590487934172687005
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 256771491213197926}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 77ac213d54405c2488c3bea12ee42656, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Objects::Objects.FlashlightShaderWarmup
+  beam: {fileID: 136951641080088674}
+  delay: 0.5
+  frames: 3
 --- !u!1 &655379717936948952
 GameObject:
   m_ObjectHideFlags: 0
@@ -5055,8 +5100,8 @@ Light:
   serializedVersion: 12
   m_Type: 0
   m_Color: {r: 1, g: 0.93, b: 0.82, a: 1}
-  m_Intensity: 2.5
-  m_Range: 8
+  m_Intensity: 5
+  m_Range: 12
   m_SpotAngle: 120
   m_InnerSpotAngle: 50
   m_CookieSize2D: {x: 0.5, y: 0.5}

@@ -280,7 +280,7 @@ Light:
   m_CookieSize2D: {x: 0.5, y: 0.5}
   m_Shadows:
     m_Type: 2
-    m_Resolution: -1
+    m_Resolution: 1024
     m_CustomResolution: 1024
     m_Strength: 1
     m_Bias: 0.03
@@ -409,11 +409,13 @@ MonoBehaviour:
   beamIntensity: 70
   spillIntensity: 5
   referenceDistance: 3
-  compensation: 1.5
+  nearCompensation: 1.5
+  farCompensation: 1
   minScale: 0.04
-  maxScale: 8
-  dimSpeed: 12
-  brightenSpeed: 4
+  maxScale: 4
+  dimSpeed: 4
+  brightenSpeed: 1.5
+  spillDimming: 0.6
   innerRing: 0.2
   outerRing: 0.6
   outerRingWeight: 2

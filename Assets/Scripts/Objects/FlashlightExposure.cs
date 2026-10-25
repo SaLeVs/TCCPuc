@@ -11,13 +11,19 @@ namespace Objects
     /// <para>URP lights fall off with the square of the distance: a beam bright enough at ten
     /// metres is four hundred times brighter at half a metre. Multiplying the intensity by
     /// (distance / reference) ^ compensation leaves the hotspot falling off as
-    /// distance ^ (compensation - 2) instead - at 1.5, that gap shrinks to about four times.</para>
+    /// distance ^ (compensation - 2) instead. Closer than the reference it is undone hard, so walls
+    /// stop glaring; farther it is undone gently, because every change of intensity shows as the
+    /// beam pumping when it is swept across a room.</para>
     ///
     /// <para>The distance is the nearest hit among a ray down the middle of the beam and two rings
     /// around it, so a door frame or a shelf edge in the beam dims it too, not only whatever sits
     /// dead centre. The outer ring lands on the spill, which the cookie keeps at about a quarter of
     /// the hotspot, so a hit there glares like a hotspot twice as far away and counts that much
     /// farther.</para>
+    ///
+    /// <para>The spill only follows part of the dimming and never the boost: it lights the room
+    /// around the beam, and scaling it with the beam made the whole room darken whenever the beam
+    /// passed over something close.</para>
     /// </remarks>
     public class FlashlightExposure : MonoBehaviour
     {
@@ -25,32 +31,38 @@ namespace Objects
 
         [SerializeField] private Light beam;
 
-        [Tooltip("Optional. The wide fill light switched with the beam; scaled the same way.")]
+        [Tooltip("Optional. The wide fill light switched with the beam.")]
         [SerializeField] private Light spill;
 
         [Tooltip("Beam intensity when what it points at is at the reference distance.")]
         [SerializeField, Min(0f)] private float beamIntensity = 70f;
 
-        [Tooltip("Spill intensity when what the beam points at is at the reference distance.")]
+        [Tooltip("Spill intensity when nothing is close to the beam.")]
         [SerializeField, Min(0f)] private float spillIntensity = 5f;
 
-        [Tooltip("Metres at which both lights shine at exactly the intensities above.")]
+        [Tooltip("Metres at which the beam shines at exactly the intensity above.")]
         [SerializeField, Min(0.1f)] private float referenceDistance = 3f;
 
-        [Tooltip("How much of the distance falloff is undone. 0 = a plain light, 2 = the hotspot looks the same at any distance.")]
-        [SerializeField, Range(0f, 2f)] private float compensation = 1.5f;
+        [Tooltip("How much of the distance falloff is undone closer than the reference. 0 = a plain light, 2 = the hotspot looks the same at any distance.")]
+        [SerializeField, Range(0f, 2f)] private float nearCompensation = 1.5f;
+
+        [Tooltip("The same, farther than the reference. Keep it low: the higher, the more the beam pumps when swept across a room.")]
+        [SerializeField, Range(0f, 2f)] private float farCompensation = 1f;
 
         [Tooltip("Lowest multiplier, for a wall touching the lens.")]
         [SerializeField, Min(0.01f)] private float minScale = 0.04f;
 
         [Tooltip("Highest multiplier, for a long corridor. Too high and the walls beside the player glow.")]
-        [SerializeField, Min(0.01f)] private float maxScale = 8f;
+        [SerializeField, Min(0.01f)] private float maxScale = 4f;
 
         [Tooltip("How fast the beam dims when something comes close. Too slow and a wall flashes white first.")]
-        [SerializeField, Min(0f)] private float dimSpeed = 12f;
+        [SerializeField, Min(0f)] private float dimSpeed = 4f;
 
         [Tooltip("How fast it comes back up when what it points at moves away.")]
-        [SerializeField, Min(0f)] private float brightenSpeed = 4f;
+        [SerializeField, Min(0f)] private float brightenSpeed = 1.5f;
+
+        [Tooltip("How much of the beam's dimming near walls the spill follows. 0 = always full, 1 = dims as much as the beam.")]
+        [SerializeField, Range(0f, 1f)] private float spillDimming = 0.6f;
 
         [Tooltip("Width of the inner probe ring, as a fraction of the beam's half-angle. Keep it on the hotspot's edge.")]
         [SerializeField, Range(0f, 1f)] private float innerRing = 0.2f;
@@ -102,12 +114,16 @@ namespace Objects
             float scale = Mathf.Exp(_logScale);
             beam.intensity = beamIntensity * scale;
 
-            if (spill != null) spill.intensity = spillIntensity * scale;
+            if (spill != null)
+            {
+                spill.intensity = spillIntensity * Mathf.Lerp(1f, Mathf.Min(scale, 1f), spillDimming);
+            }
         }
 
         private float TargetScale(float distance)
         {
-            float scale = Mathf.Pow(distance / referenceDistance, compensation);
+            float ratio = distance / referenceDistance;
+            float scale = Mathf.Pow(ratio, ratio < 1f ? nearCompensation : farCompensation);
 
             return Mathf.Clamp(scale, minScale, Mathf.Max(minScale, maxScale));
         }

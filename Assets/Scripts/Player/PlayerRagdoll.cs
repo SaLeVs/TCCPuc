@@ -17,6 +17,12 @@ namespace Player
         public Transform EyesForward => eyesForward;
         public Transform HipsBone => hipsBone;
 
+        /// <summary>The gaze as a rotation in the head bone's space. EyesForward is parented to the
+        /// head, so its local position is the direction the eyes look.</summary>
+        public Quaternion HeadGaze => eyesForward != null && eyesForward.localPosition.sqrMagnitude > 0.000001f
+            ? Quaternion.LookRotation(eyesForward.localPosition, Vector3.up)
+            : Quaternion.identity;
+
         public void InitializeFrom(Transform sourceRoot)
         {
             if (sourceRoot == null) return;

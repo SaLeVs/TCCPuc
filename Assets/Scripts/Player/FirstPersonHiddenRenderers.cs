@@ -64,8 +64,12 @@ namespace Player
             if (!viewCamera.TryGetComponent(out CinemachineBrain brain)) return false;
 
             // Mid-blend this is the camera being blended to, which is the one the view is heading for.
-            Component live = brain.ActiveVirtualCamera as Component;
-            return live != null && live.transform.IsChildOf(bodyRoot);
+            if (brain.ActiveVirtualCamera is not CinemachineVirtualCameraBase live) return false;
+
+            // What it follows counts as well: a spectator watching someone knocked down follows
+            // the head of that player's ragdoll while the camera itself stays on the player.
+            Transform follow = live.Follow;
+            return live.transform.IsChildOf(bodyRoot) || (follow != null && follow.IsChildOf(bodyRoot));
         }
 
         private void Apply(bool hidden)

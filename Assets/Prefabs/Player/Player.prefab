@@ -3974,6 +3974,7 @@ GameObject:
   - component: {fileID: 2207057075489463036}
   - component: {fileID: 6157679320892764106}
   - component: {fileID: 6048074957312057457}
+  - component: {fileID: 7518677634476426488}
   m_Layer: 11
   m_Name: Player
   m_TagString: Untagged
@@ -4230,7 +4231,6 @@ MonoBehaviour:
   ownerCameraPriority: 10
   minSensitivityMultiplier: 1
   maxSensitivityMultiplier: 20
-  fallenLevelSpeed: 5
 --- !u!114 &229846428463956236
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -4681,6 +4681,26 @@ MonoBehaviour:
   - {fileID: 6272514775647807649}
   blendShapeName: Lattice
   speed: 10
+--- !u!114 &7518677634476426488
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6252520807053122715}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 319c276282e77724e98e9f86940baf7d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Player::Player.PlayerViewSync
+  ShowTopMostFoldoutHeaderGroup: 1
+  cinemachineCamera: {fileID: 6800444975667494322}
+  panTilt: {fileID: 2597300154032830282}
+  cameraRoot: {fileID: 5036788259409135564}
+  playerKnockdown: {fileID: 2757436302559510102}
+  playerCameraOffset: {fileID: 229846428463956236}
+  lookSmoothing: 18
+  sendThreshold: 0.05
 --- !u!1 &6590978594038087851
 GameObject:
   m_ObjectHideFlags: 0

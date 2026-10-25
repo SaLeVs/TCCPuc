@@ -53,14 +53,18 @@ namespace Player
                 _targetCameraOffset = standingOffset;
                 cameraRoot.localPosition = standingOffset;
                 _originalParent = cameraRoot.parent;
+            }
 
-                if (fallenClipLayers.value == 0)
-                {
-                    fallenClipLayers = ~LayerMask.GetMask("Player", "DeadPlayer", "Body", "OcclusionBody",
-                        "Ignore Raycast", "UI", "TransparentFX");
-                }
+            // Every peer: a spectator keeps the view of someone else's ragdoll clear too.
+            if (fallenClipLayers.value == 0)
+            {
+                fallenClipLayers = ~LayerMask.GetMask("Player", "DeadPlayer", "Body", "OcclusionBody",
+                    "Ignore Raycast", "UI", "TransparentFX");
             }
         }
+
+        /// <summary>Down or dead with the camera on the ragdoll's head.</summary>
+        private bool IsOnRagdoll => _ragdollAttached || (_isDead && _deathCameraBone != null);
 
 
         private void LateUpdate()
@@ -69,7 +73,7 @@ namespace Player
 
             float t = cameraMoveSpeed * Time.deltaTime;
 
-            if (_ragdollAttached)
+            if (IsOnRagdoll)
             {
                 // Parented to the head bone, so both of these are in bone space. The offset has to
                 // ease to zero and not to standingOffset: the Armature is scaled 100x, and one
@@ -83,11 +87,6 @@ namespace Player
 
             cameraRoot.localPosition = Vector3.Lerp(cameraRoot.localPosition, _targetCameraOffset, t);
             cameraRoot.localRotation = Quaternion.Slerp(cameraRoot.localRotation, Quaternion.identity, t);
-
-            if (_isDead && _deathCameraBone != null)
-            {
-                KeepClearOfGeometry();
-            }
         }
 
         /// <summary>
@@ -147,11 +146,26 @@ namespace Player
         private void KeepClearOfGeometry()
         {
             Vector3 desired = cameraRoot.position;
+            Vector3 safe = ClearOfGeometry(desired, _clipReference);
+
+            if (safe != desired)
+            {
+                cameraRoot.position = safe;
+            }
+        }
+
+        /// <summary>
+        /// Where a camera that wants to be at <paramref name="desired"/> on a ragdoll can be without
+        /// clipping, cast out from <paramref name="clipReference"/> (a point inside the body).
+        /// Also used by PlayerViewSync for a spectator riding this player's ragdoll.
+        /// </summary>
+        public Vector3 ClearOfGeometry(Vector3 desired, Transform clipReference)
+        {
             Vector3 safe = desired;
 
-            if (_clipReference != null)
+            if (clipReference != null)
             {
-                Vector3 from = _clipReference.position;
+                Vector3 from = clipReference.position;
                 Vector3 toCamera = desired - from;
                 float distance = toCamera.magnitude;
 
@@ -175,10 +189,7 @@ namespace Player
                 safe.y = Mathf.Max(safe.y, floor.point.y + fallenClearance);
             }
 
-            if (safe != desired)
-            {
-                cameraRoot.position = safe;
-            }
+            return safe;
         }
 
         private void PlayerState_OnRunEvent(bool isRunning)
@@ -203,7 +214,11 @@ namespace Player
             }
         }
 
-        /// <summary>Rides a ragdoll bone instead of the player body. Used by death and by knockdowns.</summary>
+        /// <summary>
+        /// Rides a ragdoll bone instead of the player body — the death camera. On the head it
+        /// looks down the ragdoll's gaze, like a knockdown, so a dead player sees what their body
+        /// sees instead of wherever the mouse last pointed.
+        /// </summary>
         public void AttachCameraTo(Transform bone)
         {
             if (!IsOwner || bone == null) return;
@@ -212,6 +227,7 @@ namespace Player
 
             PlayerRagdoll ragdoll = bone.GetComponentInParent<PlayerRagdoll>();
             _clipReference = ragdoll != null ? ragdoll.HipsBone : null;
+            _ragdollLookRotation = ragdoll != null && ragdoll.HeadBone == bone ? ragdoll.HeadGaze : Quaternion.identity;
         }
 
         /// <summary>Puts the camera back on the player body.</summary>

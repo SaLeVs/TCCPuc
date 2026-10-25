@@ -26,9 +26,6 @@ namespace Player
         [SerializeField] private float minSensitivityMultiplier = 0.3f;
         [SerializeField] private float maxSensitivityMultiplier = 3f;
 
-        [Tooltip("How fast the view levels out to look straight ahead after a death.")]
-        [SerializeField, Min(0.1f)] private float fallenLevelSpeed = 5f;
-
         public CinemachineCamera playerCinemachineCamera => cinemachineCamera;
         public bool IsPaused => _isPaused;
 
@@ -36,6 +33,7 @@ namespace Player
         private bool _isLocked;
         private bool _isPaused;
         private bool _isKnockedDown;
+        private bool _isViewOnRagdoll;
         private CinemachinePanTilt.ReferenceFrames _savedReferenceFrame;
         private float _savedPan;
         private float _savedTilt;
@@ -126,6 +124,7 @@ namespace Player
         {
             _isDead = isDead;
             RefreshLookInput();
+            RefreshFallenView();
         }
 
         /// <summary>
@@ -138,16 +137,36 @@ namespace Player
 
             _isKnockedDown = knockedDown;
             RefreshLookInput();
+            RefreshFallenView();
+        }
 
-            if (knockedDown)
+        /// <summary>
+        /// Knocked down or dead, the view looks through the ragdoll's eyes. Death used to keep
+        /// aiming in World and only level the tilt, so the view stared wherever the mouse last
+        /// was while the body tumbled under it.
+        ///
+        /// <para>Both are checked together because dying while down drops the knockdown flag
+        /// after or before the death one, depending on which listener runs first: the view must
+        /// not go back to the mouse in between.</para>
+        /// </summary>
+        private void RefreshFallenView()
+        {
+            if (_isViewOnRagdoll == IsFallen) return;
+
+            _isViewOnRagdoll = IsFallen;
+
+            if (_isViewOnRagdoll)
             {
                 // PanTilt aims in World, which means CameraRoot's rotation never reaches the view.
                 // Point it at the parent and zero the axes instead: the camera then looks exactly
                 // down CameraRoot's forward, which is what lets PlayerCameraOffset aim it along
-                // the ragdoll's gaze.
+                // the ragdoll's gaze. CameraRoot starts from the current view, so it turns from
+                // there to the eyes instead of snapping to the body's facing first.
                 _savedReferenceFrame = panTilt.ReferenceFrame;
                 _savedPan = panTilt.PanAxis.Value;
                 _savedTilt = panTilt.TiltAxis.Value;
+
+                cameraRoot.rotation = cinemachineCamera.transform.rotation;
 
                 panTilt.ReferenceFrame = CinemachinePanTilt.ReferenceFrames.ParentObject;
                 panTilt.PanAxis.Value = 0f;
@@ -183,15 +202,6 @@ namespace Player
             inputAxisController.enabled = !_isPaused && !_isLocked && !IsFallen;
         }
 
-        /// <summary>
-        /// Dead, the view keeps aiming in World while it rides the head: this eases its tilt back to
-        /// level, so it looks straight ahead instead of wherever the mouse last was.
-        /// </summary>
-        private void LevelFallenView()
-        {
-            panTilt.TiltAxis.Value = Mathf.Lerp(panTilt.TiltAxis.Value, 0f, fallenLevelSpeed * Time.deltaTime);
-        }
-
         private void HideOcclusionRenderers()
         {
             foreach (Renderer currentRenderer in occlusionRenderers)
@@ -208,12 +218,8 @@ namespace Player
         {
             if (!IsOwner) return;
 
-            if (IsFallen)
-            {
-                // A knockdown aims along the ragdoll's eyes through ParentObject; only death needs levelling.
-                if (!_isKnockedDown) LevelFallenView();
-                return;
-            }
+            // Down or dead, the ragdoll's eyes aim the view through ParentObject.
+            if (IsFallen) return;
 
             if (!_isLocked)
             {

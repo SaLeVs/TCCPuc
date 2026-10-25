@@ -3105,13 +3105,13 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 5134850409378113224}
   serializedVersion: 2
-  m_LocalRotation: {x: -0.11195746, y: 0.01574235, z: 0.12064951, w: -0.98623604}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalRotation: {x: 0, y: 0.7071068, z: 0.7071068, w: 0}
+  m_LocalPosition: {x: 0, y: 0.0007, z: 0.00028}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 1977203240146662122}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_LocalEulerAnglesHint: {x: -90, y: 180, z: 0}
 --- !u!1 &5310171888287355854
 GameObject:
   m_ObjectHideFlags: 0
@@ -4022,6 +4022,7 @@ GameObject:
   - component: {fileID: 6157679320892764106}
   - component: {fileID: 6048074957312057457}
   - component: {fileID: 7518677634476426488}
+  - component: {fileID: 835645156359992294}
   m_Layer: 11
   m_Name: Player
   m_TagString: Untagged
@@ -4748,6 +4749,24 @@ MonoBehaviour:
   playerCameraOffset: {fileID: 229846428463956236}
   lookSmoothing: 18
   sendThreshold: 0.05
+--- !u!114 &835645156359992294
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6252520807053122715}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ca13aea2af7e3674cb280b9068341591, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Player::Player.PlayerHoldAnimation
+  ShowTopMostFoldoutHeaderGroup: 1
+  playerState: {fileID: 315419889962386199}
+  animator: {fileID: 4944136999074124671}
+  itemDatabase: {fileID: 11400000, guid: 445d4ee483405c346880c081245fee23, type: 2}
+  holdStateClip: {fileID: 7400000, guid: cb1ec4adc0b9fed4ca678371d4c6802f, type: 2}
+  fallbackHoldAnimation: {fileID: 7400000, guid: ff3c5dfef3c018342850ceed9998a6ed, type: 2}
 --- !u!1 &6590978594038087851
 GameObject:
   m_ObjectHideFlags: 0

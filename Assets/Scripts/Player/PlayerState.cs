@@ -14,6 +14,7 @@ namespace Player
         public event Action<bool> OnRunEvent;
         public event Action<bool> OnCrouchEvent;
         public event Action OnInteract;
+        // Id of the item in the hand, -1 when it is empty.
         public event Action<int> OnHoldItem;
         public event Action<bool> OnPlayerDead;
         public event Action<bool> OnPlayerLocked;
@@ -67,7 +68,7 @@ namespace Player
                 playerCrouch.OnCrouchEvent += PlayerCrouch_OnCrouchEvent;
                 
                 playerInteractor.OnInteractRequested += PlayerInteractor_OnInteractRequested;
-                playerInventory.OnSelectedSlotChanged += PlayerInventory_OnSelectedSlotChanged;
+                playerInventory.OnHeldItemChanged += PlayerInventory_OnHeldItemChanged;
                 
                
                 playerDead.OnRagdollSpawned += PlayerDead_OnRagdollSpawned;
@@ -101,9 +102,9 @@ namespace Player
             OnInteract?.Invoke();
         }
         
-        private void PlayerInventory_OnSelectedSlotChanged(int slot)
+        private void PlayerInventory_OnHeldItemChanged(int itemId)
         {
-            OnHoldItem?.Invoke(slot);
+            OnHoldItem?.Invoke(itemId);
         }
         
         private void PlayerDead_OnDeathEvent(bool isDead)
@@ -228,7 +229,7 @@ namespace Player
                 playerCrouch.OnCrouchEvent -= PlayerCrouch_OnCrouchEvent;
         
                 playerInteractor.OnInteractRequested -= PlayerInteractor_OnInteractRequested;
-                playerInventory.OnSelectedSlotChanged -= PlayerInventory_OnSelectedSlotChanged;
+                playerInventory.OnHeldItemChanged -= PlayerInventory_OnHeldItemChanged;
         
                 playerDead.OnRagdollSpawned -= PlayerDead_OnRagdollSpawned;
             }

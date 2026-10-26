@@ -291,8 +291,8 @@ MonoBehaviour:
   sabotageSound: {fileID: 11400000, guid: cc2ba210d8e2d8546a9a6527bbc3d5ab, type: 2}
   audienceProviderSource: {fileID: 0}
   sabotageUnlockThreshold: 0.5
-  minSabotageCooldown: 50
-  maxSabotageCooldown: 80
+  minSabotageCooldown: 90
+  maxSabotageCooldown: 150
   minSabotageStateDuration: 5
   maxSabotageStateDuration: 7
   allSabotageObjects:
@@ -517,11 +517,17 @@ MonoBehaviour:
   m_EditorClassIdentifier: Monster::Monster.MonsterAttack
   ShowTopMostFoldoutHeaderGroup: 1
   attackSound: {fileID: 11400000, guid: e68f4133300620041a3960bd8a6621c4, type: 2}
-  distanceToAttack: 1
+  distanceToAttack: 1.2
   damageAmountPerAttack: 15
-  attackCooldown: 3
-  attackDuration: 2
+  attackCooldown: 4
+  attackDuration: 1.1
+  hitWindowStart: 0.15
+  hitWindowEnd: 0.5
   hitbox: {fileID: 9202415151627606512}
+  hitSlowMultiplier: 0.6
+  hitSlowSeconds: 2.5
+  hitSlowRecoverSeconds: 1.5
+  hitSlowOnMiss: 0
 --- !u!114 &5948121288489261731
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1193,8 +1199,8 @@ BoxCollider:
   m_ProvidesContacts: 0
   m_Enabled: 0
   serializedVersion: 3
-  m_Size: {x: 0.15791857, y: 0.45160165, z: 0.14702891}
-  m_Center: {x: -0.007116655, y: 0.02744571, z: 0.047287792}
+  m_Size: {x: 0.45, y: 0.90160165, z: 0.45}
+  m_Center: {x: -0.007116655, y: 0.25244571, z: 0.047287792}
 --- !u!114 &9202415151627606512
 MonoBehaviour:
   m_ObjectHideFlags: 0

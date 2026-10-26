@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using Components;
 using Unity.Netcode;
 using UnityEngine;
@@ -7,6 +8,9 @@ namespace Monster
 {
     public class MonsterHitbox : NetworkBehaviour
     {
+        /// <summary>Server only: this swing's damage landed on someone.</summary>
+        public event Action OnTargetHit;
+
         [SerializeField] private Collider hitboxCollider;
 
         private float _damage;
@@ -76,6 +80,7 @@ namespace Monster
 
             _hitTargets.Add(netObj);
             health.TakeDamage(_damage);
+            OnTargetHit?.Invoke();
 
             // The glitch belongs on the screen of whoever was hit. It used to fire from
             // MonsterAttack.TryStartAttack, which only runs here on the server, so the host saw it

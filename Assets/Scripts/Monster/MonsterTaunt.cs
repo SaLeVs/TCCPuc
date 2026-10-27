@@ -6,13 +6,17 @@ namespace Monster
 {
     /// <summary>
     /// The monster stopping to mock a player who just went down in front of it — killed, or
-    /// knocked over.
+    /// knocked over — or to roar over one it has just hit.
     ///
     /// <para>Borrows the agent the way the door forcer does: <see cref="MonsterBrain"/> stops
     /// ticking the state machine while it runs and resumes the active state when it ends, so the
     /// state puts its own movement and animation back. A request that arrives mid-swing or at a
     /// door waits for that to finish, and is dropped if it has to wait too long or if someone else
     /// is in sight — the hunt comes first.</para>
+    ///
+    /// <para>A roar is the short version and does not give way to anyone else in sight: the
+    /// breather it buys everyone is the whole point of it. A taunt for the same blow wins over it —
+    /// a hit that also downed the player is already being mocked.</para>
     /// </summary>
     public class MonsterTaunt
     {
@@ -29,10 +33,14 @@ namespace Monster
 
         private bool _pending;
         private float _pendingUntil;
+        private float _pendingDuration;
         private float _endTime;
         private Vector3 _victimPosition;
 
         public bool IsTaunting { get; private set; }
+
+        /// <summary>The current or pending request is a roar after a hit rather than a taunt.</summary>
+        public bool IsRoar { get; private set; }
 
         /// <summary>Who it is mocking, or about to. Null when idle.</summary>
         public Transform Victim { get; private set; }
@@ -50,8 +58,23 @@ namespace Monster
         {
             if (IsTaunting || victim == null) return;
 
+            Queue(victim, now, _duration, roar: false);
+        }
+
+        /// <summary>Stops to roar over whoever it just hit. Ignored while anything is pending or running.</summary>
+        public void RequestRoar(Transform victim, float now, float duration)
+        {
+            if (IsTaunting || _pending || victim == null || duration <= 0f) return;
+
+            Queue(victim, now, duration, roar: true);
+        }
+
+        private void Queue(Transform victim, float now, float duration, bool roar)
+        {
             _pending = true;
             _pendingUntil = now + _maxDelay;
+            _pendingDuration = duration;
+            IsRoar = roar;
 
             Victim = victim;
             _victimPosition = victim.position;
@@ -61,9 +84,11 @@ namespace Monster
         /// <param name="someoneElseInView">A live player other than the victim is in sight.</param>
         public void Tick(float now, float deltaTime, bool busy, bool someoneElseInView)
         {
+            bool givesWay = someoneElseInView && !IsRoar;
+
             if (IsTaunting)
             {
-                if (someoneElseInView || now >= _endTime)
+                if (givesWay || now >= _endTime)
                 {
                     Finish();
                     return;
@@ -76,9 +101,10 @@ namespace Monster
 
             if (!_pending) return;
 
-            if (someoneElseInView || now > _pendingUntil)
+            if (givesWay || now > _pendingUntil)
             {
                 _pending = false;
+                IsRoar = false;
                 Victim = null;
                 return;
             }
@@ -92,7 +118,7 @@ namespace Monster
         {
             _pending = false;
             IsTaunting = true;
-            _endTime = now + _duration;
+            _endTime = now + _pendingDuration;
 
             if (_agent.isOnNavMesh) _agent.ResetPath();
             HoldAgent();
@@ -103,6 +129,7 @@ namespace Monster
         private void Finish()
         {
             IsTaunting = false;
+            IsRoar = false;
             Victim = null;
 
             OnFinished?.Invoke();

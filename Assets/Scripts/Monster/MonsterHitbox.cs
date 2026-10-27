@@ -8,8 +8,8 @@ namespace Monster
 {
     public class MonsterHitbox : NetworkBehaviour
     {
-        /// <summary>Server only: this swing's damage landed on someone.</summary>
-        public event Action OnTargetHit;
+        /// <summary>Server only: this swing's damage landed on someone (their root object).</summary>
+        public event Action<Transform> OnTargetHit;
 
         [SerializeField] private Collider hitboxCollider;
 
@@ -80,7 +80,7 @@ namespace Monster
 
             _hitTargets.Add(netObj);
             health.TakeDamage(_damage);
-            OnTargetHit?.Invoke();
+            OnTargetHit?.Invoke(netObj.transform);
 
             // The glitch belongs on the screen of whoever was hit. It used to fire from
             // MonsterAttack.TryStartAttack, which only runs here on the server, so the host saw it

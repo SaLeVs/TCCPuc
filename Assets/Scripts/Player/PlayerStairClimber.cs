@@ -54,6 +54,7 @@ namespace Player
         // A climb that isn't on top of the step by then is given up, so a blocked one can't hover.
         private const float StepTimeout = 0.5f;
         private const float MinMoveSpeed = 0.05f;
+        private const float SlopeTolerance = 0.001f;
 
         private readonly RaycastHit[] _hits = new RaycastHit[8];
         private int _collisionMask;
@@ -116,7 +117,9 @@ namespace Player
 
             GetCapsule(out Vector3 bottom, out Vector3 top, out float radius);
             float feetY = bottom.y - radius;
-            float minGroundNormalY = Mathf.Cos(maxSlopeAngle * Mathf.Deg2Rad);
+            // A hair under the cosine, so a slope of exactly maxSlopeAngle is still floor: built at
+            // 45 degrees, its normal came out a rounding error steeper and the ramp was a wall.
+            float minGroundNormalY = Mathf.Cos(maxSlopeAngle * Mathf.Deg2Rad) - SlopeTolerance;
 
             bool hasGround = ProbeGround(bottom, radius, minGroundNormalY, out float groundGap, out Vector3 groundNormal,
                 out float middleGap);
@@ -148,11 +151,14 @@ namespace Player
             else if (_isFollowingGround)
             {
                 // Walked off a step: down it like a ramp instead of dropping onto the next one, but
-                // never slower than falling, so a player who stops over the edge still comes down.
+                // never slower than falling, so a player who stops over the edge still comes down -
+                // and never past the floor below. Carrying the last step's fall speed sank a running
+                // player into each tread, and the solver pushed them back up out of it.
                 float followSpeed = Mathf.Min(groundGap / deltaTime,
                     move.magnitude * Mathf.Tan(stepRampAngle * Mathf.Deg2Rad));
                 float fallSpeed = -(rb.linearVelocity.y + Physics.gravity.y * deltaTime);
-                velocity = new Vector3(move.x, -Mathf.Max(followSpeed, fallSpeed), move.z);
+                float downSpeed = Mathf.Min(Mathf.Max(followSpeed, fallSpeed), groundGap / deltaTime);
+                velocity = new Vector3(move.x, -downSpeed, move.z);
             }
             else
             {
@@ -378,9 +384,20 @@ namespace Player
             return gap < float.MaxValue;
         }
 
-        /// <summary>The move turned along the floor, at the same speed, so ramps don't slow or launch it.</summary>
+        /// <summary>
+        /// The move turned along the floor. Uphill it keeps its speed, so ramps don't launch it.
+        /// Downhill it keeps its horizontal speed instead and only gains the drop: rolling over each
+        /// edge on the way down stairs, the edge's tilted normal took up to a tenth of it.
+        /// </summary>
         private static Vector3 AlongGround(Vector3 move, Vector3 groundNormal)
         {
+            float downhill = groundNormal.x * move.x + groundNormal.z * move.z;
+
+            if (downhill > 0f && groundNormal.y > 0.0001f)
+            {
+                return new Vector3(move.x, -downhill / groundNormal.y, move.z);
+            }
+
             Vector3 along = Vector3.ProjectOnPlane(move, groundNormal);
             return along.sqrMagnitude > 0.000001f ? along.normalized * move.magnitude : Vector3.zero;
         }

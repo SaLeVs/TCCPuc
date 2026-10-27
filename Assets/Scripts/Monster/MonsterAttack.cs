@@ -11,6 +11,9 @@ namespace Monster
         public event Action OnAttackStartedAnimation;
         public event Action OnAttackEndedAnimation;
 
+        /// <summary>Server only: a swing just landed on this player. The brain stops it to roar.</summary>
+        public event Action<Transform> OnSwingLanded;
+
         [SerializeField] private SoundDefinitionSO attackSound;
 
         [Tooltip("Centre-to-centre distance at which a swing starts. The swing only lands if the " +
@@ -33,13 +36,21 @@ namespace Monster
         [SerializeField, Min(0f)] private float hitWindowEnd = 0.5f;
         [SerializeField] private MonsterHitbox hitbox;
 
-        [Header("Slow after a hit")]
+        [Header("After a hit")]
+        [Tooltip("Seconds it stands roaring once a swing that landed is over: no chasing, no " +
+                 "swinging. Plays the Taunt clip, the same as sabotage. Zero skips the roar.")]
+        [SerializeField, Min(0f)] private float hitRoarSeconds = 1.6f;
+
+        [Tooltip("Heard by everyone when the roar starts.")]
+        [SerializeField] private SoundDefinitionSO hitRoarSound;
+
         [Tooltip("Speed multiplier once a swing lands, applied on top of whatever the active state " +
                  "asked for. Gives whoever was hit a head start instead of a monster still glued to " +
                  "them the moment the cooldown is over.")]
         [SerializeField, Range(0.1f, 1f)] private float hitSlowMultiplier = 0.6f;
 
-        [Tooltip("Seconds it stays at that speed after landing a hit.")]
+        [Tooltip("Seconds it stays at that speed after landing a hit. Only time spent moving counts, " +
+                 "so the rest of the swing and the roar do not eat into it.")]
         [SerializeField, Min(0f)] private float hitSlowSeconds = 2.5f;
 
         [Tooltip("Seconds it then takes to ease back up to full speed.")]
@@ -50,6 +61,8 @@ namespace Monster
 
         public float DistanceToAttack => distanceToAttack;
         public float AttackCooldown => attackCooldown;
+        public float HitRoarSeconds => hitRoarSeconds;
+        public SoundDefinitionSO HitRoarSound => hitRoarSound;
 
         /// <summary>
         /// True while the monster is still recovering from its last swing.
@@ -92,10 +105,11 @@ namespace Monster
             hitbox.OnTargetHit -= Hitbox_OnTargetHit;
         }
 
-        private void Hitbox_OnTargetHit()
+        private void Hitbox_OnTargetHit(Transform victim)
         {
             _swingLanded = true;
             StartSlow();
+            OnSwingLanded?.Invoke(victim);
         }
 
         public void Initialize(NavMeshAgent agent)
@@ -225,7 +239,10 @@ namespace Monster
         {
             if (!Mathf.Approximately(_agent.speed, _slowedSpeed)) _speedBeforeSlow = _agent.speed;
 
-            _slowElapsed += deltaTime;
+            // Held still — the rest of the swing, the roar, a door — does not count: the slow is
+            // for when it sets off after whoever it hit.
+            bool heldStill = _agent.isOnNavMesh && _agent.isStopped;
+            if (!heldStill) _slowElapsed += deltaTime;
 
             if (_slowElapsed >= hitSlowSeconds + hitSlowRecoverSeconds)
             {

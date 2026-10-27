@@ -73,6 +73,11 @@ namespace Player
                 if (rb == null) continue;
                 rb.isKinematic = false;
                 rb.useGravity = true;
+
+                // Set once the body is dynamic: a kinematic one only takes speculative CCD. Thrown
+                // by a knockdown, or by a door leaf still swinging into it, a discrete limb moves
+                // further in a step than a leaf or a thin wall is thick.
+                rb.collisionDetectionMode = CollisionDetectionMode.ContinuousDynamic;
             }
         }
     }

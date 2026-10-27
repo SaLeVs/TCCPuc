@@ -16,7 +16,7 @@ using UnityEngine.Serialization;
 namespace Objects
 {
     [RequireComponent(typeof(NavMeshObstacle))]
-    public class Door : NetworkBehaviour, IInteractable, IForceableDoor
+    public class Door : NetworkBehaviour, IDoorwayInteractable, IInteractionRange, IForceableDoor
     {
         /// <summary>Someone failed to get this door to move. Raised on every client, with where the door is.</summary>
         public static event Action<Vector3> OnDoorBlocked;
@@ -28,6 +28,11 @@ namespace Objects
         [SerializeField] private Rigidbody doorRigidbody;
 
         [SerializeField] private NavMeshObstacle navMeshObstacle;
+
+        [Tooltip("Optional. Solid only while the door is shut and still, and only once nobody is inside " +
+                 "it: the gap under a counter flap, which the flap alone leaves open to anyone " +
+                 "crouching, and which the monster's probe would otherwise pass straight under.")]
+        [SerializeField] private BoxCollider closedBlocker;
 
         [Tooltip("Optional. The noise a player makes opening or closing this door. Deliberately " +
                  "not emitted when the monster forces the door — it would chase its own racket.")]
@@ -78,18 +83,28 @@ namespace Objects
                  "cut through the doorway strip beside it.")]
         [SerializeField, Min(0f)] private float openLeafHingeClearance = 0.45f;
 
+        [Header("Hinge")]
+        [Tooltip("The axis the leaves turn round, in their parent's space. Up for a door. Right or " +
+                 "Forward for a flap hinged along one edge, like a counter top that lifts.")]
+        [SerializeField] private HingeAxis hingeAxis = HingeAxis.Up;
+
+        [Tooltip("On: it opens to whichever side is away from whoever opens it. Off: it only ever " +
+                 "opens to side A, the way a counter flap only lifts.")]
+        [SerializeField] private bool opensBothWays = true;
+
         [Header("Angles")]
-        [Tooltip("The main leaf's local Y rotation when the door is shut — the rotation the leaf has " +
-                 "in the prefab, usually 0. How the whole door is turned in the scene is the root's " +
-                 "rotation and never goes here.")]
+        [Tooltip("The main leaf's local rotation round the hinge axis when the door is shut — the " +
+                 "rotation the leaf has in the prefab, usually 0. How the whole door is turned in the " +
+                 "scene is the root's rotation and never goes here.")]
         [SerializeField] private float closedAngle;
 
-        [Tooltip("The main leaf's local Y rotation fully open one way. The door picks this side or " +
-                 "side B on its own, so it always swings away from whoever opens it.")]
+        [Tooltip("The main leaf's local rotation round the hinge axis fully open one way. With both " +
+                 "ways on, the door picks this side or side B on its own, so it always swings away " +
+                 "from whoever opens it.")]
         [FormerlySerializedAs("openAngle")]
         [SerializeField] private float openSideAAngle = 100f;
 
-        [Tooltip("The main leaf's local Y rotation fully open the other way — normally side A's angle, negated.")]
+        [Tooltip("The main leaf's local rotation fully open the other way — normally side A's angle, negated.")]
         [SerializeField] private float openSideBAngle = -100f;
 
         [Header("Double door")]
@@ -118,6 +133,19 @@ namespace Objects
         [Tooltip("How long the door refuses to be touched after the monster forces it, so nobody can shut it back in its face on a loop.")]
         [SerializeField] private float monsterLockSeconds = 3f;
 
+        [Tooltip("How far away a player can open or close it from. Further than other things: a door " +
+                 "has to be caught on the run, with a monster behind.")]
+        [SerializeField, Min(0.5f)] private float interactionRange = 2.5f;
+
+        private enum HingeAxis
+        {
+            Up,
+            Right,
+            Forward
+        }
+
+        public float InteractionRange => interactionRange;
+
         public Vector3 Position => DoorwayCentre;
         public bool IsClosed => _state.Value == DoorState.Closed;
         public bool IsSwinging => !Mathf.Approximately(_currentAngle, _targetAngle);
@@ -135,6 +163,19 @@ namespace Objects
 
         // Extra distance past the leaf, so a shoved player ends clear of it and not touching it.
         private const float ShoveSkin = 0.02f;
+
+        // Whoever shuts the door while already heading out of its path at this speed or more is let
+        // go on their own, as long as the leaf has to wait no longer than this for them.
+        private const float LeavingSpeed = 1f;
+        private const float MaxLeavingWait = 0.3f;
+
+        // A flap's path is walked rather than worked out: the body is tried this far along at a
+        // time, up to the last distance, against every pose the flap passes through.
+        private const float SweptClearanceStep = 0.05f;
+        private const float MaxSweptClearance = 2.5f;
+
+        // Added round the shut leaves when the crosshair looks for the doorway.
+        private const float DoorwayTargetPadding = 0.02f;
 
         private static readonly WaitForFixedUpdate WaitForFixed = new WaitForFixedUpdate();
 
@@ -199,6 +240,7 @@ namespace Objects
             public float ClosedYaw;
             public float Mirror;
 
+            public BoxCollider Box;
             public bool HasBox;
             public Vector3 BoxOffset;
             public Quaternion BoxRotation;
@@ -305,9 +347,14 @@ namespace Objects
         ///
         /// <para>A carving obstacle on the leaf, switched on only while the door stands open and
         /// still: shut, it would carve the doorway itself, and moving, the carve lags behind.</para>
+        ///
+        /// <para>A flap needs none: it lifts over its own hinge line and leaves nothing standing out
+        /// into the way.</para>
         /// </summary>
         private void CreateOpenLeafObstacle()
         {
+            if (!IsVerticalHinge) return;
+
             foreach (Leaf leaf in _leaves)
             {
                 leaf.OpenObstacle = CreateOpenLeafObstacle(leaf.Body);
@@ -489,12 +536,77 @@ namespace Objects
             UnityEngine.Camera view = UnityEngine.Camera.main;
             Vector3 facing = view != null ? view.transform.forward : playerInteractor.transform.forward;
 
-            RequestToggleServerRpc(playerInteractor.transform.position, facing);
+            // Sent from the closer's own machine: the server's copy of a remote body is kinematic
+            // and carries no velocity, and whether they are already on their way out decides
+            // whether they need shoving at all.
+            Vector3 velocity = playerInteractor.TryGetComponent(out Rigidbody body) ? body.linearVelocity : Vector3.zero;
+
+            RequestToggleServerRpc(playerInteractor.transform.position, facing, velocity);
             return true;
         }
 
+        /// <summary>
+        /// Where <paramref name="ray"/> enters the doorway: the space the leaves fill when shut,
+        /// whether or not they are there now. A ray that starts inside it is not looking at it — a
+        /// player standing in the doorway is looking somewhere else.
+        /// </summary>
+        public bool TryRaycastDoorway(Ray ray, float maxDistance, out float distance, out Collider leaf)
+        {
+            distance = float.MaxValue;
+            leaf = null;
+
+            foreach (Leaf candidate in _leaves)
+            {
+                if (!candidate.HasBox) continue;
+
+                LeafBoxPose(candidate, closedAngle, out Vector3 centre, out Quaternion rotation);
+
+                Quaternion toBox = Quaternion.Inverse(rotation);
+                Vector3 extents = candidate.BoxHalfExtents + Vector3.one * DoorwayTargetPadding;
+
+                if (!RayEntersBox(toBox * (ray.origin - centre), toBox * ray.direction, extents, out float enter)) continue;
+                if (enter > maxDistance || enter >= distance) continue;
+
+                distance = enter;
+                leaf = candidate.Box;
+            }
+
+            return leaf != null;
+        }
+
+        /// <summary>Slab test against a box centred on the origin. False when the ray starts inside it.</summary>
+        private static bool RayEntersBox(Vector3 origin, Vector3 direction, Vector3 extents, out float enter)
+        {
+            float near = float.MinValue;
+            float far = float.MaxValue;
+
+            for (int axis = 0; axis < 3; axis++)
+            {
+                if (Mathf.Abs(direction[axis]) < 0.000001f)
+                {
+                    if (Mathf.Abs(origin[axis]) > extents[axis])
+                    {
+                        enter = 0f;
+                        return false;
+                    }
+
+                    continue;
+                }
+
+                float first = (-extents[axis] - origin[axis]) / direction[axis];
+                float second = (extents[axis] - origin[axis]) / direction[axis];
+
+                near = Mathf.Max(near, Mathf.Min(first, second));
+                far = Mathf.Min(far, Mathf.Max(first, second));
+            }
+
+            enter = near;
+            return near > 0f && near <= far;
+        }
+
         [Rpc(SendTo.Server)]
-        private void RequestToggleServerRpc(Vector3 playerPosition, Vector3 playerFacing, RpcParams rpcParams = default)
+        private void RequestToggleServerRpc(Vector3 playerPosition, Vector3 playerFacing, Vector3 playerVelocity,
+            RpcParams rpcParams = default)
         {
             // The monster is holding this door — either it just forced it and shutting it straight
             // back would be a door-slamming contest, or it sabotaged the whole floor. Rattle it so
@@ -512,7 +624,7 @@ namespace Objects
 
             bool moved = _state.Value == DoorState.Closed
                 ? TryOpenAwayFrom(playerPosition, sender)
-                : TryCloseShoving(sender, playerFacing);
+                : TryCloseShoving(sender, playerFacing, playerVelocity);
 
             // Someone is in the way. Same rattle: the door is stuck on them.
             if (!moved)
@@ -622,8 +734,12 @@ namespace Objects
         /// refusal nobody could see the reason for. Each one is shoved out of the way, to the side
         /// they are on, and the leaf follows once the shove is over. The monster in the doorway, or
         /// a player with a wall on both sides, still makes it rattle.
+        ///
+        /// <para>Whoever shut it while already heading out of its path is not shoved: the shove
+        /// took over their run for a moment, which in a chase is the worst moment for it. The leaf
+        /// waits just as long as they need to get clear on their own.</para>
         /// </summary>
-        private bool TryCloseShoving(ulong closerClientId, Vector3 closerFacing)
+        private bool TryCloseShoving(ulong closerClientId, Vector3 closerFacing, Vector3 closerVelocity)
         {
             if (_state.Value == DoorState.Closed) return true;
 
@@ -638,38 +754,83 @@ namespace Objects
                 return true;
             }
 
-            float swingSide = SwingSide(_currentAngle);
-            if (swingSide == 0f) return false;
+            // The way out of the leaf's path: deeper into the side the open leaf stands in, for a
+            // door. A flap stands on neither side, so out of either end of the passage under it.
+            Vector3 intoSwing;
 
-            Vector3 intoSwing = FlatNormal() * swingSide;
+            if (IsVerticalHinge)
+            {
+                float swingSide = SwingSide(_currentAngle);
+                if (swingSide == 0f) return false;
+
+                intoSwing = FlatNormal() * swingSide;
+            }
+            else
+            {
+                intoSwing = FlatNormal();
+            }
 
             // Every shove is worked out before any is sent: if one player has nowhere to go, the
-            // door stays open and nobody is moved for nothing.
+            // door stays open and nobody is moved for nothing. 0 marks someone leaving on their own.
             _shoveSides.Clear();
+            float wait = 0f;
 
             foreach (PlayerKnockdown player in _inTheWay)
             {
                 if (!player.TryGetComponent(out CapsuleCollider capsule)) return false;
 
-                Vector3 facing = player.OwnerClientId == closerClientId ? closerFacing : Vector3.zero;
+                bool isCloser = player.OwnerClientId == closerClientId;
+                Vector3 facing = isCloser ? closerFacing : Vector3.zero;
                 float preferred = ShoveSideFor(capsule, intoSwing, facing);
+
+                if (isCloser && IsLeavingOnTheirOwn(capsule, intoSwing, preferred, closerVelocity, out float leaveSeconds))
+                {
+                    _shoveSides.Add(0f);
+                    wait = Mathf.Max(wait, leaveSeconds);
+                    continue;
+                }
 
                 if (CanShove(capsule, intoSwing, preferred)) _shoveSides.Add(preferred);
                 else if (CanShove(capsule, intoSwing, -preferred)) _shoveSides.Add(-preferred);
                 else return false;
+
+                wait = Mathf.Max(wait, shoveSeconds);
             }
 
             for (int i = 0; i < _inTheWay.Count; i++)
             {
                 PlayerKnockdown player = _inTheWay[i];
 
+                // Leaving or shoved, the leaf ignores them until it shuts: the server's copy of a
+                // remote body is behind where their own machine already has it.
                 _shoved.Add(player);
+
+                if (_shoveSides[i] == 0f) continue;
+
                 ShoveRpc(player.NetworkObject, intoSwing, _shoveSides[i],
                     RpcTarget.Single(player.OwnerClientId, RpcTargetUse.Temp));
             }
 
-            _closeAfterShoveTime = Time.time + shoveSeconds;
+            _closeAfterShoveTime = Time.time + wait;
             return true;
+        }
+
+        /// <summary>
+        /// True when <paramref name="velocity"/> already carries the body out of the leaf's path,
+        /// the way the shove would have, fast enough that the leaf only waits a moment for it.
+        /// <paramref name="seconds"/> is how long it needs.
+        /// </summary>
+        private bool IsLeavingOnTheirOwn(CapsuleCollider capsule, Vector3 intoSwing, float side, Vector3 velocity,
+            out float seconds)
+        {
+            seconds = 0f;
+
+            velocity.y = 0f;
+            float speed = Vector3.Dot(velocity, intoSwing * side);
+            if (speed < LeavingSpeed) return false;
+
+            seconds = ShoveDistance(capsule, intoSwing, side) / speed;
+            return seconds <= MaxLeavingWait;
         }
 
         /// <summary>
@@ -688,7 +849,7 @@ namespace Objects
             facing.y = 0f;
             float look = facing.sqrMagnitude > 0.0001f ? Vector3.Dot(facing.normalized, intoSwing) : 0f;
 
-            bool inDoorway = Mathf.Abs(across) < LeafHalfThickness + BodyRadius(capsule) + obstructionMargin;
+            bool inDoorway = Mathf.Abs(across) < DoorwayHalfDepth + BodyRadius(capsule) + obstructionMargin;
 
             if (inDoorway && Mathf.Abs(look) > 0.2f) return look > 0f ? -1f : 1f;
 
@@ -711,6 +872,8 @@ namespace Objects
         /// </summary>
         private float ShoveDistance(CapsuleCollider capsule, Vector3 intoSwing, float side)
         {
+            if (!IsVerticalHinge) return SweptClearance(capsule, intoSwing * side);
+
             Vector3 centre = capsule.bounds.center;
             float radius = BodyRadius(capsule);
             float needed = 0f;
@@ -737,6 +900,54 @@ namespace Objects
             return needed;
         }
 
+        /// <summary>
+        /// How far a body must move along <paramref name="direction"/> to be clear of every pose the
+        /// leaves pass through on the way shut. A lifting flap sweeps nothing so simple as a door's
+        /// half-disc, so its path is walked a few centimetres at a time instead.
+        /// </summary>
+        private float SweptClearance(CapsuleCollider capsule, Vector3 direction)
+        {
+            Transform body = capsule.transform;
+
+            for (float distance = 0f; distance < MaxSweptClearance; distance += SweptClearanceStep)
+            {
+                if (OverlapsClosingSweep(capsule, body.position + direction * distance, body.rotation))
+                {
+                    continue;
+                }
+
+                return distance > 0f ? distance + obstructionMargin : 0f;
+            }
+
+            return MaxSweptClearance;
+        }
+
+        private bool OverlapsClosingSweep(CapsuleCollider capsule, Vector3 position, Quaternion rotation)
+        {
+            float span = Mathf.Abs(closedAngle - _currentAngle);
+            int steps = Mathf.Max(1, Mathf.CeilToInt(span / sweepSampleDegrees));
+
+            foreach (Leaf leaf in _leaves)
+            {
+                if (!leaf.HasBox) continue;
+
+                Vector3 hinge = leaf.Body.transform.position;
+
+                for (int i = 0; i <= steps; i++)
+                {
+                    float angle = Mathf.Lerp(_currentAngle, closedAngle, i / (float)steps);
+
+                    if (Physics.ComputePenetration(capsule, position, rotation,
+                            leaf.Box, hinge, LeafRotationAt(leaf, angle), out _, out _))
+                    {
+                        return true;
+                    }
+                }
+            }
+
+            return false;
+        }
+
         /// <summary>How far the body can travel along <paramref name="direction"/> before the level stops it.</summary>
         private float FreeShoveDistance(CapsuleCollider capsule, Vector3 direction, float distance)
         {
@@ -756,14 +967,28 @@ namespace Objects
                 RaycastHit hit = _shoveHits[i];
 
                 // Something they already overlap is not something the shove runs into, and this
-                // door's own leaves are about to swing away.
+                // door's own leaves are about to swing away. Only the leaves: a counter carries its
+                // flap's Door on the counter itself, and the counter does not move.
                 if (hit.distance <= 0f) continue;
-                if (hit.collider.GetComponentInParent<Door>() == this) continue;
+                if (IsOwnLeaf(hit.collider)) continue;
 
                 free = Mathf.Min(free, hit.distance);
             }
 
             return free;
+        }
+
+        private bool IsOwnLeaf(Collider other)
+        {
+            Rigidbody body = other.attachedRigidbody;
+            if (body == null) return false;
+
+            foreach (Leaf leaf in _leaves)
+            {
+                if (leaf.Body == body) return true;
+            }
+
+            return false;
         }
 
         private static float BodyRadius(CapsuleCollider capsule)
@@ -773,6 +998,10 @@ namespace Objects
         }
 
         private float LeafHalfThickness => _leaves.Count > 0 ? _leaves[0].HalfThickness : 0f;
+
+        // How far either side of the doorway plane counts as standing in the doorway itself. A
+        // flap's passage has no such plane: the middle of it is the doorway.
+        private float DoorwayHalfDepth => IsVerticalHinge ? LeafHalfThickness : 0f;
 
         /// <summary>
         /// Runs on the shoved player's own machine, which moves its own body. Worked out again from
@@ -858,6 +1087,8 @@ namespace Objects
 
         private DoorState SideAwayFrom(Vector3 fromPosition)
         {
+            if (!opensBothWays) return DoorState.OpenSideA;
+
             Vector3 toOpener = fromPosition - doorPivot.position;
             toOpener.y = 0f;
 
@@ -901,6 +1132,8 @@ namespace Objects
                 CloseAfterShove();
                 UpdateOpenLeafObstacle();
             }
+
+            UpdateClosedBlocker();
 
             if (!IsSwinging) return;
 
@@ -984,6 +1217,8 @@ namespace Objects
         {
             if (leaf == null || !leaf.HasBox) return true;
 
+            if (!IsVerticalHinge) return IsInFrontOfFlap(leaf, position, angle);
+
             Vector3 along = leaf.BoxOffset;
             along.y = 0f;
 
@@ -999,11 +1234,32 @@ namespace Objects
             return Vector3.Dot(fromHinge, travel) > 0f;
         }
 
+        /// <summary><see cref="IsInFrontOfSwing"/> for a leaf turning round any axis.</summary>
+        private bool IsInFrontOfFlap(Leaf leaf, Vector3 position, float angle)
+        {
+            Vector3 axis = HingeAxisWorld(leaf);
+
+            Vector3 leafAxis = LeafRotationAt(leaf, angle) * leaf.BoxOffset;
+            leafAxis -= axis * Vector3.Dot(leafAxis, axis);
+
+            if (leafAxis.sqrMagnitude < 0.0001f || _swingSign == 0f) return true;
+
+            Vector3 travel = Vector3.Cross(axis * (_swingSign * leaf.Mirror), leafAxis.normalized);
+
+            return Vector3.Dot(position - leaf.Body.position, travel) > 0f;
+        }
+
         private void KnockDown(Leaf leaf, PlayerKnockdown knockdown)
         {
             Vector3 hinge = leaf.Body.position;
             Vector3 radial = knockdown.transform.position - hinge;
-            radial.y = 0f;
+
+            // The lever arm is measured square to the hinge: across the floor for a door, up off
+            // the counter for a flap.
+            Vector3 axis = IsVerticalHinge ? Vector3.up : HingeAxisWorld(leaf);
+
+            if (IsVerticalHinge) radial.y = 0f;
+            else radial -= axis * Vector3.Dot(radial, axis);
 
             if (radial.sqrMagnitude < 0.0001f) return;
 
@@ -1012,7 +1268,7 @@ namespace Objects
             if (leafSpeed < impactProfile.minimumSpeed) return;
 
             // The leaf sweeps perpendicular to the lever arm, so that is where it throws the player.
-            Vector3 direction = Vector3.Cross(Vector3.up * (_swingSign * leaf.Mirror), radial).normalized;
+            Vector3 direction = Vector3.Cross(axis * (_swingSign * leaf.Mirror), radial).normalized;
 
             knockdown.ApplyImpact(impactProfile, direction);
         }
@@ -1040,6 +1296,39 @@ namespace Objects
             }
 
             return nearest;
+        }
+
+        /// <summary>
+        /// Every peer: the blocker goes the moment the door starts to open, and comes back once it
+        /// has shut and nobody is inside it — someone crouched under a flap that came down over
+        /// them would otherwise be thrown out of a collider appearing round them.
+        /// </summary>
+        private void UpdateClosedBlocker()
+        {
+            if (closedBlocker == null) return;
+
+            bool shut = _state.Value == DoorState.Closed && !IsSwinging;
+
+            if (!shut)
+            {
+                if (closedBlocker.enabled) closedBlocker.enabled = false;
+                return;
+            }
+
+            if (closedBlocker.enabled || IsBlockerOccupied()) return;
+
+            closedBlocker.enabled = true;
+        }
+
+        private bool IsBlockerOccupied()
+        {
+            Transform box = closedBlocker.transform;
+            Vector3 scale = box.lossyScale;
+            Vector3 halfExtents = Vector3.Scale(closedBlocker.size,
+                new Vector3(Mathf.Abs(scale.x), Mathf.Abs(scale.y), Mathf.Abs(scale.z))) * 0.5f;
+
+            return Physics.CheckBox(box.TransformPoint(closedBlocker.center), halfExtents, box.rotation,
+                occupantLayers, QueryTriggerInteraction.Ignore);
         }
 
         private void TryCloseWhenClear()
@@ -1070,7 +1359,7 @@ namespace Objects
             {
                 if (snap)
                 {
-                    leaf.Body.transform.localRotation = Quaternion.Euler(0f, YawFor(leaf, angle), 0f);
+                    leaf.Body.transform.localRotation = LeafLocalRotation(leaf, angle);
                     leaf.Body.rotation = leaf.Body.transform.rotation;
                     continue;
                 }
@@ -1088,6 +1377,43 @@ namespace Objects
         private float YawFor(Leaf leaf, float angle)
         {
             return leaf.ClosedYaw + leaf.Mirror * (angle - closedAngle);
+        }
+
+        private bool IsVerticalHinge => hingeAxis == HingeAxis.Up;
+
+        private Vector3 HingeAxisLocal
+        {
+            get
+            {
+                switch (hingeAxis)
+                {
+                    case HingeAxis.Right: return Vector3.right;
+                    case HingeAxis.Forward: return Vector3.forward;
+                    default: return Vector3.up;
+                }
+            }
+        }
+
+        /// <summary>
+        /// A leaf's local rotation when the main leaf is at <paramref name="angle"/>: turned that far
+        /// round the hinge axis. Euler for the upright axis, exactly as doors always were.
+        /// </summary>
+        private Quaternion LeafLocalRotation(Leaf leaf, float angle)
+        {
+            float turn = YawFor(leaf, angle);
+
+            return IsVerticalHinge
+                ? Quaternion.Euler(0f, turn, 0f)
+                : Quaternion.AngleAxis(turn, HingeAxisLocal);
+        }
+
+        /// <summary>The hinge axis in world space, through the leaf's own origin.</summary>
+        private Vector3 HingeAxisWorld(Leaf leaf)
+        {
+            Transform parent = leaf.Body.transform.parent;
+            Quaternion parentRotation = parent != null ? parent.rotation : Quaternion.identity;
+
+            return parentRotation * HingeAxisLocal;
         }
 
         /// <summary>Middle of the doorway at floor height — between both halves of a double door.</summary>
@@ -1137,6 +1463,8 @@ namespace Objects
             Transform leafTransform = leaf.Body.transform;
             Transform box = leafBox.transform;
 
+            leaf.Box = leafBox;
+
             Quaternion toLeafSpace = Quaternion.Inverse(leafTransform.rotation);
 
             leaf.BoxOffset = toLeafSpace * (box.TransformPoint(leafBox.center) - leafTransform.position);
@@ -1159,7 +1487,7 @@ namespace Objects
             Transform parent = leaf.Body.transform.parent;
             Quaternion parentRotation = parent != null ? parent.rotation : Quaternion.identity;
 
-            return parentRotation * Quaternion.Euler(0f, YawFor(leaf, angle), 0f);
+            return parentRotation * LeafLocalRotation(leaf, angle);
         }
 
         private void LeafBoxPose(Leaf leaf, float angle, out Vector3 centre, out Quaternion rotation)
@@ -1179,6 +1507,9 @@ namespace Objects
         /// </summary>
         private float SwingSide(float openAngle)
         {
+            // A flap lifts over its hinge line and ends up on neither side of the passage.
+            if (!IsVerticalHinge) return 0f;
+
             foreach (Leaf leaf in _leaves)
             {
                 if (!leaf.HasBox) continue;

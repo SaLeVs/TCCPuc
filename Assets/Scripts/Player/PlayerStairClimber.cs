@@ -55,6 +55,8 @@ namespace Player
         private const float StepTimeout = 0.5f;
         private const float MinMoveSpeed = 0.05f;
         private const float SlopeTolerance = 0.001f;
+        // Loose bodies this light (cups, popcorn bags) are kicked, not walked around.
+        private const float MaxKickableMass = 0.5f;
 
         private readonly RaycastHit[] _hits = new RaycastHit[8];
         private int _collisionMask;
@@ -213,6 +215,11 @@ namespace Player
                     // A collider that lets this body through, like the monster-only blocker under a
                     // counter flap, is no wall to it either.
                     if ((hit.collider.excludeLayers.value & (1 << gameObject.layer)) != 0) continue;
+
+                    // A light loose prop is no wall either: stopping the move at it left the capsule
+                    // only grazing it, so a cup took the whole walk to budge. Let through, the
+                    // capsule's contact shoves it away.
+                    if (hit.rigidbody != null && !hit.rigidbody.isKinematic && hit.rigidbody.mass <= MaxKickableMass) continue;
 
                     // A slope, or an edge low enough to roll over.
                     if (hit.normal.y >= minGroundNormalY) continue;

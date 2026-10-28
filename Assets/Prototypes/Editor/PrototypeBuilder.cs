@@ -386,7 +386,9 @@ namespace Prototypes.Editor
                 {
                     string n = mr.name.ToLowerInvariant();
                     if (mr.GetComponentInParent<Unity.Netcode.NetworkObject>(true) != null && mr.GetComponentInParent<Objects.Door>(true) != null) continue;
-                    if (SkipWords.Any(n.Contains)) continue;
+                    // A wall with a doorway in it (SM_Wall_Bathroom_Single_Door) is still a wall.
+                    bool doorwayWall = n.Contains("wall") && n.Contains("door");
+                    if (!doorwayWall && SkipWords.Any(n.Contains)) continue;
                     bool ground = GroundWords.Any(n.Contains), wall = WallWords.Any(n.Contains);
                     if (!ground && !wall) continue;
                     mr.gameObject.layer = ground ? Ground : Walls;

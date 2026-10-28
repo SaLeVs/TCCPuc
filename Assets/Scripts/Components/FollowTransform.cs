@@ -7,6 +7,10 @@ namespace Components
     {
         [SerializeField] private Transform target;
     
+        // Pose kept from the target, in its axes and in metres (its scale is ignored, so bones work too).
+        [SerializeField] private Vector3 positionOffset;
+        [SerializeField] private Vector3 rotationOffset;
+
         [SerializeField] private bool followPosition;
         [SerializeField] private bool followRotation;
         [SerializeField] private bool followScale;
@@ -18,6 +22,13 @@ namespace Components
         public void SetTarget(Transform target)
         {
             this.target = target;
+        }
+    
+        public void SetTarget(Transform target, Vector3 positionOffset, Vector3 rotationOffset)
+        {
+            this.target = target;
+            this.positionOffset = positionOffset;
+            this.rotationOffset = rotationOffset;
         }
     
         private void LateUpdate()
@@ -38,10 +49,10 @@ namespace Components
         private void MoveWithInterpolation()
         {
             if (followPosition)
-                transform.position = Vector3.Lerp(transform.position, target.position, interpolationSpeed * Time.deltaTime);
+                transform.position = Vector3.Lerp(transform.position, TargetPosition(), interpolationSpeed * Time.deltaTime);
 
             if (followRotation)
-                transform.rotation = Quaternion.Lerp(transform.rotation, target.rotation, interpolationSpeed * Time.deltaTime);
+                transform.rotation = Quaternion.Lerp(transform.rotation, TargetRotation(), interpolationSpeed * Time.deltaTime);
 
             if (followScale)
                 transform.localScale = Vector3.Lerp(transform.localScale, target.localScale, interpolationSpeed * Time.deltaTime);
@@ -50,13 +61,23 @@ namespace Components
         private void Move()
         {
             if (followPosition)
-                transform.position = target.position;
+                transform.position = TargetPosition();
 
             if (followRotation)
-                transform.rotation = target.rotation;
+                transform.rotation = TargetRotation();
 
             if (followScale)
                 transform.localScale = target.localScale;
+        }
+
+        private Vector3 TargetPosition()
+        {
+            return target.position + target.rotation * positionOffset;
+        }
+
+        private Quaternion TargetRotation()
+        {
+            return target.rotation * Quaternion.Euler(rotationOffset);
         }
 
     

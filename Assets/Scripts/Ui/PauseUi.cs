@@ -30,6 +30,13 @@ namespace Ui
 
         private void PlayerCamera_OnPauseToggled(bool isPaused)
         {
+            // Options lives inside the pause canvas, so whatever was left open there came back with
+            // it. Closed on the way out, every pause starts on the pause menu itself.
+            if (!isPaused)
+            {
+                CloseOptionPanel();
+            }
+
             pausePanel.SetActive(isPaused);
             isPanelEnabled = isPaused;
 
@@ -93,6 +100,16 @@ namespace Ui
         public void OpenOptionPanel()
         {
             optionPanel.SetActive(true);
+        }
+
+        private void CloseOptionPanel()
+        {
+            if (optionPanel.TryGetComponent(out OptionsMenuManager optionsMenu))
+            {
+                optionsMenu.CloseSubPanels();
+            }
+
+            optionPanel.SetActive(false);
         }
         
         private void OnDestroy()

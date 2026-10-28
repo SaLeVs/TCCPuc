@@ -17,6 +17,7 @@ namespace Player
         [SerializeField] private InputReader inputReader;
         [SerializeField] private Rigidbody rb;
         [SerializeField] private Transform orientation;
+        [SerializeField] private PlayerStairClimber stairClimber;
 
         [SerializeField] private float moveSpeed;
         [SerializeField] private float blendMovementTime = 8.9f;
@@ -30,9 +31,7 @@ namespace Player
         private Vector3 _movementDirection;
         
         private Vector2 _currentVelocity;
-        private float _xVelocityDifference;
-        private float _zVelocityDifference;
-        
+
         private ISpeedModifier[] _speedModifiers;
         
         private bool _isDead;
@@ -127,10 +126,10 @@ namespace Player
             _currentVelocity.x = Mathf.MoveTowards(_currentVelocity.x, desiredVelocityWorld.x, accel * Time.fixedDeltaTime);
             _currentVelocity.y = Mathf.MoveTowards(_currentVelocity.y, desiredVelocityWorld.z, accel * Time.fixedDeltaTime);
             
-            _xVelocityDifference = _currentVelocity.x - rb.linearVelocity.x;
-            _zVelocityDifference = _currentVelocity.y - rb.linearVelocity.z;
-            
-            rb.AddForce(new Vector3(_xVelocityDifference, 0f, _zVelocityDifference), ForceMode.VelocityChange);
+            // Forced on the body as is, this rode the capsule up over any ledge it was pushed into;
+            // the climber turns it along the floor and stops it at what can't be climbed.
+            Vector3 desiredVelocity = new Vector3(_currentVelocity.x, 0f, _currentVelocity.y);
+            rb.linearVelocity = stairClimber.ResolveVelocity(desiredVelocity);
             
             float normalizedSpeed = _targetSpeed > 0.001f ? _targetSpeed : 1f;
             OnPlayerMovement?.Invoke(_currentVelocity / normalizedSpeed);
@@ -143,9 +142,6 @@ namespace Player
             
             _currentVelocity = Vector2.zero;
             _movementInput = Vector2.zero;
-            
-            _xVelocityDifference = 0f;
-            _zVelocityDifference = 0f;
         }
         
         private float ApplySpeedModifiers(float baseSpeed)

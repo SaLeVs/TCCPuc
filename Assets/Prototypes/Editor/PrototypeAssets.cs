@@ -1,8 +1,10 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using Enums;
 using ScriptableObjects;
+using Unity.Netcode;
 using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
@@ -178,12 +180,32 @@ namespace Prototypes.Editor
                     if (t == null) { Debug.LogWarning($"Protótipo: {entry.name} não tem {point}."); continue; }
                     t.position = go.transform.TransformPoint(localPosition);
                 }
-                return PrefabUtility.SaveAsPrefabAsset(go, path);
+                return WithOwnNetworkId(PrefabUtility.SaveAsPrefabAsset(go, path));
             }
             finally
             {
                 EditorSceneManager.ClosePreviewScene(preview);
             }
+        }
+
+        private static readonly MethodInfo NetworkObjectOnValidate =
+            typeof(NetworkObject).GetMethod("OnValidate", BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
+
+        /// <summary>
+        /// A variant saved from an instance keeps the GlobalObjectIdHash of the prefab it came from,
+        /// so Netcode finds two network prefabs with one id: the host drops the variant and the
+        /// clients fail the NetworkConfig check. NetworkObject.OnValidate makes the variant's own id
+        /// and saving writes it as an override.
+        /// </summary>
+        public static GameObject WithOwnNetworkId(GameObject prefab)
+        {
+            var networkObject = prefab != null ? prefab.GetComponent<NetworkObject>() : null;
+            if (networkObject == null || NetworkObjectOnValidate == null) return prefab;
+
+            NetworkObjectOnValidate.Invoke(networkObject, null);
+            EditorUtility.SetDirty(networkObject);
+            PrefabUtility.SavePrefabAsset(prefab);
+            return prefab;
         }
 
         private static MissionSO MissionCopy(MissionSO m, RoomDataSO room)
@@ -226,7 +248,7 @@ namespace Prototypes.Editor
                 go.name = "Proto_" + source.name;
                 FixRoom(go, index, mission);
                 var saved = PrefabUtility.SaveAsPrefabAsset(go, path);
-                return saved;
+                return WithOwnNetworkId(saved);
             }
             finally
             {

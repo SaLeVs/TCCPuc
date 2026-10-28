@@ -14,6 +14,9 @@ namespace Network
         [SerializeField] private int minCharacterLength;
         [SerializeField] private int maxCharacterLength;
         
+        [SerializeField] private GameObject errorMessage;
+        [SerializeField] private TextMeshProUGUI errorMessageText;
+        
         public const string PLAYER_NAME_KEY = "PlayerName";
 
         private void Start()
@@ -24,18 +27,29 @@ namespace Network
             }
             
             nameInputField.text = PlayerPrefs.GetString(PLAYER_NAME_KEY, string.Empty);
-            OnNameInputChanged();
-        }
-        
-        public void OnNameInputChanged()
-        {
-            selectNameButton.interactable = nameInputField.text.Length >= minCharacterLength && nameInputField.text.Length <= maxCharacterLength;
         }
 
         public void Connect()
         {
-            PlayerPrefs.SetString(PLAYER_NAME_KEY, nameInputField.text);
-            SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex + 1);  
+            string playerName = nameInputField.text;
+
+            if (playerName.Length < minCharacterLength)
+            {
+                errorMessage.SetActive(true);
+                errorMessageText.text = $"The name must have at least {minCharacterLength} characters.";
+                return;
+            }
+
+            if (playerName.Length > maxCharacterLength)
+            {
+                errorMessage.SetActive(true);
+                errorMessageText.text = $"The name must have at most {maxCharacterLength} characters.";
+                return;
+            }
+
+            errorMessage.SetActive(false);
+            PlayerPrefs.SetString(PLAYER_NAME_KEY, playerName);
+            SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex + 1);
         }
         
     }

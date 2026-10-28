@@ -11,15 +11,58 @@ namespace Monster
         public event Action OnAttackStartedAnimation;
         public event Action OnAttackEndedAnimation;
 
+        /// <summary>Server only: a swing just landed on this player. The brain stops it to roar.</summary>
+        public event Action<Transform> OnSwingLanded;
+
         [SerializeField] private SoundDefinitionSO attackSound;
+
+        [Tooltip("Centre-to-centre distance at which a swing starts. The swing only lands if the " +
+                 "hand's hitbox really reaches that far, so grow the hitbox together with this.")]
         [SerializeField] private float distanceToAttack;
         [SerializeField] private float damageAmountPerAttack;
+
+        [Tooltip("Seconds after a swing ends before the next one may start. It keeps chasing meanwhile.")]
         [SerializeField] private float attackCooldown;
+
+        [Tooltip("Seconds it stands swinging with the hitbox live. Keep it at the punch clip's length: " +
+                 "the clip loops, so anything longer throws a second punch inside the same swing.")]
         [SerializeField] private float attackDuration;
+
+        [Tooltip("Seconds into the swing when the hitbox goes live. Matches the hook of the punch " +
+                 "clip, so the wind-up hurts nobody.")]
+        [SerializeField, Min(0f)] private float hitWindowStart = 0.15f;
+
+        [Tooltip("Seconds into the swing when the hitbox goes off again, before the arm swings back.")]
+        [SerializeField, Min(0f)] private float hitWindowEnd = 0.5f;
         [SerializeField] private MonsterHitbox hitbox;
+
+        [Header("After a hit")]
+        [Tooltip("Seconds it stands roaring once a swing that landed is over: no chasing, no " +
+                 "swinging. Plays the Taunt clip, the same as sabotage. Zero skips the roar.")]
+        [SerializeField, Min(0f)] private float hitRoarSeconds = 1.6f;
+
+        [Tooltip("Heard by everyone when the roar starts.")]
+        [SerializeField] private SoundDefinitionSO hitRoarSound;
+
+        [Tooltip("Speed multiplier once a swing lands, applied on top of whatever the active state " +
+                 "asked for. Gives whoever was hit a head start instead of a monster still glued to " +
+                 "them the moment the cooldown is over.")]
+        [SerializeField, Range(0.1f, 1f)] private float hitSlowMultiplier = 0.6f;
+
+        [Tooltip("Seconds it stays at that speed after landing a hit. Only time spent moving counts, " +
+                 "so the rest of the swing and the roar do not eat into it.")]
+        [SerializeField, Min(0f)] private float hitSlowSeconds = 2.5f;
+
+        [Tooltip("Seconds it then takes to ease back up to full speed.")]
+        [SerializeField, Min(0f)] private float hitSlowRecoverSeconds = 1.5f;
+
+        [Tooltip("Slow down after a swing that missed as well, not only after one that landed.")]
+        [SerializeField] private bool hitSlowOnMiss;
 
         public float DistanceToAttack => distanceToAttack;
         public float AttackCooldown => attackCooldown;
+        public float HitRoarSeconds => hitRoarSeconds;
+        public SoundDefinitionSO HitRoarSound => hitRoarSound;
 
         /// <summary>
         /// True while the monster is still recovering from its last swing.
@@ -42,11 +85,31 @@ namespace Monster
         private NavMeshAgent _agent;
         private ObstacleAvoidanceType _defaultAvoidance = ObstacleAvoidanceType.HighQualityObstacleAvoidance;
 
+        private bool _hitboxLive;
+        private bool _swingLanded;
+        private bool _isSlowed;
+        private float _slowElapsed;
+        private float _speedBeforeSlow;
+        private float _slowedSpeed;
+
 
         public override void OnNetworkSpawn()
         {
             hitbox.Initialize(damageAmountPerAttack);
             hitbox.DisableHitbox();
+            hitbox.OnTargetHit += Hitbox_OnTargetHit;
+        }
+
+        public override void OnNetworkDespawn()
+        {
+            hitbox.OnTargetHit -= Hitbox_OnTargetHit;
+        }
+
+        private void Hitbox_OnTargetHit(Transform victim)
+        {
+            _swingLanded = true;
+            StartSlow();
+            OnSwingLanded?.Invoke(victim);
         }
 
         public void Initialize(NavMeshAgent agent)
@@ -66,6 +129,7 @@ namespace Monster
 
             _timer = 0f;
             _isAttacking = true;
+            _swingLanded = false;
 
             _agent.isStopped = true;
             _agent.ResetPath();
@@ -76,11 +140,7 @@ namespace Monster
             WorldSound.Play(attackSound, transform.position, NetworkObject);
             OnAttackStartedAnimation?.Invoke();
             hitbox.ResetHits();
-            hitbox.EnableHitbox();
-
-            // TESTE: glitch do VHS no começo do ataque (roda uma vez por golpe)
-            if (VHSGlitchController.Instance != null)
-                VHSGlitchController.Instance.TriggerGlitch();
+            _hitboxLive = false;
 
             return true;
         }
@@ -92,9 +152,23 @@ namespace Monster
                 _cooldownRemaining = Mathf.Max(0f, _cooldownRemaining - Time.deltaTime);
             }
 
+            if (_isSlowed) TickSlow(Time.deltaTime);
+
             if (!_isAttacking) return;
 
             _timer += Time.deltaTime;
+
+            // Live only through the hook itself. On from the first frame, it landed before the fist
+            // had even moved, and the arm swinging back gave a second go at anyone it had missed.
+            bool inHitWindow = _timer >= hitWindowStart && _timer < hitWindowEnd;
+
+            if (inHitWindow != _hitboxLive)
+            {
+                _hitboxLive = inHitWindow;
+
+                if (inHitWindow) hitbox.EnableHitbox();
+                else hitbox.DisableHitbox();
+            }
 
             if (_timer >= attackDuration)
             {
@@ -108,6 +182,8 @@ namespace Monster
             _isAttacking = false;
             _cooldownRemaining = attackCooldown;
             _agent.isStopped = false;
+
+            if (hitSlowOnMiss && !_swingLanded) StartSlow();
 
             // Was setting NoObstacleAvoidance again, same as StartAttack — so the first attack
             // switched avoidance off for good and the monster stopped steering around anything.
@@ -129,6 +205,58 @@ namespace Monster
             // is the same free-hit exploit by another route. But leaving the state while already
             // cooling down must not top the timer back up.
             if (wasSwinging) _cooldownRemaining = attackCooldown;
+
+            if (wasSwinging && hitSlowOnMiss && !_swingLanded) StartSlow();
+        }
+
+        /// <summary>
+        /// Starts the post-hit slow, or restarts it if it is already running. Server only, like the
+        /// swing: the agent only moves there, and clients see the slower pace through the
+        /// replicated transform.
+        /// </summary>
+        private void StartSlow()
+        {
+            if (!IsServer || _agent == null) return;
+            if (hitSlowMultiplier >= 1f || hitSlowSeconds + hitSlowRecoverSeconds <= 0f) return;
+
+            if (!_isSlowed)
+            {
+                _speedBeforeSlow = _agent.speed;
+                _slowedSpeed = _agent.speed;
+            }
+
+            _isSlowed = true;
+            _slowElapsed = 0f;
+        }
+
+        /// <summary>
+        /// Scales whatever speed the active state set. States only write agent.speed when they
+        /// start (StartChase, Search, Investigate, Wander), so a speed other than the one this last
+        /// wrote is a fresh base from a state and gets scaled in turn. Overwriting chaseSpeed
+        /// itself instead would have left the monster crawling until the next state change.
+        /// </summary>
+        private void TickSlow(float deltaTime)
+        {
+            if (!Mathf.Approximately(_agent.speed, _slowedSpeed)) _speedBeforeSlow = _agent.speed;
+
+            // Held still — the rest of the swing, the roar, a door — does not count: the slow is
+            // for when it sets off after whoever it hit.
+            bool heldStill = _agent.isOnNavMesh && _agent.isStopped;
+            if (!heldStill) _slowElapsed += deltaTime;
+
+            if (_slowElapsed >= hitSlowSeconds + hitSlowRecoverSeconds)
+            {
+                _isSlowed = false;
+                _agent.speed = _speedBeforeSlow;
+                return;
+            }
+
+            float recovered = hitSlowRecoverSeconds > 0f
+                ? Mathf.Clamp01((_slowElapsed - hitSlowSeconds) / hitSlowRecoverSeconds)
+                : 0f;
+
+            _slowedSpeed = _speedBeforeSlow * Mathf.Lerp(hitSlowMultiplier, 1f, recovered);
+            _agent.speed = _slowedSpeed;
         }
 
     }

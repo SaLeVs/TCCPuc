@@ -535,11 +535,13 @@ namespace LevelDesign.Gym.Building
 
             foreach (var (path, x, z) in onTables)
             {
-                _kit.PlacePrefab(root, Prefabs + path, new Vector3(x, tableHeight, z));
+                FreeFromMission(_kit.PlacePrefab(root, Prefabs + path, new Vector3(x, tableHeight, z)));
             }
 
-            _kit.Label(labels, "pilhas da lanterna · disquete · caixas das missões\n<size=70%>as caixas e o totem só aceitam interação dentro de uma missão (precisam do manager do puzzle)</size>",
+            _kit.Label(labels, "pilhas da lanterna · disquete · caixas das missões\n<size=70%>aqui as caixas pegam livres, sem dono de missão · o totem ainda precisa do manager do puzzle</size>",
                 new Vector3(-26f, 0.02f, -9.2f), GymBuildKit.OnFloor(Vector3.back), 2.2f, 14f);
+
+            BuildCounter(root, labels);
             _kit.Label(labels, "objetos de audiência: filme-os (dão audiência)", new Vector3(-29f, 0.02f, -21.2f), GymBuildKit.OnFloor(Vector3.back), 2.2f, 9f);
 
             // Puzzle pieces stand on the floor next to the tables.
@@ -547,6 +549,37 @@ namespace LevelDesign.Gym.Building
             _kit.Label(labels, $"{_kit.CodeOf(Prefabs + "Missions/Totems/Lamps/LampTotem.prefab")}\n<size=70%>totem de lâmpada</size>", new Vector3(-17f, 0.02f, -22.6f), GymBuildKit.OnFloor(Vector3.back), 2f, 4f);
 
             Sector(root, "Setor S2", new Vector3(-24f, 0f, -17f), 10f);
+        }
+
+        /// <summary>
+        /// The mission boxes only answer the player who owns their puzzle, and in a match the puzzle
+        /// that spawns them hands them over. Nothing does here, so the filter turned everyone away.
+        /// </summary>
+        private static void FreeFromMission(GameObject item)
+        {
+            var filter = item != null ? item.GetComponent<Missions.MissionOwnershipFilter>() : null;
+            if (filter != null) Object.DestroyImmediate(filter);
+        }
+
+        /// <summary>
+        /// The box-office counter: its flap is a door that lifts. The pad drops the monster behind
+        /// it, so it has to come through the passage and force the flap to reach the player.
+        /// </summary>
+        private static void BuildCounter(Transform root, Transform labels)
+        {
+            const string path = Prefabs + "Rooms/Props/Box_Office/SM_Cabinet_New.prefab";
+
+            var counter = _kit.PlacePrefab(root, path, new Vector3(-20.5f, 0f, -25.2f));
+            if (counter == null) return;
+
+            EnsureNetworked(counter);
+
+            var behind = _kit.Marker(root, "Monstro atrás do balcão", new Vector3(-21f, 0f, -26f), Vector3.right);
+            _kit.Pad(root, "MONSTRO\natrás do balcão", new Vector3(-13.8f, 0f, -25.8f), new Vector2(1.8f, 1.8f),
+                GymPadAction.MonsterChaseFrom, behind, _kit.PadRed, Vector3.back);
+
+            _kit.Label(labels, $"{_kit.CodeOf(path)}\n<size=70%>balcão · a tampa levanta (E) · o monstro força</size>",
+                new Vector3(-22f, 0.02f, -21.9f), GymBuildKit.OnFloor(Vector3.back), 2f, 6f);
         }
 
         // ---------------------------------------------------------------- S3: hearing

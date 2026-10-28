@@ -17,6 +17,12 @@ namespace Player
         public Transform EyesForward => eyesForward;
         public Transform HipsBone => hipsBone;
 
+        /// <summary>The gaze as a rotation in the head bone's space. EyesForward is parented to the
+        /// head, so its local position is the direction the eyes look.</summary>
+        public Quaternion HeadGaze => eyesForward != null && eyesForward.localPosition.sqrMagnitude > 0.000001f
+            ? Quaternion.LookRotation(eyesForward.localPosition, Vector3.up)
+            : Quaternion.identity;
+
         public void InitializeFrom(Transform sourceRoot)
         {
             if (sourceRoot == null) return;
@@ -67,6 +73,11 @@ namespace Player
                 if (rb == null) continue;
                 rb.isKinematic = false;
                 rb.useGravity = true;
+
+                // Set once the body is dynamic: a kinematic one only takes speculative CCD. Thrown
+                // by a knockdown, or by a door leaf still swinging into it, a discrete limb moves
+                // further in a step than a leaf or a thin wall is thick.
+                rb.collisionDetectionMode = CollisionDetectionMode.ContinuousDynamic;
             }
         }
     }

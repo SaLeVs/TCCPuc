@@ -52,6 +52,9 @@ namespace Player
 
         public bool IsKnockedDown => _state.Value.Active;
 
+        /// <summary>This peer's ragdoll while down, or null. Every peer spawns its own.</summary>
+        public PlayerRagdoll Ragdoll => _ragdoll;
+
         private readonly NetworkVariable<KnockdownState> _state = new NetworkVariable<KnockdownState>();
 
         private readonly List<Renderer> _hiddenRenderers = new List<Renderer>();

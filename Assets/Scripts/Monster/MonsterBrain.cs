@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Components;
 using Components.Perception;
+using Components.Sound;
 using Monster.HSM;
 using Monster.MonsterStates;
 using Unity.Netcode;
@@ -167,7 +168,18 @@ namespace Monster
             _taunt.OnTauntAnimation += MonsterTaunt_OnTauntAnimation;
             _taunt.OnFinished += MonsterTaunt_OnFinished;
 
+            monsterAttack.OnSwingLanded += MonsterAttack_OnSwingLanded;
+
             PlayerDownedNotifier.OnPlayerDowned += PlayerDownedNotifier_OnPlayerDowned;
+        }
+
+        /// <summary>
+        /// Roars over whoever it just hit, once the swing is over. Only after a hit: a roar after a
+        /// miss as well would make baiting a swing and stepping back a free escape every time.
+        /// </summary>
+        private void MonsterAttack_OnSwingLanded(Transform victim)
+        {
+            _taunt?.RequestRoar(victim, Time.time, monsterAttack.HitRoarSeconds);
         }
 
         /// <summary>
@@ -182,7 +194,13 @@ namespace Monster
             _taunt.Request(player.transform, Time.time);
         }
 
-        private void MonsterTaunt_OnTauntAnimation() => OnTauntAnimation?.Invoke();
+        private void MonsterTaunt_OnTauntAnimation()
+        {
+            // Server-side like the rest of the taunt, so everyone hears it once. The taunt itself is silent.
+            if (_taunt.IsRoar) WorldSound.Play(monsterAttack.HitRoarSound, transform.position, NetworkObject);
+
+            OnTauntAnimation?.Invoke();
+        }
 
         /// <summary>Same hand-back as after a door: the active state restores itself.</summary>
         private void MonsterTaunt_OnFinished() => _stateMachine.ResumeLeaf();
@@ -411,6 +429,7 @@ namespace Monster
             }
 
             PlayerDownedNotifier.OnPlayerDowned -= PlayerDownedNotifier_OnPlayerDowned;
+            monsterAttack.OnSwingLanded -= MonsterAttack_OnSwingLanded;
 
             if (_taunt != null)
             {

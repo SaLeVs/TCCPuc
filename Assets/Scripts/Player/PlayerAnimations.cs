@@ -87,9 +87,9 @@ namespace Player
             animator.SetTrigger(_interactHash);
         }
         
-        private void PlayerState_OnHoldItem(int slot)
+        private void PlayerState_OnHoldItem(int itemId)
         {
-            _isHoldingItem = slot > 0;
+            _isHoldingItem = itemId != -1;
 
             animator.SetBool(_heldItemHash, _isHoldingItem);
         }

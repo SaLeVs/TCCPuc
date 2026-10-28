@@ -14,6 +14,8 @@ namespace Player
         public event Action<int, int> OnCreateSlot;
         public event Action<int, int> OnRemoveSlot;
         public event Action<int> OnSelectedSlotChanged;
+        // Id of the item in the hand, -1 when it is empty. Unlike the slot, an empty slot is not holding anything.
+        public event Action<int> OnHeldItemChanged;
         
         [SerializeField] private PlayerState playerState;
         [SerializeField] private int maxInventorySize = 4;
@@ -101,11 +103,11 @@ namespace Player
 
             if (zeroIndex >= 0 && zeroIndex < _slots.Count)
             {
-                _currentItemId = _slots[zeroIndex];
+                SetHeldItem(_slots[zeroIndex]);
             }
             else
             {
-                _currentItemId = -1;
+                SetHeldItem(-1);
             }
 
             OnSelectedSlotChanged?.Invoke(_currentSlotSelected);
@@ -117,11 +119,19 @@ namespace Player
         private void DeselectSlot()
         {
             _currentSlotSelected = -1;
-            _currentItemId = -1;
+            SetHeldItem(-1);
 
             OnSelectedSlotChanged?.Invoke(_currentSlotSelected);
 
             DestroyItemRpc();
+        }
+        
+        private void SetHeldItem(int itemId)
+        {
+            if (_currentItemId == itemId) return;
+
+            _currentItemId = itemId;
+            OnHeldItemChanged?.Invoke(_currentItemId);
         }
         
 
@@ -142,7 +152,7 @@ namespace Player
             
             if (_currentSlotSelected > 0 && change.Index == selectedZeroBased)
             {
-                _currentItemId = change.Value;
+                SetHeldItem(change.Value);
                 DestroyItemRpc();
                 CreateItemRpc(_currentItemId);
             }
@@ -204,7 +214,7 @@ namespace Player
                     {
                         networkObject.SpawnWithOwnership(OwnerClientId);
                         _currentSpawnedItem = networkObject;
-                        SetFollowTargetClientRpc(networkObject);
+                        SetFollowTargetClientRpc(networkObject, itemId);
                     }
                     
                 }
@@ -213,7 +223,7 @@ namespace Player
         }
         
         [Rpc(SendTo.ClientsAndHost)]
-        private void SetFollowTargetClientRpc(NetworkObjectReference target)
+        private void SetFollowTargetClientRpc(NetworkObjectReference target, int itemId)
         {
             if (target.TryGet(out NetworkObject networkObject))
             {
@@ -221,7 +231,9 @@ namespace Player
 
                 if (itemObject.TryGetComponent(out FollowTransform followTransform))
                 {
-                    followTransform.SetTarget(playerHand);
+                    // Every peer seats the item in the hand the same way, from the item's own grip.
+                    ItemDataSO item = itemDatabase.GetItem(itemId);
+                    followTransform.SetTarget(playerHand, item.holdPosition, item.holdRotation);
                 }
             }
         }

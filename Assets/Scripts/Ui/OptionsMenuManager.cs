@@ -249,6 +249,18 @@ public class OptionsMenuManager : MonoBehaviour
         creditsPanel.SetActive(false);
     }
 
+    /// <summary>
+    /// Closes whatever was opened inside the options through its own close, so the next opening
+    /// starts on the main page — and an open mic test gives the voice channel back.
+    /// </summary>
+    public void CloseSubPanels()
+    {
+        if (rebindMenu != null && rebindMenu.activeSelf) CloseRebindMenu();
+        if (brightnessPanel != null && brightnessPanel.activeSelf) CloseBrightnessPanel();
+        if (audioDevicePanel != null && audioDevicePanel.activeSelf) CloseAudioDevicePanel();
+        if (creditsPanel != null && creditsPanel.activeSelf) CloseCreditsPanel();
+    }
+
     private void OnDisable()
     {
         PlayerPrefs.Save();

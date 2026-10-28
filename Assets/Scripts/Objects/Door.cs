@@ -30,8 +30,9 @@ namespace Objects
         [SerializeField] private NavMeshObstacle navMeshObstacle;
 
         [Tooltip("Optional. Solid only while the door is shut and still, and only once nobody is inside " +
-                 "it: the gap under a counter flap, which the flap alone leaves open to anyone " +
-                 "crouching, and which the monster's probe would otherwise pass straight under.")]
+                 "it: the gap under a counter flap, which the monster's probe would otherwise pass " +
+                 "straight under. Its Exclude Layers let bodies through: Player on the counter, so " +
+                 "players still crouch under the flap.")]
         [SerializeField] private BoxCollider closedBlocker;
 
         [Tooltip("Optional. The noise a player makes opening or closing this door. Deliberately " +
@@ -1327,8 +1328,9 @@ namespace Objects
             Vector3 halfExtents = Vector3.Scale(closedBlocker.size,
                 new Vector3(Mathf.Abs(scale.x), Mathf.Abs(scale.y), Mathf.Abs(scale.z))) * 0.5f;
 
+            // Bodies the blocker lets through would never be thrown out of it, so they don't hold it off.
             return Physics.CheckBox(box.TransformPoint(closedBlocker.center), halfExtents, box.rotation,
-                occupantLayers, QueryTriggerInteraction.Ignore);
+                occupantLayers & ~closedBlocker.excludeLayers, QueryTriggerInteraction.Ignore);
         }
 
         private void TryCloseWhenClear()

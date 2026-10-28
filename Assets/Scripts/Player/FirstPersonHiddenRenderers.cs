@@ -56,10 +56,14 @@ namespace Player
 
         private void OnBeginCameraRendering(ScriptableRenderContext context, Camera viewCamera)
         {
-            Apply(IsRiddenBy(viewCamera));
+            Apply(IsRiddenBy(viewCamera, bodyRoot));
         }
 
-        private bool IsRiddenBy(Camera viewCamera)
+        /// <summary>
+        /// Whether <paramref name="viewCamera"/> is looking out of <paramref name="bodyRoot"/>: its
+        /// own player's view, or a spectator watching through that player.
+        /// </summary>
+        public static bool IsRiddenBy(Camera viewCamera, Transform bodyRoot)
         {
             if (!viewCamera.TryGetComponent(out CinemachineBrain brain)) return false;
 

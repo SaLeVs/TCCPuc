@@ -210,6 +210,10 @@ namespace Player
                     // Overlapping at the start: the solver is already pushing the body out of it.
                     if (hit.distance <= 0f && hit.point == Vector3.zero) continue;
 
+                    // A collider that lets this body through, like the monster-only blocker under a
+                    // counter flap, is no wall to it either.
+                    if ((hit.collider.excludeLayers.value & (1 << gameObject.layer)) != 0) continue;
+
                     // A slope, or an edge low enough to roll over.
                     if (hit.normal.y >= minGroundNormalY) continue;
 

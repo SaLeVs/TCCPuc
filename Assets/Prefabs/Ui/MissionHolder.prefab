@@ -473,6 +473,7 @@ GameObject:
   - component: {fileID: 7515101384618552047}
   - component: {fileID: 5629128155027227414}
   - component: {fileID: 2233445566778899001}
+  - component: {fileID: 1485138236086991820}
   m_Layer: 11
   m_Name: MissionHolder
   m_TagString: Untagged
@@ -603,6 +604,22 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls: []
   hasAuthoredShown: 0
+--- !u!114 &1485138236086991820
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5714232411238863896}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1ded03efc7760e54e84796f92aa8e81b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Ui::Ui.HudPanelHeightFitter
+  panel: {fileID: 0}
+  content: {fileID: 4872851973958549206}
+  minHeight: 0
+  maxHeight: 820
 --- !u!1 &6635149740717355876
 GameObject:
   m_ObjectHideFlags: 0
@@ -898,7 +915,7 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls: []
   m_Sprite: {fileID: 21300000, guid: c8de531022d077c4bb74057b747c1512, type: 3}
-  m_Type: 0
+  m_Type: 1
   m_PreserveAspect: 0
   m_FillCenter: 1
   m_FillMethod: 4
@@ -906,7 +923,7 @@ MonoBehaviour:
   m_FillClockwise: 1
   m_FillOrigin: 0
   m_UseSpriteMesh: 0
-  m_PixelsPerUnitMultiplier: 4
+  m_PixelsPerUnitMultiplier: 23.15294
 --- !u!1 &9181951132272867585
 GameObject:
   m_ObjectHideFlags: 0

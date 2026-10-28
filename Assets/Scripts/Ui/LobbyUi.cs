@@ -17,9 +17,9 @@ namespace UI
         
         
         private bool _isPlayerReady;
-        private const string PLAYER_READY = "READY";
-        private const string PLAYER_NOT_READY = "NOT READY";
-        private const string HOST_START = "START";
+        private const string PLAYER_READY = "PRONTO";
+        private const string PLAYER_NOT_READY = "NÃO PRONTO";
+        private const string HOST_START = "INICIAR";
         
         private void OnEnable()
         {

@@ -22,7 +22,7 @@ public class AudioDeviceSettings : MonoBehaviour
     const float k_minSliderVolume = -50;
     const float k_maxSliderVolume = 50;
     const float k_voiceMeterSpeed = 3;
-    const string k_effectiveDevicePrefix = "Effective Device: ";
+    const string k_effectiveDevicePrefix = "Dispositivo em uso:";
 
     private void Start()
     {

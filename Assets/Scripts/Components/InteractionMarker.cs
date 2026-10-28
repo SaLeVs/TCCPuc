@@ -24,7 +24,7 @@ namespace Components
 
         [Tooltip("Verb shown next to the key when the player aims at this, e.g. \"Pick up\" or " +
                  "\"Open\". Leave empty to show the key alone.")]
-        [SerializeField] private string actionLabel = "Pick up";
+        [SerializeField] private string actionLabel = "Pegar";
 
         [Tooltip("Renderers the brackets wrap around. Leave empty to frame every mesh under " +
                  "this object.")]

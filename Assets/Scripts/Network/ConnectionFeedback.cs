@@ -73,14 +73,14 @@ namespace Network
             string reason = networkManager.DisconnectReason;
 
             Report(string.IsNullOrWhiteSpace(reason)
-                ? "Connection denied or lost. Check the IP, the port or the firewall (inbound UDP)."
-                : $"Disconnected: {reason}");
+                ? "Conexão recusada ou perdida. Verifique o IP, a porta ou o firewall (UDP de entrada)."
+                : $"Desconectado: {reason}");
         }
 
         private void NetworkManager_OnTransportFailure()
         {
             Report(
-                "Transport failure: the host is down or the port is busy. Check the IP, the port or the firewall (inbound UDP).");
+                "Falha de transporte: o host caiu ou a porta está ocupada. Verifique o IP, a porta ou o firewall (UDP de entrada).");
         }
 
         public static void Report(string message)

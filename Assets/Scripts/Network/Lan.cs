@@ -95,7 +95,7 @@ namespace Network
         {
             if (!ushort.TryParse(_port, out portNumber) || portNumber == 0)
             {
-                ConnectionFeedback.Report($"Invalid port: '{_port}'. Use a number between 1 and 65535.");
+                ConnectionFeedback.Report($"Porta inválida: '{_port}'. Use um número entre 1 e 65535.");
                 return false;
             }
 

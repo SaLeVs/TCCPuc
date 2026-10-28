@@ -363,11 +363,11 @@ namespace Missions.Donations
 
         private string PickDonorName(DonationDefinition definition)
         {
-            if (definition.fakeDonorNames == null) return "Anonymous";
+            if (definition.fakeDonorNames == null) return "Anônimo";
 
             // Drawn from the same population the chat speaks with, so a donor is someone
             // the player has seen in chat rather than a name out of a separate list.
-            return definition.fakeDonorNames.TryPickName(out string name) ? name : "Anonymous";
+            return definition.fakeDonorNames.TryPickName(out string name) ? name : "Anônimo";
         }
 
         /// <summary>Call this from your recording progress detection system (see DonationRecordableZone).</summary>

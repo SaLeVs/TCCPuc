@@ -31,7 +31,7 @@ namespace Audio
         private string ttsVoice = "en_US female";
 
         [Tooltip("{donor}, {amount} and {recipient} are filled in. Read before the donation's own message.")]
-        [SerializeField] private string announcementFormat = "{donor} donated R$ {amount} to {recipient}!";
+        [SerializeField] private string announcementFormat = "{donor} doou R$ {amount} para {recipient}!";
 
         [Header("Reach")]
         [Tooltip("How fast the TTS voice reads, used to estimate how long the recipient's voice carries " +
@@ -108,7 +108,7 @@ namespace Audio
             NetworkManager network = NetworkManager.Singleton;
             if (network == null) return;
 
-            string recipient = state.RecipientName.IsEmpty ? "the chat" : state.RecipientName.ToString();
+            string recipient = state.RecipientName.IsEmpty ? "o chat" : state.RecipientName.ToString();
 
             string announcement = announcementFormat
                 .Replace("{donor}", state.DonorName.ToString())

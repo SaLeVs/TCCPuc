@@ -80,6 +80,9 @@ namespace Ui
 
         public bool IsVisible { get; private set; } = true;
 
+        /// <summary>The rows, for whatever resizes the panel and has to keep their travel in step with it.</summary>
+        public IReadOnlyList<Move> Moves => moves;
+
         private Coroutine _routine;
 
         private void Awake()

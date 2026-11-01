@@ -446,9 +446,9 @@ namespace Components
 
         private static string TitleFor(ToastKind kind) => kind switch
         {
-            ToastKind.Error => "ERROR",
-            ToastKind.Warning => "WARNING",
-            _ => "NOTICE"
+            ToastKind.Error => "ERRO",
+            ToastKind.Warning => "ATENÇÃO",
+            _ => "AVISO"
         };
 
         /// <summary>

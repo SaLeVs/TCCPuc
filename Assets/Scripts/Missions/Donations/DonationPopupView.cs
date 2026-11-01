@@ -23,7 +23,7 @@ namespace Missions.Donations
 
         [Header("Donate text")]
         [Tooltip("{donor}, {amount} and {recipient} are filled in.")]
-        [SerializeField] private string donationTextFormat = "{donor} donate R$ {amount} para {recipient}!";
+        [SerializeField] private string donationTextFormat = "{donor} doou R$ {amount} para {recipient}!";
 
         [Tooltip("Stands in for {recipient} when the donation was addressed to nobody in particular.")]
         [SerializeField] private string noRecipientText = "o chat";

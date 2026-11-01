@@ -180,14 +180,21 @@ namespace Prototypes.Editor
             Transform doors = ctx.Auditorium.transform.Find("Doors");
             if (doors != null)
             {
+                var rearLeaves = new List<Transform>();
                 foreach (Transform leaf in doors)
                 {
                     if (leaf.name.EndsWith("(10)") || leaf.name.EndsWith("(11)") || leaf.name.EndsWith("(12)") || leaf.name.EndsWith("(13)"))
+                    {
                         leaf.gameObject.SetActive(false);
+                        rearLeaves.Add(leaf);
+                    }
                 }
-                foreach (float x in new[] { -6.95f, 6.95f })
+                // Each door where its pair of leaves hung: the wall openings are there, on the
+                // auditorium's back floor (4.0), not centred at +-6.95 on the upper floor (4.5).
+                foreach (var pair in rearLeaves.GroupBy(l => Mathf.Sign(l.position.x - a.Pivot.x)))
                 {
-                    var d = Place("Assets/Prefabs/Rooms/Props/Doors/Door_Double_Red.prefab", hub, a.Pivot + new Vector3(x, PrototypeLayout.UpperFloor, 20.85f), Quaternion.identity);
+                    Vector3 at = pair.Aggregate(Vector3.zero, (sum, l) => sum + l.position) / pair.Count();
+                    var d = Place("Assets/Prefabs/Rooms/Props/Doors/Door_Double_Red.prefab", hub, at, Quaternion.identity);
                     if (d != null) ctx.ExtraSabotage.Add(d);
                 }
             }
@@ -386,7 +393,9 @@ namespace Prototypes.Editor
                 {
                     string n = mr.name.ToLowerInvariant();
                     if (mr.GetComponentInParent<Unity.Netcode.NetworkObject>(true) != null && mr.GetComponentInParent<Objects.Door>(true) != null) continue;
-                    if (SkipWords.Any(n.Contains)) continue;
+                    // A wall with a doorway in it (SM_Wall_Bathroom_Single_Door) is still a wall.
+                    bool doorwayWall = n.Contains("wall") && n.Contains("door");
+                    if (!doorwayWall && SkipWords.Any(n.Contains)) continue;
                     bool ground = GroundWords.Any(n.Contains), wall = WallWords.Any(n.Contains);
                     if (!ground && !wall) continue;
                     mr.gameObject.layer = ground ? Ground : Walls;

@@ -27,7 +27,7 @@ namespace Ui
     [RequireComponent(typeof(RectTransform))]
     public class InteractionMarkerHud : MonoBehaviour
     {
-        private const string BlockedLabel = "UNAVAILABLE";
+        private const string BlockedLabel = "INDISPONÍVEL";
         private const float FarPivotMargin = 3f;
         private const float MaxCameraArm = 1f;
 

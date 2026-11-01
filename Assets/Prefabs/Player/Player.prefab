@@ -1066,7 +1066,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: QUIT
+  m_text: SAIR
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: e990411693627be4abbc19d86b23c271, type: 2}
   m_sharedMaterial: {fileID: -6187223559404081477, guid: e990411693627be4abbc19d86b23c271, type: 2}
@@ -1569,9 +1569,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: 'No more chances for you!
-
-    No one made it out alive.'
+  m_text: "Acabaram as chances!\nNingu\xE9m saiu vivo."
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: c2a1b3d52c3f9cf49bc8eb107a5bc4c3, type: 2}
   m_sharedMaterial: {fileID: 8979655907117184334, guid: c2a1b3d52c3f9cf49bc8eb107a5bc4c3, type: 2}
@@ -2269,6 +2267,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Ui::SettingUiConfigs
   musicMixer: {fileID: 24100000, guid: 3dc92f719c53e9245ba8fdc79a2cff88, type: 2}
   sfxMixer: {fileID: 24100000, guid: f5388b4d87247e14ba528070026f59b7, type: 2}
+  voiceMixer: {fileID: 24100000, guid: 3338bd0d581fd344a91f47f92cc91ff5, type: 2}
 --- !u!114 &4455667788990011223
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2309,6 +2308,7 @@ MonoBehaviour:
   playerListItemUi: {fileID: 6310481338815305956, guid: b926741fd7d8c05488ecae884c12d908, type: 3}
   includeSelfInList: 1
   playerCamera: {fileID: 9106684494112449477}
+  refreshInterval: 0.5
 --- !u!1 &3651877571896663881
 GameObject:
   m_ObjectHideFlags: 0
@@ -2853,7 +2853,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: "Congratulations! \nYou complete the contract."
+  m_text: "Parab\xE9ns!\nVoc\xEA cumpriu o contrato."
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: c2a1b3d52c3f9cf49bc8eb107a5bc4c3, type: 2}
   m_sharedMaterial: {fileID: 8979655907117184334, guid: c2a1b3d52c3f9cf49bc8eb107a5bc4c3, type: 2}
@@ -2990,7 +2990,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: PAUSE MENU
+  m_text: PAUSA
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: e990411693627be4abbc19d86b23c271, type: 2}
   m_sharedMaterial: {fileID: -6187223559404081477, guid: e990411693627be4abbc19d86b23c271, type: 2}
@@ -3508,9 +3508,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: 'OPTIONS
-
-'
+  m_text: "OP\xC7\xD5ES\n"
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: c2a1b3d52c3f9cf49bc8eb107a5bc4c3, type: 2}
   m_sharedMaterial: {fileID: 8979655907117184334, guid: c2a1b3d52c3f9cf49bc8eb107a5bc4c3, type: 2}
@@ -4034,7 +4032,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: QUIT
+  m_text: SAIR
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: e990411693627be4abbc19d86b23c271, type: 2}
   m_sharedMaterial: {fileID: -6187223559404081477, guid: e990411693627be4abbc19d86b23c271, type: 2}
@@ -5024,7 +5022,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: QUIT GAME
+  m_text: SAIR DO JOGO
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: c2a1b3d52c3f9cf49bc8eb107a5bc4c3, type: 2}
   m_sharedMaterial: {fileID: 8979655907117184334, guid: c2a1b3d52c3f9cf49bc8eb107a5bc4c3, type: 2}
@@ -5503,7 +5501,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: RESUME GAME
+  m_text: CONTINUAR
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: c2a1b3d52c3f9cf49bc8eb107a5bc4c3, type: 2}
   m_sharedMaterial: {fileID: 8979655907117184334, guid: c2a1b3d52c3f9cf49bc8eb107a5bc4c3, type: 2}
@@ -7052,7 +7050,8 @@ MonoBehaviour:
   voiceProfile: {fileID: 11400000, guid: c6b030aa68bac2242a1435e00ae54109, type: 2}
   rangeScalesWithVoice: 1
   rangeAttackSeconds: 0.08
-  rangeReleaseSeconds: 0.9
+  rangeReleaseSeconds: 2.5
+  rangeHoldSeconds: 1.5
 --- !u!114 &9144792236639197796
 MonoBehaviour:
   m_ObjectHideFlags: 0

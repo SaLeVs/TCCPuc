@@ -8,6 +8,7 @@ public class SettingUiConfigs : MonoBehaviour
 {
     [SerializeField] private AudioMixer musicMixer;
     [SerializeField] private AudioMixer sfxMixer;
+    [SerializeField] private AudioMixer voiceMixer;
 
     private void Awake()
     {
@@ -19,10 +20,12 @@ public class SettingUiConfigs : MonoBehaviour
     {
         float music = PlayerPrefs.GetFloat("MusicVolume", 0.5f);
         float sfx = PlayerPrefs.GetFloat("SoundEffectsVolume", 0.5f);
+        float voice = PlayerPrefs.GetFloat("VoiceVolume", 1f);
         float brightness = PlayerPrefs.GetFloat("Brightness", 0.5f);
 
         musicMixer.SetFloat("musicVolume", LinearToDecibel(music));
         sfxMixer.SetFloat("sfxVolume", LinearToDecibel(sfx));
+        if (voiceMixer != null) voiceMixer.SetFloat("voiceVolume", LinearToDecibel(voice));
 
         var volume = FindFirstObjectByType<Volume>();
         if (volume != null && volume.profile != null && volume.profile.TryGet(out ColorAdjustments colorAdjustments))

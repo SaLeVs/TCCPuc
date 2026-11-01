@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Missions.Donations;
+using Network;
 using Unity.Netcode;
 using Unity.Services.Vivox;
 using UnityEngine;
@@ -20,6 +22,10 @@ namespace Audio
     /// positioned, muffled by walls and fading with distance exactly like their voice — while the
     /// recipient hears it in their headphones. It used to be spoken by the host alone, which made
     /// every donation sound like it came from the host, wherever the host was.</para>
+    ///
+    /// <para>Each player sets how loud the readings are, or turns them off, in the options
+    /// (VoiceChatSettings): VivoxManager scales the recipient's local copy, RemoteVoiceFilter
+    /// everyone else's.</para>
     /// </summary>
     public class DonationTTSManager : MonoBehaviour
     {
@@ -27,11 +33,15 @@ namespace Audio
         [SerializeField] private bool enableTTS = true;
 
         [SerializeField]
-        [Tooltip("Vivox TTS voice name. Leave empty for the default. Available names are logged on login")]
+        [Tooltip("Vivox TTS voice name, used when none of the preferred languages has a voice. Leave " +
+                 "empty for Vivox's default. Available names are logged on login.")]
         private string ttsVoice = "en_US female";
 
+        [Tooltip("Voice name prefixes tried first, in order. The announcements are in Portuguese.")]
+        [SerializeField] private string[] preferredVoicePrefixes = { "pt_BR", "pt" };
+
         [Tooltip("{donor}, {amount} and {recipient} are filled in. Read before the donation's own message.")]
-        [SerializeField] private string announcementFormat = "{donor} donated R$ {amount} to {recipient}!";
+        [SerializeField] private string announcementFormat = "{donor} doou R$ {amount} para {recipient}!";
 
         [Header("Reach")]
         [Tooltip("How fast the TTS voice reads, used to estimate how long the recipient's voice carries " +
@@ -82,9 +92,23 @@ namespace Audio
         {
             VivoxService.Instance.LoggedIn -= ApplyVoice;
 
-            if (string.IsNullOrWhiteSpace(ttsVoice)) return;
+            IList<string> voices = VivoxService.Instance.TextToSpeechAvailableVoices ?? (IList<string>)Array.Empty<string>();
+            Debug.Log($"DonationTTSManager: Vivox TTS voices: {string.Join(", ", voices)}");
 
-            VivoxService.Instance.TextToSpeechSetVoice(ttsVoice.Trim());
+            string voice = null;
+
+            foreach (string prefix in preferredVoicePrefixes)
+            {
+                if (string.IsNullOrWhiteSpace(prefix)) continue;
+
+                voice = voices.FirstOrDefault(name => name.StartsWith(prefix.Trim(), StringComparison.OrdinalIgnoreCase));
+                if (voice != null) break;
+            }
+
+            if (voice == null && !string.IsNullOrWhiteSpace(ttsVoice) && voices.Contains(ttsVoice.Trim())) voice = ttsVoice.Trim();
+            if (voice == null) return;
+
+            VivoxService.Instance.TextToSpeechSetVoice(voice);
         }
 
         private void DonationManager_OnListChanged(NetworkListEvent<DonationNetworkState> changeEvent)
@@ -108,7 +132,7 @@ namespace Audio
             NetworkManager network = NetworkManager.Singleton;
             if (network == null) return;
 
-            string recipient = state.RecipientName.IsEmpty ? "the chat" : state.RecipientName.ToString();
+            string recipient = state.RecipientName.IsEmpty ? "o chat" : state.RecipientName.ToString();
 
             string announcement = announcementFormat
                 .Replace("{donor}", state.DonorName.ToString())
@@ -147,9 +171,15 @@ namespace Audio
                 return;
             }
 
+            // The local playback is this player's copy; the transmission is everyone else's, who each
+            // decide for themselves whether to hear it (RemoteVoiceFilter).
+            TextToSpeechMessageType destination = VoiceChatSettings.DonationTtsEnabled
+                ? TextToSpeechMessageType.QueuedRemoteTransmissionWithLocalPlayback
+                : TextToSpeechMessageType.QueuedRemoteTransmission;
+
             try
             {
-                VivoxService.Instance.TextToSpeechSendMessage(message, TextToSpeechMessageType.QueuedRemoteTransmissionWithLocalPlayback);
+                VivoxService.Instance.TextToSpeechSendMessage(message, destination);
             }
             catch (Exception e)
             {

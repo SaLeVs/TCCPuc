@@ -38,7 +38,7 @@ public class MusicManager : MonoBehaviour
     {
         AudioClip[] chosenTracks;
 
-        if (scene.name == "MainMenu")
+        if (scene.name == "MainMenu" || scene.name == "Bootstrap" || scene.name == "Netbootstrap")
         {
             chosenTracks = menuTracks;
         }

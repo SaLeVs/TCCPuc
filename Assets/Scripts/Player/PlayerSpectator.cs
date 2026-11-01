@@ -201,7 +201,7 @@ namespace Player
                 _currentTargetState.SetOcclusionVisible(false);
             }
 
-            OnTargetChanged?.Invoke($"Player {targetId}");
+            OnTargetChanged?.Invoke($"Jogador {targetId}");
         }
 
         

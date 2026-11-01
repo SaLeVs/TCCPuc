@@ -21,7 +21,7 @@ public static class LocalUserData
         
         if (string.IsNullOrWhiteSpace(name))
         {
-            return "Player";
+            return "Jogador";
         }
 
         return name;

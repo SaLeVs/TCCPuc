@@ -37,9 +37,15 @@ namespace Audio
 
         [Tooltip("Seconds for the range to cross its whole span while falling. Deliberately long: " +
                  "without it the range would collapse between syllables and the voice would pump.")]
-        [SerializeField, Min(0.01f)] private float rangeReleaseSeconds = 0.9f;
+        [SerializeField, Min(0.01f)] private float rangeReleaseSeconds = 2.5f;
+
+        [Tooltip("Seconds the range stays at least at the speech range after the last word, so the " +
+                 "pauses between sentences don't shrink it towards a whisper.")]
+        [SerializeField, Min(0f)] private float rangeHoldSeconds = 1.5f;
 
         private VivoxParticipant _participant;
+        private string _participantChannel;
+        private float _lastSpeechTime = float.NegativeInfinity;
         private AudioReverbFilter _reverbFilter;
         private AudioSource _audioSource;
         private VoiceGain _gain;
@@ -54,6 +60,7 @@ namespace Audio
             {
                 VivoxManager.instance.OnParticipantJoinedChannel += VivoxManager_OnParticipantJoined;
                 VivoxManager.instance.OnParticipantLeftChannel += VivoxManager_OnParticipantLeft;
+                VivoxManager.instance.OnLeftChannel += VivoxManager_OnLeftChannel;
 
                 TryBindExistingParticipant();
             }
@@ -70,9 +77,15 @@ namespace Audio
             if (participant.IsSelf) return;
             if (voiceIdentity == null) return;
             if (participant.PlayerId != voiceIdentity.VivoxPlayerId) return;
-            if (_participant != null) return;
+            if (_participant == participant) return;
+
+            // A new object for the same player: a rejoin or a channel switch. The one held here may
+            // be dead already — Vivox cleans up a channel this machine leaves without saying so — and
+            // keeping it meant never tapping this voice again.
+            if (_participant != null) DestroyTap();
 
             _participant = participant;
+            _participantChannel = participant.ChannelName;
 
             GameObject tapObject = participant.CreateVivoxParticipantTap($"VoiceTap_{participant.DisplayName}", silenceInChannelAudioMix: true);
 
@@ -100,10 +113,10 @@ namespace Audio
             }
 
             _audioSource.spatialBlend = 1f;
-            // Unity's logarithmic rolloff is exactly the inverse-distance law, minDistance/distance:
-            // the level the voice was spoken at inside the near field, 6 dB less per doubling past it.
+            // The voice profile's distance law, as a custom curve Steam Audio follows: the level the
+            // voice was spoken at inside the near field, then a set number of dB less per doubling.
             // Where it stops being heard is not up to the curve — see ApplyRange.
-            _audioSource.rolloffMode = AudioRolloffMode.Logarithmic;
+            _audioSource.rolloffMode = AudioRolloffMode.Custom;
             _audioSource.outputAudioMixerGroup = voiceMixerGroup;
 
             if (spatialProfile != null)
@@ -123,13 +136,22 @@ namespace Audio
             _audioSource.minDistance = voiceProfile != null ? voiceProfile.NearField : 1f;
             _audioSource.maxDistance = LoudRange();
 
+            if (voiceProfile != null)
+            {
+                _audioSource.SetCustomCurve(AudioSourceCurveType.CustomRolloff, voiceProfile.BuildRolloff(_audioSource.maxDistance));
+            }
+            else
+            {
+                _audioSource.rolloffMode = AudioRolloffMode.Logarithmic;
+            }
+
             // Added after the tap, so it scales the voice the tap has just written.
             _gain = _audioSource.gameObject.AddComponent<VoiceGain>();
 
             // Open at the quiet end, so the first word someone says widens the range instead of
             // the range starting wide and audibly shrinking around them.
             _currentRange = rangeScalesWithVoice ? QuietRange() : LoudRange();
-            ApplyRange();
+            ApplyRange(IsReadingDonation());
 
             _reverbFilter = _audioSource.gameObject.AddComponent<AudioReverbFilter>();
 
@@ -154,7 +176,9 @@ namespace Audio
         {
             if (_participant == null || _audioSource == null) return;
 
-            if (IsReadingDonation())
+            bool reading = IsReadingDonation();
+
+            if (reading)
             {
                 // The TTS rides this voice but not its mic level: a donation being read carries to
                 // everyone in the channel's range, like a shout, for as long as the reading lasts.
@@ -176,8 +200,7 @@ namespace Audio
 
                 float quiet = QuietRange();
                 float loud = LoudRange();
-                float loudness = voiceProfile != null ? voiceProfile.Loudness(energy) : 1f;
-                float target = Mathf.Lerp(quiet, loud, loudness);
+                float target = RangeFor(energy, quiet, loud);
 
                 // Asymmetric envelope: rise fast, fall slow. Both rates are expressed as seconds to
                 // cross the whole span, so the tuning keeps its meaning when the span itself changes.
@@ -187,7 +210,26 @@ namespace Audio
                 _currentRange = Mathf.MoveTowards(_currentRange, target, rate * Time.deltaTime);
             }
 
-            ApplyRange();
+            ApplyRange(reading);
+        }
+
+        /// <summary>
+        /// Talking keeps the range at the speech range at least — through the pauses too, for the hold
+        /// time — and raising the voice lifts it towards the shout range. Only someone who stopped
+        /// talking, or whispers, falls back to the whisper range. Following each syllable from the
+        /// whisper range up, as before, left normal talking unheard 40% of the time at 11 m.
+        /// </summary>
+        private float RangeFor(float energy, float quiet, float loud)
+        {
+            if (voiceProfile == null) return loud;
+
+            if (energy >= voiceProfile.SpeechEnergy)
+            {
+                _lastSpeechTime = Time.time;
+                return Mathf.Lerp(SpeechRange(), loud, voiceProfile.Loudness(energy));
+            }
+
+            return Time.time - _lastSpeechTime <= rangeHoldSeconds ? SpeechRange() : quiet;
         }
 
         /// <summary>
@@ -195,10 +237,11 @@ namespace Audio
         /// one listener per machine, so the distance to it is all a curve would have known anyway, and
         /// the rolloff stays fixed instead of being rebuilt every time the range moves.
         ///
-        /// <para>(1 - x²)² is the window the world sounds use: it leaves the near and middle distances
-        /// almost untouched and closes smoothly on zero instead of cutting the tail off.</para>
+        /// <para>Only the last stretch of the range closes: up to the profile's Edge Fade Start the
+        /// distance law alone sets the level, and a cosine takes it from there to silence. The
+        /// (1 - x²)² window used before acted over the whole range and already took 8 dB at 60% of it.</para>
         /// </summary>
-        private void ApplyRange()
+        private void ApplyRange(bool reading)
         {
             float window = 0f;
 
@@ -206,17 +249,25 @@ namespace Audio
             {
                 float x = Vector3.Distance(listener.transform.position, _audioSource.transform.position) /
                           Mathf.Max(_currentRange, 0.01f);
+                float fadeStart = voiceProfile != null ? voiceProfile.EdgeFadeStart : 0f;
 
-                if (x < 1f)
+                if (x <= fadeStart)
                 {
-                    window = 1f - x * x;
-                    window *= window;
+                    window = 1f;
+                }
+                else if (x < 1f)
+                {
+                    window = 0.5f * (1f + Mathf.Cos(Mathf.PI * (x - fadeStart) / (1f - fadeStart)));
                 }
             }
 
             float playerVolume = VivoxManager.instance != null
                 ? VivoxManager.instance.GetParticipantTapVolume(_participant.PlayerId)
                 : 1f;
+
+            // While a donation is read this voice is the reading, played at the volume this player
+            // chose for readings — 0 with them turned off.
+            if (reading) playerVolume *= VoiceChatSettings.DonationTtsGain;
 
             // The distance fade stays on the source; the volume this player chose, which can go above
             // 1, rides the gain — AudioSource.volume would cap a boost at 1.
@@ -278,10 +329,27 @@ namespace Audio
             return Mathf.Clamp(whisper, floor, loud);
         }
 
+        /// <summary>How far normal talking carries: the profile's speech range, between the other two.</summary>
+        private float SpeechRange()
+        {
+            float quiet = QuietRange();
+            float loud = LoudRange();
+            float speech = voiceProfile != null ? voiceProfile.SpeechRange : loud;
+
+            return Mathf.Clamp(speech, quiet, loud);
+        }
+
         private void VivoxManager_OnParticipantLeft(VivoxParticipant participant)
         {
-            if (_participant == null) return;
-            if (participant.PlayerId != _participant.PlayerId) return;
+            // By reference: the one held here may already be dead, and reading its PlayerId throws.
+            if (_participant == null || participant != _participant) return;
+
+            DestroyTap();
+        }
+
+        private void VivoxManager_OnLeftChannel(string channelName)
+        {
+            if (_participant == null || _participantChannel != channelName) return;
 
             DestroyTap();
         }
@@ -298,6 +366,7 @@ namespace Audio
         {
             _participant?.DestroyVivoxParticipantTap();
             _participant = null;
+            _participantChannel = null;
             _reverbFilter = null;
             _gain = null;
             _audioSource = null;
@@ -326,6 +395,7 @@ namespace Audio
             {
                 VivoxManager.instance.OnParticipantJoinedChannel -= VivoxManager_OnParticipantJoined;
                 VivoxManager.instance.OnParticipantLeftChannel -= VivoxManager_OnParticipantLeft;
+                VivoxManager.instance.OnLeftChannel -= VivoxManager_OnLeftChannel;
             }
 
             if (zoneState != null)

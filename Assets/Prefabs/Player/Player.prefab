@@ -2267,6 +2267,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Ui::SettingUiConfigs
   musicMixer: {fileID: 24100000, guid: 3dc92f719c53e9245ba8fdc79a2cff88, type: 2}
   sfxMixer: {fileID: 24100000, guid: f5388b4d87247e14ba528070026f59b7, type: 2}
+  voiceMixer: {fileID: 24100000, guid: 3338bd0d581fd344a91f47f92cc91ff5, type: 2}
 --- !u!114 &4455667788990011223
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2307,6 +2308,7 @@ MonoBehaviour:
   playerListItemUi: {fileID: 6310481338815305956, guid: b926741fd7d8c05488ecae884c12d908, type: 3}
   includeSelfInList: 1
   playerCamera: {fileID: 9106684494112449477}
+  refreshInterval: 0.5
 --- !u!1 &3651877571896663881
 GameObject:
   m_ObjectHideFlags: 0
@@ -7048,7 +7050,8 @@ MonoBehaviour:
   voiceProfile: {fileID: 11400000, guid: c6b030aa68bac2242a1435e00ae54109, type: 2}
   rangeScalesWithVoice: 1
   rangeAttackSeconds: 0.08
-  rangeReleaseSeconds: 0.9
+  rangeReleaseSeconds: 2.5
+  rangeHoldSeconds: 1.5
 --- !u!114 &9144792236639197796
 MonoBehaviour:
   m_ObjectHideFlags: 0

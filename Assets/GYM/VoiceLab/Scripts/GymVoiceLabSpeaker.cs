@@ -22,7 +22,7 @@ namespace LevelDesign.Gym.VoiceLab
     public enum LabCurve
     {
         [InspectorName("Atual (igual ao jogo)")] Current,
-        [InspectorName("Proposta")] Proposal,
+        [InspectorName("Antigo (até 01/11)")] Legacy,
     }
 
     /// <summary>Everything that takes level off the voice this frame, one term per stage.</summary>
@@ -57,11 +57,13 @@ namespace LevelDesign.Gym.VoiceLab
     /// instead of the network.
     ///
     /// <para>"Current" reads every number from the game's own assets (the Player prefab's
-    /// RemoteVoiceFilter, its voice profile and HostManager's VivoxManager) and repeats
-    /// RemoteVoiceFilter's maths step by step, so editing those assets is heard here straight away.
-    /// "Proposal" is the alternative tuned on this component. Nothing in the game is changed.</para>
+    /// RemoteVoiceFilter, its voice profile and spatial profile, HostManager's VivoxManager) and
+    /// repeats RemoteVoiceFilter's maths step by step, so editing those assets during Play is heard
+    /// within a second. "Legacy" is the voice as it was before 2026-11-01, kept to compare against.
+    /// Nothing in the game is changed.</para>
     /// </summary>
-    [DefaultExecutionOrder(1000)]
+    // After SteamAudioManager (0) and SteamAudioTransmissionFloor (1000) wrote this frame's values.
+    [DefaultExecutionOrder(1100)]
     public class GymVoiceLabSpeaker : MonoBehaviour
     {
         private const BindingFlags Private = BindingFlags.Instance | BindingFlags.NonPublic;
@@ -71,6 +73,16 @@ namespace LevelDesign.Gym.VoiceLab
         private const float EnergyInterval = 0.2f;
         private const float EnvelopeWindow = 0.01f;
         private const int MeterSamples = 4096;
+
+        // The voice before 2026-11-01: 1/d from 1 m, whisper 8 m to shout 32 m following each
+        // syllable, (1 - x²)² over the whole range, 0,25 m source, 0,3 directivity, walls as the material says.
+        private const float LegacyNearField = 1f;
+        private const float LegacyWhisperRange = 8f;
+        private const float LegacyLoudRange = 32f;
+        private const float LegacyAttackSeconds = 0.08f;
+        private const float LegacyReleaseSeconds = 0.9f;
+        private const float LegacySourceRadius = 0.25f;
+        private const float LegacyDirectivity = 0.3f;
 
         [Header("Jogo (lido dos assets reais)")]
         [Tooltip("RemoteVoiceFilter do Player.prefab: mixer, perfil espacial, perfil de voz e envelope do alcance vêm dele.")]
@@ -105,47 +117,13 @@ namespace LevelDesign.Gym.VoiceLab
         [Header("Curva")]
         [SerializeField] private LabCurve curve = LabCurve.Current;
 
-        [Tooltip("Até aqui (m) a voz chega com o volume em que foi falada. Hoje: Near Field do VoiceProfile (1 m).")]
-        [SerializeField, Min(0.1f)] private float proposalNearField = 2f;
-
-        [Tooltip("Quanto a voz perde a cada vez que a distância dobra, depois do Near Field. Hoje: 6 dB (lei do inverso da distância).")]
-        [SerializeField, Range(1f, 6f)] private float proposalDbPerDoubling = 4.5f;
-
-        [Tooltip("Alcance de um sussurro (m). Hoje: Whisper Range do VoiceProfile (8 m).")]
-        [SerializeField, Min(1f)] private float proposalWhisperRange = 8f;
-
-        [Tooltip("Alcance da fala normal (m). Hoje não existe: a fala fica entre o sussurro e o grito conforme a energia de cada sílaba.")]
-        [SerializeField, Min(1f)] private float proposalSpeechRange = 24f;
-
-        [Tooltip("Alcance do grito (m). Hoje: Audible Distance do VivoxManager (32 m).")]
-        [SerializeField, Min(1f)] private float proposalShoutRange = 40f;
-
-        [Tooltip("Fração do alcance onde a borda começa a fechar. Hoje a janela (1 - x²)² age no alcance inteiro: já tira 3 dB a 40% e 8 dB a 60%.")]
-        [SerializeField, Range(0f, 0.95f)] private float proposalFadeStart = 0.6f;
-
-        [SerializeField, Min(0.01f)] private float proposalAttackSeconds = 0.08f;
-
-        [Tooltip("Segundos para o alcance recolher. Hoje: 0,9 s para o vão inteiro, então ele encolhe entre as sílabas.")]
-        [SerializeField, Min(0.01f)] private float proposalReleaseSeconds = 2.5f;
-
-        [Tooltip("Enquanto houver fala nos últimos N segundos o alcance não cai abaixo do da fala (como o hold de um noise gate).")]
-        [SerializeField, Min(0f)] private float proposalHoldSeconds = 1.5f;
-
-        [Tooltip("Tamanho da fonte para a oclusão (m). Hoje: Source Radius do VoiceSpatialProfile (0,25 m). Maior = a voz 'vaza' pelo vão da porta aos poucos.")]
-        [SerializeField, Range(0.05f, 2f)] private float proposalSourceRadius = 1f;
-
-        [Tooltip("Diretividade da boca. Hoje: 0,3 (≈ -8 dB de costas).")]
-        [SerializeField, Range(0f, 1f)] private float proposalDirectivity = 0.15f;
-
-        [Tooltip("Mínimo que passa por paredes/portas (graves, médios, agudos). Hoje: material Wall = 0,056 / 0,056 / 0,004 (≈ -25 dB).")]
-        [SerializeField] private Vector3 proposalWallFloor = new Vector3(0.22f, 0.15f, 0.05f);
-
         private VoiceProfileSO _voiceProfile;
         private SpatialAudioProfileSO _spatialProfile;
         private AudioMixerGroup _mixerGroup;
         private bool _rangeScalesWithVoice = true;
         private float _attackSeconds = 0.08f;
-        private float _releaseSeconds = 0.9f;
+        private float _releaseSeconds = 2.5f;
+        private float _holdSeconds = 1.5f;
 
         private AudioSource _source;
         private SteamAudioSource _steam;
@@ -153,7 +131,6 @@ namespace LevelDesign.Gym.VoiceLab
         private AudioReverbFilter _reverb;
         private AudioListener _listener;
         private LabCurve _appliedCurve = (LabCurve)(-1);
-        private AnimationCurve _proposalRolloff;
         private bool _settingsDirty;
         private float _nextRefreshTime;
 
@@ -165,7 +142,7 @@ namespace LevelDesign.Gym.VoiceLab
         private float _range;
         private float _energy;
         private float _nextEnergyTime;
-        private float _lastSpeechTime = -100f;
+        private float _lastSpeechTime = float.NegativeInfinity;
         private float _nextZoneTime;
         private readonly float[] _meter = new float[MeterSamples];
 
@@ -180,9 +157,18 @@ namespace LevelDesign.Gym.VoiceLab
         public AudioSource Source => _source;
         public Transform Mouth => mouth;
 
-        public float WhisperRange => curve == LabCurve.Proposal ? proposalWhisperRange : QuietRange();
-        public float SpeechRange => curve == LabCurve.Proposal ? proposalSpeechRange : Mathf.Lerp(QuietRange(), LoudRange(), 0.5f);
-        public float ShoutRange => curve == LabCurve.Proposal ? proposalShoutRange : LoudRange();
+        public float WhisperRange => curve == LabCurve.Current ? QuietRange() : LegacyWhisperRange;
+        public float SpeechRange => curve == LabCurve.Current ? CurrentSpeechRange() : Mathf.Lerp(LegacyWhisperRange, LegacyLoudRange, 0.5f);
+        public float ShoutRange => curve == LabCurve.Current ? LoudRange() : LegacyLoudRange;
+
+        /// <summary>The distance law the panel names, for the curve in use.</summary>
+        public string CurveDescription => curve == LabCurve.Current && _voiceProfile != null
+            ? $"perfil: {FormatDb(DecibelsPerDoubling())} dB/dobra desde {_voiceProfile.NearField:0.#} m"
+            : "1/d desde 1 m";
+
+        public string WindowDescription => curve == LabCurve.Current && _voiceProfile != null
+            ? $"últimos {Mathf.RoundToInt((1f - _voiceProfile.EdgeFadeStart) * 100f)}% do alcance"
+            : "(1 - x²)² no alcance todo";
 
         public string MissingReferences
         {
@@ -236,6 +222,7 @@ namespace LevelDesign.Gym.VoiceLab
             if (type.GetField("rangeScalesWithVoice", Private)?.GetValue(gameVoiceFilter) is bool scales) _rangeScalesWithVoice = scales;
             if (type.GetField("rangeAttackSeconds", Private)?.GetValue(gameVoiceFilter) is float attack) _attackSeconds = attack;
             if (type.GetField("rangeReleaseSeconds", Private)?.GetValue(gameVoiceFilter) is float release) _releaseSeconds = release;
+            if (type.GetField("rangeHoldSeconds", Private)?.GetValue(gameVoiceFilter) is float hold) _holdSeconds = hold;
         }
 
         /// <summary>
@@ -253,13 +240,14 @@ namespace LevelDesign.Gym.VoiceLab
             _source.clip = CurrentClip();
 
             _source.spatialBlend = 1f;
-            _source.rolloffMode = AudioRolloffMode.Logarithmic;
+            _source.rolloffMode = AudioRolloffMode.Custom;
             _source.outputAudioMixerGroup = _mixerGroup;
 
             _steam = _spatialProfile.AttachTo(_source) as SteamAudioSource;
 
             _source.minDistance = _voiceProfile.NearField;
             _source.maxDistance = LoudRange();
+            _source.SetCustomCurve(AudioSourceCurveType.CustomRolloff, _voiceProfile.BuildRolloff(_source.maxDistance));
 
             _gain = tap.AddComponent<VoiceGain>();
             _reverb = tap.AddComponent<AudioReverbFilter>();
@@ -300,7 +288,7 @@ namespace LevelDesign.Gym.VoiceLab
 
         public void SetCurve(LabCurve newCurve) => curve = newCurve;
 
-        public void ToggleCurve() => curve = curve == LabCurve.Current ? LabCurve.Proposal : LabCurve.Current;
+        public void ToggleCurve() => curve = curve == LabCurve.Current ? LabCurve.Legacy : LabCurve.Current;
 
         public void UseRecording(AudioClip clip)
         {
@@ -344,20 +332,9 @@ namespace LevelDesign.Gym.VoiceLab
             ApplyRange();
         }
 
-        /// <summary>
-        /// After SteamAudioManager.LateUpdate wrote this frame's simulation into the source, so the
-        /// floor reaches the spatializer on the next SteamAudioSource.Update.
-        /// </summary>
         private void LateUpdate()
         {
-            if (_steam == null) return;
-
-            if (curve == LabCurve.Proposal && _steam.transmission)
-            {
-                _steam.transmissionLow = Mathf.Max(_steam.transmissionLow, proposalWallFloor.x);
-                _steam.transmissionMid = Mathf.Max(_steam.transmissionMid, proposalWallFloor.y);
-                _steam.transmissionHigh = Mathf.Max(_steam.transmissionHigh, proposalWallFloor.z);
-            }
+            if (_source == null) return;
 
             Measure();
         }
@@ -376,64 +353,37 @@ namespace LevelDesign.Gym.VoiceLab
             _nextRefreshTime = Time.unscaledTime + 1f;
             ReadGameSettings();
 
+            // The profile first, in both: it is what the game applies, and it resets every field.
+            _spatialProfile.AttachTo(_source);
+
             if (curve == LabCurve.Current)
             {
-                // Back to exactly what the game builds: the profile re-applied over every Steam Audio field.
-                _spatialProfile.AttachTo(_source);
-                _source.rolloffMode = AudioRolloffMode.Logarithmic;
+                _source.rolloffMode = AudioRolloffMode.Custom;
                 _source.minDistance = _voiceProfile.NearField;
                 _source.maxDistance = LoudRange();
+                _source.SetCustomCurve(AudioSourceCurveType.CustomRolloff, _voiceProfile.BuildRolloff(_source.maxDistance));
             }
             else
             {
-                _spatialProfile.AttachTo(_source);
-
-                _source.rolloffMode = AudioRolloffMode.Custom;
-                _source.maxDistance = Mathf.Max(proposalShoutRange, proposalNearField + 1f);
-                _proposalRolloff = BuildProposalRolloff(_source.maxDistance);
-                _source.SetCustomCurve(AudioSourceCurveType.CustomRolloff, _proposalRolloff);
+                _source.rolloffMode = AudioRolloffMode.Logarithmic;
+                _source.minDistance = LegacyNearField;
+                _source.maxDistance = LegacyLoudRange;
 
                 if (_steam != null)
                 {
-                    _steam.occlusionRadius = proposalSourceRadius;
-                    _steam.directivity = proposalDirectivity > 0f;
-                    _steam.dipoleWeight = proposalDirectivity;
+                    _steam.occlusionRadius = LegacySourceRadius;
+                    _steam.directivity = true;
+                    _steam.dipoleWeight = LegacyDirectivity;
+
+                    if (_steam.TryGetComponent(out SteamAudioTransmissionFloor floor)) floor.enabled = false;
                 }
             }
 
             _appliedCurve = curve;
         }
 
-        /// <summary>Flat to the near field, then a fixed number of dB per doubling of distance.</summary>
-        private AnimationCurve BuildProposalRolloff(float maxDistance)
-        {
-            var keys = new Keyframe[40];
-
-            for (int i = 0; i < keys.Length; i++)
-            {
-                float t = i / (keys.Length - 1f);
-                float distance = Mathf.Max(0.01f, Mathf.Pow(t, 2f) * maxDistance);
-                keys[i] = new Keyframe(distance / maxDistance, ProposalDistanceGain(distance));
-            }
-
-            var rolloff = new AnimationCurve(keys);
-            for (int i = 0; i < keys.Length; i++) rolloff.SmoothTangents(i, 0f);
-
-            return rolloff;
-        }
-
-        private float ProposalDistanceGain(float distance)
-        {
-            if (distance <= proposalNearField) return 1f;
-
-            float doublings = Mathf.Log(distance / proposalNearField, 2f);
-            return Mathf.Pow(10f, -proposalDbPerDoubling * doublings / 20f);
-        }
-
-        /// <summary>
-        /// The speaker's zone, which is what RemoteVoiceFilter's reverb follows. In the game a zone
-        /// counts once the player's capsule touches its trigger, so a capsule of the same size is used.
-        /// </summary>
+        /// <summary>The speaker's zone, which is what RemoteVoiceFilter's reverb follows. In the game a zone
+        /// counts once the player's capsule touches its trigger, so a capsule of the same size is used.</summary>
         private void UpdateZone()
         {
             if (Time.time < _nextZoneTime || _reverb == null) return;
@@ -483,8 +433,6 @@ namespace LevelDesign.Gym.VoiceLab
                 float relative = Mathf.Clamp01(1f + (rmsDb - _envelopeReferenceDb) / 36f);
                 _energy = rmsDb < -60f ? 0f : PeakEnergy() * relative;
             }
-
-            if (_voiceProfile != null && _energy >= _voiceProfile.SpeechEnergy) _lastSpeechTime = Time.time;
         }
 
         private float PeakEnergy()
@@ -509,59 +457,34 @@ namespace LevelDesign.Gym.VoiceLab
             }
         }
 
-        /// <summary>RemoteVoiceFilter.Update for "Current"; the hold-and-floor version for "Proposal".</summary>
+        /// <summary>RemoteVoiceFilter.Update for "Current"; the follow-every-syllable version for "Legacy".</summary>
         private void UpdateRange()
         {
             bool reading = level == LabVoiceLevel.Donation;
+            bool current = curve == LabCurve.Current;
+
+            float quiet = current ? QuietRange() : LegacyWhisperRange;
+            float loud = current ? LoudRange() : LegacyLoudRange;
             float target;
 
-            if (curve == LabCurve.Current)
+            if (reading)
             {
-                float quiet = QuietRange();
-                float loud = LoudRange();
-
-                if (reading)
-                {
-                    _range = loud;
-                    target = loud;
-                }
-                else if (_rangeScalesWithVoice)
-                {
-                    float loudness = _voiceProfile.Loudness(_energy);
-                    target = Mathf.Lerp(quiet, loud, loudness);
-
-                    float seconds = target > _range ? _attackSeconds : _releaseSeconds;
-                    float rate = Mathf.Max(loud - quiet, 0.01f) / seconds;
-
-                    _range = Mathf.MoveTowards(_range, target, rate * Time.deltaTime);
-                }
-                else
-                {
-                    target = loud;
-                    _range = loud;
-                }
+                target = loud;
+                _range = loud;
+            }
+            else if (!_rangeScalesWithVoice)
+            {
+                target = loud;
+                _range = loud;
             }
             else
             {
-                float whisper = proposalWhisperRange;
-                float speech = Mathf.Max(proposalSpeechRange, whisper);
-                float shout = Mathf.Max(proposalShoutRange, speech);
+                target = current ? RangeFor(_energy, quiet, loud) : Mathf.Lerp(quiet, loud, _voiceProfile.Loudness(_energy));
 
-                if (reading)
-                {
-                    target = shout;
-                }
-                else if (_energy >= _voiceProfile.SpeechEnergy)
-                {
-                    target = Mathf.Lerp(speech, shout, _voiceProfile.Loudness(_energy));
-                }
-                else
-                {
-                    target = Time.time - _lastSpeechTime <= proposalHoldSeconds ? speech : whisper;
-                }
-
-                float seconds = target > _range ? proposalAttackSeconds : proposalReleaseSeconds;
-                float rate = Mathf.Max(shout - whisper, 0.01f) / seconds;
+                float attack = current ? _attackSeconds : LegacyAttackSeconds;
+                float release = current ? _releaseSeconds : LegacyReleaseSeconds;
+                float seconds = target > _range ? attack : release;
+                float rate = Mathf.Max(loud - quiet, 0.01f) / seconds;
 
                 _range = Mathf.MoveTowards(_range, target, rate * Time.deltaTime);
             }
@@ -569,9 +492,25 @@ namespace LevelDesign.Gym.VoiceLab
             _reading.TargetRange = target;
         }
 
+        /// <summary>RemoteVoiceFilter.RangeFor.</summary>
+        private float RangeFor(float energy, float quiet, float loud)
+        {
+            if (_voiceProfile == null) return loud;
+
+            if (energy >= _voiceProfile.SpeechEnergy)
+            {
+                _lastSpeechTime = Time.time;
+                return Mathf.Lerp(CurrentSpeechRange(), loud, _voiceProfile.Loudness(energy));
+            }
+
+            return Time.time - _lastSpeechTime <= _holdSeconds ? CurrentSpeechRange() : quiet;
+        }
+
         /// <summary>RemoteVoiceFilter.ApplyRange: the window on the source volume, the chosen volume on the gain.</summary>
         private void ApplyRange()
         {
+            bool current = curve == LabCurve.Current;
+            bool reading = level == LabVoiceLevel.Donation;
             float distance = 0f;
             float window = 0f;
 
@@ -580,23 +519,25 @@ namespace LevelDesign.Gym.VoiceLab
                 distance = Vector3.Distance(listener.transform.position, _source.transform.position);
                 float x = distance / Mathf.Max(_range, 0.01f);
 
-                if (curve == LabCurve.Current)
+                if (current)
                 {
-                    if (x < 1f)
-                    {
-                        window = 1f - x * x;
-                        window *= window;
-                    }
+                    float fadeStart = _voiceProfile.EdgeFadeStart;
+
+                    if (x <= fadeStart) window = 1f;
+                    else if (x < 1f) window = 0.5f * (1f + Mathf.Cos(Mathf.PI * (x - fadeStart) / (1f - fadeStart)));
                 }
-                else
+                else if (x < 1f)
                 {
-                    if (x <= proposalFadeStart) window = 1f;
-                    else if (x < 1f) window = 0.5f * (1f + Mathf.Cos(Mathf.PI * (x - proposalFadeStart) / (1f - proposalFadeStart)));
+                    window = 1f - x * x;
+                    window *= window;
                 }
             }
 
             float levelGain = Mathf.Pow(10f, LevelGainDb() / 20f);
             float chosen = ConvertVivoxVolumeToLinear(playerVolume);
+
+            // As in the game now: a reading plays at the volume chosen for readings in the options.
+            if (current && reading) chosen *= VoiceChatSettings.DonationTtsGain;
 
             _source.volume = window;
             _gain.Gain = levelGain * chosen;
@@ -627,7 +568,8 @@ namespace LevelDesign.Gym.VoiceLab
 
         /// <summary>
         /// Reads what Steam Audio actually applied (it writes its simulation into the source's public
-        /// fields) and what reaches the listener, so the panel shows the engine's numbers, not a model.
+        /// fields, and the voice profile's floor rides on top) and what reaches the listener, so the
+        /// panel shows the engine's numbers, not a model. After every other LateUpdate that touches them.
         /// </summary>
         private void Measure()
         {
@@ -637,6 +579,13 @@ namespace LevelDesign.Gym.VoiceLab
                 float low = _steam.transmission ? _steam.transmissionLow : 0f;
                 float mid = _steam.transmission ? _steam.transmissionMid : 0f;
                 float high = _steam.transmission ? _steam.transmissionHigh : 0f;
+
+                if (curve == LabCurve.Current && _steam.TryGetComponent(out SteamAudioTransmissionFloor floor) && floor.enabled)
+                {
+                    low = Mathf.Max(low, floor.Floor.x);
+                    mid = Mathf.Max(mid, floor.Floor.y);
+                    high = Mathf.Max(high, floor.Floor.z);
+                }
 
                 _reading.Occlusion = occlusion;
                 _reading.TransmissionLow = low;
@@ -755,7 +704,7 @@ namespace LevelDesign.Gym.VoiceLab
 
         private float LoudRange()
         {
-            if (gameVivoxSettings == null) return 32f;
+            if (gameVivoxSettings == null) return 40f;
 
             return gameVivoxSettings.AudibleDistance;
         }
@@ -772,6 +721,22 @@ namespace LevelDesign.Gym.VoiceLab
             return Mathf.Clamp(whisper, floor, loud);
         }
 
+        private float CurrentSpeechRange()
+        {
+            float quiet = QuietRange();
+            float loud = LoudRange();
+            float speech = _voiceProfile != null ? _voiceProfile.SpeechRange : loud;
+
+            return Mathf.Clamp(speech, quiet, loud);
+        }
+
+        /// <summary>The profile's dB per doubling, recovered from its own curve so the panel never drifts from it.</summary>
+        private float DecibelsPerDoubling()
+        {
+            float near = _voiceProfile.NearField;
+            return -ToDb(_voiceProfile.DistanceGain(near * 2f));
+        }
+
         /// <summary>VivoxManager.ConvertVivoxVolumeToLinear: -50..0 → 0..1, 0..50 → 1..2.</summary>
         private static float ConvertVivoxVolumeToLinear(int vivoxVolume)
         {
@@ -781,5 +746,7 @@ namespace LevelDesign.Gym.VoiceLab
         }
 
         private static float ToDb(float gain) => gain <= 1e-6f ? -120f : 20f * Mathf.Log10(gain);
+
+        private static string FormatDb(float db) => db.ToString("0.#", System.Globalization.CultureInfo.GetCultureInfo("pt-BR"));
     }
 }

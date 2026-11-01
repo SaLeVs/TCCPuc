@@ -12,7 +12,7 @@ namespace LevelDesign.Gym.VoiceLab
     /// <summary>
     /// The voice lab's controls and panel: puts you and the stand-in companion in a scenario of the
     /// map replica, lets you change how loud the companion talks, flip between the game's current
-    /// voice curve and the proposal, open doors, silence the rest of the audio to measure, and record
+    /// voice curve and the one used before 2026-11-01, open doors, silence the rest of the audio to measure, and record
     /// your own voice for the companion to speak with. Reads the game; changes nothing in it.
     /// </summary>
     public class GymVoiceLab : MonoBehaviour
@@ -490,7 +490,7 @@ namespace LevelDesign.Gym.VoiceLab
             }
 
             LabReading r = speaker.Reading;
-            string curveName = speaker.Curve == LabCurve.Current ? "<color=#ffd34d>ATUAL (igual ao jogo)</color>" : "<color=#7dff8a>PROPOSTA</color>";
+            string curveName = speaker.Curve == LabCurve.Current ? "<color=#7dff8a>ATUAL (igual ao jogo)</color>" : "<color=#ffd34d>ANTIGO (até 01/11)</color>";
             sb.AppendLine($"Curva: {curveName}   <color=#aaaaaa>(I troca)</color>");
 
             if (_scenario >= 0 && _scenario < scenarios.Length)
@@ -509,8 +509,8 @@ namespace LevelDesign.Gym.VoiceLab
             sb.AppendLine($"Energia Vivox simulada: {F(r.Energy, 2)}   reverb da zona dele: {r.Reverb}");
             sb.AppendLine();
             sb.AppendLine("<b>O que tira volume da voz (banda média)</b>");
-            sb.AppendLine(Term(speaker.Curve == LabCurve.Current ? "Curva de distância (1/d)" : "Curva de distância (proposta)", r.CurveDb));
-            sb.AppendLine(Term(speaker.Curve == LabCurve.Current ? "Borda do alcance (1 - x²)²" : "Borda do alcance (só no fim)", r.WindowDb));
+            sb.AppendLine(Term($"Curva de distância ({speaker.CurveDescription})", r.CurveDb));
+            sb.AppendLine(Term($"Borda do alcance ({speaker.WindowDescription})", r.WindowDb));
             sb.AppendLine(Term($"Paredes/portas (oclusão {F(r.Occlusion * 100f, 0)}%, transm. {F(r.TransmissionMid, 3)})", r.WallsDb));
             sb.AppendLine(Term("Direção da boca", r.DirectivityDb));
             sb.AppendLine(Term("Ar", r.AirDb));
@@ -532,7 +532,7 @@ namespace LevelDesign.Gym.VoiceLab
             if (!string.IsNullOrEmpty(_toast) && Time.unscaledTime < _toastUntil) sb.AppendLine($"<color=#ffe680>{_toast}</color>");
 
             sb.AppendLine();
-            sb.Append("<color=#aaaaaa>N/Shift+N cenário · P pôr companheiro aqui · H virar · Y voz · U intensidade · I Atual/Proposta · " +
+            sb.Append("<color=#aaaaaa>N/Shift+N cenário · P pôr companheiro aqui · H virar · Y voz · U intensidade · I Atual/Antigo · " +
                       "O porta perto (Shift+O todas) · J silenciar resto · K gravar seu mic (Shift+K volta) · L anéis</color>");
 
             return sb.ToString();

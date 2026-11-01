@@ -75,6 +75,7 @@ namespace Player
 
             VivoxManager.instance.OnParticipantJoinedChannel += OnParticipantAdded;
             VivoxManager.instance.OnParticipantLeftChannel += OnParticipantRemoved;
+            VivoxManager.instance.OnLeftChannel += OnLeftChannel;
         }
 
         private void UnsubscribeVivoxEvents()
@@ -83,6 +84,7 @@ namespace Player
 
             VivoxManager.instance.OnParticipantJoinedChannel -= OnParticipantAdded;
             VivoxManager.instance.OnParticipantLeftChannel -= OnParticipantRemoved;
+            VivoxManager.instance.OnLeftChannel -= OnLeftChannel;
         }
 
         private void BindExistingParticipant()
@@ -109,14 +111,40 @@ namespace Player
         {
             if (_localParticipant != participant) return;
 
+            DropLocalParticipant();
+        }
+
+        private void OnLeftChannel(string channelName) => DropLocalParticipant();
+
+        /// <summary>
+        /// Forgets the participant, and tells the server the talking stopped if it was the last thing
+        /// said: a participant that dies mid-sentence never reports the silence that follows.
+        /// </summary>
+        private void DropLocalParticipant()
+        {
             _localParticipant = null;
+            StopReportingSpeech();
+        }
+
+        private void StopReportingSpeech()
+        {
+            if (!_isReportingSpeech) return;
+
             _isReportingSpeech = false;
+            if (IsSpawned) NotifySpeakingServerRpc(false);
         }
 
         private void Update()
         {
             if (!IsOwner) return;
             if (_localParticipant == null) return;
+
+            // The mic test only reaches the echo channel: not a word of it is said in the match.
+            if (VivoxManager.instance != null && VivoxManager.instance.IsInMicTest)
+            {
+                StopReportingSpeech();
+                return;
+            }
 
             try
             {
@@ -138,7 +166,7 @@ namespace Player
             }
             catch (System.NullReferenceException)
             {
-                _localParticipant = null;
+                DropLocalParticipant();
             }
         }
 

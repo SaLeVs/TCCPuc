@@ -1,5 +1,6 @@
 using SteamAudio;
 using UnityEngine;
+using Vector3 = UnityEngine.Vector3;
 
 namespace Components.Sound
 {
@@ -39,6 +40,12 @@ namespace Components.Sound
         [Tooltip("How many surfaces in a row count — a wall and then a door, say.")]
         [SerializeField, Range(1, 8)] private int maxTransmissionSurfaces = 2;
 
+        [Tooltip("Least that always gets through walls and doors, per band (low, mid, high), 0..1. Zero " +
+                 "leaves it all to the Steam Audio materials, which is right for the world. For voices: " +
+                 "the default wall lets ~-25 dB through, so a teammate went from clear to gone the step " +
+                 "a wall came between you; a floor makes them muffled instead.")]
+        [SerializeField] private Vector3 minimumTransmission;
+
         [Header("Facing")]
         [Tooltip("0 radiates the same all round. Higher is louder in front: for a voice, talking away " +
                  "from someone makes you quieter to them. Follows the source transform's forward.")]
@@ -63,7 +70,25 @@ namespace Components.Sound
             }
 
             Apply(source);
+            ApplyTransmissionFloor(source);
             return source;
+        }
+
+        private void ApplyTransmissionFloor(SteamAudioSource source)
+        {
+            bool wanted = transmission && occlusion && minimumTransmission.sqrMagnitude > 0f;
+            source.TryGetComponent(out SteamAudioTransmissionFloor floor);
+
+            if (!wanted)
+            {
+                if (floor != null) floor.enabled = false;
+                return;
+            }
+
+            if (floor == null) floor = source.gameObject.AddComponent<SteamAudioTransmissionFloor>();
+
+            floor.Floor = minimumTransmission;
+            floor.enabled = true;
         }
 
         private void Apply(SteamAudioSource source)

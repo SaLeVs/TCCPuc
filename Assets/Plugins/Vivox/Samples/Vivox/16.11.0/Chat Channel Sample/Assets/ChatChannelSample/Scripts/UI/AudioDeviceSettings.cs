@@ -73,10 +73,13 @@ public class AudioDeviceSettings : MonoBehaviour
         InputDeviceDropdown.onValueChanged.RemoveAllListeners();
         InputDeviceVolume.onValueChanged.RemoveAllListeners();
         OutputDeviceDropdown.onValueChanged.RemoveAllListeners();
-        OutputDeviceDropdown.onValueChanged.RemoveAllListeners();
+        OutputDeviceVolume.onValueChanged.RemoveAllListeners();
 
+        // The pause menu's copy is destroyed with the player: Vivox must not call into it afterwards.
         VivoxService.Instance.AvailableInputDevicesChanged -= RefreshInputDeviceList;
         VivoxService.Instance.AvailableOutputDevicesChanged -= RefreshOutputDeviceList;
+        VivoxService.Instance.EffectiveInputDeviceChanged -= EffectiveInputDeviceChanged;
+        VivoxService.Instance.EffectiveOutputDeviceChanged -= EffectiveOutputDeviceChanged;
     }
 
     private void Update()
@@ -86,15 +89,23 @@ public class AudioDeviceSettings : MonoBehaviour
         IVivoxService vivox = VivoxService.Instance;
         if (vivox == null || !vivox.IsLoggedIn || vivox.ActiveChannels == null) return;
 
-        if (vivox.ActiveChannels.Count > 0)
-        {
-            KeyValuePair<string, ReadOnlyCollection<VivoxParticipant>> channel = VivoxService.Instance.ActiveChannels.FirstOrDefault();
-            VivoxParticipant localParticipant = channel.Value.FirstOrDefault(p => p.IsSelf);
+        // The mic test now sits next to the match's channel and the mic only reaches the echo, so
+        // the first channel may read silence: the loudest of this machine's own entries is the mic.
+        float energy = 0f;
+        bool found = false;
 
-            if (localParticipant != null)
-            {
-                DeviceEnergyMask.fillAmount = Mathf.Lerp(DeviceEnergyMask.fillAmount, (float)localParticipant.AudioEnergy, Time.deltaTime * k_voiceMeterSpeed);
-            }
+        foreach (KeyValuePair<string, ReadOnlyCollection<VivoxParticipant>> channel in vivox.ActiveChannels)
+        {
+            VivoxParticipant localParticipant = channel.Value.FirstOrDefault(p => p.IsSelf);
+            if (localParticipant == null) continue;
+
+            energy = Mathf.Max(energy, (float)localParticipant.AudioEnergy);
+            found = true;
+        }
+
+        if (found)
+        {
+            DeviceEnergyMask.fillAmount = Mathf.Lerp(DeviceEnergyMask.fillAmount, energy, Time.deltaTime * k_voiceMeterSpeed);
         }
     }
 

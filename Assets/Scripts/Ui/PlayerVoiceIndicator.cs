@@ -50,6 +50,7 @@ namespace Ui
             if (_vivox == null) return;
 
             _vivox.OnParticipantLeftChannel += VivoxManager_OnParticipantLeft;
+            _vivox.OnLeftChannel += VivoxManager_OnLeftChannel;
         }
 
         private void Update()
@@ -110,9 +111,17 @@ namespace Ui
 
         private void VivoxManager_OnParticipantLeft(VivoxParticipant participant)
         {
-            if (_participant == null || participant.PlayerId != _participant.PlayerId) return;
+            // By reference: the one held here may already be dead, and reading its PlayerId throws.
+            if (_participant == null || participant != _participant) return;
 
-            // A channel switch drops everyone and adds them back: found again on the next retry.
+            _participant = null;
+        }
+
+        /// <summary>
+        /// A channel switch drops everyone without a word from Vivox: found again on the next retry.
+        /// </summary>
+        private void VivoxManager_OnLeftChannel(string channelName)
+        {
             _participant = null;
         }
 
@@ -121,6 +130,7 @@ namespace Ui
             if (_vivox != null)
             {
                 _vivox.OnParticipantLeftChannel -= VivoxManager_OnParticipantLeft;
+                _vivox.OnLeftChannel -= VivoxManager_OnLeftChannel;
             }
 
             _vivox = null;

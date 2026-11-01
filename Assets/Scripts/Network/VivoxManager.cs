@@ -13,7 +13,14 @@ namespace Network
     {
         public event Action<VivoxParticipant> OnParticipantJoinedChannel;
         public event Action<VivoxParticipant> OnParticipantLeftChannel;
-        
+
+        /// <summary>
+        /// This machine left a channel. Vivox cleans that channel's participants up without raising
+        /// OnParticipantLeftChannel for them, and any property read on one of those objects afterwards
+        /// throws — so whoever kept one has to drop it here, by channel name.
+        /// </summary>
+        public event Action<string> OnLeftChannel;
+
         private static VivoxManager Instance;
 
         public static VivoxManager instance
@@ -33,8 +40,9 @@ namespace Network
 
         [SerializeField] private Lobby lobbyManager;
 
-        [Tooltip("How far a voice carries, in meters. RemoteVoiceFilter fades every voice to silence by " +
-                 "here — this is the voice range, not the channel's.")]
+        [Tooltip("How far a shout (and a donation being read) carries, in meters. RemoteVoiceFilter fades " +
+                 "every voice to silence by here; normal talking stops at the VoiceProfile's Speech Range. " +
+                 "This is the voice range, not the channel's.")]
         [SerializeField] private int audibleDistance;
 
         [Tooltip("The audible distance handed to Vivox. Vivox drops anyone past it from the participant " +
@@ -56,12 +64,17 @@ namespace Network
         public string CurrentChannelName => _currentChannelName;
 
         /// <summary>
-        /// True only while the positional channel is actually joined — false while switching, while in
-        /// the echo test and before the join has finished, which is when Set3DPosition throws.
+        /// True only while the positional channel is actually joined — false while switching and
+        /// before the join has finished, which is when Set3DPosition throws. The mic test no longer
+        /// leaves it.
         /// </summary>
         public bool IsInPositionalChannel => _joinedChannel is { Positional: true }
                                              && !string.IsNullOrEmpty(_currentChannelName)
                                              && VivoxService.Instance.ActiveChannels.ContainsKey(_currentChannelName);
+
+        /// <summary>The mic only reaches the echo channel while this is true.</summary>
+        public bool IsInMicTest => _isInTestChannel;
+
         public int AudibleDistance => audibleDistance;
         public int ConversationalDistance => conversationalDistance;
         
@@ -99,8 +112,8 @@ namespace Network
 
         // What the game asked for and what Vivox is actually in. Requests only change the wanted
         // side; ReconcileChannelsAsync walks the joined side towards it one step at a time. A request
-        // that arrives mid-switch or mid-test is never dropped — it just changes where the walk ends,
-        // so the game channel asked for while the mic test is open is the one rejoined afterwards.
+        // that arrives mid-switch or mid-test is never dropped — it just changes where the walk ends.
+        // The mic test sits next to the lobby/game channel, never in its place.
         private VoiceChannel _wantedChannel;
         private bool _wantsTestChannel;
 
@@ -119,14 +132,22 @@ namespace Network
 
         private readonly Dictionary<string, float> _tapVolumes = new();
 
-        
+        // Vivox's own output carries only what has no tap. In a match that is the donation readings
+        // addressed to this player (plus the mic test's echo); everywhere else it is every voice.
+        private bool _outputCarriesReadings;
+        private int _playerOutputVolume;
+
+
         private void Start()
         {
             VivoxService.Instance.ParticipantAddedToChannel += VivoxService_OnParticipantAddedToChannel;
             VivoxService.Instance.ParticipantRemovedFromChannel += VivoxService_OnParticipantRemovedFromChannel;
+            VivoxService.Instance.ChannelLeft += VivoxService_OnChannelLeft;
 
             Lobby.instance.OnJoinedLobby += VivoxService_OnJoinedLobby;
             Lobby.instance.OnLeftLobby += VivoxService_OnLeftLobby;
+
+            VoiceChatSettings.OnChanged += ApplyOutputVolume;
 
             Application.quitting += Application_ApplicationQuit;
         }
@@ -194,8 +215,10 @@ namespace Network
         }
 
         /// <summary>
-        /// Swaps the lobby/game channel for the echo channel while the audio device panel is open, so
-        /// the player hears themselves and nobody else hears the test.
+        /// Adds the echo channel next to the lobby/game channel and sends the mic only there while the
+        /// test is open: the player hears themselves and keeps hearing everyone, nobody hears the test,
+        /// and nobody sees them leave. Leaving the game channel for the test used to strand every
+        /// voice tap on rejoin.
         /// </summary>
         public void EnterTestVoiceChannel()
         {
@@ -234,38 +257,44 @@ namespace Network
         {
             while (true)
             {
-                if (_wantsTestChannel)
+                if (_joinedChannel != null && _joinedChannel.Name != _wantedChannel?.Name)
                 {
-                    if (_joinedChannel != null)
-                    {
-                        await LeaveJoinedChannelAsync();
-                    }
-                    else if (!_isInTestChannel)
-                    {
-                        await EnsureLoggedInAsync();
-                        await VivoxService.Instance.JoinEchoChannelAsync(ECHO_CHANNEL_NAME, ChatCapability.AudioOnly);
-                        _isInTestChannel = true;
-                    }
-                    else return;
+                    await LeaveJoinedChannelAsync();
                 }
-                else
+                else if (_joinedChannel == null && _wantedChannel != null)
                 {
-                    if (_isInTestChannel)
-                    {
-                        _isInTestChannel = false;
-                        await LeaveIfActiveAsync(ECHO_CHANNEL_NAME);
-                    }
-                    else if (_joinedChannel != null && _joinedChannel.Name != _wantedChannel?.Name)
-                    {
-                        await LeaveJoinedChannelAsync();
-                    }
-                    else if (_joinedChannel == null && _wantedChannel != null)
-                    {
-                        await JoinAsync(_wantedChannel);
-                    }
-                    else return;
+                    await JoinAsync(_wantedChannel);
                 }
+                else if (_wantsTestChannel && !_isInTestChannel)
+                {
+                    await JoinTestChannelAsync();
+                }
+                else if (!_wantsTestChannel && _isInTestChannel)
+                {
+                    await LeaveTestChannelAsync();
+                }
+                else return;
             }
+        }
+
+        private async Task JoinTestChannelAsync()
+        {
+            await EnsureLoggedInAsync();
+            await VivoxService.Instance.JoinEchoChannelAsync(ECHO_CHANNEL_NAME, ChatCapability.AudioOnly);
+            _isInTestChannel = true;
+
+            // Vivox transmits to every joined channel by default; while testing, only the echo hears.
+            await VivoxService.Instance.SetChannelTransmissionModeAsync(TransmissionMode.Single, ECHO_CHANNEL_NAME);
+            ApplyOutputVolume();
+        }
+
+        private async Task LeaveTestChannelAsync()
+        {
+            // The default back first, so the mic is never left talking to no channel at all.
+            await VivoxService.Instance.SetChannelTransmissionModeAsync(TransmissionMode.All);
+            await LeaveIfActiveAsync(ECHO_CHANNEL_NAME);
+            _isInTestChannel = false;
+            ApplyOutputVolume();
         }
 
         private async Task JoinAsync(VoiceChannel channel)
@@ -286,6 +315,7 @@ namespace Network
 
             _joinedChannel = channel;
             _currentChannelName = channel.Name;
+            ApplyOutputVolume();
         }
 
         private async Task LeaveJoinedChannelAsync()
@@ -298,6 +328,40 @@ namespace Network
             _currentChannelName = null;
 
             await LeaveIfActiveAsync(channelName);
+            ApplyOutputVolume();
+        }
+
+        /// <summary>
+        /// In a match every voice is played by Unity through its tap, so Vivox's own output carries
+        /// only the donation readings addressed to this player: there it plays at the readings'
+        /// volume. Anywhere else — the lobby, the mic test's echo — it gets back the level the player
+        /// set in the audio device panel.
+        /// </summary>
+        private void ApplyOutputVolume()
+        {
+            try
+            {
+                IVivoxService vivox = VivoxService.Instance;
+                bool readings = _joinedChannel is { Positional: true } && !_isInTestChannel;
+
+                if (readings)
+                {
+                    if (!_outputCarriesReadings) _playerOutputVolume = vivox.OutputDeviceVolume;
+
+                    int volume = ConvertLinearToVivoxVolume(VoiceChatSettings.DonationTtsVolume);
+                    if (vivox.OutputDeviceVolume != volume) vivox.SetOutputDeviceVolume(volume);
+                }
+                else if (_outputCarriesReadings)
+                {
+                    vivox.SetOutputDeviceVolume(_playerOutputVolume);
+                }
+
+                _outputCarriesReadings = readings;
+            }
+            catch (Exception e)
+            {
+                Debug.LogWarning($"Could not set the Vivox output volume: {e.Message}");
+            }
         }
 
         private static async Task LeaveIfActiveAsync(string channelName)
@@ -387,28 +451,50 @@ namespace Network
 
         /// <summary>
         /// This machine's own mic energy, from whichever channel it is in — the echo test included.
-        /// 0 while silent or not connected.
+        /// The loudest of them: during the test the mic only reaches the echo channel, and the
+        /// others may read it as silence. 0 while silent or not connected.
         /// </summary>
         public float GetSelfAudioEnergy()
         {
             if (!VivoxService.Instance.IsLoggedIn) return 0f;
 
+            float energy = 0f;
+
             foreach (KeyValuePair<string, ReadOnlyCollection<VivoxParticipant>> channel in VivoxService.Instance.ActiveChannels)
             {
                 foreach (VivoxParticipant participant in channel.Value)
                 {
-                    if (participant.IsSelf) return (float)participant.AudioEnergy;
+                    if (participant.IsSelf) energy = Mathf.Max(energy, (float)participant.AudioEnergy);
                 }
             }
 
-            return 0f;
+            return energy;
+        }
+
+        /// <summary>Whether <paramref name="playerId"/> is in the lobby/game channel this machine is in.</summary>
+        public bool IsInCurrentChannel(string playerId)
+        {
+            if (string.IsNullOrEmpty(playerId)) return false;
+
+            return CurrentParticipants.Any(participant => participant.PlayerId == playerId);
         }
 
         private static float ConvertVivoxVolumeToLinear(int vivoxVolume)
         {
             vivoxVolume = Mathf.Clamp(vivoxVolume, MIN_PARTICIPANT_VOLUME, MAX_PARTICIPANT_VOLUME);
-            
+
             return vivoxVolume >= 0 ? Mathf.Lerp(1f, 2f, vivoxVolume / 50f) : Mathf.Lerp(0f, 1f, (vivoxVolume + 50f) / 50f);
+        }
+
+        /// <summary>
+        /// Vivox's device volumes are logarithmic with 0 as unchanged, so a linear 0..1 goes in as
+        /// decibels: 0,5 is -6, and anything under -50 is the floor.
+        /// </summary>
+        private static int ConvertLinearToVivoxVolume(float linear)
+        {
+            if (linear <= 0.0032f) return MIN_PARTICIPANT_VOLUME;
+
+            return Mathf.Clamp(Mathf.RoundToInt(20f * Mathf.Log10(linear)), MIN_PARTICIPANT_VOLUME, 0);
         }
         
         /// <summary>Mutes or unmutes <paramref name="playerId"/> for this player only, and remembers it.</summary>
@@ -453,6 +539,12 @@ namespace Network
             OnParticipantLeftChannel?.Invoke(participant);
         }
 
+        private void VivoxService_OnChannelLeft(string channelName)
+        {
+            if (channelName == ECHO_CHANNEL_NAME) return;
+            OnLeftChannel?.Invoke(channelName);
+        }
+
         private async void Application_ApplicationQuit()
         {
             try
@@ -473,9 +565,12 @@ namespace Network
         {
             VivoxService.Instance.ParticipantAddedToChannel -= VivoxService_OnParticipantAddedToChannel;
             VivoxService.Instance.ParticipantRemovedFromChannel -= VivoxService_OnParticipantRemovedFromChannel;
+            VivoxService.Instance.ChannelLeft -= VivoxService_OnChannelLeft;
 
             Lobby.instance.OnJoinedLobby -= VivoxService_OnJoinedLobby;
             Lobby.instance.OnLeftLobby -= VivoxService_OnLeftLobby;
+
+            VoiceChatSettings.OnChanged -= ApplyOutputVolume;
 
             Application.quitting -= Application_ApplicationQuit;
         }

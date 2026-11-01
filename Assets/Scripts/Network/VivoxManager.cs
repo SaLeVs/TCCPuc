@@ -132,6 +132,10 @@ namespace Network
 
         private readonly Dictionary<string, float> _tapVolumes = new();
 
+        // How loud each remote voice is right now, measured from its tap by RemoteVoiceFilter: Vivox
+        // reports AudioEnergy 0 and SpeechDetected false for every participant that has a tap.
+        private readonly Dictionary<string, float> _heardEnergy = new();
+
         // Vivox's own output carries only what has no tap. In a match that is the donation readings
         // addressed to this player (plus the mic test's echo); everywhere else it is every voice.
         private bool _outputCarriesReadings;
@@ -469,6 +473,25 @@ namespace Network
             }
 
             return energy;
+        }
+
+        /// <summary>Written by RemoteVoiceFilter, on the AudioEnergy scale.</summary>
+        public void SetHeardEnergy(string playerId, float energy)
+        {
+            if (string.IsNullOrEmpty(playerId)) return;
+
+            _heardEnergy[playerId] = energy;
+        }
+
+        /// <summary>
+        /// How loud <paramref name="playerId"/> sounds here right now, 0..1 like AudioEnergy — the one
+        /// to read for anyone else, whose own AudioEnergy Vivox leaves at 0 once they are tapped.
+        /// </summary>
+        public float GetHeardEnergy(string playerId)
+        {
+            if (string.IsNullOrEmpty(playerId)) return 0f;
+
+            return _heardEnergy.TryGetValue(playerId, out float energy) ? energy : 0f;
         }
 
         /// <summary>Whether <paramref name="playerId"/> is in the lobby/game channel this machine is in.</summary>

@@ -45,7 +45,13 @@ namespace Audio
 
         private VivoxParticipant _participant;
         private string _participantChannel;
+        private string _participantPlayerId;
         private float _lastSpeechTime = float.NegativeInfinity;
+        private float[] _heardSamples;
+
+        // Long enough to hold a syllable, short enough to follow it — about what Vivox averages
+        // its own AudioEnergy over at five updates a second.
+        private const float HEARD_WINDOW_SECONDS = 0.05f;
         private AudioReverbFilter _reverbFilter;
         private AudioSource _audioSource;
         private VoiceGain _gain;
@@ -86,6 +92,7 @@ namespace Audio
 
             _participant = participant;
             _participantChannel = participant.ChannelName;
+            _participantPlayerId = participant.PlayerId;
 
             GameObject tapObject = participant.CreateVivoxParticipantTap($"VoiceTap_{participant.DisplayName}", silenceInChannelAudioMix: true);
 
@@ -168,15 +175,31 @@ namespace Audio
         /// below hearing: 1/r never reaches zero. That point is the range, and it depends on the
         /// loudness, just as a shout stays above the noise floor further than a whisper does.</para>
         ///
-        /// <para>The energy is read locally from the remote participant, which Vivox already
-        /// replicates as participant state. That costs no RPC, and every listener derives the same
-        /// range from the stream they are receiving anyway.</para>
+        /// <para>The energy is measured locally from the stream this machine is receiving (see
+        /// HeardEnergy): Vivox keeps no AudioEnergy for a tapped participant. That costs no RPC, and
+        /// every listener derives the same range from the same stream.</para>
         /// </summary>
         private void Update()
         {
             if (_participant == null || _audioSource == null) return;
 
             bool reading = IsReadingDonation();
+            float energy;
+
+            try
+            {
+                // Vivox leaves AudioEnergy at 0 for a tapped participant (measured 2026-11-01: the
+                // voice played, the energy never moved), so the loudness is read from the tap itself.
+                energy = Mathf.Max((float)_participant.AudioEnergy, HeardEnergy());
+            }
+            catch (System.NullReferenceException)
+            {
+                // The participant can go invalid between leaving the channel and this frame.
+                return;
+            }
+
+            // The name tag's voice icon reads it from here: it has no tap of its own to measure.
+            if (VivoxManager.instance != null) VivoxManager.instance.SetHeardEnergy(_participantPlayerId, energy);
 
             if (reading)
             {
@@ -186,18 +209,6 @@ namespace Audio
             }
             else if (rangeScalesWithVoice)
             {
-                float energy;
-
-                try
-                {
-                    energy = (float)_participant.AudioEnergy;
-                }
-                catch (System.NullReferenceException)
-                {
-                    // The participant can go invalid between leaving the channel and this frame.
-                    return;
-                }
-
                 float quiet = QuietRange();
                 float loud = LoudRange();
                 float target = RangeFor(energy, quiet, loud);
@@ -329,6 +340,34 @@ namespace Audio
             return Mathf.Clamp(whisper, floor, loud);
         }
 
+        /// <summary>
+        /// The voice's level as it arrives, on Vivox's AudioEnergy scale. The tap plays a looping clip
+        /// that Vivox fills just ahead of the play head and clears behind it, so the stretch right
+        /// after the play head is the voice about to be heard — before distance, gain and walls.
+        /// </summary>
+        private float HeardEnergy()
+        {
+            AudioClip clip = _audioSource.clip;
+            if (clip == null || voiceProfile == null) return 0f;
+
+            int frames = Mathf.Clamp(Mathf.RoundToInt(clip.frequency * HEARD_WINDOW_SECONDS), 64, clip.samples);
+            int count = frames * clip.channels;
+
+            if (_heardSamples == null || _heardSamples.Length != count) _heardSamples = new float[count];
+
+            // At the wrap the window is pulled back a little rather than split in two reads.
+            int start = Mathf.Min(_audioSource.timeSamples, clip.samples - frames);
+            if (!clip.GetData(_heardSamples, start)) return 0f;
+
+            double power = 0;
+            foreach (float sample in _heardSamples) power += sample * sample;
+            power /= count;
+
+            if (power <= 1e-12) return 0f;
+
+            return voiceProfile.EnergyFromHeardLevel(10f * Mathf.Log10((float)power));
+        }
+
         /// <summary>How far normal talking carries: the profile's speech range, between the other two.</summary>
         private float SpeechRange()
         {
@@ -365,8 +404,12 @@ namespace Audio
         private void DestroyTap()
         {
             _participant?.DestroyVivoxParticipantTap();
+
+            if (VivoxManager.instance != null) VivoxManager.instance.SetHeardEnergy(_participantPlayerId, 0f);
+
             _participant = null;
             _participantChannel = null;
+            _participantPlayerId = null;
             _reverbFilter = null;
             _gain = null;
             _audioSource = null;

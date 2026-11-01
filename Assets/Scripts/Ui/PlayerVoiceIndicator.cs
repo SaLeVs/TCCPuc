@@ -10,10 +10,11 @@ namespace Ui
     /// and not there at all while they have no voice connection.
     /// </summary>
     /// <remarks>
-    /// Read on every machine from that player's Vivox participant, which Vivox already keeps in step
-    /// for everyone in the channel — the same participant RemoteVoiceFilter reads the voice's
-    /// loudness from — so it costs no RPC. <see cref="VivoxParticipant.SpeechDetected"/> is Vivox's
-    /// own voice detection: a whisper lights it up too, and whoever is watching wants to know that.
+    /// Read on every machine from how loud that player sounds there, so it costs no RPC. For other
+    /// players that is RemoteVoiceFilter's measurement of their tap, through
+    /// VivoxManager.GetHeardEnergy: Vivox leaves their AudioEnergy at 0 and their SpeechDetected
+    /// false once tapped, which is why the icon never lit. For this machine's own player it is
+    /// AudioEnergy. A whisper lights it up too, and whoever is watching wants to know that.
     /// </remarks>
     public class PlayerVoiceIndicator : MonoBehaviour
     {
@@ -29,6 +30,10 @@ namespace Ui
 
         [Tooltip("Seconds the waves stay up after the voice stops, so they don't flicker between words.")]
         [SerializeField, Min(0f)] private float releaseSeconds = 0.35f;
+
+        [Tooltip("Energy (0..1, Vivox's AudioEnergy scale) from which the player counts as talking. " +
+                 "Silence reads 0; a whisper is around 0,3.")]
+        [SerializeField, Range(0f, 1f)] private float speakingEnergy = 0.2f;
 
         // Finding the participant is a walk over the channel, so until it is found it is looked
         // for a few times a second rather than every frame.
@@ -77,7 +82,10 @@ namespace Ui
         {
             try
             {
-                return _participant.SpeechDetected;
+                // SpeechDetected is no help: always false for a tapped participant, always true for
+                // this machine's own (Vivox's detection kept firing in silence in the same test).
+                float energy = Mathf.Max((float)_participant.AudioEnergy, _vivox.GetHeardEnergy(_participant.PlayerId));
+                return energy >= speakingEnergy;
             }
             catch (System.NullReferenceException)
             {

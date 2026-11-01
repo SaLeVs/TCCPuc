@@ -101,6 +101,18 @@ Slider **Doações (TTS)** (padrão 50% ≈ −6 dB) e **Ler doações: Sim/Não
 grupo Voice e slider **Vozes** geral. Desligado, quem recebe não toca o TTS localmente
 (`QueuedRemoteTransmission`), e quem ouve zera a voz do destinatário durante a leitura.
 
+### 3.6 Ícone de voz não acendia e alcance preso no sussurro — **corrigido**
+Medido numa partida real (host + jogador virtual do MPPM, 2026-11-01): para um jogador **com tap**,
+o Vivox deixa `AudioEnergy` em 0 e `SpeechDetected` em falso o tempo todo, mesmo com a voz tocando
+(pico 0,71 no tap). Para o próprio jogador, `SpeechDetected` fica sempre verdadeiro, até em silêncio.
+Consequências: o ícone do nome nunca acendia e o `RemoteVoiceFilter` achava que ninguém falava, então
+o alcance de toda voz remota ficava no do sussurro (8 m) — provavelmente a raiz do "saio da sala e
+não ouço" desde o começo.
+Agora o `RemoteVoiceFilter.HeardEnergy` mede a voz no próprio tap (50 ms logo à frente da reprodução,
+antes de distância e paredes) e converte para a escala do Vivox com a calibração medida
+(`VoiceProfile` → Heard Silence Db −97 / Heard Full Db 21: energia 0,45 ≈ −44 dB, 0,65 ≈ −22 dB).
+O valor vai para `VivoxManager.GetHeardEnergy`, que o ícone lê (acende a partir de 0,2).
+
 ### Não testado com Vivox real
 Tudo acima compila, foi conferido em Play no GYM (curva, paredes, reverb, Options do pause, lista) e
 renderizado no menu. O que depende de uma sessão Vivox de verdade não foi rodado daqui, para não abrir

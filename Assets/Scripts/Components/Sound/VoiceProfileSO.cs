@@ -52,6 +52,16 @@ namespace Components.Sound
                  "fade, not a cut.")]
         [SerializeField, Range(0f, 0.95f)] private float edgeFadeStart = 0.6f;
 
+        [Header("Heard voice (Vivox tap → energy)")]
+        [Tooltip("Level, in dBFS, of a voice as it arrives through its Vivox tap that reads as energy 0. " +
+                 "Vivox reports AudioEnergy 0 for every tapped participant, so a remote voice's loudness " +
+                 "is measured from the tap instead; this and the next value put it on the same scale. " +
+                 "Measured 2026-11-01: energy 0,45 ≈ -44 dB, 0,65 ≈ -22 dB.")]
+        [SerializeField] private float heardSilenceDb = -97f;
+
+        [Tooltip("Level, in dBFS, of a voice arriving through its tap that reads as energy 1.")]
+        [SerializeField] private float heardFullDb = 21f;
+
         public float SpeechEnergy => speechEnergy;
         public float ShoutEnergy => shoutEnergy;
         public float TalkingEnergy => talkingEnergy;
@@ -62,6 +72,9 @@ namespace Components.Sound
 
         /// <summary>0 for a whisper, 1 for a shout, linear in between.</summary>
         public float Loudness(float energy) => Mathf.InverseLerp(speechEnergy, shoutEnergy, energy);
+
+        /// <summary>A voice's level as it arrives through its tap, in dBFS, on Vivox's AudioEnergy scale.</summary>
+        public float EnergyFromHeardLevel(float dbfs) => Mathf.InverseLerp(heardSilenceDb, heardFullDb, dbfs);
 
         /// <summary>The distance law as a gain: 1 inside the near field, then Decibels Per Doubling.</summary>
         public float DistanceGain(float distance)

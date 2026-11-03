@@ -40,7 +40,9 @@ namespace Network
 
         public void StartMenu()
         {
-            Loader.Load(Loader.Scene.MainMenu);
+            // The first time on each microphone the mic setup comes first: every mic arrives at its own
+            // level, and a hot one deafened the others from the first word. It moves on to the menu.
+            Loader.Load(MicSettings.NeedsSetup ? Loader.Scene.MicSetup : Loader.Scene.MainMenu);
         }
 
         public async Task StartClientAsync(string joinCode)

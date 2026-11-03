@@ -12,6 +12,7 @@ namespace Systems
             Lobby,
             Game,
             Loading,
+            MicSetup,
         }
 
         private static Scene _targetScene;

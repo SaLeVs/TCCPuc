@@ -1,7 +1,8 @@
 # Voz (Vivox) e som — como funciona, onde ajustar e o que mudou
 
-**Atualizado em:** 2026-11-01 · **Branch:** `BugsSolutions`
-(código no commit `8e478131`; assets, prefabs, Options, mixer e zona do auditório depois dele)
+**Atualizado em:** 2026-11-02 · **Branch:** `VivoxCorrections`
+(código no commit `8e478131`; assets, prefabs, Options, mixer e zona do auditório depois dele;
+ficha de passagem de som em 2026-11-02, seção 3.7)
 
 Este documento tem três partes: como a voz anda hoje e onde fica cada ajuste (seções 1–2), o que
 estava errado e como foi corrigido (3), e o laboratório de voz no GYM com as medições de antes e
@@ -13,6 +14,7 @@ depois (4–5).
 
 ```
 Microfone do jogador A
+  └─ volume de entrada salvo para esse microfone   MicSettings (medido na ficha de passagem de som)
   └─ Vivox (login + canal)                         VivoxManager  (HostManager.prefab, cena Netbootstrap)
        ├─ lobby  : canal 2D  "<lobbyId>_lobby"     TextAndAudio, sem posição
        ├─ partida: canal 3D  "<lobbyId>_game"      AudioOnly, posição enviada por VivoxPlayer.Update
@@ -58,6 +60,7 @@ Outros caminhos:
 | Volume de todas as vozes | Options → **Vozes** → `VoiceSoundMixer` `voiceVolume` | 100% | Novo slider. Salvo em `VoiceVolume`. |
 | Compressor das vozes | `Assets/Sounds/VoiceSoundMixer.mixer` → grupo Voice → **Compressor** | −16 dB, 10 ms, 200 ms | Segura picos (grito perto, TTS) sem mexer em vozes distantes. Ajuste na janela Audio Mixer. |
 | Volume de cada jogador | Pause → lista → slider | 0 (−50..50) | Igual antes. |
+| Volume do **seu** microfone | Ficha de passagem de som (cena `MicSetup`) ou Opções → Dispositivos → slider embaixo do dispositivo de entrada | medido (−50..+25 na ficha) | O quanto todos te ouvem e onde caem seu sussurro, fala e grito. Salvo por microfone em `MicInputVolume_<nome do microfone>`. |
 | Volume das doações (TTS) | Options → **Doações (TTS)** → `VoiceChatSettings` | **50%** | Para quem recebe e para quem ouve os outros. Salvo em `DonationTtsVolume`. |
 | Ouvir as doações | Options → **Ler doações: Sim/Não** | Sim | Desligado: você não ouve nenhuma leitura (a sua continua indo para os outros). |
 | Voz do TTS | `DonationAudioManager.prefab` → DonationTTSManager → Preferred Voice Prefixes / Tts Voice | `pt_BR`, `pt` / `en_US female` | Usa uma voz em português se o Vivox tiver; a lista sai no log ao logar. |
@@ -100,6 +103,56 @@ canal. Distância nunca tira ninguém da lista.
 Slider **Doações (TTS)** (padrão 50% ≈ −6 dB) e **Ler doações: Sim/Não** no Options, Compressor no
 grupo Voice e slider **Vozes** geral. Desligado, quem recebe não toca o TTS localmente
 (`QueuedRemoteTransmission`), e quem ouve zera a voz do destinatário durante a leitura.
+
+### 3.6 Ícone de voz não acendia e alcance preso no sussurro — **corrigido**
+Medido numa partida real (host + jogador virtual do MPPM, 2026-11-01): para um jogador **com tap**,
+o Vivox deixa `AudioEnergy` em 0 e `SpeechDetected` em falso o tempo todo, mesmo com a voz tocando
+(pico 0,71 no tap). Para o próprio jogador, `SpeechDetected` fica sempre verdadeiro, até em silêncio.
+Consequências: o ícone do nome nunca acendia e o `RemoteVoiceFilter` achava que ninguém falava, então
+o alcance de toda voz remota ficava no do sussurro (8 m) — provavelmente a raiz do "saio da sala e
+não ouço" desde o começo.
+Agora o `RemoteVoiceFilter.HeardEnergy` mede a voz no próprio tap (50 ms logo à frente da reprodução,
+antes de distância e paredes) e converte para a escala do Vivox com a calibração medida
+(`VoiceProfile` → Heard Silence Db −97 / Heard Full Db 21: energia 0,45 ≈ −44 dB, 0,65 ≈ −22 dB).
+O valor vai para `VivoxManager.GetHeardEnergy`, que o ícone lê (acende a partir de 0,2).
+
+### 3.7 Microfone alto demais desde a primeira palavra — **ficha de passagem de som** (2026-11-02)
+Caso real: o Igor começou a falar e "destruiu" o Jorge. O controle automático de ganho do Vivox fica
+desligado de propósito (`HostManager.prefab` → VivoxManager → Automatic Gain Control), senão sussurro,
+fala e grito saem quase iguais. Sem ele, cada microfone saía com o volume que o hardware e o Windows
+davam (o "Aumento do microfone" sozinho soma +10 a +30 dB), e nada calibrava isso: o slider de volume
+de entrada do Options não era salvo. No lobby a voz nem passa pelo mixer do Unity, então ali não havia
+proteção nenhuma. E os limiares do `VoiceProfile` são fixos: com o microfone quente, a fala normal
+contava como grito (40 m de alcance, monstro ouvindo de 24 m); com um microfone baixo, o contrário.
+
+Agora:
+- **Cena `MicSetup`** (`Assets/Scenes/MicSetup.unity`, cópia da mesa do Bootstrap com uma "ficha de
+  passagem de som" no papel do contrato). Aparece entre o Netbootstrap e o MainMenu **na primeira vez
+  com cada microfone** (`ClientGameManager.StartMenu` → `MicSettings.NeedsSetup`).
+- O jogador lê três frases: **fale normal**, **sussurre**, **grite**. A ficha mede a energia do próprio
+  Vivox (a mesma que todos os limiares do jogo leem) no canal de eco, com a saída do Vivox e a música
+  mudas, e ajusta o volume de entrada: a fala normal vai para o meio da faixa de fala (≈ 0,45) e,
+  dentro de ±6 dB disso, o sussurro fica abaixo de 0,25 e o grito acima de 0,65. Quando o sussurro e o
+  grito da pessoa ficam perto demais para os dois caberem, o sussurro tem prioridade (é a mecânica de
+  se esconder do monstro).
+- Ajuste de 10 dB ou mais (ou microfone estourando) repete as frases para conferir, até 3 rodadas.
+- Depois vem o **teste livre**: o quadro "O QUE O JOGO ENTENDE" mostra sussurro/fala/grito ao vivo,
+  dá para mexer ±2 dB e **ASSINAR E CONTINUAR** salva. **PULAR** não salva (a ficha volta na próxima vez).
+- `MicSettings` guarda o valor por microfone; o `VivoxManager` aplica ao logar e ao trocar de
+  microfone. O volume de entrada do Vivox vale para todos os canais: lobby do menu, lobby 3D e partida.
+- O slider de entrada em Opções → Dispositivos agora salva o valor para o microfone em uso.
+
+Arquivos: `Assets/Scripts/Network/MicSettings.cs`, `Assets/Scripts/Ui/MicSetupScreen.cs`,
+`Assets/Scenes/MicSetup.unity`; ajustes pequenos em `VivoxManager`, `ClientGameManager.StartMenu`,
+`Loader.Scene.MicSetup`, `AudioDeviceSettings` (+ referência `Network` no `ChatChannelSample.asmdef`).
+Cada rodada sai no Console como `[MicSetup] Round N at X dB ...: whisper, talk, shout, floor -> Y dB`.
+
+Para ver a ficha de novo num microfone já calibrado: apagar a chave `MicInputVolume_<nome>` do
+PlayerPrefs (ou trocar de microfone).
+
+Pendente: teste com voz de verdade (a conta de dB por energia vem da calibração da seção 3.6 e ainda
+precisa ser conferida: a rodada 2 do log mostra se a energia acompanhou o ajuste); botão para refazer
+a ficha no quadro de Opções do menu.
 
 ### Não testado com Vivox real
 Tudo acima compila, foi conferido em Play no GYM (curva, paredes, reverb, Options do pause, lista) e

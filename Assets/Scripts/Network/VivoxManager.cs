@@ -147,6 +147,7 @@ namespace Network
             VivoxService.Instance.ParticipantAddedToChannel += VivoxService_OnParticipantAddedToChannel;
             VivoxService.Instance.ParticipantRemovedFromChannel += VivoxService_OnParticipantRemovedFromChannel;
             VivoxService.Instance.ChannelLeft += VivoxService_OnChannelLeft;
+            VivoxService.Instance.EffectiveInputDeviceChanged += MicSettings.ApplyToCurrentDevice;
 
             Lobby.instance.OnJoinedLobby += VivoxService_OnJoinedLobby;
             Lobby.instance.OnLeftLobby += VivoxService_OnLeftLobby;
@@ -193,6 +194,10 @@ namespace Network
             {
                 Debug.LogWarning($"Could not set Vivox automatic gain control: {e.Message}");
             }
+
+            // With the gain control off, the level this player set for their mic is what keeps it
+            // from going out as loud as the hardware makes it.
+            MicSettings.ApplyToCurrentDevice();
         }
 
         public void EnterLobbyVoice()
@@ -589,6 +594,7 @@ namespace Network
             VivoxService.Instance.ParticipantAddedToChannel -= VivoxService_OnParticipantAddedToChannel;
             VivoxService.Instance.ParticipantRemovedFromChannel -= VivoxService_OnParticipantRemovedFromChannel;
             VivoxService.Instance.ChannelLeft -= VivoxService_OnChannelLeft;
+            VivoxService.Instance.EffectiveInputDeviceChanged -= MicSettings.ApplyToCurrentDevice;
 
             Lobby.instance.OnJoinedLobby -= VivoxService_OnJoinedLobby;
             Lobby.instance.OnLeftLobby -= VivoxService_OnLeftLobby;

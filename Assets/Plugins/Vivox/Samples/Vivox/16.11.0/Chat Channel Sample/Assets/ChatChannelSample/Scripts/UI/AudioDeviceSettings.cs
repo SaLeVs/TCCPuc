@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
+using Network;
 using Unity.Services.Vivox;
 using UnityEngine;
 using UnityEngine.UI;
@@ -61,7 +62,8 @@ public class AudioDeviceSettings : MonoBehaviour
         RefreshInputDeviceList();
         RefreshOutputDeviceList();
 
-        InputDeviceVolume.value = VivoxService.Instance.InputDeviceVolume;
+        // Without notifying: only the player moving the slider saves a level for their mic.
+        InputDeviceVolume.SetValueWithoutNotify(VivoxService.Instance.InputDeviceVolume);
         OutputDeviceVolume.value = VivoxService.Instance.OutputDeviceVolume;
         EffectiveInputDeviceText.text = $"{k_effectiveDevicePrefix} {VivoxService.Instance.EffectiveInputDevice.DeviceName}";
         EffectiveOutputDeviceText.text = $"{k_effectiveDevicePrefix} {VivoxService.Instance.EffectiveOutputDevice.DeviceName}";
@@ -137,6 +139,9 @@ public class AudioDeviceSettings : MonoBehaviour
     void EffectiveInputDeviceChanged()
     {
         EffectiveInputDeviceText.text = $"{k_effectiveDevicePrefix} {VivoxService.Instance.EffectiveInputDevice.DeviceName}";
+
+        // Each mic keeps its own level, which VivoxManager puts back when it becomes the one in use.
+        InputDeviceVolume.SetValueWithoutNotify(MicSettings.CurrentInputVolume);
     }
 
     void OutputDeviceValueChanged(int index)
@@ -151,7 +156,8 @@ public class AudioDeviceSettings : MonoBehaviour
 
     private void OnInputVolumeChanged(float val)
     {
-        VivoxService.Instance.SetInputDeviceVolume((int)val);
+        // Saved for the mic in use: the next session, the lobbies and the match all start from it.
+        MicSettings.SetCurrentInputVolume((int)val);
     }
 
     private void OnOutputVolumeChanged(float val)

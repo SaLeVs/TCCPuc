@@ -99,10 +99,10 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1018073787973971862}
-  - component: {fileID: 802927651376604485}
   - component: {fileID: 8826218193216638717}
   - component: {fileID: 7708134325588164558}
-  m_Layer: 0
+  - component: {fileID: 5769489194453062142}
+  m_Layer: 14
   m_Name: GFX
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -124,24 +124,6 @@ Transform:
   m_Children: []
   m_Father: {fileID: 5763000045757494151}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &802927651376604485
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 4248346693548317754}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 5fea29bb7c508c244a1f805a5fd3fc4d, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Components::Outline
-  outlineMode: 0
-  outlineColor: {r: 1, g: 1, b: 1, a: 1}
-  outlineWidth: 2
-  precomputeOutline: 0
-  bakeKeys: []
-  bakeValues: []
 --- !u!33 &8826218193216638717
 MeshFilter:
   m_ObjectHideFlags: 0
@@ -199,3 +181,21 @@ MeshRenderer:
   m_SortingOrder: 0
   m_MaskInteraction: 0
   m_AdditionalVertexStreams: {fileID: 0}
+--- !u!114 &5769489194453062142
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4248346693548317754}
+  m_Enabled: 0
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5fea29bb7c508c244a1f805a5fd3fc4d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Components::Outline
+  outlineMode: 0
+  outlineColor: {r: 0.9411765, g: 0.105882354, b: 0.05882353, a: 1}
+  outlineWidth: 4
+  precomputeOutline: 0
+  bakeKeys: []
+  bakeValues: []

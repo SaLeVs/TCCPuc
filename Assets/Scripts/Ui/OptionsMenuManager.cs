@@ -195,7 +195,7 @@ public class OptionsMenuManager : MonoBehaviour
     {
         if (_colorAdjustments == null) return;
 
-        float postExposure = Mathf.Lerp(-2f, 2f, value);
+        float postExposure = SettingUiConfigs.BrightnessToPostExposure(value);
         _colorAdjustments.postExposure.value = postExposure;
     }
 

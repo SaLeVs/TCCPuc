@@ -7,7 +7,7 @@ using UnityEngine.SceneManagement;
 public class SettingUiConfigs : MonoBehaviour
 {
     // Post Exposure, in stops, with the brightness slider at 50%.
-    private const float DEFAULT_POST_EXPOSURE = 0.5f;
+    private const float DEFAULT_POST_EXPOSURE = 0.75f;
 
     [SerializeField] private AudioMixer musicMixer;
     [SerializeField] private AudioMixer sfxMixer;

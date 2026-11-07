@@ -23,6 +23,8 @@ namespace Monster
         [SerializeField] private float minSabotageStateDuration = 5f; 
         [SerializeField] private float maxSabotageStateDuration = 10f;
         [SerializeField] private List<GameObject> allSabotageObjects;
+        [Tooltip("Scene objects switched on while the monster has the lights out. Keep them inactive in the scene, so the bounce bake skips them, and out of allSabotageObjects.")]
+        [SerializeField] private List<GameObject> emergencyLights = new List<GameObject>();
         
         public float MinSabotageCooldown => minSabotageCooldown;
         public float MaxSabotageCooldown => maxSabotageCooldown;
@@ -41,11 +43,13 @@ namespace Monster
         {
             _audienceProvider = audienceProviderSource as IAudienceProvider;
 
+            SetEmergencyLights(false);
+
             _sabotageTargets = new List<ISabotageable>();
 
             foreach (GameObject obj in allSabotageObjects)
             {
-                if (obj.TryGetComponent(out ISabotageable sabotageable))
+                if (obj != null && obj.TryGetComponent(out ISabotageable sabotageable))
                     _sabotageTargets.Add(sabotageable);
             }
 
@@ -191,6 +195,8 @@ namespace Monster
                 SabotageRegisteredRpc(_currentSabotageType);
             }
 
+            SetEmergencyLightsRpc(HasSabotagedOfType(SabotageType.Light));
+
             // Server-side, like the rest of Execute: a local event here meant only the host heard it.
             WorldSound.Play(sabotageSound, transform.position, NetworkObject);
             OnSabotageStartedAnimation?.Invoke();
@@ -231,6 +237,8 @@ namespace Monster
             {
                 RestoreRegisteredRpc(type);
             }
+
+            SetEmergencyLightsRpc(HasSabotagedOfType(SabotageType.Light));
 
             return restored;
         }
@@ -282,6 +290,25 @@ namespace Monster
             
             target.Restore();
             RestoreClientRpc(index);
+            SetEmergencyLightsRpc(HasSabotagedOfType(SabotageType.Light));
+        }
+
+        [Rpc(SendTo.ClientsAndHost)]
+        private void SetEmergencyLightsRpc(bool on)
+        {
+            SetEmergencyLights(on);
+        }
+
+        /// <summary>
+        /// Toggles the GameObject, not Light.enabled: LightDistanceCuller owns that flag on every
+        /// room light and would relight one it had culled as soon as the player walked back.
+        /// </summary>
+        private void SetEmergencyLights(bool on)
+        {
+            foreach (GameObject emergencyLight in emergencyLights)
+            {
+                if (emergencyLight != null) emergencyLight.SetActive(on);
+            }
         }
 
         [Rpc(SendTo.ClientsAndHost)]

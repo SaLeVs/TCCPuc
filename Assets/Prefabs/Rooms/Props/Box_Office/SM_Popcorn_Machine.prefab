@@ -56,14 +56,26 @@ PrefabInstance:
       propertyPath: 'm_Materials.Array.data[1]'
       value: 
       objectReference: {fileID: 2100000, guid: 2ec20aa8d333ddf4bac3bc7abe98f1d0, type: 2}
+    - target: {fileID: -2398375843368874677, guid: f173cb476956cba4282e4ad44893ee9b, type: 3}
+      propertyPath: m_Layer
+      value: 10
+      objectReference: {fileID: 0}
     - target: {fileID: 919132149155446097, guid: f173cb476956cba4282e4ad44893ee9b, type: 3}
       propertyPath: m_Name
       value: SM_Popcorn_Machine
+      objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: f173cb476956cba4282e4ad44893ee9b, type: 3}
+      propertyPath: m_Layer
+      value: 10
       objectReference: {fileID: 0}
     - target: {fileID: 5645401003086245286, guid: f173cb476956cba4282e4ad44893ee9b, type: 3}
       propertyPath: 'm_Materials.Array.data[0]'
       value: 
       objectReference: {fileID: 2100000, guid: 2ec20aa8d333ddf4bac3bc7abe98f1d0, type: 2}
+    - target: {fileID: 6266891946010521262, guid: f173cb476956cba4282e4ad44893ee9b, type: 3}
+      propertyPath: m_Layer
+      value: 10
+      objectReference: {fileID: 0}
     - target: {fileID: 7842611890411377014, guid: f173cb476956cba4282e4ad44893ee9b, type: 3}
       propertyPath: 'm_Materials.Array.data[0]'
       value: 
@@ -71,5 +83,34 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: f173cb476956cba4282e4ad44893ee9b, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 3666452087665509643}
   m_SourcePrefab: {fileID: 100100000, guid: f173cb476956cba4282e4ad44893ee9b, type: 3}
+--- !u!1 &2388686016380926641 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 919132149155446097, guid: f173cb476956cba4282e4ad44893ee9b, type: 3}
+  m_PrefabInstance: {fileID: 3307674673765861344}
+  m_PrefabAsset: {fileID: 0}
+--- !u!65 &3666452087665509643
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2388686016380926641}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 0.7041493, y: 1.002379, z: 0.5920713}
+  m_Center: {x: 0, y: 0.5011895, z: -0.000000014901161}

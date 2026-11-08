@@ -16,6 +16,19 @@ namespace Audience
         public int UniqueObjectsSeen => _seenObjects.Count;
 
         /// <summary>
+        /// Whether this player's audience for the target is already in and it has nothing more to
+        /// pay yet: past its minimum view time, and either one-off or still inside its review
+        /// cooldown. A take cut short before the minimum never counts.
+        /// </summary>
+        public bool IsRegistered(GameObject target)
+        {
+            if (target == null || !_seenObjects.TryGetValue(target.GetInstanceID(), out float seenAt)) return false;
+            if (!target.TryGetComponent(out RecordableIdentifier identifier) || !identifier.canBeReviewed) return true;
+
+            return Time.time - seenAt < identifier.reviewCooldown;
+        }
+
+        /// <summary>
         /// How often the server is told the player is still filming something it has already paid
         /// for. This used to fire every frame, which is one RPC per frame per player for a message
         /// whose only job is to hold off a thirty second idle timer.

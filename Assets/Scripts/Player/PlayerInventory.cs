@@ -251,18 +251,23 @@ namespace Player
             }
         }
 
-        public void ReplaceSelectedItemServer(int newItemId, Vector3 itemPosition, Quaternion itemRotation)
+        // The selected slot comes from the player's own machine: only the owner tracks it, so on the
+        // server it always read 0 for a client and a client could never swap.
+        // Returns the item put down in the world, which is a new object, so the caller can give it back
+        // whatever the old one was bound to.
+        public NetworkObject ReplaceSelectedItemServer(int selectedSlot, int newItemId, Vector3 itemPosition, Quaternion itemRotation)
         {
             if (IsServer)
             {
-                if (_currentSlotSelected <= 0) return;
+                if (selectedSlot <= 0 || selectedSlot > _slots.Count) return null;
                 
-                int index = _currentSlotSelected - 1;
+                int index = selectedSlot - 1;
                 int oldItemId = _slots[index];
 
-                if (oldItemId == -1) return;
+                if (oldItemId == -1) return null;
                 
                 ItemDataSO oldItem = itemDatabase.GetItem(oldItemId);
+                NetworkObject droppedObject = null;
 
                 if (oldItem != null)
                 {
@@ -271,12 +276,15 @@ namespace Player
                     if (droppedItem.TryGetComponent(out NetworkObject networkObject))
                     {
                         networkObject.Spawn();
+                        droppedObject = networkObject;
                     }
                 }
                 
                 _slots[index] = newItemId;
-                
+                return droppedObject;
             }
+
+            return null;
         }
         
         [Rpc(SendTo.Owner)]
@@ -299,7 +307,24 @@ namespace Player
             
             return _slots[slotIndex];
         }
-        
+
+        public ItemDataSO GetItemDataInSlot(int slotIndex)
+        {
+            int itemId = GetItemInSlot(slotIndex);
+
+            return itemId == -1 ? null : itemDatabase.GetItem(itemId);
+        }
+
+        // Puts another item in the slot without putting the old one down anywhere: the caller has already
+        // given it a place (a totem, in a swap). False when the slot is out of range or empty.
+        public bool SetItemInSlotServer(int slotIndex, int itemId)
+        {
+            if (!IsServer || GetItemInSlot(slotIndex) == -1) return false;
+
+            _slots[slotIndex] = itemId;
+            return true;
+        }
+
         public List<int> CollectAndClearAllItems()
         {
             if (!IsServer) return new List<int>();

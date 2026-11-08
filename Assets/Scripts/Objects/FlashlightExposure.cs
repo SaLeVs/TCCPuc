@@ -24,6 +24,10 @@ namespace Objects
     /// <para>The spill only follows part of the dimming and never the boost: it lights the room
     /// around the beam, and scaling it with the beam made the whole room darken whenever the beam
     /// passed over something close.</para>
+    ///
+    /// <para>Closer than the close distance the falloff is undone completely, for the beam and the
+    /// spill alike, so what is right in front of the lens keeps the brightness it had there instead
+    /// of turning white. The lens sits about ten centimetres from a wall the player walks into.</para>
     /// </remarks>
     public class FlashlightExposure : MonoBehaviour
     {
@@ -49,8 +53,11 @@ namespace Objects
         [Tooltip("The same, farther than the reference. Keep it low: the higher, the more the beam pumps when swept across a room.")]
         [SerializeField, Range(0f, 2f)] private float farCompensation = 1f;
 
+        [Tooltip("Metres below which what the beam points at gets no brighter. Keep it below the reference distance.")]
+        [SerializeField, Min(0.01f)] private float closeDistance = 1f;
+
         [Tooltip("Lowest multiplier, for a wall touching the lens.")]
-        [SerializeField, Min(0.01f)] private float minScale = 0.04f;
+        [SerializeField, Min(0.0001f)] private float minScale = 0.002f;
 
         [Tooltip("Highest multiplier, for a long corridor. Too high and the walls beside the player glow.")]
         [SerializeField, Min(0.01f)] private float maxScale = 4f;
@@ -77,6 +84,7 @@ namespace Objects
         [SerializeField] private LayerMask probeLayers;
 
         private float _logScale;
+        private float _logClose;
         private bool _wasOn;
 
         private void Awake()
@@ -97,27 +105,40 @@ namespace Objects
             }
 
             // Eased in log space, so going from 0.1x to 1x takes as long as from 1x to 10x.
-            float target = Mathf.Log(TargetScale(ProbeDistance()));
+            float distance = ProbeDistance();
+            float target = Mathf.Log(TargetScale(distance));
+            float closeTarget = Mathf.Log(Mathf.Min(distance, closeDistance) / closeDistance);
 
             if (_wasOn)
             {
-                float speed = target < _logScale ? dimSpeed : brightenSpeed;
-                _logScale = Mathf.Lerp(_logScale, target, 1f - Mathf.Exp(-speed * Time.deltaTime));
+                _logScale = Ease(_logScale, target);
+                _logClose = Ease(_logClose, closeTarget);
             }
             else
             {
                 // Just switched on: no fade from wherever it was pointed last time.
                 _logScale = target;
+                _logClose = closeTarget;
                 _wasOn = true;
             }
 
             float scale = Mathf.Exp(_logScale);
-            beam.intensity = beamIntensity * scale;
+            float close = Mathf.Exp(_logClose);
+
+            // The scale leaves the hotspot falling off as distance ^ (nearCompensation - 2) and the
+            // spill as distance ^ -2: undo what is left of that closer than the close distance.
+            beam.intensity = beamIntensity * Mathf.Max(scale * Mathf.Pow(close, 2f - nearCompensation), minScale);
 
             if (spill != null)
             {
-                spill.intensity = spillIntensity * Mathf.Lerp(1f, Mathf.Min(scale, 1f), spillDimming);
+                spill.intensity = spillIntensity * Mathf.Lerp(1f, Mathf.Min(scale, 1f), spillDimming) * close * close;
             }
+        }
+
+        private float Ease(float current, float target)
+        {
+            float speed = target < current ? dimSpeed : brightenSpeed;
+            return Mathf.Lerp(current, target, 1f - Mathf.Exp(-speed * Time.deltaTime));
         }
 
         private float TargetScale(float distance)

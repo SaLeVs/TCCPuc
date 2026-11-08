@@ -102,8 +102,11 @@ namespace Network
             }
         }
 
-        public async Task CreateLobbyAsync()
+        /// <summary>Creates a lobby with us as host. False when it failed; the reason is already reported.</summary>
+        public async Task<bool> CreateLobbyAsync()
         {
+            Unity.Services.Lobbies.Models.Lobby lobby;
+
             try
             {
                 CreateLobbyOptions createLobbyOptions = new CreateLobbyOptions
@@ -124,18 +127,21 @@ namespace Network
                 
                 string lobbyName = "Lobby";
                 
-                Unity.Services.Lobbies.Models.Lobby lobby = await LobbyService.Instance.CreateLobbyAsync(lobbyName, MAX_PLAYERS, createLobbyOptions);
-                
-                _hostLobby = lobby;
-                _joinedLobby = _hostLobby;
-
-                OnJoinedLobby?.Invoke();
-                
+                lobby = await LobbyService.Instance.CreateLobbyAsync(lobbyName, MAX_PLAYERS, createLobbyOptions);
             }
-            catch (LobbyServiceException exception)
+            catch (Exception exception)
             {
-                Debug.LogException(exception);
+                // A warning, not an error: the menu shows the reason, so it must not pop up as a toast too.
+                Debug.LogWarning($"Lobby: could not create a lobby. {exception}");
+                ConnectionFeedback.Report(DescribeServiceError(exception) ?? "Não foi possível criar a partida. Tente de novo.");
+                return false;
             }
+
+            _hostLobby = lobby;
+            _joinedLobby = _hostLobby;
+
+            OnJoinedLobby?.Invoke();
+            return true;
         }
 
         public async void ListLobbies()
@@ -161,25 +167,104 @@ namespace Network
             }
         }
 
-        public async void JoinLobbyByCode(string code)
+        /// <summary>
+        /// Joins the lobby with this code. False when there is no such lobby, it is full, its match
+        /// already started or the service failed; the reason is already reported.
+        /// </summary>
+        public async Task<bool> JoinLobbyByCodeAsync(string code)
         {
+            Unity.Services.Lobbies.Models.Lobby lobby;
+
             try
             {
                 JoinLobbyByCodeOptions options = new JoinLobbyByCodeOptions
                 {
                     Player = GetPlayer()
                 };
-                Unity.Services.Lobbies.Models.Lobby lobby  = await LobbyService.Instance.JoinLobbyByCodeAsync(code, options);
-                _joinedLobby = lobby;
-                
-                OnJoinedLobby?.Invoke();
-
+                lobby = await LobbyService.Instance.JoinLobbyByCodeAsync(code, options);
             }
             catch (Exception e)
             {
-                Debug.LogException(e);
+                // A warning, not an error: the menu shows the reason, so it must not pop up as a toast too.
+                Debug.LogWarning($"Lobby: could not join lobby '{code}'. {e}");
+                ConnectionFeedback.Report(DescribeJoinError(e));
+                return false;
             }
-            
+
+            // Its match is already running. CheckIfGameStarted would drop us straight into it halfway
+            // through, so to the player this is a match that is no longer there to join.
+            if (lobby.Data != null && lobby.Data.TryGetValue("StartGame", out DataObject startGame) && startGame.Value == "1")
+            {
+                await TryRemoveSelfAsync(lobby.Id);
+                ConnectionFeedback.Report("Essa partida já começou. Peça um código novo para quem criou.");
+                return false;
+            }
+
+            _joinedLobby = lobby;
+
+            OnJoinedLobby?.Invoke();
+            return true;
+        }
+
+        private static async Task TryRemoveSelfAsync(string lobbyId)
+        {
+            try
+            {
+                await LobbyService.Instance.RemovePlayerAsync(lobbyId, AuthenticationService.Instance.PlayerId);
+            }
+            catch (Exception e)
+            {
+                Debug.LogWarning($"Lobby: could not leave lobby {lobbyId}. {e.Message}");
+            }
+        }
+
+        private static string DescribeJoinError(Exception exception)
+        {
+            if (exception is LobbyServiceException lobbyException)
+            {
+                switch (lobbyException.Reason)
+                {
+                    case LobbyExceptionReason.LobbyNotFound:
+                    case LobbyExceptionReason.EntityNotFound:
+                    case LobbyExceptionReason.InvalidJoinCode:
+                        return "Partida não encontrada. Confira o código e tente de novo.";
+
+                    case LobbyExceptionReason.ValidationError:
+                    case LobbyExceptionReason.BadRequest:
+                        return "Código inválido. Confira o código e tente de novo.";
+
+                    case LobbyExceptionReason.LobbyFull:
+                        return "Essa partida já está cheia.";
+
+                    case LobbyExceptionReason.LobbyLocked:
+                        return "Essa partida não está aceitando novos jogadores.";
+                }
+            }
+
+            return DescribeServiceError(exception) ?? "Não foi possível entrar na partida. Tente de novo.";
+        }
+
+        /// <summary>Failures that are not about one lobby in particular. Null when it is none of them.</summary>
+        private static string DescribeServiceError(Exception exception)
+        {
+            if (exception is not LobbyServiceException lobbyException) return null;
+
+            switch (lobbyException.Reason)
+            {
+                case LobbyExceptionReason.RateLimited:
+                    return "Muitas tentativas seguidas. Espere alguns segundos e tente de novo.";
+
+                case LobbyExceptionReason.NetworkError:
+                case LobbyExceptionReason.RequestTimeOut:
+                case LobbyExceptionReason.ServiceUnavailable:
+                case LobbyExceptionReason.GatewayTimeout:
+                case LobbyExceptionReason.BadGateway:
+                case LobbyExceptionReason.InternalServerError:
+                    return "Sem resposta do serviço de partidas. Verifique sua internet e tente de novo.";
+
+                default:
+                    return null;
+            }
         }
 
         public async void LeaveLobby()
@@ -282,17 +367,21 @@ namespace Network
             return true;
         }
         
-        public async Task StartGame()
+        /// <summary>Starts the match for the whole lobby (host only). True once the host session is up.</summary>
+        public async Task<bool> StartGame()
         {
-            if (!IsHost()) return;
-            if (!AreAllPlayersReady()) return;
-            
+            if (!IsHost()) return false;
+            if (!AreAllPlayersReady()) return false;
+
+            // Already started: running it again would restart the host session under everyone.
+            if (_hasJoinedGame) return false;
+
             string joinCode = await HostSingleton.instance.gameManager.StartHostAsync();
 
             if (string.IsNullOrEmpty(joinCode))
             {
                 Debug.LogError("Lobby: host did not start, aborting StartGame.");
-                return;
+                return false;
             }
 
             // We are in the game from here on. Set this before publishing StartGame below, or the
@@ -311,11 +400,13 @@ namespace Network
                             "StartGame", new DataObject(DataObject.VisibilityOptions.Member, "1")
                         },
                         {
-                            "RelayCode", new DataObject(DataObject.VisibilityOptions.Member, joinCode) 
+                            "RelayCode", new DataObject(DataObject.VisibilityOptions.Member, joinCode)
                         }
                     }
                 });
-        } 
+
+            return true;
+        }
         
         private async void CheckIfGameStarted()
         {

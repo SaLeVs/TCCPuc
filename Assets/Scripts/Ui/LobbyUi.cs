@@ -21,10 +21,15 @@ namespace UI
         private const string PLAYER_NOT_READY = "NÃO PRONTO";
         private const string HOST_START = "INICIAR";
         
+        private bool _isBusy;
+
         private void OnEnable()
         {
             Lobby.instance.OnJoinedLobby += LobbyManager_OnPlayerJoinedInLobby;
             Lobby.instance.OnLobbyUpdated += LobbyManager_OnLobbyRefresh;
+
+            // The menu opens this panel only after the lobby is joined, so the join event has already fired.
+            RefreshLobbyInfo();
         }
         
         
@@ -73,18 +78,38 @@ namespace UI
         }
         
         public async void StartGameButton()
-        { 
-            if (Lobby.instance.IsHost())
+        {
+            // One request at a time. A second click while the first was still in flight started a
+            // second relay session for the host, and flooded the lobby service for the others.
+            if (_isBusy) return;
+            _isBusy = true;
+
+            MainMenu mainMenu = GetComponentInParent<MainMenu>();
+            if (mainMenu != null) mainMenu.SetBusy(true);
+
+            bool started = false;
+
+            try
             {
-                _isPlayerReady = true;
-                await Lobby.instance.SetPlayerReady(_isPlayerReady);
-                await Lobby.instance.StartGame();
+                if (Lobby.instance.IsHost())
+                {
+                    _isPlayerReady = true;
+                    await Lobby.instance.SetPlayerReady(_isPlayerReady);
+                    started = await Lobby.instance.StartGame();
+                }
+                else
+                {
+                    _isPlayerReady = !_isPlayerReady;
+                    await Lobby.instance.SetPlayerReady(_isPlayerReady);
+                    UpdateStartButtonText();
+                }
             }
-            else
+            finally
             {
-                _isPlayerReady = !_isPlayerReady;
-                await Lobby.instance.SetPlayerReady(_isPlayerReady);
-                UpdateStartButtonText();
+                _isBusy = false;
+
+                // Started: the match is loading, and the menu stays locked until it is gone.
+                if (!started && mainMenu != null) mainMenu.SetBusy(false);
             }
         }
 

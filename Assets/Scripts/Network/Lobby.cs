@@ -34,6 +34,9 @@ namespace Network
         
         private const int MAX_PLAYERS = 4;
         private const string PLAYER_READY = "Ready";
+
+        /// <summary>Player data: MicSettings.CurrentListenerTrim, read by every VivoxManager in the lobby.</summary>
+        public const string MIC_TRIM = "MicTrim";
         
         public Unity.Services.Lobbies.Models.Lobby JoinedLobby => _joinedLobby;
         
@@ -448,7 +451,8 @@ namespace Network
                 Data = new Dictionary<string, PlayerDataObject>
                 {
                     { "UserData", new PlayerDataObject(PlayerDataObject.VisibilityOptions.Member, JsonUtility.ToJson(userData)) },
-                    { PLAYER_READY, new PlayerDataObject(PlayerDataObject.VisibilityOptions.Member, "0") }
+                    { PLAYER_READY, new PlayerDataObject(PlayerDataObject.VisibilityOptions.Member, "0") },
+                    { MIC_TRIM, new PlayerDataObject(PlayerDataObject.VisibilityOptions.Member, MicSettings.CurrentListenerTrim.ToString()) }
                 }
             };
         }

@@ -9,34 +9,44 @@ using UnityEngine;
 namespace Ui
 {
     /// <summary>
-    /// What the mic setup reads and drives: the microphones, how loud the voice is, the mic level and
-    /// whether the player hears themselves. Vivox in the game; a simulated mic to run the whole sheet in
-    /// the Editor without anyone talking.
+    /// What the mic setup reads and drives: the microphones, how loud the voice is right now, the mic
+    /// level and whether the player hears themselves. Vivox in the game; a simulated mic to run the
+    /// sheet in the Editor without anyone talking.
     /// </summary>
     public interface IMicSetupInput
     {
-        /// <summary>A microphone and a voice service to read it.</summary>
+        /// <summary>A microphone and a voice service to save its level for.</summary>
         bool IsAvailable { get; }
-
-        /// <summary>The test is open: Energy is the player's voice.</summary>
-        bool IsReady { get; }
 
         string CurrentDevice { get; }
         IReadOnlyList<string> Devices { get; }
 
-        /// <summary>The player's own AudioEnergy, 0..1, five readings a second.</summary>
-        float Energy { get; }
-
         /// <summary>The level saved for the microphone in use, in dB.</summary>
         int SavedVolume { get; }
+
+        /// <summary>
+        /// The voice right now, in dBFS, before the mic level: read straight from the device every
+        /// frame, without Vivox's processing or its five readings a second.
+        /// </summary>
+        float LevelDb { get; }
+
+        /// <summary>The loudest sample of the last read, 0..1 of full scale: near 1 the device itself clips.</summary>
+        float Peak { get; }
+
+        /// <summary>Vivox's own AudioEnergy for this player — what the game reads — or -1 while there is none.</summary>
+        float GameEnergy { get; }
 
         /// <summary>The list changed, or the microphone in use did.</summary>
         event Action DevicesChanged;
 
         void Begin();
+
+        /// <summary>Reads the microphone; once a frame.</summary>
+        void Tick();
+
         void End();
         void SetVolume(int volume);
-        void Save(int volume);
+        void Save(int volume, int listenerTrim);
 
         /// <summary>Puts the saved level back, for a sheet left without signing.</summary>
         void RestoreSaved();
@@ -46,9 +56,101 @@ namespace Ui
     }
 
     /// <summary>
-    /// The real one: the mic test's echo channel next to whatever else is joined, the level through
-    /// MicSettings. The echo comes back about half a second late, so the sheet only turns it on while
-    /// the player chooses the mic and while they fine-tune.
+    /// A microphone read with Unity's own capture, next to Vivox's: the level of the last few
+    /// milliseconds as often as it is asked, with nothing in between. Vivox keeps the device too —
+    /// Windows shares it.
+    /// </summary>
+    public class MicrophoneLevel
+    {
+        private const int SAMPLE_RATE = 48000;
+
+        private string _device;
+        private AudioClip _clip;
+        private float[] _window = Array.Empty<float>();
+
+        public float LevelDb { get; private set; } = -120f;
+        public float Peak { get; private set; }
+
+        public void Start(string deviceName, float windowSeconds)
+        {
+            Stop();
+            if (Microphone.devices.Length == 0) return;
+
+            _device = FindDevice(deviceName);
+            Microphone.GetDeviceCaps(_device, out int min, out int max);
+            int rate = min == 0 && max == 0 ? SAMPLE_RATE : Mathf.Clamp(SAMPLE_RATE, min, max);
+
+            _clip = Microphone.Start(_device, true, 1, rate);
+            _window = new float[Mathf.Max(64, Mathf.RoundToInt(rate * windowSeconds))];
+        }
+
+        public void Stop()
+        {
+            if (_clip != null) Microphone.End(_device);
+
+            _clip = null;
+            LevelDb = -120f;
+            Peak = 0f;
+        }
+
+        public void Read()
+        {
+            if (_clip == null) return;
+
+            int position = Microphone.GetPosition(_device);
+            int length = _clip.samples;
+            int count = _window.Length;
+            if (position <= 0 || count > length) return;
+
+            int start = position - count;
+
+            if (start >= 0)
+            {
+                _clip.GetData(_window, start);
+            }
+            else
+            {
+                // The recording loops over one second: the window straddles its end.
+                var tail = new float[-start];
+                var head = new float[position];
+                _clip.GetData(tail, length + start);
+                _clip.GetData(head, 0);
+                tail.CopyTo(_window, 0);
+                head.CopyTo(_window, tail.Length);
+            }
+
+            double sum = 0;
+            float peak = 0f;
+
+            foreach (float sample in _window)
+            {
+                sum += sample * sample;
+                peak = Mathf.Max(peak, Mathf.Abs(sample));
+            }
+
+            LevelDb = 10f * Mathf.Log10(Mathf.Max((float)(sum / count), 1e-12f));
+            Peak = peak;
+        }
+
+        /// <summary>
+        /// Vivox's name for the device in Unity's list — the same Windows name, though some drivers
+        /// cut it short — or the system default.
+        /// </summary>
+        private static string FindDevice(string deviceName)
+        {
+            if (string.IsNullOrEmpty(deviceName)) return null;
+
+            string[] devices = Microphone.devices;
+
+            return devices.FirstOrDefault(device => device == deviceName)
+                   ?? devices.FirstOrDefault(device => deviceName.StartsWith(device) || device.StartsWith(deviceName))
+                   ?? devices.FirstOrDefault(device => deviceName.Contains(device) || device.Contains(deviceName));
+        }
+    }
+
+    /// <summary>
+    /// The real one: the microphone read directly for the bar, and the mic test's echo channel joined
+    /// the whole time so the player can hear themselves and Vivox reports what the game reads.
     /// </summary>
     public class VivoxMicSetupInput : IMicSetupInput
     {
@@ -56,12 +158,15 @@ namespace Ui
         private static readonly string[] DefaultDeviceNames = { "Default System Device", "Default Communication Device" };
 
         private readonly VivoxManager _vivox;
+        private readonly MicrophoneLevel _microphone = new();
+        private readonly float _windowSeconds;
         private bool _begun;
         private bool _outputWasMuted;
 
-        public VivoxMicSetupInput(VivoxManager vivox)
+        public VivoxMicSetupInput(VivoxManager vivox, float windowSeconds)
         {
             _vivox = vivox;
+            _windowSeconds = windowSeconds;
         }
 
         public event Action DevicesChanged;
@@ -70,31 +175,36 @@ namespace Ui
                                    && VivoxService.Instance.InitializationState == VivoxInitializationState.Initialized
                                    && MicSettings.CurrentDeviceName != null;
 
-        public bool IsReady => _vivox != null && _vivox.IsInMicTest;
         public string CurrentDevice => MicSettings.CurrentDeviceName;
         public IReadOnlyList<string> Devices => RealDevices().Select(device => device.DeviceName).ToList();
-        public float Energy => _vivox != null ? _vivox.GetSelfAudioEnergy() : 0f;
         public int SavedVolume => MicSettings.CurrentInputVolume;
+        public float LevelDb => _microphone.LevelDb;
+        public float Peak => _microphone.Peak;
+        public float GameEnergy => _vivox != null && _vivox.IsInMicTest ? _vivox.GetSelfAudioEnergy() : -1f;
 
         public void Begin()
         {
             _begun = true;
             _outputWasMuted = VivoxService.Instance.IsOutputDeviceMuted;
 
-            VivoxService.Instance.EffectiveInputDeviceChanged += VivoxService_OnDevicesChanged;
-            VivoxService.Instance.AvailableInputDevicesChanged += VivoxService_OnDevicesChanged;
+            VivoxService.Instance.EffectiveInputDeviceChanged += VivoxService_OnEffectiveInputDeviceChanged;
+            VivoxService.Instance.AvailableInputDevicesChanged += VivoxService_OnAvailableInputDevicesChanged;
 
-            SetHearSelf(false);
+            _microphone.Start(CurrentDevice, _windowSeconds);
             _vivox.EnterTestVoiceChannel();
         }
+
+        public void Tick() => _microphone.Read();
 
         public void End()
         {
             if (!_begun) return;
             _begun = false;
 
-            VivoxService.Instance.EffectiveInputDeviceChanged -= VivoxService_OnDevicesChanged;
-            VivoxService.Instance.AvailableInputDevicesChanged -= VivoxService_OnDevicesChanged;
+            VivoxService.Instance.EffectiveInputDeviceChanged -= VivoxService_OnEffectiveInputDeviceChanged;
+            VivoxService.Instance.AvailableInputDevicesChanged -= VivoxService_OnAvailableInputDevicesChanged;
+
+            _microphone.Stop();
 
             // Even mid-join: the walk towards the echo channel turns around, and the mic is never left
             // talking to the echo alone.
@@ -105,9 +215,10 @@ namespace Ui
 
         public void SetVolume(int volume) => MicSettings.ApplyVolume(volume);
 
-        public void Save(int volume)
+        public void Save(int volume, int listenerTrim)
         {
             MicSettings.SetCurrentInputVolume(volume);
+            MicSettings.SetCurrentListenerTrim(listenerTrim);
             PlayerPrefs.Save();
         }
 
@@ -153,33 +264,35 @@ namespace Ui
         }
 
         // VivoxManager has already put the new microphone's own level on.
-        private void VivoxService_OnDevicesChanged() => DevicesChanged?.Invoke();
+        private void VivoxService_OnEffectiveInputDeviceChanged()
+        {
+            if (_begun) _microphone.Start(CurrentDevice, _windowSeconds);
+            DevicesChanged?.Invoke();
+        }
+
+        private void VivoxService_OnAvailableInputDevicesChanged() => DevicesChanged?.Invoke();
     }
 
     /// <summary>
     /// A microphone for testing the sheet in the Editor: whoever drives the test says how loud the
-    /// "player" is speaking, as the energy their voice would have at 0 dB, and this answers the way
-    /// Vivox would — five readings a second, moved by the mic level at the VoiceProfile's dB per energy,
-    /// over a quiet room. Set MicSetupScreen.InputOverride to one before the scene starts.
+    /// "player" is speaking, in dBFS at the microphone, and this answers like a voice — syllables a few
+    /// dB apart, a quiet room between words. Set MicSetupScreen.InputOverride to one before the scene
+    /// starts.
     /// </summary>
     public class SimulatedMicSetupInput : IMicSetupInput
     {
-        public float DecibelsPerEnergy = 118f;
-        public float NoiseFloor = 0.03f;
+        /// <summary>The voice right now in dBFS at the microphone; below -100 is silence.</summary>
+        public float VoiceDb = -120f;
 
-        /// <summary>The voice right now as its energy at 0 dB; below 0 is silence.</summary>
-        public float VoiceAtZero = -1f;
+        public float RoomDb = -72f;
 
         public bool HearSelf { get; private set; }
         public int Volume { get; private set; }
         public int Saved { get; private set; } = int.MinValue;
+        public int SavedTrim { get; private set; }
 
         private readonly List<string> _devices;
         private string _current;
-        private float _readyAt = float.MaxValue;
-        private float _nextReading;
-        private float _energy;
-        private int _syllable;
 
         public SimulatedMicSetupInput(params string[] devices)
         {
@@ -190,35 +303,44 @@ namespace Ui
         public event Action DevicesChanged;
 
         public bool IsAvailable => true;
-        public bool IsReady => Time.unscaledTime >= _readyAt;
         public string CurrentDevice => _current;
         public IReadOnlyList<string> Devices => _devices;
         public int SavedVolume => Saved == int.MinValue ? 0 : Saved;
+        public float LevelDb { get; private set; } = -120f;
+        public float Peak { get; private set; }
+        public float GameEnergy => -1f;
 
-        public float Energy
+        public void Begin() { }
+
+        public void Tick()
         {
-            get
+            float t = Time.unscaledTime;
+            float room = RoomDb + UnityEngine.Random.Range(-1.5f, 1.5f);
+
+            if (VoiceDb < -100f)
             {
-                if (Time.unscaledTime < _nextReading) return _energy;
-                _nextReading = Time.unscaledTime + 0.2f;
-
-                float floor = NoiseFloor + UnityEngine.Random.Range(-0.01f, 0.01f);
-
-                // Speech is syllables and gaps: about one reading in five falls back to the room.
-                bool gap = ++_syllable % 5 == 0;
-                float voice = VoiceAtZero < 0f || gap
-                    ? 0f
-                    : VoiceAtZero + Volume / DecibelsPerEnergy + UnityEngine.Random.Range(-0.03f, 0.03f);
-
-                _energy = Mathf.Clamp01(Mathf.Max(floor, voice));
-                return _energy;
+                LevelDb = room;
             }
+            else
+            {
+                // About four syllables a second, each dipping up to 9 dB between them.
+                float dip = Mathf.Pow(0.5f + 0.5f * Mathf.Sin(2f * Mathf.PI * 3.7f * t), 2f);
+                LevelDb = Mathf.Max(room, VoiceDb - 9f * dip + UnityEngine.Random.Range(-1.5f, 1.5f));
+            }
+
+            // Speech peaks sit about 10 dB over its RMS.
+            Peak = Mathf.Min(1f, Mathf.Pow(10f, (LevelDb + 10f) / 20f));
         }
 
-        public void Begin() => _readyAt = Time.unscaledTime + 0.6f;
         public void End() { }
         public void SetVolume(int volume) => Volume = MicSettings.Clamp(volume);
-        public void Save(int volume) => Saved = volume;
+
+        public void Save(int volume, int listenerTrim)
+        {
+            Saved = volume;
+            SavedTrim = listenerTrim;
+        }
+
         public void RestoreSaved() => Volume = SavedVolume;
         public void SetHearSelf(bool hear) => HearSelf = hear;
 

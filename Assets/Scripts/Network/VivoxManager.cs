@@ -132,6 +132,10 @@ namespace Network
 
         private readonly Dictionary<string, float> _tapVolumes = new();
 
+        // What each speaker's own mic setup asked everyone to take off their voice, in dB (0 or less),
+        // read from the lobby's player data by PlayerId.
+        private readonly Dictionary<string, int> _speakerTrims = new();
+
         // How loud each remote voice is right now, measured from its tap by RemoteVoiceFilter: Vivox
         // reports AudioEnergy 0 and SpeechDetected false for every participant that has a tap.
         private readonly Dictionary<string, float> _heardEnergy = new();
@@ -151,6 +155,7 @@ namespace Network
 
             Lobby.instance.OnJoinedLobby += VivoxService_OnJoinedLobby;
             Lobby.instance.OnLeftLobby += VivoxService_OnLeftLobby;
+            Lobby.instance.OnLobbyUpdated += Lobby_OnLobbyUpdated;
 
             VoiceChatSettings.OnChanged += ApplyOutputVolume;
 
@@ -395,7 +400,7 @@ namespace Network
                 {
                     if (participant.PlayerId == playerId)
                     {
-                        participant.SetLocalVolume(volume);
+                        participant.SetLocalVolume(HeardVolume(playerId));
                     }
                 }
             }
@@ -434,7 +439,61 @@ namespace Network
                 _tapVolumes[playerId] = volume;
             }
 
-            return volume;
+            // After RemoteVoiceFilter has measured the voice: range and tiers stay the speaker's.
+            return volume * Mathf.Pow(10f, GetSpeakerTrim(playerId) / 20f);
+        }
+
+        /// <summary>
+        /// The dB (0 or less) <paramref name="playerId"/>'s own mic setup asked everyone to take off
+        /// their voice, so a mic set hot enough to hurt does not reach anyone's ears that loud.
+        /// </summary>
+        public int GetSpeakerTrim(string playerId)
+        {
+            if (string.IsNullOrEmpty(playerId)) return 0;
+
+            return _speakerTrims.TryGetValue(playerId, out int trim) ? trim : 0;
+        }
+
+        /// <summary>The volume this player chose for <paramref name="playerId"/> plus that speaker's trim, on Vivox's scale.</summary>
+        private int HeardVolume(string playerId)
+        {
+            return Mathf.Clamp(GetParticipantVolume(playerId) + GetSpeakerTrim(playerId), MIN_PARTICIPANT_VOLUME, MAX_PARTICIPANT_VOLUME);
+        }
+
+        private void Lobby_OnLobbyUpdated()
+        {
+            var lobby = lobbyManager != null ? lobbyManager.JoinedLobby : null;
+            if (lobby?.Players == null) return;
+
+            foreach (Unity.Services.Lobbies.Models.Player player in lobby.Players)
+            {
+                int trim = 0;
+
+                if (player.Data != null && player.Data.TryGetValue(Lobby.MIC_TRIM, out var data))
+                    int.TryParse(data.Value, out trim);
+
+                trim = MicSettings.ClampListenerTrim(trim);
+                if (player.Id == null || (_speakerTrims.TryGetValue(player.Id, out int known) && known == trim)) continue;
+
+                _speakerTrims[player.Id] = trim;
+
+                // The tap reads it every frame; the channel mix has to be told.
+                foreach (KeyValuePair<string, ReadOnlyCollection<VivoxParticipant>> channel in VivoxService.Instance.ActiveChannels)
+                {
+                    foreach (VivoxParticipant participant in channel.Value)
+                    {
+                        try
+                        {
+                            if (participant.IsSelf || participant.PlayerId != player.Id) continue;
+                            participant.SetLocalVolume(HeardVolume(player.Id));
+                        }
+                        catch (Exception e)
+                        {
+                            Debug.LogWarning($"Could not apply the mic trim of {player.Id}: {e.Message}");
+                        }
+                    }
+                }
+            }
         }
 
         /// <summary>
@@ -447,7 +506,7 @@ namespace Network
 
             try
             {
-                int volume = GetParticipantVolume(participant.PlayerId);
+                int volume = HeardVolume(participant.PlayerId);
                 if (volume != 0) participant.SetLocalVolume(volume);
 
                 if (IsParticipantLocallyMuted(participant.PlayerId)) participant.MutePlayerLocally();
@@ -598,6 +657,7 @@ namespace Network
 
             Lobby.instance.OnJoinedLobby -= VivoxService_OnJoinedLobby;
             Lobby.instance.OnLeftLobby -= VivoxService_OnLeftLobby;
+            Lobby.instance.OnLobbyUpdated -= Lobby_OnLobbyUpdated;
 
             VoiceChatSettings.OnChanged -= ApplyOutputVolume;
 

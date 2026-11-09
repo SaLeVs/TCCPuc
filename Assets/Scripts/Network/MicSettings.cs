@@ -17,6 +17,10 @@ namespace Network
     public static class MicSettings
     {
         private const string INPUT_VOLUME_KEY_PREFIX = "MicInputVolume_";
+        private const string LISTENER_TRIM_KEY_PREFIX = "MicListenerTrim_";
+
+        /// <summary>The most the mic setup takes off this player's voice for everyone else, in dB.</summary>
+        public const int MIN_LISTENER_TRIM = -30;
 
         /// <summary>Vivox's range, in dB, 0 being the level the device delivers.</summary>
         public const int MIN_INPUT_VOLUME = -50;
@@ -112,6 +116,32 @@ namespace Network
                 Debug.LogWarning($"Could not set the Vivox input volume: {e.Message}");
             }
         }
+
+        /// <summary>
+        /// How much quieter, in dB (0 or less), everyone else plays this player's voice on the device in
+        /// use: what the mic setup found would hurt their ears at the level the player chose. It is
+        /// taken off where the voice is heard, not from the mic, so the player's own level — and where
+        /// their whisper, talk and shout land — stays as they set it. Published to the lobby.
+        /// </summary>
+        public static int CurrentListenerTrim => GetListenerTrim(CurrentDeviceName);
+
+        public static int GetListenerTrim(string deviceName)
+        {
+            if (string.IsNullOrEmpty(deviceName)) return 0;
+
+            return ClampListenerTrim(PlayerPrefs.GetInt(LISTENER_TRIM_KEY_PREFIX + deviceName, 0));
+        }
+
+        /// <summary>Not written to disk here either: PlayerPrefs.Save is the caller's.</summary>
+        public static void SetCurrentListenerTrim(int trim)
+        {
+            string deviceName = CurrentDeviceName;
+            if (deviceName == null) return;
+
+            PlayerPrefs.SetInt(LISTENER_TRIM_KEY_PREFIX + deviceName, ClampListenerTrim(trim));
+        }
+
+        public static int ClampListenerTrim(int trim) => Mathf.Clamp(trim, MIN_LISTENER_TRIM, 0);
 
         public static int Clamp(int volume) => Mathf.Clamp(volume, MIN_INPUT_VOLUME, MAX_INPUT_VOLUME);
     }

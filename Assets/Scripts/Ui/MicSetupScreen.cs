@@ -1,11 +1,9 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using Components.Sound;
 using Network;
 using Systems;
 using TMPro;
-using Unity.Services.Vivox;
 using UnityEngine;
 using UnityEngine.Audio;
 using UnityEngine.UI;
@@ -13,47 +11,35 @@ using UnityEngine.UI;
 namespace Ui
 {
     /// <summary>
-    /// The sound check sheet that comes before the main menu the first time on a microphone: the
-    /// player says a sentence normally, whispers one and shouts one, and their mic level is set so the
-    /// three land where the game tells them apart — VoiceProfile's speech and shout thresholds. Then
-    /// they can talk freely and see what the game understands, nudge the level and sign.
+    /// The sound check sheet that comes before the main menu the first time on a microphone. One page,
+    /// the microphone open the whole time: the player talks, whispers and shouts, watches the bar the
+    /// game reads their voice on, and moves the mic level until each lands in its colour. Signing
+    /// keeps the level, per microphone (MicSettings), and applies it everywhere (VivoxManager).
     ///
-    /// <para>The level is saved per microphone by MicSettings and applied everywhere by VivoxManager;
-    /// the audio device panel's slider adjusts it afterwards. Vivox's gain control stays off, so this
-    /// is all that keeps a hot mic from deafening everyone.</para>
+    /// <para>The bar reads the microphone itself every frame — Vivox only reports five times a second,
+    /// through its noise suppression — at the level Vivox would send, on the game's AudioEnergy
+    /// scale. While the mic test's echo channel is up, Vivox's own reading anchors that scale.</para>
     ///
-    /// <para>Measured on Vivox's own AudioEnergy — the signal every threshold in the game reads — in
-    /// the mic test's echo channel, with Vivox's output muted: hearing each sentence come back half a
-    /// second late makes it hard to read the next one. The music is muted too, for speakers.</para>
+    /// <para>On signing, the loudest of what the player did at the chosen level is checked: past a
+    /// ceiling over the shout threshold it is only volume, nothing the game reads, so the excess is
+    /// published as a trim that everyone else takes off this voice where they hear it
+    /// (VivoxManager.GetSpeakerTrim). The player's own level stays, and with it where their whisper,
+    /// talk and shout land.</para>
     /// </summary>
     public class MicSetupScreen : MonoBehaviour
     {
-        [Serializable]
-        public class StepRow
-        {
-            public TextMeshProUGUI title;
-            public TextMeshProUGUI phrase;
-            public TextMeshProUGUI mark;
-        }
-
         private enum Phase
         {
-            Connecting,
-            Intro,
-            Measuring,
-            Between,
-            Review,
+            Adjust,
+            Done,
             NoMicrophone
         }
 
-        private const int TALK = 0;
-        private const int WHISPER = 1;
-        private const int SHOUT = 2;
-
-        // What Vivox lists besides the real microphones; they resolve to one of them.
-        private static readonly string[] DefaultDeviceNames = { "Default System Device", "Default Communication Device" };
-
-        private static readonly string[] StepManners = { "em voz normal", "sussurrando", "gritando" };
+        /// <summary>
+        /// For testing in the Editor: set before the scene starts and the sheet reads this instead of
+        /// the microphone and Vivox — a SimulatedMicSetupInput runs it without anyone talking.
+        /// </summary>
+        public static IMicSetupInput InputOverride;
 
         [SerializeField] private VoiceProfileSO voiceProfile;
 
@@ -61,100 +47,106 @@ namespace Ui
         [SerializeField] private AudioMixer musicMixer;
 
         [Header("Sheet")]
-        [SerializeField] private TextMeshProUGUI deviceText;
-        [SerializeField] private Button changeDeviceButton;
-
-        [Tooltip("Talk, whisper, shout — in the order they are asked for.")]
-        [SerializeField] private StepRow[] steps = new StepRow[3];
-
         [SerializeField] private TextMeshProUGUI statusText;
-        [SerializeField] private GameObject volumeRow;
-        [SerializeField] private TextMeshProUGUI volumeText;
-        [SerializeField] private Button volumeDownButton;
-        [SerializeField] private Button volumeUpButton;
-        [SerializeField] private Button mainButton;
-        [SerializeField] private TextMeshProUGUI mainButtonText;
-        [SerializeField] private Button redoButton;
-        [SerializeField] private Button skipButton;
 
-        [Header("Meter")]
+        [Tooltip("One row of the microphone list, kept inactive: the sheet copies it for each microphone.")]
+        [SerializeField] private Button deviceRowTemplate;
+
+        [SerializeField, Min(1)] private int maxDeviceRows = 4;
+
+        [Header("The bar")]
         [Tooltip("Stretched from the meter's left edge to the current level, on the 0..1 energy scale.")]
         [SerializeField] private RectTransform meterFill;
+
         [SerializeField] private RectTransform whisperZone;
         [SerializeField] private RectTransform speechZone;
         [SerializeField] private RectTransform shoutZone;
-        [SerializeField] private TextMeshProUGUI levelText;
 
-        [Header("Ink")]
-        [SerializeField] private Color inkColor = new(0.196f, 0.196f, 0.196f, 1f);
-        [SerializeField] private Color activeColor = new(0.62f, 0.12f, 0.12f, 1f);
-        [SerializeField] private Color doneColor = new(0.24f, 0.45f, 0.25f, 1f);
-        [SerializeField] private Color whisperColor = new(0.30f, 0.40f, 0.55f, 1f);
-        [SerializeField] private Color speechColor = new(0.24f, 0.45f, 0.25f, 1f);
-        [SerializeField] private Color shoutColor = new(0.62f, 0.12f, 0.12f, 1f);
-        [SerializeField] private Color silenceColor = new(0.45f, 0.45f, 0.45f, 1f);
+        [Tooltip("The loudest moment of the last second or so.")]
+        [SerializeField] private RectTransform peakMark;
 
-        [Header("Measuring")]
-        [Tooltip("Vivox reports AudioEnergy five times a second; sampling faster only repeats it.")]
-        [SerializeField, Min(0.05f)] private float sampleInterval = 0.2f;
+        [Tooltip("Where the ceiling for other people's ears sits.")]
+        [SerializeField] private RectTransform ceilingMark;
 
-        [Tooltip("How far above the room's noise floor, in energy, a sample has to be to count as voice.")]
-        [SerializeField, Range(0.01f, 0.3f)] private float voiceMargin = 0.06f;
-
-        [Tooltip("Samples of voice each step waits for: talk, whisper, shout. At five a second, 12 is " +
-                 "2,4 s of talking; a shout is short.")]
-        [SerializeField] private int[] voiceSamplesPerStep = { 12, 10, 5 };
-
-        [Tooltip("A whisper may never rise above the noise: after this many seconds it is taken as it is.")]
-        [SerializeField, Min(1f)] private float whisperTimeoutSeconds = 10f;
-
-        [Tooltip("Seconds without any voice before the sheet suggests checking the microphone.")]
-        [SerializeField, Min(1f)] private float noVoiceHintSeconds = 8f;
-
-        [Tooltip("How far, in energy, normal talking may land from the middle of the speech band to " +
-                 "make room for the whisper and the shout. 0,05 is about 6 dB.")]
-        [SerializeField, Range(0f, 0.2f)] private float talkTolerance = 0.05f;
-
-        [Tooltip("An adjustment at least this big, in dB, is checked with another round: a mic that " +
-                 "far off may have been clipping, and the first estimate is only that.")]
-        [SerializeField, Min(1f)] private float recheckDecibels = 10f;
-
-        [Tooltip("Energy at which a mic counts as clipping.")]
-        [SerializeField, Range(0.5f, 1f)] private float clippingEnergy = 0.8f;
-
-        [SerializeField, Min(1)] private int maxRounds = 3;
+        [Header("Mic level")]
+        [SerializeField] private TextMeshProUGUI volumeText;
+        [SerializeField] private Slider volumeSlider;
+        [SerializeField] private Button volumeDownButton;
+        [SerializeField] private Button volumeUpButton;
+        [SerializeField] private int sliderMin = -30;
+        [SerializeField] private int sliderMax = 30;
 
         [Tooltip("dB per press of the - and + buttons.")]
         [SerializeField, Min(1)] private int volumeStep = 2;
 
-        [Tooltip("Seconds the loudest recent level stays on the label, so a shout can be read.")]
-        [SerializeField, Min(0f)] private float labelHoldSeconds = 1f;
+        [Header("Buttons")]
+        [SerializeField] private Button mainButton;
+        [SerializeField] private TextMeshProUGUI mainButtonText;
+        [SerializeField] private Button hearSelfButton;
+        [SerializeField] private TextMeshProUGUI hearSelfText;
+        [SerializeField] private Button skipButton;
 
-        private VivoxManager _vivox;
-        private Phase _phase = Phase.Connecting;
-        private int _step;
-        private int _round;
-        private float _phaseTime;
-        private float _betweenSeconds;
-        private float _nextSampleTime;
+        [Header("Ink")]
+        [SerializeField] private Color inkColor = new(0.196f, 0.196f, 0.196f, 1f);
+        [SerializeField] private Color activeColor = new(0.62f, 0.12f, 0.12f, 1f);
+        [SerializeField] private Color whisperColor = new(0.30f, 0.40f, 0.55f, 1f);
+        [SerializeField] private Color speechColor = new(0.24f, 0.45f, 0.25f, 1f);
+        [SerializeField] private Color shoutColor = new(0.62f, 0.12f, 0.12f, 1f);
 
-        // The last ten seconds of energy, for the room's noise floor: there are pauses between words.
-        private readonly List<float> _recent = new();
-        private readonly List<float> _stepVoice = new();
-        private readonly float[] _levels = new float[3];
+        [Header("Meter")]
+        [Tooltip("Seconds of sound each reading of the microphone averages: about a syllable's attack.")]
+        [SerializeField, Range(0.01f, 0.2f)] private float windowSeconds = 0.05f;
 
+        [Tooltip("How fast the bar falls back, in seconds. It rises at once.")]
+        [SerializeField, Min(0.01f)] private float releaseSeconds = 0.12f;
+
+        [SerializeField, Min(0f)] private float peakHoldSeconds = 1.2f;
+
+        [Tooltip("A reading this many dB over the room's noise counts as voice.")]
+        [SerializeField, Min(1f)] private float voiceMarginDb = 8f;
+
+        [Header("Other people's ears")]
+        [Tooltip("The ceiling, in energy over the shout threshold: 0,10 is about 12 dB. A shout is a " +
+                 "shout from the threshold up, so past this it is only volume that hurts.")]
+        [SerializeField, Range(0f, 0.3f)] private float ceilingOverShout = 0.10f;
+
+        [Tooltip("Which of the loud readings has to stay under the ceiling: the 98th percentile ignores " +
+                 "a single knock on the mic.")]
+        [SerializeField, Range(0.5f, 1f)] private float loudestPercentile = 0.98f;
+
+        private IMicSetupInput _input;
+        private Phase _phase = Phase.Adjust;
         private int _volume;
-        private int _startVolume;
-        private int _measuredAt;
-        private bool _mutedOutput;
+        private int _trim;
+        private bool _hearSelf = true;
+        private string _deviceName;
         private bool _released;
+
+        private float _decibelsPerEnergy;
+        private float _energyAtZeroDb;
+
+        // Vivox's reading minus the microphone's, in dB: where the bar's scale meets the game's.
+        private float _offsetDb;
+        private float _loggedOffsetDb;
+        private readonly List<float> _offsetReadings = new();
+
+        // Every 50 ms: the last ten seconds of levels, for the room's noise; and every reading of
+        // voice since the sheet opened, before the mic level, for the check on signing.
+        private const float TICK_SECONDS = 0.05f;
+        private float _nextTick;
+        private readonly List<float> _recentDb = new();
+        private readonly List<float> _voiceDb = new();
+        private float _lastClipTime = -100f;
+        private float _lastOverCeilingTime = -100f;
+
+        private float _shown;
+        private float _peak;
+        private float _peakTime;
         private float _previousMusicVolume;
         private bool _hasPreviousMusicVolume;
+        private readonly List<Button> _deviceRows = new();
 
-        private float _latestEnergy;
-        private float _shownEnergy;
-        private float _labelEnergy;
-        private float _labelUntil;
+        private float Ceiling => voiceProfile.ShoutEnergy + ceilingOverShout;
 
 
         private void Start()
@@ -162,291 +154,208 @@ namespace Ui
             Cursor.lockState = CursorLockMode.None;
             Cursor.visible = true;
 
-            changeDeviceButton.onClick.AddListener(ChangeDevice);
-            volumeDownButton.onClick.AddListener(() => NudgeVolume(-volumeStep));
-            volumeUpButton.onClick.AddListener(() => NudgeVolume(volumeStep));
+            // The VoiceProfile maps dB to energy on a straight line: one dB moves it by this much.
+            _energyAtZeroDb = voiceProfile.EnergyFromHeardLevel(0f);
+            float perDecibel = _energyAtZeroDb - voiceProfile.EnergyFromHeardLevel(-1f);
+            _decibelsPerEnergy = perDecibel > 0f ? 1f / perDecibel : 118f;
+
             mainButton.onClick.AddListener(OnMainButton);
-            redoButton.onClick.AddListener(StartRounds);
             skipButton.onClick.AddListener(Skip);
+            hearSelfButton.onClick.AddListener(ToggleHearSelf);
+            volumeSlider.wholeNumbers = true;
+            volumeSlider.minValue = sliderMin;
+            volumeSlider.maxValue = sliderMax;
+            volumeSlider.onValueChanged.AddListener(value => SetVolume(Mathf.RoundToInt(value)));
+            volumeDownButton.onClick.AddListener(() => volumeSlider.value -= volumeStep);
+            volumeUpButton.onClick.AddListener(() => volumeSlider.value += volumeStep);
+            deviceRowTemplate.gameObject.SetActive(false);
 
             PlaceZones();
             MuteMusic();
 
             // Found rather than through VivoxManager.instance, which logs an error when the scene is
             // played on its own, without the network bootstrap.
-            _vivox = FindFirstObjectByType<VivoxManager>();
+            _input = InputOverride ?? new VivoxMicSetupInput(FindFirstObjectByType<VivoxManager>(), windowSeconds);
 
-            if (_vivox == null || VivoxService.Instance.InitializationState != VivoxInitializationState.Initialized
-                               || MicSettings.CurrentDeviceName == null)
+            if (!_input.IsAvailable)
             {
                 EnterNoMicrophone();
                 return;
             }
 
-            VivoxService.Instance.EffectiveInputDeviceChanged += VivoxService_OnEffectiveInputDeviceChanged;
-
-            if (!VivoxService.Instance.IsOutputDeviceMuted)
-            {
-                VivoxService.Instance.MuteOutputDevice();
-                _mutedOutput = true;
-            }
-
-            _vivox.EnterTestVoiceChannel();
+            _input.DevicesChanged += Input_OnDevicesChanged;
+            _input.Begin();
+            _input.SetHearSelf(_hearSelf);
 
             // From what this microphone already has, when the sheet is opened again to redo it.
-            _volume = MicSettings.CurrentInputVolume;
-            MicSettings.ApplyVolume(_volume);
-            RefreshDevice();
-            SetPhase(Phase.Connecting);
+            _deviceName = _input.CurrentDevice;
+            SetVolume(_input.SavedVolume);
+            BuildDeviceList();
+            RefreshHearSelf();
+            SetPhase(Phase.Adjust);
         }
 
         private void Update()
         {
-            _phaseTime += Time.unscaledDeltaTime;
+            if (_phase == Phase.NoMicrophone) return;
 
-            if (_phase == Phase.Connecting && _vivox.IsInMicTest)
+            _input.Tick();
+
+            if (Time.unscaledTime >= _nextTick)
             {
-                SetPhase(Phase.Intro);
+                _nextTick = Time.unscaledTime + TICK_SECONDS;
+                Record(_input.LevelDb);
             }
 
-            if (_phase is not (Phase.Connecting or Phase.NoMicrophone) && Time.unscaledTime >= _nextSampleTime)
-            {
-                _nextSampleTime = Time.unscaledTime + sampleInterval;
-                Sample(_vivox.GetSelfAudioEnergy());
-            }
+            UpdateMeter(Mathf.Clamp01(Energy(_input.LevelDb)));
 
-            if (_phase == Phase.Between && _phaseTime >= _betweenSeconds)
-            {
-                BeginStep(_step + 1);
-            }
-
-            UpdateMeter();
+            if (_phase == Phase.Adjust) RefreshHint();
         }
 
-        private void Sample(float energy)
+        /// <summary>The game's energy for a microphone level, at the mic level now on. Unclamped.</summary>
+        private float Energy(float levelDb) => _energyAtZeroDb + (levelDb + _volume + _offsetDb) / _decibelsPerEnergy;
+
+        private void Record(float levelDb)
         {
-            _latestEnergy = energy;
+            _recentDb.Add(levelDb);
+            if (_recentDb.Count > 200) _recentDb.RemoveAt(0);
 
-            _recent.Add(energy);
-            if (_recent.Count > 50) _recent.RemoveAt(0);
+            if (_input.Peak >= 0.98f) _lastClipTime = Time.unscaledTime;
 
-            if (_phase != Phase.Measuring) return;
+            if (levelDb < NoiseFloorDb() + voiceMarginDb) return;
 
-            if (energy >= NoiseFloor() + voiceMargin) _stepVoice.Add(energy);
+            _voiceDb.Add(levelDb);
+            if (_voiceDb.Count > 3000) _voiceDb.RemoveAt(0);
 
-            int needed = voiceSamplesPerStep[_step];
-            steps[_step].mark.SetText(Mathf.Min(99, Mathf.RoundToInt(100f * _stepVoice.Count / needed)) + "%");
+            if (Energy(levelDb) > Ceiling) _lastOverCeilingTime = Time.unscaledTime;
 
-            if (_stepVoice.Count >= needed || (_step == WHISPER && _phaseTime >= whisperTimeoutSeconds))
-            {
-                FinishStep();
-            }
-            else if (_stepVoice.Count == 0 && _phaseTime >= noVoiceHintSeconds)
-            {
-                statusText.SetText("Não estou te ouvindo. Confira se o microfone certo está escolhido lá em cima e fale mais perto dele.");
-            }
+            AnchorToVivox();
         }
 
-        private float NoiseFloor() => _recent.Count == 0 ? 0f : Percentile(_recent, 0.1f);
+        private float NoiseFloorDb() => _recentDb.Count < 10 ? -90f : Percentile(_recentDb, 0.1f);
+
+        /// <summary>
+        /// Lines the bar up with what the game reads: whenever Vivox reports voice, the gap between its
+        /// AudioEnergy and the microphone's level over the same moment, as a median of the last forty.
+        /// </summary>
+        private void AnchorToVivox()
+        {
+            float game = _input.GameEnergy;
+            if (game < 0.12f || _recentDb.Count < 4) return;
+
+            // Vivox reads about every 200 ms: the same stretch of microphone.
+            float sum = 0f;
+            for (int i = _recentDb.Count - 4; i < _recentDb.Count; i++) sum += _recentDb[i];
+            float microphone = _energyAtZeroDb + (sum / 4f + _volume) / _decibelsPerEnergy;
+            if (microphone < 0.12f) return;
+
+            _offsetReadings.Add((game - microphone) * _decibelsPerEnergy);
+            if (_offsetReadings.Count > 40) _offsetReadings.RemoveAt(0);
+            if (_offsetReadings.Count < 8) return;
+
+            _offsetDb = Mathf.Clamp(Mathf.Lerp(_offsetDb, Percentile(_offsetReadings, 0.5f), 0.25f), -30f, 30f);
+
+            if (Mathf.Abs(_offsetDb - _loggedOffsetDb) >= 3f)
+            {
+                _loggedOffsetDb = _offsetDb;
+                Debug.Log($"[MicSetup] Microphone vs Vivox: {_offsetDb:+0.0;-0.0} dB over {_offsetReadings.Count} readings.");
+            }
+        }
 
         private void OnMainButton()
         {
             switch (_phase)
             {
-                case Phase.Intro:
-                    StartRounds();
+                case Phase.Adjust:
+                    Finish();
                     break;
-                case Phase.Review:
-                    MicSettings.SetCurrentInputVolume(_volume);
-                    PlayerPrefs.Save();
-                    Debug.Log($"[MicSetup] Saved {_volume} dB for \"{MicSettings.CurrentDeviceName}\".");
-                    Leave();
-                    break;
+                case Phase.Done:
                 case Phase.NoMicrophone:
                     Leave();
                     break;
             }
         }
 
-        private void StartRounds()
+        /// <summary>
+        /// Keeps the level and checks the loudest of what the player did at it: past the ceiling it
+        /// would only hurt whoever listens, so that much comes off for them, not for the player.
+        /// </summary>
+        private void Finish()
         {
-            _round = 1;
-            _startVolume = _volume;
-            _measuredAt = _volume;
-            BeginStep(TALK);
-        }
+            float loudest = float.NaN;
+            _trim = 0;
 
-        private void BeginStep(int step)
-        {
-            _step = step;
-            _stepVoice.Clear();
-
-            for (int i = 0; i < steps.Length; i++)
+            if (_voiceDb.Count >= 20)
             {
-                if (i >= step)
-                {
-                    steps[i].mark.SetText(string.Empty);
-                    steps[i].mark.color = activeColor;
-                }
+                var energies = new List<float>(_voiceDb.Count);
+                foreach (float levelDb in _voiceDb) energies.Add(Energy(levelDb));
 
-                steps[i].title.color = i == step ? activeColor : inkColor;
+                loudest = Percentile(energies, loudestPercentile);
+                if (loudest > Ceiling) _trim = MicSettings.ClampListenerTrim(Mathf.FloorToInt((Ceiling - loudest) * _decibelsPerEnergy));
             }
 
-            statusText.SetText($"Leia a frase {step + 1} {StepManners[step]}.");
-            SetPhase(Phase.Measuring);
-        }
+            _input.Save(_volume, _trim);
 
-        private void FinishStep()
-        {
-            _levels[_step] = _step switch
+            Debug.Log($"[MicSetup] Saved {FormatDb(_volume)} for \"{_input.CurrentDevice}\": loudest {loudest:0.00} " +
+                      $"over {_voiceDb.Count} readings of voice (ceiling {Ceiling:0.00}) -> listeners {FormatDb(_trim)}; " +
+                      $"microphone vs Vivox {_offsetDb:+0.0;-0.0} dB ({_offsetReadings.Count} readings).");
+
+            if (_trim == 0)
             {
-                // A whisper that never rose above the room is as quiet as the room.
-                WHISPER => _stepVoice.Count >= 3 ? Percentile(_stepVoice, 0.75f) : NoiseFloor(),
-                SHOUT => Percentile(_stepVoice, 0.6f),
-                _ => Percentile(_stepVoice, 0.5f)
-            };
-
-            steps[_step].mark.SetText("OK");
-            steps[_step].mark.color = doneColor;
-            steps[_step].title.color = inkColor;
-
-            if (_step < SHOUT)
-            {
-                statusText.SetText("Boa! Agora a próxima.");
-                WaitThenContinue(1.2f);
+                Leave();
                 return;
             }
 
-            Fit();
+            SetPhase(Phase.Done);
         }
 
-        /// <summary>
-        /// One mic level moves the whisper, the talk and the shout together, so all it can do is slide
-        /// the player's own range along the scale. It puts normal talking in the middle of the speech
-        /// band — the loudness everyone hears alike — and, within a few dB of that, keeps the whisper
-        /// under the speech threshold and the shout over the shout threshold, as far from both as it
-        /// can. When the player's whisper and shout are too close for both, the whisper wins: staying
-        /// unheard by the monster is the mechanic, and a shout in the game is usually louder than one
-        /// read off a sheet.
-        /// </summary>
-        private void Fit()
+        // ---- Microphones ----
+
+        private void BuildDeviceList()
         {
-            float whisper = _levels[WHISPER];
-            float talk = _levels[TALK];
-            float shout = _levels[SHOUT];
-            float speech = voiceProfile.SpeechEnergy;
-            float shoutThreshold = voiceProfile.ShoutEnergy;
+            foreach (Button row in _deviceRows) Destroy(row.gameObject);
+            _deviceRows.Clear();
 
-            float byTalk = (speech + shoutThreshold) * 0.5f - talk;
-            float whisperLimit = speech - whisper;
-            float shoutLimit = shoutThreshold - shout;
+            List<string> devices = new(_input.Devices);
+            string current = _input.CurrentDevice;
 
-            float shift = shoutLimit < whisperLimit
-                ? (whisperLimit + shoutLimit) * 0.5f
-                : whisperLimit - 0.01f;
-
-            shift = Mathf.Clamp(shift, byTalk - talkTolerance, byTalk + talkTolerance);
-
-            int volume = Mathf.Clamp(Mathf.RoundToInt(_measuredAt + shift * DecibelsPerEnergy()),
-                MicSettings.MIN_INPUT_VOLUME, Mathf.Max(MicSettings.MAX_AUTOMATIC_BOOST, _measuredAt));
-
-            Debug.Log($"[MicSetup] Round {_round} at {_measuredAt} dB on \"{MicSettings.CurrentDeviceName}\": " +
-                      $"whisper {whisper:0.000}, talk {talk:0.000}, shout {shout:0.000}, floor {NoiseFloor():0.000} " +
-                      $"-> {volume} dB.");
-
-            int change = volume - _measuredAt;
-            bool clipping = Mathf.Max(talk, shout) >= clippingEnergy;
-
-            _volume = volume;
-            MicSettings.ApplyVolume(volume);
-
-            if ((Mathf.Abs(change) >= recheckDecibels || (clipping && change < 0)) && _round < maxRounds)
+            // Past the rows there is room for, the one in use still shows.
+            if (devices.Count > maxDeviceRows)
             {
-                _round++;
-                _measuredAt = volume;
-
-                statusText.SetText(change < 0
-                    ? $"Seu microfone estava muito alto: baixei {-change} dB. Vamos repetir as frases para conferir."
-                    : $"Seu microfone estava baixo: subi {change} dB. Vamos repetir as frases para conferir.");
-
-                _step = TALK - 1;
-                WaitThenContinue(3f);
-                return;
+                devices.Remove(current);
+                devices = devices.GetRange(0, maxDeviceRows - 1);
+                if (current != null) devices.Insert(0, current);
             }
 
-            EnterReview(whisper + (float)change / DecibelsPerEnergy(), talk + (float)change / DecibelsPerEnergy(),
-                shout + (float)change / DecibelsPerEnergy());
+            Transform parent = deviceRowTemplate.transform.parent;
+            var template = (RectTransform)deviceRowTemplate.transform;
+
+            for (int i = 0; i < devices.Count; i++)
+            {
+                string device = devices[i];
+                bool inUse = device == current;
+
+                Button row = Instantiate(deviceRowTemplate, parent);
+                row.gameObject.SetActive(true);
+                row.name = $"DeviceRow_{i}";
+                ((RectTransform)row.transform).anchoredPosition = template.anchoredPosition - new Vector2(0f, template.rect.height * i);
+
+                var label = row.GetComponentInChildren<TextMeshProUGUI>();
+                label.SetText(inUse ? $"•  {device}  <size=75%>(EM USO)</size>" : $"•  <u>{device}</u>");
+                label.color = inUse ? activeColor : inkColor;
+
+                row.interactable = !inUse;
+                row.onClick.AddListener(() => SelectDevice(device));
+                _deviceRows.Add(row);
+            }
         }
 
-        /// <summary>Judges the three levels as they will come out at the level just set.</summary>
-        private void EnterReview(float whisper, float talk, float shout)
-        {
-            float speech = voiceProfile.SpeechEnergy;
-            float shoutThreshold = voiceProfile.ShoutEnergy;
-
-            bool whisperOk = whisper < speech;
-            bool talkOk = talk >= speech && talk < shoutThreshold;
-            bool shoutOk = shout >= shoutThreshold;
-
-            Mark(TALK, talkOk);
-            Mark(WHISPER, whisperOk);
-            Mark(SHOUT, shoutOk);
-
-            string advice;
-
-            if (!talkOk && talk < speech && _volume >= MicSettings.MAX_AUTOMATIC_BOOST)
-                advice = "Seu microfone está baixo mesmo no máximo. Aumente o volume de entrada dele no Windows (Configurações > Som).";
-            else if (!talkOk && talk >= shoutThreshold && _volume <= MicSettings.MIN_INPUT_VOLUME)
-                advice = "Seu microfone está alto mesmo no mínimo. Desligue o \"Aumento do microfone\" no Windows (Configurações > Som).";
-            else if (!shoutOk)
-                advice = "Seu grito ficou perto da fala: no jogo, grite com vontade para ser ouvido de longe.";
-            else if (!whisperOk)
-                advice = "Seu sussurro ficou perto da fala: no jogo, sussurre bem baixinho para o monstro não ouvir.";
-            else
-                advice = "Tudo certo! Teste à vontade: o quadro mostra o que o jogo entende.";
-
-            int change = _volume - _startVolume;
-            string adjusted = change == 0 ? "Volume mantido." : $"Ajustei o microfone em {FormatDb(change)}.";
-            statusText.SetText($"{adjusted} {advice}");
-
-            SetPhase(Phase.Review);
-        }
-
-        private void Mark(int step, bool ok)
-        {
-            steps[step].mark.SetText(ok ? "OK" : "?");
-            steps[step].mark.color = ok ? doneColor : activeColor;
-            steps[step].title.color = inkColor;
-        }
-
-        private void WaitThenContinue(float seconds)
-        {
-            SetPhase(Phase.Between);
-            _betweenSeconds = seconds;
-        }
-
-        private void NudgeVolume(int delta)
-        {
-            _volume = Mathf.Clamp(_volume + delta, MicSettings.MIN_INPUT_VOLUME, MicSettings.MAX_INPUT_VOLUME);
-            MicSettings.ApplyVolume(_volume);
-            RefreshVolume();
-        }
-
-        /// <summary>
-        /// Steps to the next microphone Vivox lists. Each keeps its own level, so the sheet starts over
-        /// on the new one.
-        /// </summary>
-        private async void ChangeDevice()
+        private async void SelectDevice(string device)
         {
             try
             {
-                List<VivoxInputDevice> devices = RealDevices();
-                if (devices.Count < 2) return;
-
-                int index = devices.FindIndex(device => device.DeviceName == MicSettings.CurrentDeviceName);
-
-                changeDeviceButton.interactable = false;
-                await VivoxService.Instance.SetActiveInputDeviceAsync(devices[(index + 1) % devices.Count]);
+                foreach (Button row in _deviceRows) row.interactable = false;
+                await _input.SelectDevice(device);
             }
             catch (Exception e)
             {
@@ -454,128 +363,140 @@ namespace Ui
             }
             finally
             {
-                if (changeDeviceButton != null)
-                {
-                    changeDeviceButton.interactable = true;
-                    RefreshDevice();
-                }
+                if (this != null) BuildDeviceList();
             }
         }
 
-        private static List<VivoxInputDevice> RealDevices()
+        private void Input_OnDevicesChanged()
         {
-            return VivoxService.Instance.AvailableInputDevices
-                .Where(device => !DefaultDeviceNames.Contains(device.DeviceName))
-                .ToList();
+            if (_input.CurrentDevice == null)
+            {
+                EnterNoMicrophone();
+                return;
+            }
+
+            if (_input.CurrentDevice != _deviceName || _phase == Phase.NoMicrophone)
+            {
+                volumeText.gameObject.SetActive(true);
+                volumeSlider.transform.parent.gameObject.SetActive(true);
+
+                // Each microphone keeps its own level, and nothing heard on the last one counts.
+                _deviceName = _input.CurrentDevice;
+                _recentDb.Clear();
+                _voiceDb.Clear();
+                _offsetReadings.Clear();
+                _offsetDb = 0f;
+                SetVolume(_input.SavedVolume);
+                SetPhase(Phase.Adjust);
+            }
+
+            BuildDeviceList();
         }
 
-        private void VivoxService_OnEffectiveInputDeviceChanged()
-        {
-            // VivoxManager has just put this microphone's own level on.
-            _volume = MicSettings.CurrentInputVolume;
-            _recent.Clear();
-            RefreshDevice();
+        // ---- Level, hearing, phases ----
 
-            if (_phase is Phase.Measuring or Phase.Between or Phase.Review) SetPhase(Phase.Intro);
+        private void SetVolume(int volume)
+        {
+            _volume = MicSettings.Clamp(volume);
+            _input?.SetVolume(_volume);
+
+            volumeSlider.SetValueWithoutNotify(_volume);
+            volumeText.SetText($"NÍVEL DO MICROFONE: {FormatDb(_volume)}");
+
+            // A new level is a new check.
+            if (_phase == Phase.Done) SetPhase(Phase.Adjust);
         }
 
-        private void RefreshDevice()
+        private void ToggleHearSelf()
         {
-            deviceText.SetText($"MICROFONE: <size=80%>{MicSettings.CurrentDeviceName ?? "nenhum"}</size>");
-            changeDeviceButton.gameObject.SetActive(RealDevices().Count > 1);
+            _hearSelf = !_hearSelf;
+            _input?.SetHearSelf(_hearSelf);
+            RefreshHearSelf();
         }
 
-        private void RefreshVolume()
+        private void RefreshHearSelf()
         {
-            volumeText.SetText($"AJUSTE DO MICROFONE: {FormatDb(_volume)}");
+            hearSelfText.SetText(_hearSelf ? "<u>OUVIR MINHA VOZ: SIM</u>" : "<u>OUVIR MINHA VOZ: NÃO</u>");
         }
 
         private void SetPhase(Phase phase)
         {
             _phase = phase;
-            _phaseTime = 0f;
 
-            bool review = phase == Phase.Review;
+            mainButton.interactable = true;
+            mainButtonText.SetText(phase == Phase.Adjust ? "PRONTO" : "CONTINUAR");
+            skipButton.gameObject.SetActive(phase != Phase.NoMicrophone);
+            hearSelfButton.gameObject.SetActive(phase != Phase.NoMicrophone);
 
-            volumeRow.SetActive(review);
-            redoButton.gameObject.SetActive(review);
-            mainButton.interactable = phase is Phase.Intro or Phase.Review or Phase.NoMicrophone;
-
-            mainButtonText.SetText(phase switch
+            if (phase == Phase.Done)
             {
-                Phase.Connecting => "LIGANDO O MICROFONE...",
-                Phase.Measuring or Phase.Between => "OUVINDO...",
-                Phase.Review => "ASSINAR E CONTINUAR",
-                Phase.NoMicrophone => "CONTINUAR",
-                _ => "COMEÇAR"
-            });
-
-            switch (phase)
-            {
-                case Phase.Connecting:
-                    statusText.SetText("Ligando o microfone...");
-                    break;
-                case Phase.Intro:
-                    foreach (StepRow row in steps)
-                    {
-                        row.mark.SetText(string.Empty);
-                        row.title.color = inkColor;
-                    }
-
-                    statusText.SetText("Fale qualquer coisa: a barra tem que se mexer. Depois aperte COMEÇAR e leia as três frases.");
-                    break;
-                case Phase.Review:
-                    RefreshVolume();
-                    break;
+                SetStatus($"Seu grito passou do LIMITE. Para não estourar o ouvido de ninguém, quem te ouvir vai te " +
+                          $"ouvir <nobr>{-_trim} dB</nobr> mais baixo. Para você e para o jogo nada muda: cada nível " +
+                          "continua onde está na barra.", activeColor);
             }
+        }
+
+        /// <summary>What the sheet says while the player adjusts, from what it hears right now.</summary>
+        private void RefreshHint()
+        {
+            float now = Time.unscaledTime;
+
+            if (now - _lastClipTime < 1.5f)
+                SetStatus("Seu microfone está saturando antes do jogo: baixe o volume de entrada dele no Windows (Configurações > Som).", activeColor);
+            else if (now - _lastOverCeilingTime < 1.5f)
+                SetStatus("Isso passou do LIMITE: estouraria o ouvido de quem te ouve. Quando você terminar, eu abaixo para eles.", activeColor);
+            else
+                SetStatus(string.Empty, inkColor);
+        }
+
+        private void SetStatus(string text, Color color)
+        {
+            statusText.SetText(text);
+            statusText.color = color;
         }
 
         private void EnterNoMicrophone()
         {
-            deviceText.SetText("MICROFONE: <size=80%>nenhum encontrado</size>");
-            changeDeviceButton.gameObject.SetActive(false);
             SetPhase(Phase.NoMicrophone);
-            statusText.SetText("Não encontrei nenhum microfone. Dá para jogar assim e ajustar depois em Opções > Microfone.");
+            meterFill.anchorMax = new Vector2(0f, meterFill.anchorMax.y);
+            peakMark.gameObject.SetActive(false);
+
+            // Nothing to set a level for: the line, its buttons and its labels go.
+            volumeText.gameObject.SetActive(false);
+            volumeSlider.transform.parent.gameObject.SetActive(false);
+            SetStatus("Não encontrei nenhum microfone. Dá para jogar assim e ajustar depois em Opções > Microfone.", inkColor);
         }
 
-        private void UpdateMeter()
+        // ---- The bar ----
+
+        private void UpdateMeter(float energy)
         {
-            // Vivox updates five times a second: the bar glides between them instead of jumping.
-            _shownEnergy = Mathf.Lerp(_shownEnergy, _latestEnergy, 1f - Mathf.Exp(-12f * Time.unscaledDeltaTime));
-            meterFill.anchorMax = new Vector2(Mathf.Clamp01(_shownEnergy), meterFill.anchorMax.y);
+            float now = Time.unscaledTime;
 
-            if (_latestEnergy >= _labelEnergy || Time.unscaledTime >= _labelUntil)
+            // Rises at once, falls back a little slower: fast enough to follow syllables, slow enough to read.
+            _shown = energy >= _shown ? energy : Mathf.Lerp(_shown, energy, 1f - Mathf.Exp(-Time.unscaledDeltaTime / releaseSeconds));
+            meterFill.anchorMax = new Vector2(_shown, meterFill.anchorMax.y);
+
+            if (_shown >= _peak)
             {
-                _labelEnergy = _latestEnergy;
-                _labelUntil = Time.unscaledTime + labelHoldSeconds;
+                _peak = _shown;
+                _peakTime = now;
+            }
+            else if (now - _peakTime > peakHoldSeconds)
+            {
+                _peak = Mathf.MoveTowards(_peak, _shown, 0.5f * Time.unscaledDeltaTime);
             }
 
-            if (_phase is Phase.Connecting or Phase.NoMicrophone)
-            {
-                levelText.SetText(string.Empty);
-            }
-            else if (_labelEnergy < NoiseFloor() + voiceMargin)
-            {
-                SetLevel("SILÊNCIO", silenceColor);
-            }
-            else if (_labelEnergy >= voiceProfile.ShoutEnergy)
-            {
-                SetLevel("GRITO", shoutColor);
-            }
-            else if (_labelEnergy >= voiceProfile.SpeechEnergy)
-            {
-                SetLevel("FALA", speechColor);
-            }
-            else
-            {
-                SetLevel("SUSSURRO", whisperColor);
-            }
+            PlaceMark(peakMark, _peak);
+            peakMark.gameObject.SetActive(_peak > 0.02f);
+            foreach (Graphic graphic in peakMark.GetComponentsInChildren<Graphic>()) graphic.color = ColorFor(_peak);
         }
 
-        private void SetLevel(string label, Color color)
+        private Color ColorFor(float energy)
         {
-            levelText.SetText(label);
-            levelText.color = color;
+            if (energy >= voiceProfile.ShoutEnergy) return shoutColor;
+            if (energy >= voiceProfile.SpeechEnergy) return speechColor;
+            return whisperColor;
         }
 
         private void PlaceZones()
@@ -583,6 +504,7 @@ namespace Ui
             PlaceZone(whisperZone, 0f, voiceProfile.SpeechEnergy);
             PlaceZone(speechZone, voiceProfile.SpeechEnergy, voiceProfile.ShoutEnergy);
             PlaceZone(shoutZone, voiceProfile.ShoutEnergy, 1f);
+            PlaceMark(ceilingMark, Ceiling);
         }
 
         private static void PlaceZone(RectTransform zone, float from, float to)
@@ -593,27 +515,15 @@ namespace Ui
             zone.offsetMax = new Vector2(0f, zone.offsetMax.y);
         }
 
-        /// <summary>
-        /// How many dB of mic level move AudioEnergy by 1: the VoiceProfile's calibration of the heard
-        /// voice puts Vivox's energy on a straight line in dB (118 dB from 0 to 1).
-        /// </summary>
-        private float DecibelsPerEnergy()
+        private static void PlaceMark(RectTransform mark, float at)
         {
-            float perDecibel = voiceProfile.EnergyFromHeardLevel(0f) - voiceProfile.EnergyFromHeardLevel(-1f);
-            return perDecibel > 0f ? 1f / perDecibel : 118f;
+            at = Mathf.Clamp01(at);
+            mark.anchorMin = new Vector2(at, mark.anchorMin.y);
+            mark.anchorMax = new Vector2(at, mark.anchorMax.y);
+            mark.anchoredPosition = new Vector2(0f, mark.anchoredPosition.y);
         }
 
-        private static string FormatDb(int decibels) => decibels > 0 ? $"+{decibels} dB" : $"{decibels} dB";
-
-        private static float Percentile(List<float> values, float fraction)
-        {
-            if (values.Count == 0) return 0f;
-
-            List<float> sorted = new(values);
-            sorted.Sort();
-
-            return sorted[Mathf.Clamp(Mathf.RoundToInt(fraction * (sorted.Count - 1)), 0, sorted.Count - 1)];
-        }
+        // ---- Leaving ----
 
         private void MuteMusic()
         {
@@ -627,7 +537,7 @@ namespace Ui
         {
             // Back to the level saved before (0 if none): skipping signs nothing, and the sheet comes
             // back next time on this microphone.
-            MicSettings.ApplyToCurrentDevice();
+            _input?.RestoreSaved();
             Leave();
         }
 
@@ -643,22 +553,10 @@ namespace Ui
             if (_released) return;
             _released = true;
 
-            if (_vivox != null)
+            if (_input != null)
             {
-                VivoxService.Instance.EffectiveInputDeviceChanged -= VivoxService_OnEffectiveInputDeviceChanged;
-
-                // Even mid-join: the walk towards the echo channel turns around, and the mic is never
-                // left talking to the echo alone.
-                _vivox.LeaveTestVoiceChannel();
-
-                try
-                {
-                    if (_mutedOutput) VivoxService.Instance.UnmuteOutputDevice();
-                }
-                catch (Exception e)
-                {
-                    Debug.LogWarning($"[MicSetup] Could not unmute the Vivox output: {e.Message}");
-                }
+                _input.DevicesChanged -= Input_OnDevicesChanged;
+                _input.End();
             }
 
             if (musicMixer != null && _hasPreviousMusicVolume) musicMixer.SetFloat("musicVolume", _previousMusicVolume);
@@ -667,6 +565,18 @@ namespace Ui
         private void OnDestroy()
         {
             Release();
+        }
+
+        private static string FormatDb(int decibels) => decibels > 0 ? $"+{decibels} dB" : $"{decibels} dB";
+
+        private static float Percentile(List<float> values, float fraction)
+        {
+            if (values.Count == 0) return 0f;
+
+            List<float> sorted = new(values);
+            sorted.Sort();
+
+            return sorted[Mathf.Clamp(Mathf.RoundToInt(fraction * (sorted.Count - 1)), 0, sorted.Count - 1)];
         }
     }
 }

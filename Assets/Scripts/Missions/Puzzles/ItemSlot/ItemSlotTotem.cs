@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using Interfaces;
 using Unity.Netcode;
 using UnityEngine;
@@ -33,6 +34,11 @@ namespace Missions.Puzzles
         // Without it a client's CanInteract always read the slot as empty.
         private readonly NetworkVariable<int> _slotItemId = new(EMPTY_SLOT);
 
+        // Which object sits in the slot, so an item can tell on every peer that it is on a totem.
+        private readonly NetworkVariable<NetworkObjectReference> _slotPickable = new();
+
+        private static readonly List<ItemSlotTotem> SpawnedTotems = new();
+
         private NetworkObject _currentPickable;
         private int _currentItemId = EMPTY_SLOT;
 
@@ -41,11 +47,27 @@ namespace Missions.Puzzles
         {
             _slotItemId.OnValueChanged += SlotItemId_OnValueChanged;
             UpdatePlacementArea();
+            SpawnedTotems.Add(this);
         }
 
         public override void OnNetworkDespawn()
         {
             _slotItemId.OnValueChanged -= SlotItemId_OnValueChanged;
+            SpawnedTotems.Remove(this);
+        }
+
+        /// <summary>The totem whose slot holds this item, on every peer; null when it is on none.</summary>
+        public static ItemSlotTotem Holding(NetworkObject item)
+        {
+            if (item == null) return null;
+
+            foreach (ItemSlotTotem totem in SpawnedTotems)
+            {
+                if (totem == null || !totem.IsOccupied) continue;
+                if (totem._slotPickable.Value.NetworkObjectId == item.NetworkObjectId) return totem;
+            }
+
+            return null;
         }
 
         private void SlotItemId_OnValueChanged(int previous, int current) => UpdatePlacementArea();
@@ -65,6 +87,17 @@ namespace Missions.Puzzles
 
         public bool Interact(GameObject playerInteractor) => false;
 
+        /// <summary>
+        /// What TryDeposit checks, short of the slot being free. A swap asks first, so the hand only gives
+        /// its item up when the slot will take it.
+        /// </summary>
+        public bool CanDeposit(ulong clientId, int itemId)
+        {
+            if (!CheckOwnership(clientId)) return false;
+
+            return itemDatabase.GetItem(itemId) != null;
+        }
+
         public bool TryDeposit(ulong clientId, int itemId)
         {
             if (!CheckOwnership(clientId)) return false;
@@ -80,6 +113,7 @@ namespace Missions.Puzzles
             {
                 netObj.Spawn();
                 _currentPickable = netObj;
+                _slotPickable.Value = netObj;
 
                 if (spawned.TryGetComponent(out IMissionOwnerAware ownerAware))
                 {
@@ -116,6 +150,7 @@ namespace Missions.Puzzles
             _currentPickable = null;
             _currentItemId = EMPTY_SLOT;
             _slotItemId.Value = EMPTY_SLOT;
+            _slotPickable.Value = default;
         }
 
     }

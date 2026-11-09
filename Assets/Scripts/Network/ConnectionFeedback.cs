@@ -15,6 +15,13 @@ namespace Network
 
         public static event Action<string> OnMessage;
 
+        /// <summary>
+        /// Set by a screen that shows connection messages itself, such as the main menu's notice
+        /// panels. Returns true when it showed the message, and then the toast is skipped so the
+        /// same message does not appear twice.
+        /// </summary>
+        public static Func<string, bool> Presenter { get; set; }
+
         private float _hideTimer;
         private bool _subscribed;
 
@@ -70,11 +77,27 @@ namespace Network
             bool isSelf = !networkManager.IsServer || clientId == networkManager.LocalClientId;
             if (!isSelf) return;
 
-            string reason = networkManager.DisconnectReason;
+            Report(DescribeDisconnect(networkManager.DisconnectReason));
+        }
 
-            Report(string.IsNullOrWhiteSpace(reason)
-                ? "Conexão recusada ou perdida. Verifique o IP, a porta ou o firewall (UDP de entrada)."
-                : $"Desconectado: {reason}");
+        /// <summary>
+        /// NGO fills DisconnectReason with its own transport log line ("[Disconnect Event][Client-0]...")
+        /// when the connection itself failed; that reaches the player in words instead. A reason sent
+        /// by the server is shown as it is.
+        /// </summary>
+        private static string DescribeDisconnect(string reason)
+        {
+            if (!string.IsNullOrWhiteSpace(reason) && reason.Contains("MaxConnectionAttempts"))
+            {
+                return "Ninguém respondeu nesse IP e porta. Confira os dois, se a partida já foi criada e o firewall do host.";
+            }
+
+            if (string.IsNullOrWhiteSpace(reason) || reason.StartsWith("[Disconnect Event]"))
+            {
+                return "Conexão recusada ou perdida. Verifique o IP, a porta ou o firewall (UDP de entrada).";
+            }
+
+            return $"Desconectado: {reason}";
         }
 
         private void NetworkManager_OnTransportFailure()
@@ -87,8 +110,20 @@ namespace Network
         {
             LastMessage = message;
             Debug.LogWarning($"ConnectionFeedback: {message}");
-            ScreenToast.Show(message, ToastKind.Warning);
+
+            if (Presenter == null || !Presenter(message))
+            {
+                ScreenToast.Show(message, ToastKind.Warning);
+            }
+
             OnMessage?.Invoke(message);
+        }
+
+        /// <summary>Domain reload may be off, so a presenter left over from the last play session is cleared by hand.</summary>
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+        private static void ResetStatics()
+        {
+            Presenter = null;
         }
 
         private void ShowInternal(string message, bool visible)

@@ -35,6 +35,14 @@ namespace Player
                  "crosshair. Empty means Default + Ground + Scenary + Walls + MainStage.")]
         [SerializeField] private LayerMask occlusionMask;
 
+        [Tooltip("Audience props, which light their outline when the crosshair rests on them even though " +
+                 "there is nothing to do with them. Empty means Recordable.")]
+        [SerializeField] private LayerMask recordableMask;
+
+        [Tooltip("How far the crosshair lights an audience prop's outline. These are filmed rather than " +
+                 "picked up, so this follows the camera's reach instead of the hand's.")]
+        [SerializeField, Min(0f)] private float recordableHighlightDistance = 10f;
+
         public IInteractable CurrentInteractable => _currentInteractable;
 
         /// <summary>
@@ -64,6 +72,8 @@ namespace Player
         // Items share the layers doors are found on, so room for a pile of them and the door behind it.
         private readonly Collider[] _doorwayCandidates = new Collider[32];
 
+        private readonly RaycastHit[] _recordableHits = new RaycastHit[8];
+
 
         private void Awake()
         {
@@ -72,6 +82,11 @@ namespace Player
             if (occlusionMask.value == 0)
             {
                 occlusionMask = LayerMask.GetMask("Default", "Ground", "Scenary", "Walls", "MainStage");
+            }
+
+            if (recordableMask.value == 0)
+            {
+                recordableMask = LayerMask.GetMask("Recordable");
             }
         }
 
@@ -195,10 +210,43 @@ namespace Player
                 return Target(doorway, leaf);
             }
 
-            ClearHighlight();
             _currentInteractable = null;
             _hoveredInteractable = null;
+
+            // Nothing to use, but an audience prop under the crosshair still lights its outline, so
+            // the player can tell what is worth filming. It never becomes the interactable.
+            if (!TryHighlightRecordable()) ClearHighlight();
+
             return false;
+        }
+
+        /// <summary>
+        /// The nearest audience prop the crosshair rests on, through trigger volumes but not walls:
+        /// the recordable layer is cast on its own, so a prop in the next room would otherwise light
+        /// up through the partition.
+        /// </summary>
+        private bool TryHighlightRecordable()
+        {
+            int count = Physics.RaycastNonAlloc(_currentRay, _recordableHits, recordableHighlightDistance,
+                recordableMask, QueryTriggerInteraction.Collide);
+
+            Collider nearest = null;
+            float nearestDistance = float.MaxValue;
+
+            for (int i = 0; i < count; i++)
+            {
+                RaycastHit hit = _recordableHits[i];
+                if (hit.distance >= nearestDistance) continue;
+                if (!hit.collider.TryGetComponent(out IHighlighted _)) continue;
+
+                nearest = hit.collider;
+                nearestDistance = hit.distance;
+            }
+
+            if (nearest == null || !IsInPlainSight(nearestDistance, nearest)) return false;
+
+            ApplyHighlight(nearest, true);
+            return true;
         }
 
         private bool Target(IInteractable interactable, Collider part)

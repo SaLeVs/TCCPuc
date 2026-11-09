@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using Audience;
 using Components;
 using Inputs;
 using Player;
@@ -11,8 +12,9 @@ namespace Ui
     /// <summary>
     /// Draws camcorder-style brackets around every <see cref="InteractionMarker"/> near the local
     /// player: faint at a distance, locking on with a kick when the crosshair lands on one, with the
-    /// key prompt underneath. Objects the stream cares about wear an eye that turns red while the
-    /// camera is actually recording them.
+    /// key prompt underneath. Objects the stream cares about wear an eye that breathes while the
+    /// camera is recording them and turns red once the take has paid out - the audience for it is
+    /// registered.
     /// </summary>
     /// <remarks>
     /// <para>Widgets are built in code and pooled, so there is no prefab to keep in step with the
@@ -111,6 +113,7 @@ namespace Ui
             public float Focus;
             public float Blocked;
             public float Recording;
+            public float Registered;
             public bool WasFocused;
             public float LockTime;
 
@@ -142,6 +145,7 @@ namespace Ui
         private Canvas _canvas;
         private Camera _worldCamera;
         private Transform _playerRoot;
+        private AudienceContributor _contributor;
         private string _keyDisplay;
 
         private void Awake()
@@ -155,6 +159,10 @@ namespace Ui
             if (!TryGetComponent(out Canvas _)) gameObject.AddComponent<Canvas>();
 
             if (interactor != null) _playerRoot = interactor.transform.root;
+
+            // The red eye answers to whoever actually pays the audience, not to the sensors: those
+            // only know the object is in frame, not whether the take lasted long enough to count.
+            if (_playerRoot != null) _contributor = _playerRoot.GetComponentInChildren<AudienceContributor>(true);
 
             if ((recordingSensors == null || recordingSensors.Length == 0) && _playerRoot != null)
                 recordingSensors = _playerRoot.GetComponentsInChildren<VisionSensor>(true);
@@ -339,6 +347,7 @@ namespace Ui
             widget.Focus = Damp(widget.Focus, focused ? 1f : 0f, 14f, dt);
             widget.Blocked = Damp(widget.Blocked, focused && interactor.IsHoveredBlocked ? 1f : 0f, 12f, dt);
             widget.Recording = Damp(widget.Recording, marker.IsRecordable && IsRecording(marker) ? 1f : 0f, 6f, dt);
+            widget.Registered = Damp(widget.Registered, marker.IsRecordable && IsRegistered(marker) ? 1f : 0f, 6f, dt);
 
             if (focused && !widget.WasFocused) OnLockOn(widget);
             widget.WasFocused = focused;
@@ -411,11 +420,16 @@ namespace Ui
             RectTransform eye = widget.Eye.rectTransform;
             eye.anchoredPosition = new Vector2(0f, halfH + 8f + bob);
             eye.localScale = new Vector3(pulse, pulse, 1f);
-            widget.Eye.color = Color.Lerp(idleColor, recordingColor, recording);
 
-            // Blinks with the REC light in the corner of the screen, so the two read as the same thing.
+            // Red only once the audience for it is in, never while the take is still running: a
+            // red eye has to mean "this one counted", or a take cut short would look like it paid.
+            float registered = widget.Registered;
+            widget.Eye.color = Color.Lerp(idleColor, recordingColor, registered);
+
+            // Blinks with the REC light in the corner of the screen while the camera is on it, so
+            // the two read as the same thing; holds steady once the camera moves on.
             float blink = Mathf.Sin(time * 5f) > -0.2f ? 1f : 0.15f;
-            widget.RecordingDot.color = new Color(1f, 1f, 1f, recording * blink);
+            widget.RecordingDot.color = new Color(1f, 1f, 1f, registered * Mathf.Lerp(1f, blink, recording));
         }
 
         private void DrawPrompt(Widget widget, float halfH)
@@ -503,6 +517,11 @@ namespace Ui
             }
 
             return false;
+        }
+
+        private bool IsRegistered(InteractionMarker marker)
+        {
+            return _contributor != null && _contributor.IsRegistered(marker.Recordable.gameObject);
         }
 
         /// <summary>
@@ -632,6 +651,7 @@ namespace Ui
             widget.Focus = 0f;
             widget.Blocked = 0f;
             widget.Recording = 0f;
+            widget.Registered = 0f;
             widget.WasFocused = false;
             widget.LockTime = 10f;
             widget.Visible = false;

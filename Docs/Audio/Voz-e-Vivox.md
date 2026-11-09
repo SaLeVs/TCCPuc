@@ -129,30 +129,50 @@ Agora:
 - **Cena `MicSetup`** (`Assets/Scenes/MicSetup.unity`, cópia da mesa do Bootstrap com uma "ficha de
   passagem de som" no papel do contrato). Aparece entre o Netbootstrap e o MainMenu **na primeira vez
   com cada microfone** (`ClientGameManager.StartMenu` → `MicSettings.NeedsSetup`).
-- O jogador lê três frases: **fale normal**, **sussurre**, **grite**. A ficha mede a energia do próprio
-  Vivox (a mesma que todos os limiares do jogo leem) no canal de eco, com a saída do Vivox e a música
-  mudas, e ajusta o volume de entrada: a fala normal vai para o meio da faixa de fala (≈ 0,45) e,
-  dentro de ±6 dB disso, o sussurro fica abaixo de 0,25 e o grito acima de 0,65. Quando o sussurro e o
-  grito da pessoa ficam perto demais para os dois caberem, o sussurro tem prioridade (é a mecânica de
-  se esconder do monstro).
-- Ajuste de 10 dB ou mais (ou microfone estourando) repete as frases para conferir, até 3 rodadas.
-- Depois vem o **teste livre**: o quadro "O QUE O JOGO ENTENDE" mostra sussurro/fala/grito ao vivo,
-  dá para mexer ±2 dB e **ASSINAR E CONTINUAR** salva. **PULAR** não salva (a ficha volta na próxima vez).
+- **Uma página só, microfone sempre aberto** (refeita em 2026-11-08 a pedido do usuário, depois de uma
+  versão em etapas): lista dos microfones (clique troca), a barra do jogo — sussurro (< 0,25: até 8 m, o
+  monstro não ouve), fala (até 24 m) e grito (≥ 0,65: até 40 m) — acompanhando a voz ao vivo, e o
+  **nível do microfone** na linha impressa do papel (−30 a +30 dB, botões de 2 dB). O jogador fala,
+  sussurra e grita e ajusta até cada um cair na sua cor. **OUVIR MINHA VOZ** liga/desliga o eco (ligado
+  por padrão; ~0,5 s de atraso, melhor com fone). Música muda enquanto a ficha está aberta.
+- A barra lê o **próprio microfone** pelo `Microphone` do Unity, a cada frame (RMS de 50 ms, sobe na hora
+  e desce em ~0,12 s, com marca de pico), no nível que o Vivox enviaria, na escala de energia do jogo
+  (`VoiceProfile`: 118 dB por unidade). O `AudioEnergy` do Vivox só chega 5 vezes por segundo e passa
+  pela supressão de ruído — era o "filtro" que fazia a barra antiga não acompanhar. Enquanto o canal de
+  eco está ligado, a leitura do Vivox serve de âncora: a mediana da diferença entre os dois corrige a
+  escala (log `[MicSetup] Microphone vs Vivox: +X dB`).
+- **PRONTO** salva o nível e confere os ouvidos dos outros: o percentil 98 de tudo o que a pessoa falou,
+  no nível escolhido, não pode passar do **LIMITE** (marcado na barra: limiar do grito + 0,10 ≈ 12 dB
+  acima). Acima do limiar um grito já é grito para o jogo; o que passa do limite é só volume que
+  machuca. O excesso vira um **corte para quem ouve** (`MicSettings.CurrentListenerTrim`, por
+  microfone, até −30 dB), publicado no lobby (`Lobby.MIC_TRIM` no dado do jogador). Cada
+  `VivoxManager` lê no poll do lobby e aplica junto do volume que o ouvinte escolheu para aquele jogador:
+  `SetLocalVolume` no canal (lobby) e ganho no tap (partida, depois da medição do `RemoteVoiceFilter`).
+  O nível de quem fala não muda, então sussurro/fala/grito, alcance e monstro continuam iguais. Com
+  corte, a ficha avisa e pede CONTINUAR; sem corte, segue direto. **PULAR** não salva.
 - `MicSettings` guarda o valor por microfone; o `VivoxManager` aplica ao logar e ao trocar de
   microfone. O volume de entrada do Vivox vale para todos os canais: lobby do menu, lobby 3D e partida.
 - O slider de entrada em Opções → Dispositivos agora salva o valor para o microfone em uso.
 
-Arquivos: `Assets/Scripts/Network/MicSettings.cs`, `Assets/Scripts/Ui/MicSetupScreen.cs`,
-`Assets/Scenes/MicSetup.unity`; ajustes pequenos em `VivoxManager`, `ClientGameManager.StartMenu`,
-`Loader.Scene.MicSetup`, `AudioDeviceSettings` (+ referência `Network` no `ChatChannelSample.asmdef`).
-Cada rodada sai no Console como `[MicSetup] Round N at X dB ...: whisper, talk, shout, floor -> Y dB`.
+Arquivos: `Assets/Scripts/Network/MicSettings.cs` (nível e corte por microfone),
+`Assets/Scripts/Ui/MicSetupScreen.cs` (a página), `MicSetupInput.cs` (microfone + Vivox, ou simulado),
+`Assets/Scenes/MicSetup.unity`; ajustes pequenos em `VivoxManager` (corte por jogador), `Lobby`
+(`MicTrim` no dado do jogador), `ClientGameManager.StartMenu`, `Loader.Scene.MicSetup`,
+`AudioDeviceSettings` (+ referência `Network` no `ChatChannelSample.asmdef`). Ao assinar sai no Console
+`[MicSetup] Saved X dB for "<mic>": loudest L over N readings of voice (ceiling C) -> listeners T dB`.
+
+Para testar sem voz: em Play, `MicSetupScreen.InputOverride = new SimulatedMicSetupInput(...)` e
+recarregar a cena; `VoiceDb` diz quão alto o "jogador" fala, em dBFS no microfone (< −100 = silêncio).
 
 Para ver a ficha de novo num microfone já calibrado: apagar a chave `MicInputVolume_<nome>` do
 PlayerPrefs (ou trocar de microfone).
 
-Pendente: teste com voz de verdade (a conta de dB por energia vem da calibração da seção 3.6 e ainda
-precisa ser conferida: a rodada 2 do log mostra se a energia acompanhou o ajuste); botão para refazer
-a ficha no quadro de Opções do menu.
+Pendente: teste com voz de verdade — conferir o log "Microphone vs Vivox" (quanto a âncora corrige e se
+fica estável) e o corte com duas pessoas; botão para refazer a ficha no quadro de Opções do menu; o
+slider de Opções → Dispositivos muda o nível mas não recalcula o corte. Achado para o teste real: com 118 dB por energia, a
+faixa de fala (0,25–0,65) tem 47 dB, e uma voz típica vai do sussurro ao grito em ~40–50 dB (sussurro
+~20–30 dB abaixo da fala, grito ~20 dB acima, ANSI S3.5): muita gente não vai conseguir ao mesmo tempo
+sussurro < 0,25 e grito ≥ 0,65. Se o log confirmar, baixar o `shoutEnergy` (~0,60) no `VoiceProfile`.
 
 ### Não testado com Vivox real
 Tudo acima compila, foi conferido em Play no GYM (curva, paredes, reverb, Options do pause, lista) e

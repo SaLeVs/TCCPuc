@@ -129,30 +129,55 @@ Agora:
 - **Cena `MicSetup`** (`Assets/Scenes/MicSetup.unity`, cópia da mesa do Bootstrap com uma "ficha de
   passagem de som" no papel do contrato). Aparece entre o Netbootstrap e o MainMenu **na primeira vez
   com cada microfone** (`ClientGameManager.StartMenu` → `MicSettings.NeedsSetup`).
-- O jogador lê três frases: **fale normal**, **sussurre**, **grite**. A ficha mede a energia do próprio
-  Vivox (a mesma que todos os limiares do jogo leem) no canal de eco, com a saída do Vivox e a música
-  mudas, e ajusta o volume de entrada: a fala normal vai para o meio da faixa de fala (≈ 0,45) e,
-  dentro de ±6 dB disso, o sussurro fica abaixo de 0,25 e o grito acima de 0,65. Quando o sussurro e o
-  grito da pessoa ficam perto demais para os dois caberem, o sussurro tem prioridade (é a mecânica de
-  se esconder do monstro).
-- Ajuste de 10 dB ou mais (ou microfone estourando) repete as frases para conferir, até 3 rodadas.
-- Depois vem o **teste livre**: o quadro "O QUE O JOGO ENTENDE" mostra sussurro/fala/grito ao vivo,
-  dá para mexer ±2 dB e **ASSINAR E CONTINUAR** salva. **PULAR** não salva (a ficha volta na próxima vez).
+- A ficha é feita em **seis etapas** (refeita em 2026-11-08), sempre medindo a energia do próprio Vivox
+  (`AudioEnergy`, a mesma que todos os limiares do jogo leem) no canal de eco, com a música muda:
+  1. **Microfone**: lista dos microfones (clique troca) e um traço de tinta que anda com a voz. O
+     jogador **se ouve** pelo eco (com ~0,5 s de atraso). Só segue depois de ~1 s de voz (ou 12 s sem
+     voz: "continuar mesmo assim").
+  2. **Escala**: aparece a única barra do jogo — sussurro (< 0,25: até 8 m, o monstro não ouve), fala
+     (até 24 m) e grito (≥ 0,65: até 40 m). Daqui até o resultado o eco fica mudo.
+  3. **Sussurro**, 4. **Fala**, 5. **Grito**: tentativas de 5 s (terminam antes se confirmar). Sem voz
+     → **+6 dB** e pede de novo; voz fora da faixa → move o nível direto para logo dentro dela (3 a
+     15 dB por vez); até 4 tentativas por nível. No grito o nível só sobe até onde o sussurro e a fala
+     já confirmados continuam no lugar; passou disso, a ficha pede para gritar mais forte.
+  6. **Resultado**: nível sugerido (ver abaixo), marcas "seu sussurro / sua fala / seu grito" na barra,
+     eco ligado de novo e **ajuste fino de ±10 dB** na linha impressa do papel, com o valor sugerido
+     marcado (clicar em SUGERIDO volta para ele). **ASSINAR E CONTINUAR** salva; **REFAZER** volta à
+     etapa 1; **PULAR** não salva (a ficha volta na próxima vez).
+- Cada tentativa vira "nível da voz a 0 dB" (energia − ganho ÷ 118), o que deixa juntar tentativas feitas
+  em níveis diferentes. A sugestão é o dB inteiro, até +25, que melhor põe a fala bem dentro da faixa de
+  fala, o sussurro abaixo dela e o grito acima, com pesos: **fala > sussurro > grito** (a fala é o que
+  todos ouvem a partida toda; o sussurro é a mecânica de se esconder; um grito de verdade costuma sair
+  mais alto que um lido no papel). Sobrando espaço, centraliza a fala.
+- Por que ajuste fino **limitado e com a barra**: o volume que você ouve no eco depende do volume do seu
+  fone, não do que os outros ouvem — ajustar só de ouvido traria de volta o microfone estourado. O eco
+  serve para conferir qualidade (chiado, distorção, microfone errado); a barra mostra onde a voz cai.
+  Quem precisar de mais vai em Opções → Dispositivos.
 - `MicSettings` guarda o valor por microfone; o `VivoxManager` aplica ao logar e ao trocar de
   microfone. O volume de entrada do Vivox vale para todos os canais: lobby do menu, lobby 3D e partida.
 - O slider de entrada em Opções → Dispositivos agora salva o valor para o microfone em uso.
 
-Arquivos: `Assets/Scripts/Network/MicSettings.cs`, `Assets/Scripts/Ui/MicSetupScreen.cs`,
-`Assets/Scenes/MicSetup.unity`; ajustes pequenos em `VivoxManager`, `ClientGameManager.StartMenu`,
-`Loader.Scene.MicSetup`, `AudioDeviceSettings` (+ referência `Network` no `ChatChannelSample.asmdef`).
-Cada rodada sai no Console como `[MicSetup] Round N at X dB ...: whisper, talk, shout, floor -> Y dB`.
+Arquivos: `Assets/Scripts/Network/MicSettings.cs`, `Assets/Scripts/Ui/MicSetupScreen.cs` (fluxo e UI),
+`MicCalibration.cs` (contas), `MicSetupInput.cs` (Vivox ou microfone simulado), `VoiceTraceGraphic.cs`
+(traço da etapa 1), `Assets/Scenes/MicSetup.unity`; ajustes pequenos em `VivoxManager`,
+`ClientGameManager.StartMenu`, `Loader.Scene.MicSetup`, `AudioDeviceSettings` (+ referência `Network` no
+`ChatChannelSample.asmdef`). Cada tentativa sai no Console como
+`[MicSetup] Whisper at +6 dB: N readings of voice, level X, floor Y -> Confirmed` e o resultado como
+`[MicSetup] At 0 dB: whisper, talk, shout (118 dB per energy) -> suggested Z dB`, com a inclinação
+dB/energia **observada** quando um nível foi ouvido em dois ganhos a 6 dB ou mais um do outro.
+
+Para testar sem voz: em Play, `MicSetupScreen.InputOverride = new SimulatedMicSetupInput(...)` e
+recarregar a cena; `VoiceAtZero` diz quão alto o "jogador" fala (energia a 0 dB, < 0 = silêncio).
 
 Para ver a ficha de novo num microfone já calibrado: apagar a chave `MicInputVolume_<nome>` do
 PlayerPrefs (ou trocar de microfone).
 
-Pendente: teste com voz de verdade (a conta de dB por energia vem da calibração da seção 3.6 e ainda
-precisa ser conferida: a rodada 2 do log mostra se a energia acompanhou o ajuste); botão para refazer
-a ficha no quadro de Opções do menu.
+Pendente: teste com voz de verdade (a conta de 118 dB por energia vem da calibração da seção 3.6 e
+precisa ser conferida: o log "dB per energy observed" mostra se a energia acompanha o ajuste); botão
+para refazer a ficha no quadro de Opções do menu. Achado para o teste real: com 118 dB por energia, a
+faixa de fala (0,25–0,65) tem 47 dB, e uma voz típica vai do sussurro ao grito em ~40–50 dB (sussurro
+~20–30 dB abaixo da fala, grito ~20 dB acima, ANSI S3.5): muita gente não vai conseguir ao mesmo tempo
+sussurro < 0,25 e grito ≥ 0,65. Se o log confirmar, baixar o `shoutEnergy` (~0,60) no `VoiceProfile`.
 
 ### Não testado com Vivox real
 Tudo acima compila, foi conferido em Play no GYM (curva, paredes, reverb, Options do pause, lista) e

@@ -179,7 +179,41 @@ namespace Player
                     _checkTimer = 0;
                     _isPlayerHitInteractable = CheckRaycast();
                 }
+                else if (_hoveredInteractable != null)
+                {
+                    RefreshHoveredPermission();
+                }
             }
+        }
+
+        /// <summary>
+        /// Asks the object under the crosshair again whether it accepts the player, without casting
+        /// the ray.
+        ///
+        /// <para>Five casts a second is plenty to follow the aim, but whether an object accepts the
+        /// player changes on its own clock - a puzzle being solved, the inventory filling up, the
+        /// lights coming back - and between two casts the crosshair went on saying the object was
+        /// fine for up to a fifth of a second. The key press always looked again, so nothing was
+        /// ever taken that should not have been; it was the prompt that lied. Asking here is a
+        /// method call on one object, not a raycast.</para>
+        /// </summary>
+        private void RefreshHoveredPermission()
+        {
+            // Despawned while the crosshair was on it: the next cast clears it properly.
+            if ((_hoveredInteractable as MonoBehaviour) == null) return;
+
+            bool wasAllowed = _currentInteractable != null;
+            bool canInteract = _hoveredInteractable.CanInteract(gameObject);
+
+            if (canInteract == wasAllowed) return;
+
+            _currentInteractable = canInteract ? _hoveredInteractable : null;
+            _isPlayerHitInteractable = canInteract;
+
+            if (_currentHighlighted == null) return;
+
+            if (canInteract) _currentHighlighted.Enable();
+            else _currentHighlighted.EnableBlocked();
         }
 
         private bool CheckRaycast()

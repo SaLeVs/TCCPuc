@@ -8745,6 +8745,31 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 0.5763174, y: 0.60298896, z: 0.46654284}
   m_Center: {x: -0.000000014901161, y: 0.30149448, z: -0.00000001632447}
+--- !u!114 &271366494
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 214664390}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Unity.Netcode.Runtime::Unity.Netcode.NetworkObject
+  GlobalObjectIdHash: 1487465808
+  InScenePlacedSourceGlobalObjectIdHash: 0
+  DeferredDespawnTick: 0
+  Ownership: 1
+  AlwaysReplicateAsRoot: 0
+  SynchronizeTransform: 1
+  ActiveSceneSynchronization: 0
+  SceneMigrationSynchronization: 0
+  SpawnWithObservers: 1
+  DontDestroyWithOwner: 0
+  AutoObjectParentSync: 1
+  SyncOwnerTransformWhenParented: 1
+  AllowOwnerToParent: 0
 --- !u!1001 &275572580
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -18424,6 +18449,12 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 1215295077049400001, guid: 8967b195530f4b4418924f9158b99916, type: 3}
       insertIndex: -1
       addedObject: {fileID: 1466370803}
+    - targetCorrespondingSourceObject: {fileID: 1045684206262262229, guid: 8967b195530f4b4418924f9158b99916, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1765014222}
+    - targetCorrespondingSourceObject: {fileID: 6666379468702775491, guid: 8967b195530f4b4418924f9158b99916, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 271366494}
     - targetCorrespondingSourceObject: {fileID: 1477458911159640367, guid: 8967b195530f4b4418924f9158b99916, type: 3}
       insertIndex: -1
       addedObject: {fileID: 621179284}
@@ -55827,18 +55858,6 @@ PrefabInstance:
     m_TransformParent: {fileID: 0}
     m_Modifications:
     - target: {fileID: 1764714957470938397, guid: df83281545a37654988173f7c89e3785, type: 3}
-      propertyPath: maxTimeInSector
-      value: 45
-      objectReference: {fileID: 0}
-    - target: {fileID: 1764714957470938397, guid: df83281545a37654988173f7c89e3785, type: 3}
-      propertyPath: minTimeInSector
-      value: 20
-      objectReference: {fileID: 0}
-    - target: {fileID: 1764714957470938397, guid: df83281545a37654988173f7c89e3785, type: 3}
-      propertyPath: allSectors.Array.size
-      value: 40
-      objectReference: {fileID: 0}
-    - target: {fileID: 1764714957470938397, guid: df83281545a37654988173f7c89e3785, type: 3}
       propertyPath: 'allSectors.Array.data[0]'
       value: 
       objectReference: {fileID: 1139839422}
@@ -56046,22 +56065,10 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
-    - target: {fileID: 7632488262795768361, guid: df83281545a37654988173f7c89e3785, type: 3}
-      propertyPath: occlusionLayers.m_Bits
-      value: 357761
-      objectReference: {fileID: 0}
     - target: {fileID: 8380299532564787982, guid: df83281545a37654988173f7c89e3785, type: 3}
       propertyPath: audienceProviderSource
       value: 
       objectReference: {fileID: 1990024256909663644}
-    - target: {fileID: 8380299532564787982, guid: df83281545a37654988173f7c89e3785, type: 3}
-      propertyPath: emergencyLights.Array.size
-      value: 22
-      objectReference: {fileID: 0}
-    - target: {fileID: 8380299532564787982, guid: df83281545a37654988173f7c89e3785, type: 3}
-      propertyPath: allSabotageObjects.Array.size
-      value: 266
-      objectReference: {fileID: 0}
     - target: {fileID: 8380299532564787982, guid: df83281545a37654988173f7c89e3785, type: 3}
       propertyPath: 'emergencyLights.Array.data[0]'
       value: 
@@ -57214,58 +57221,6 @@ PrefabInstance:
       propertyPath: 'allSabotageObjects.Array.data[265]'
       value: 
       objectReference: {fileID: 129256064}
-    - target: {fileID: 8380299532564787982, guid: df83281545a37654988173f7c89e3785, type: 3}
-      propertyPath: 'allSabotageObjects.Array.data[266]'
-      value: 
-      objectReference: {fileID: 855001925}
-    - target: {fileID: 8380299532564787982, guid: df83281545a37654988173f7c89e3785, type: 3}
-      propertyPath: 'allSabotageObjects.Array.data[267]'
-      value: 
-      objectReference: {fileID: 477472837}
-    - target: {fileID: 8380299532564787982, guid: df83281545a37654988173f7c89e3785, type: 3}
-      propertyPath: 'allSabotageObjects.Array.data[268]'
-      value: 
-      objectReference: {fileID: 1981390123}
-    - target: {fileID: 8380299532564787982, guid: df83281545a37654988173f7c89e3785, type: 3}
-      propertyPath: 'allSabotageObjects.Array.data[269]'
-      value: 
-      objectReference: {fileID: 224161201}
-    - target: {fileID: 8380299532564787982, guid: df83281545a37654988173f7c89e3785, type: 3}
-      propertyPath: 'allSabotageObjects.Array.data[270]'
-      value: 
-      objectReference: {fileID: 1896313969}
-    - target: {fileID: 8380299532564787982, guid: df83281545a37654988173f7c89e3785, type: 3}
-      propertyPath: 'allSabotageObjects.Array.data[271]'
-      value: 
-      objectReference: {fileID: 1097608948}
-    - target: {fileID: 8380299532564787982, guid: df83281545a37654988173f7c89e3785, type: 3}
-      propertyPath: 'allSabotageObjects.Array.data[272]'
-      value: 
-      objectReference: {fileID: 1793299301}
-    - target: {fileID: 8380299532564787982, guid: df83281545a37654988173f7c89e3785, type: 3}
-      propertyPath: 'allSabotageObjects.Array.data[273]'
-      value: 
-      objectReference: {fileID: 548436125}
-    - target: {fileID: 8380299532564787982, guid: df83281545a37654988173f7c89e3785, type: 3}
-      propertyPath: 'allSabotageObjects.Array.data[274]'
-      value: 
-      objectReference: {fileID: 152980014}
-    - target: {fileID: 8380299532564787982, guid: df83281545a37654988173f7c89e3785, type: 3}
-      propertyPath: 'allSabotageObjects.Array.data[275]'
-      value: 
-      objectReference: {fileID: 1105823599}
-    - target: {fileID: 8380299532564787982, guid: df83281545a37654988173f7c89e3785, type: 3}
-      propertyPath: 'allSabotageObjects.Array.data[276]'
-      value: 
-      objectReference: {fileID: 1521372183}
-    - target: {fileID: 8380299532564787982, guid: df83281545a37654988173f7c89e3785, type: 3}
-      propertyPath: 'allSabotageObjects.Array.data[277]'
-      value: 
-      objectReference: {fileID: 129256064}
-    - target: {fileID: 9158156660860726962, guid: df83281545a37654988173f7c89e3785, type: 3}
-      propertyPath: m_Height
-      value: 1.6
-      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -59112,6 +59067,31 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 0.73774344, y: 0.6206312, z: 0.5920147}
   m_Center: {x: -4.0704545e-10, y: 0.2833181, z: 0.2686321}
+--- !u!114 &1765014222
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 214664391}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Unity.Netcode.Runtime::Unity.Netcode.NetworkObject
+  GlobalObjectIdHash: 803286143
+  InScenePlacedSourceGlobalObjectIdHash: 0
+  DeferredDespawnTick: 0
+  Ownership: 1
+  AlwaysReplicateAsRoot: 0
+  SynchronizeTransform: 1
+  ActiveSceneSynchronization: 0
+  SceneMigrationSynchronization: 0
+  SpawnWithObservers: 1
+  DontDestroyWithOwner: 0
+  AutoObjectParentSync: 1
+  SyncOwnerTransformWhenParented: 1
+  AllowOwnerToParent: 0
 --- !u!1 &1766030282
 GameObject:
   m_ObjectHideFlags: 0

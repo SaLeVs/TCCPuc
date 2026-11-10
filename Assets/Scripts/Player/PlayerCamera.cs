@@ -115,6 +115,11 @@ namespace Player
             _isPaused = isPaused;
             RefreshLookInput();
 
+            // The mouse was the only thing the pause ever held back. Everything else the player
+            // does in the world went on working behind the menu. Owner only: the InputReader is a
+            // shared asset, so another player's copy must not switch this machine's input off.
+            if (IsOwner) inputReader.SetGameplayInputEnabled(!_isPaused);
+
             CursorState.Set(CursorReason.Paused, _isPaused);
 
             OnPauseToggled?.Invoke(_isPaused);

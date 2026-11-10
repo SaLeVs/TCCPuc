@@ -50,7 +50,36 @@ namespace Inputs
             }
 
             _playerActions.Game.Enable();
-        
+
+        }
+
+        /// <summary>
+        /// Everything the player does in the world, on or off in one place - Pause excepted, since
+        /// that is the key that gets back out of the menu.
+        ///
+        /// <para>The whole Game map used to stay live behind the pause menu: walking, sprinting,
+        /// crouching, the flashlight, the slots, interacting and the chat all still answered the
+        /// keyboard with the menu up. Only the camera was held back, by its own axis controller.</para>
+        ///
+        /// <para>A key held down when the menu opens is the other half of it: the action keeps the
+        /// value it last reported, so the body carried on walking. Movement and sprint are told to
+        /// settle here, which is why this is the one call that closes both holes.</para>
+        /// </summary>
+        public void SetGameplayInputEnabled(bool isEnabled)
+        {
+            if (_playerActions == null) return;
+
+            if (isEnabled)
+            {
+                _playerActions.Game.Enable();
+                return;
+            }
+
+            _playerActions.Game.Disable();
+            _playerActions.Game.Pause.Enable();
+
+            OnMoveEvent?.Invoke(Vector2.zero);
+            OnRunEvent?.Invoke(false);
         }
 
         

@@ -116,7 +116,18 @@ namespace Systems
 
                 if (entry.CulledByUs)
                 {
-                    if (gap > cullDistance - hysteresis) continue;
+                    if (gap > cullDistance - hysteresis)
+                    {
+                        // Still far away, so still ours - but the electric circuit switches every
+                        // light in the level back on from wherever the panel is, including the ones
+                        // we had cut. Without putting them out again the whole level stayed lit
+                        // after a blackout, and the frame we were saving only came back room by
+                        // room, as the players walked past each lamp.
+                        bool relit = entry.Sabotage == null || !entry.Sabotage.IsSabotaged;
+                        if (relit && light.enabled) light.enabled = false;
+
+                        continue;
+                    }
 
                     // Handed back either way: from here on the light is whatever its owner says.
                     entry.CulledByUs = false;

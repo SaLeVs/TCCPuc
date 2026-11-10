@@ -33,25 +33,51 @@ namespace Monster
         public bool CanSabotage => _sabotageUnlocked;
         
         
-        private List<ISabotageable> _sabotageTargets;
+        // Never null: ChatEventHub polls HasSabotagedOfType twice a second from the moment the
+        // scene loads, which is long before the monster spawns and Initialize runs.
+        private readonly List<ISabotageable> _sabotageTargets = new List<ISabotageable>();
+
+        // Registered targets this monster must leave alone: the ones already in the list above,
+        // which replicate by index, and the lamps inside the emergency lights, which answer to
+        // the emergency list alone. Both end up in SabotageRegistry on their own now that
+        // LightSabotage announces itself.
+        private readonly HashSet<ISabotageable> _registryExclusions = new HashSet<ISabotageable>();
+
         private readonly List<SabotageType> _typesWithTargets = new List<SabotageType>();
         private SabotageType _currentSabotageType;
         private bool _sabotageUnlocked;
         private IAudienceProvider _audienceProvider;
-        
+
         public void Initialize()
         {
             _audienceProvider = audienceProviderSource as IAudienceProvider;
 
             SetEmergencyLights(false);
 
-            _sabotageTargets = new List<ISabotageable>();
+            _sabotageTargets.Clear();
+            _registryExclusions.Clear();
 
             foreach (GameObject obj in allSabotageObjects)
             {
                 if (obj != null && obj.TryGetComponent(out ISabotageable sabotageable))
+                {
                     _sabotageTargets.Add(sabotageable);
+                    _registryExclusions.Add(sabotageable);
+                }
             }
+
+            foreach (GameObject emergencyLight in emergencyLights)
+            {
+                if (emergencyLight == null) continue;
+
+                foreach (ISabotageable sabotageable in emergencyLight.GetComponentsInChildren<ISabotageable>(true))
+                {
+                    _registryExclusions.Add(sabotageable);
+                }
+            }
+
+            SabotageRegistry.OnRegistered -= SabotageRegistry_OnRegistered;
+            SabotageRegistry.OnRegistered += SabotageRegistry_OnRegistered;
 
             // The cast returns null for an empty field or a component that does not implement
             // the interface, and the next line used to dereference it — a NullReferenceException
@@ -74,6 +100,19 @@ namespace Monster
         private void AudienceManager_OnAudienceChanged(float audience)
         {
             _sabotageUnlocked = _audienceProvider.NormalizedAudience > sabotageUnlockThreshold;
+        }
+
+        /// <summary>
+        /// A room spawns mid-match, so its lamps turn up after the blackout they should already be
+        /// part of. Every peer applies this for itself, off its own targets, so no RPC is needed:
+        /// the sabotaged flags are already correct on all of them.
+        /// </summary>
+        private void SabotageRegistry_OnRegistered(ISabotageable target)
+        {
+            if (target == null || target.IsSabotaged) return;
+            if (_registryExclusions.Contains(target)) return;
+
+            if (HasSabotagedOfType(target.SabotageType)) target.Sabotage();
         }
         
         /// <summary>
@@ -110,12 +149,13 @@ namespace Monster
 
             foreach (ISabotageable target in SabotageRegistry.All)
             {
+                if (_registryExclusions.Contains(target)) continue;
                 if (target.SabotageType == type && !target.IsSabotaged) return true;
             }
 
             return false;
         }
-        
+
         public List<ISabotageable> GetAvailableTargets()
         {
             List<ISabotageable> available = new List<ISabotageable>();
@@ -130,6 +170,8 @@ namespace Monster
             
             foreach (ISabotageable target in SabotageRegistry.All)
             {
+                if (_registryExclusions.Contains(target)) continue;
+
                 if (target.SabotageType == _currentSabotageType && !target.IsSabotaged)
                 {
                     available.Add(target);
@@ -151,6 +193,8 @@ namespace Monster
 
             foreach (ISabotageable target in SabotageRegistry.All)
             {
+                if (_registryExclusions.Contains(target)) continue;
+
                 if (target.SabotageType == _currentSabotageType && target.IsSabotaged)
                 {
                     return target;
@@ -226,6 +270,7 @@ namespace Monster
 
             foreach (ISabotageable target in SabotageRegistry.All)
             {
+                if (_registryExclusions.Contains(target)) continue;
                 if (target.SabotageType != type || !target.IsSabotaged) continue;
 
                 target.Restore();
@@ -253,6 +298,7 @@ namespace Monster
 
             foreach (ISabotageable target in SabotageRegistry.All)
             {
+                if (_registryExclusions.Contains(target)) continue;
                 if (target.SabotageType == type && target.IsSabotaged) return true;
             }
 
@@ -266,6 +312,7 @@ namespace Monster
 
             foreach (ISabotageable target in SabotageRegistry.All)
             {
+                if (_registryExclusions.Contains(target)) continue;
                 if (target.SabotageType == type && !target.IsSabotaged) target.Sabotage();
             }
         }
@@ -277,6 +324,7 @@ namespace Monster
 
             foreach (ISabotageable target in SabotageRegistry.All)
             {
+                if (_registryExclusions.Contains(target)) continue;
                 if (target.SabotageType == type && target.IsSabotaged) target.Restore();
             }
         }
@@ -341,6 +389,8 @@ namespace Monster
         
         public void Uninitialize()
         {
+            SabotageRegistry.OnRegistered -= SabotageRegistry_OnRegistered;
+
             if (_audienceProvider != null)
                 _audienceProvider.OnAudienceChanged -= AudienceManager_OnAudienceChanged;
         }

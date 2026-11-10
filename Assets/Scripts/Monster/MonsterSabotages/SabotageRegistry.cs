@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 
 namespace Monster.MonsterSabotages
@@ -13,11 +14,19 @@ namespace Monster.MonsterSabotages
 
         public static IReadOnlyList<ISabotageable> All => Targets;
 
+        /// <summary>
+        /// A target that has just joined, already in <see cref="All"/>. A room spawned in the
+        /// middle of a blackout brings lamps that know nothing of it, and they would be the only
+        /// lit thing in the level — MonsterSabotage listens here and puts them out.
+        /// </summary>
+        public static event Action<ISabotageable> OnRegistered;
+
         public static void Register(ISabotageable target)
         {
             if (target == null || Targets.Contains(target)) return;
 
             Targets.Add(target);
+            OnRegistered?.Invoke(target);
         }
 
         public static void Unregister(ISabotageable target)

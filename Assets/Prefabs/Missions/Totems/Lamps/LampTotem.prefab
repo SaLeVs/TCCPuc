@@ -91,7 +91,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2a3dc5ad84c923546b6745c8a52386a9, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Components::Highlight
-  outline: {fileID: 0}
+  outline: {fileID: 2382200130555644055}
 --- !u!65 &1135352271863614403
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -111,8 +111,8 @@ BoxCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
-  m_Size: {x: 0.068872586, y: 0.034558535, z: 0.080943584}
-  m_Center: {x: 0.00022856146, y: 0.7762301, z: 0.8786373}
+  m_Size: {x: 0.1052178, y: 0.023256063, z: 0.099995136}
+  m_Center: {x: 0.00034174882, y: 0.92327154, z: 0.833346}
 --- !u!114 &3892703979092320611
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -127,7 +127,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Components::Components.InteractionMarker
   actionLabel: Ligar/Desligar
   framedRenderers:
-  - {fileID: 0}
+  - {fileID: 7352021266531821486}
   revealDistance: 0
 --- !u!1 &9182204811133731317
 GameObject:
@@ -140,7 +140,7 @@ GameObject:
   - component: {fileID: 4355331371452869569}
   - component: {fileID: 1736732001925557138}
   - component: {fileID: 7629583239155571030}
-  m_Layer: 10
+  m_Layer: 8
   m_Name: Spot Light
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -312,6 +312,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: CeilingLight
       objectReference: {fileID: 0}
+    - target: {fileID: 7646568596409525770, guid: 2ec7d88ff504582449f8f55afeffd782, type: 3}
+      propertyPath: m_Layer
+      value: 8
+      objectReference: {fileID: 0}
     - target: {fileID: 8151213854220224479, guid: 2ec7d88ff504582449f8f55afeffd782, type: 3}
       propertyPath: 'm_Materials.Array.data[0]'
       value: 
@@ -368,6 +372,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 8621633178306149264}
     m_Modifications:
+    - target: {fileID: 546864983467590457, guid: 4ec0e22fdb046d64c9211542fcc52077, type: 3}
+      propertyPath: m_Layer
+      value: 8
+      objectReference: {fileID: 0}
     - target: {fileID: 1452732908067307112, guid: 4ec0e22fdb046d64c9211542fcc52077, type: 3}
       propertyPath: 'm_Materials.Array.data[0]'
       value: 
@@ -394,7 +402,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 8378130926572295345, guid: 4ec0e22fdb046d64c9211542fcc52077, type: 3}
       propertyPath: m_LocalPosition.y
-      value: 0.8866
+      value: 0.8688
       objectReference: {fileID: 0}
     - target: {fileID: 8378130926572295345, guid: 4ec0e22fdb046d64c9211542fcc52077, type: 3}
       propertyPath: m_LocalPosition.z
@@ -436,13 +444,48 @@ PrefabInstance:
       propertyPath: m_Name
       value: SM_Button
       objectReference: {fileID: 0}
+    - target: {fileID: 9155476218256952843, guid: 4ec0e22fdb046d64c9211542fcc52077, type: 3}
+      propertyPath: m_Layer
+      value: 8
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 546864983467590457, guid: 4ec0e22fdb046d64c9211542fcc52077, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 2382200130555644055}
   m_SourcePrefab: {fileID: 100100000, guid: 4ec0e22fdb046d64c9211542fcc52077, type: 3}
 --- !u!4 &462636224514772343 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 8378130926572295345, guid: 4ec0e22fdb046d64c9211542fcc52077, type: 3}
   m_PrefabInstance: {fileID: 8227659261763656134}
   m_PrefabAsset: {fileID: 0}
+--- !u!23 &7352021266531821486 stripped
+MeshRenderer:
+  m_CorrespondingSourceObject: {fileID: 1452732908067307112, guid: 4ec0e22fdb046d64c9211542fcc52077, type: 3}
+  m_PrefabInstance: {fileID: 8227659261763656134}
+  m_PrefabAsset: {fileID: 0}
+--- !u!1 &8482633594665147135 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 546864983467590457, guid: 4ec0e22fdb046d64c9211542fcc52077, type: 3}
+  m_PrefabInstance: {fileID: 8227659261763656134}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &2382200130555644055
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8482633594665147135}
+  m_Enabled: 0
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5fea29bb7c508c244a1f805a5fd3fc4d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp-firstpass::Outline
+  outlineMode: 0
+  outlineColor: {r: 0.16470589, g: 0.4, b: 0.44313726, a: 1}
+  outlineWidth: 4
+  precomputeOutline: 0
+  bakeKeys: []
+  bakeValues: []

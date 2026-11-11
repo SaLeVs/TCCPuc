@@ -6,7 +6,8 @@ namespace Monster.MonsterSabotages
     /// <summary>
     /// Sabotage targets that only exist once a match is running. MonsterSabotage's serialized list
     /// is filled in the scene, so it can only ever hold things placed by hand — everything inside a
-    /// room prefab is instantiated by SpawnRooms and has to announce itself instead.
+    /// room prefab is instantiated by SpawnRooms and has to announce itself instead. Lamps are not
+    /// in here: they go out all together and have a registry of their own, LightRegistry.
     /// </summary>
     public static class SabotageRegistry
     {
@@ -16,8 +17,8 @@ namespace Monster.MonsterSabotages
 
         /// <summary>
         /// A target that has just joined, already in <see cref="All"/>. A room spawned in the
-        /// middle of a blackout brings lamps that know nothing of it, and they would be the only
-        /// lit thing in the level — MonsterSabotage listens here and puts them out.
+        /// middle of a sabotage brings targets that know nothing of it — MonsterSabotage listens
+        /// here and brings them into it.
         /// </summary>
         public static event Action<ISabotageable> OnRegistered;
 

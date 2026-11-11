@@ -18,8 +18,9 @@ namespace Systems
     ///
     /// <para>Only room lights are touched. Anything under a <see cref="NetworkBehaviour"/> - the
     /// flashlight, lamp totems, the lamps puzzle - has gameplay deciding whether it is on, and a
-    /// culler switching it back on would overrule that. Sabotaged lights are the other owner: the
-    /// culler never relights one the monster has put out.</para>
+    /// culler switching it back on would overrule that. The blackout is the other owner: the
+    /// culler never relights a lamp the monster has put out, nor an emergency lamp while the
+    /// power is on.</para>
     /// </remarks>
     public class LightDistanceCuller : MonoBehaviour
     {
@@ -123,8 +124,8 @@ namespace Systems
                         // we had cut. Without putting them out again the whole level stayed lit
                         // after a blackout, and the frame we were saving only came back room by
                         // room, as the players walked past each lamp.
-                        bool relit = entry.Sabotage == null || !entry.Sabotage.IsSabotaged;
-                        if (relit && light.enabled) light.enabled = false;
+                        // The same goes for an emergency lamp coming on far away as a blackout starts.
+                        if (WantsLit(entry) && light.enabled) light.enabled = false;
 
                         continue;
                     }
@@ -132,8 +133,7 @@ namespace Systems
                     // Handed back either way: from here on the light is whatever its owner says.
                     entry.CulledByUs = false;
 
-                    bool putOut = entry.Sabotage != null && entry.Sabotage.IsSabotaged;
-                    if (!putOut) light.enabled = true;
+                    if (WantsLit(entry)) light.enabled = true;
                 }
                 else
                 {
@@ -155,12 +155,21 @@ namespace Systems
                 Entry entry = _entries[i];
                 if (!entry.CulledByUs || entry.Light == null) continue;
 
-                bool putOut = entry.Sabotage != null && entry.Sabotage.IsSabotaged;
-                if (!putOut) entry.Light.enabled = true;
+                if (WantsLit(entry)) entry.Light.enabled = true;
 
                 entry.CulledByUs = false;
                 _entries[i] = entry;
             }
+        }
+
+        /// <summary>
+        /// What the blackout wants of this light: a regular lamp lit unless the monster has the
+        /// lights out, an emergency lamp the other way round. A light with no LightSabotage has
+        /// nobody else deciding, so it is always wanted on.
+        /// </summary>
+        private static bool WantsLit(Entry entry)
+        {
+            return entry.Sabotage == null || entry.Sabotage.WantsLit;
         }
     }
 }

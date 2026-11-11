@@ -118,7 +118,8 @@ namespace Ui
         private Phase _phase = Phase.Adjust;
         private int _volume;
         private int _trim;
-        private bool _hearSelf = true;
+        // Off until asked for: the sheet opens without the player's own voice coming back at them.
+        private bool _hearSelf;
         private string _deviceName;
         private bool _released;
 

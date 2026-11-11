@@ -37,6 +37,11 @@ namespace Missions
 
             if (manager == null) return false;
 
+            // A solved puzzle is finished with: its pieces already refuse to change
+            // (PuzzlePieceBase.CheckOwnership), and without this the boxes sitting on the totems
+            // could still be picked back off them once the mission was complete.
+            if (manager.IsComplete) return false;
+
             MissionOwnershipSelector selector = manager.OwnershipSelector;
 
             if (selector == null) return false;

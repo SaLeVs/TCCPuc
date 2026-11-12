@@ -49,6 +49,11 @@ namespace Ui
         [SerializeField] private Sprite labelSprite;
         [SerializeField] private TMP_FontAsset font;
 
+        [Tooltip("Drawn on the key plate in place of the text when interact sits on that mouse button.")]
+        [SerializeField] private Sprite mouseLeftSprite;
+        [SerializeField] private Sprite mouseRightSprite;
+        [SerializeField] private Sprite mouseMiddleSprite;
+
         [Header("Colours")]
         [SerializeField] private Color idleColor = new(0.878f, 0.847f, 0.827f, 1f);
         [SerializeField] private Color focusColor = new(1f, 0.98f, 0.93f, 1f);
@@ -89,6 +94,7 @@ namespace Ui
         [SerializeField] private float lockOnKick = 22f;
 
         [SerializeField] private float eyeHeight = 34f;
+        [SerializeField] private float keyIconHeight = 44f;
 
         private sealed class Widget
         {
@@ -102,7 +108,10 @@ namespace Ui
             public RectTransform Prompt;
             public CanvasGroup PromptGroup;
             public GameObject Key;
+            public HorizontalLayoutGroup KeyRow;
             public TMP_Text KeyText;
+            public Image KeyIcon;
+            public LayoutElement KeyIconSize;
             public TMP_Text Label;
 
             public Vector2 Center;
@@ -147,11 +156,19 @@ namespace Ui
         private Transform _playerRoot;
         private AudienceContributor _contributor;
         private string _keyDisplay;
+        private Sprite _keyIcon;
+        private RectOffset _keyTextPadding;
+        private RectOffset _keyIconPadding;
 
         private void Awake()
         {
             _rect = (RectTransform)transform;
             _canvas = GetComponentInParent<Canvas>().rootCanvas;
+
+            // Text sits low in its line, so its plate is padded off-centre to balance it; a
+            // picture needs no such help.
+            _keyTextPadding = new RectOffset(9, 9, 1, 5);
+            _keyIconPadding = new RectOffset(7, 7, 4, 5);
 
             // A canvas of its own. The markers move every frame, and anything that moves inside a
             // canvas makes that whole canvas rebuild its batches - without this, following one prop
@@ -368,11 +385,33 @@ namespace Ui
             widget.LockTime = 0f;
             widget.Root.SetAsLastSibling();
 
-            _keyDisplay = ReadKeyDisplay();
+            _keyDisplay = ReadKeyDisplay(out _keyIcon);
 
-            widget.Key.SetActive(!string.IsNullOrEmpty(_keyDisplay));
-            widget.KeyText.text = _keyDisplay;
+            ShowKey(widget);
         }
+
+        /// <summary>The plate carries the key as text or the mouse button as a picture, never both.</summary>
+        private void ShowKey(Widget widget)
+        {
+            bool icon = _keyIcon != null;
+
+            widget.Key.SetActive(HasKey);
+            widget.KeyText.gameObject.SetActive(!icon);
+            widget.KeyIcon.gameObject.SetActive(icon);
+            widget.KeyRow.padding = icon ? _keyIconPadding : _keyTextPadding;
+
+            if (!icon)
+            {
+                widget.KeyText.text = _keyDisplay;
+                return;
+            }
+
+            widget.KeyIcon.sprite = _keyIcon;
+            widget.KeyIconSize.preferredWidth = keyIconHeight * AspectOf(_keyIcon);
+            widget.KeyIconSize.preferredHeight = keyIconHeight;
+        }
+
+        private bool HasKey => _keyIcon != null || !string.IsNullOrEmpty(_keyDisplay);
 
         private void Draw(Widget widget)
         {
@@ -447,7 +486,7 @@ namespace Ui
 
             if (widget.Label.text != label) widget.Label.text = label;
             widget.Label.gameObject.SetActive(!string.IsNullOrEmpty(label));
-            widget.Key.SetActive(!blocked && !string.IsNullOrEmpty(_keyDisplay));
+            widget.Key.SetActive(!blocked && HasKey);
 
             widget.Label.color = Color.Lerp(focusColor, blockedColor, widget.Blocked);
             widget.PromptGroup.alpha = show;
@@ -622,16 +661,33 @@ namespace Ui
             return Vector3.Distance(pivot, target) - arm;
         }
 
-        private string ReadKeyDisplay()
+        /// <summary>
+        /// What goes on the key plate, read off the binding each time so it follows a rebind: the
+        /// key's own text ("E"), and a picture instead when it is a mouse button there is art for.
+        /// </summary>
+        private string ReadKeyDisplay(out Sprite icon)
         {
+            icon = null;
             if (inputReader == null) return string.Empty;
 
-            // A keyboard and a gamepad binding come back as "E | Button South"; the first one is
-            // the one this HUD is laid out for.
-            string display = inputReader.GetInteractBindingDisplay();
-            int split = display.IndexOf('|');
+            // Of several bindings the reader hands back the first, the one this HUD is laid out for.
+            string display = inputReader.GetInteractBindingDisplay(out string device, out string control);
 
-            return (split >= 0 ? display.Substring(0, split) : display).Trim();
+            // "LMB" is a name the player has to decode; the mouse with that button lit is not.
+            if (device == "Mouse") icon = MouseIcon(control);
+
+            return display.Trim();
+        }
+
+        private Sprite MouseIcon(string control)
+        {
+            return control switch
+            {
+                "leftButton" => mouseLeftSprite,
+                "rightButton" => mouseRightSprite,
+                "middleButton" => mouseMiddleSprite,
+                _ => null
+            };
         }
 
         private static float Damp(float current, float target, float rate, float dt)
@@ -750,7 +806,15 @@ namespace Ui
             keySize.minWidth = 34f;
             keySize.minHeight = 34f;
 
+            widget.KeyRow = keyRow;
             widget.KeyText = NewText("KeyText", key.rectTransform, 22f, keyTextColor);
+
+            // Sized by hand on each lock-on: left to itself an Image asks for its sprite's full size.
+            widget.KeyIcon = NewImage("KeyIcon", key.rectTransform, null);
+            widget.KeyIcon.preserveAspect = true;
+            widget.KeyIconSize = widget.KeyIcon.gameObject.AddComponent<LayoutElement>();
+            widget.KeyIcon.gameObject.SetActive(false);
+
             widget.Label = NewText("Label", widget.Prompt, 24f, focusColor);
             widget.Label.characterSpacing = 4f;
         }

@@ -28,17 +28,39 @@ namespace Inputs
         public bool IsCrouchHeld => _playerActions != null && _playerActions.Game.Crouch.IsPressed();
 
 
-        /// <summary>The key the player presses to interact, as the HUD should print it ("E").</summary>
-        public string GetInteractBindingDisplay() => GetBindingDisplay(_playerActions?.Game.Interact);
+        /// <summary>
+        /// The interact binding in the pieces a HUD needs to draw it: the text to print ("E"), plus
+        /// the device and the control behind it ("Mouse", "leftButton") for the ones shown as an icon.
+        /// </summary>
+        public string GetInteractBindingDisplay(out string deviceLayout, out string controlPath) =>
+            GetBindingDisplay(_playerActions?.Game.Interact, out deviceLayout, out controlPath);
 
-        /// <summary>The key that pauses, and also closes whatever screen is open ("Esc").</summary>
-        public string GetPauseBindingDisplay() => GetBindingDisplay(_playerActions?.Game.Pause);
+        /// <summary>The key that pauses, and also closes whatever screen is open ("Esc"), in the same pieces.</summary>
+        public string GetPauseBindingDisplay(out string deviceLayout, out string controlPath) =>
+            GetBindingDisplay(_playerActions?.Game.Pause, out deviceLayout, out controlPath);
 
-        private static string GetBindingDisplay(InputAction action)
+        /// <summary>
+        /// One binding rather than all of them joined: the first that is a control of its own, which
+        /// is the one the HUD has room for. Read off the action, so it follows an override.
+        /// </summary>
+        private static string GetBindingDisplay(InputAction action, out string deviceLayout, out string controlPath)
         {
+            deviceLayout = controlPath = string.Empty;
             if (action == null) return string.Empty;
 
-            return action.GetBindingDisplayString(InputBinding.DisplayStringOptions.DontIncludeInteractions);
+            for (int i = 0; i < action.bindings.Count; i++)
+            {
+                if (action.bindings[i].isComposite || action.bindings[i].isPartOfComposite) continue;
+
+                string display = action.GetBindingDisplayString(i, out deviceLayout, out controlPath,
+                    InputBinding.DisplayStringOptions.DontIncludeInteractions);
+
+                deviceLayout ??= string.Empty;
+                controlPath ??= string.Empty;
+                return display;
+            }
+
+            return string.Empty;
         }
 
         private void OnEnable()

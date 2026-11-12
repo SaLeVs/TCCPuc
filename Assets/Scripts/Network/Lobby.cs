@@ -461,6 +461,12 @@ namespace Network
         {
             return _joinedLobby.HostId == AuthenticationService.Instance.PlayerId;
         }
+
+        /// <summary>Whether <paramref name="playerId"/> is this machine's own lobby player.</summary>
+        public static bool IsLocalPlayer(string playerId)
+        {
+            return AuthenticationService.Instance.IsSignedIn && playerId == AuthenticationService.Instance.PlayerId;
+        }
     }
 }
 

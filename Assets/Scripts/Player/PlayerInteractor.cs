@@ -21,12 +21,12 @@ namespace Player
 
         [Header("Settings")]
         [Tooltip("Reach for anything that does not ask for its own (see IInteractionRange).")]
-        [SerializeField] private float interactDistance = 3f;
+        [SerializeField] private float interactDistance = 2f;
 
         [Tooltip("The furthest any object may ask to be reached from. The ray is cast this far and each " +
                  "hit is then held to its own reach, so raising it lets doors be caught on the run " +
                  "without letting items be grabbed from further away.")]
-        [SerializeField] private float maxInteractDistance = 3f;
+        [SerializeField] private float maxInteractDistance = 3.5f;
 
         [SerializeField] private float checkInterval = 0.2f;
         [SerializeField] private LayerMask layerMask;

@@ -136,7 +136,7 @@ namespace Objects
 
         [Tooltip("How far away a player can open or close it from. Further than other things: a door " +
                  "has to be caught on the run, with a monster behind.")]
-        [SerializeField, Min(0.5f)] private float interactionRange = 2.5f;
+        [SerializeField, Min(0.5f)] private float interactionRange = 3f;
 
         private enum HingeAxis
         {

@@ -25,18 +25,27 @@ namespace Tutorial
     /// <summary>
     /// Conduz o tutorial do começo ao fim, falando pelo chat do jogo.
     ///
-    /// <para>Cada lição é uma corrotina: a moderadora explica, a faixa do topo diz o que fazer, e o
-    /// diretor espera o jogo de verdade confirmar (a lanterna ligou, a caixa entrou no suporte, a
-    /// doação completou). Se o jogador empacar, o chat dá dicas - primeiro os viewers, depois a
-    /// moderadora, cada vez mais diretas. Nada aqui imita um sistema: são as peças do jogo, ligadas
-    /// por fora, e nenhum script do jogo foi alterado.</para>
+    /// <para>Quem ensina é a turma do chat: S4LeV, camisolinha, aaaquerodormir e TUTUJOOOJ. As falas
+    /// entram numa fila e saem no ritmo de leitura, mas <b>ninguém espera por elas</b>: cada lição
+    /// confere a ação a todo quadro, e o que o jogador já fez (até antes de pedirem) conta na hora. A
+    /// fala que ensina uma ação já feita é descartada. A faixa de baixo sempre mostra o que fazer
+    /// agora.</para>
+    ///
+    /// <para>Cada lição termina abrindo a porta da próxima sala (<see cref="TutorialDoorGate"/>): a luz
+    /// de emergência em cima passa de vermelha a verde e a porta abre sozinha. Nada aqui imita um
+    /// sistema: são as peças do jogo ligadas por fora, e nenhum script do jogo foi alterado.</para>
     /// </summary>
     public class TutorialDirector : MonoBehaviour
     {
         private const int TotalSteps = 12;
-        private const string Moderator = "LiaModeradora";
 
-        // Zonas (TutorialZone) e portões (TutorialGate) que o gerador da cena cria com estes nomes.
+        // A turma que conduz o tutorial (nomes como aparecem no chat).
+        private const string Dev = "S4LeV";
+        private const string Camis = "camisolinha";
+        private const string Sono = "aaaquerodormir";
+        private const string Tutu = "TUTUJOOOJ";
+
+        // Zonas (TutorialZone) e portões (TutorialDoorGate) que o gerador da cena cria com estes nomes.
         public const string ZoneWalkMark = "walk_mark";
         public const string ZoneRunEnd = "run_end";
         public const string ZoneCrouchBeam = "crouch_beam";
@@ -77,6 +86,9 @@ namespace Tutorial
         [SerializeField] private ElectricCircuit circuit;
         [SerializeField] private TutorialMonsterRemote monsterRemote;
 
+        [Tooltip("Portas de enfeite (a saída de emergência do fim): ficam trancadas o tutorial inteiro.")]
+        [SerializeField] private Door[] decorDoors;
+
         [Header("Fuga")]
         [Tooltip("Onde o monstro é solto quando o jogador entra no corredor da fuga.")]
         [SerializeField] private Transform monsterReleasePoint;
@@ -93,9 +105,9 @@ namespace Tutorial
         [SerializeField] private int tutorialBatteryDrainPerSecond = 1;
         [SerializeField] private float darkRoomBattery = 40f;
 
-        [Header("Ritmo")]
-        [SerializeField, Min(0.2f)] private float minLineSeconds = 1.8f;
-        [SerializeField, Min(0f)] private float secondsPerCharacter = 0.045f;
+        [Header("Ritmo do chat")]
+        [SerializeField, Min(0.2f)] private float minLineSeconds = 1.7f;
+        [SerializeField, Min(0f)] private float secondsPerCharacter = 0.04f;
 
         // ------------------------------------------------------------------ estado
 
@@ -109,20 +121,56 @@ namespace Tutorial
         private Flashlight _flashlight;
         private HudAnimationPanel _chatPanel;
         private HudAnimationPanel _missionPanel;
-        private Rigidbody _body;
 
+        private bool _ready;
         private int _step;
         private string _stepTitle;
-        private float _runSeconds;
         private int _batteryItemId = -1;
-        private bool _doorRattled;
-        private bool _mainMissionReceived;
-        private bool _mainMissionCompleted;
+        private bool _holdAudience = true;
         private bool _finished;
         private int _hitsTaken;
         private bool _inFuga;
 
+        // O que o jogador já fez, conferido a todo quadro desde o começo: ação feita antes de pedirem
+        // também vale.
+        private float _runSeconds;
+        private float _crouchSeconds;
+        private bool _crouched;
+        private bool _flashlightUsed;
+        private bool _chatHidden;
+        private bool _puzzleStarted;
+        private bool _missionPanelHidden;
+        private bool _batteryPicked;
+        private bool _batteryHeld;
+        private bool _batteryUsed;
+        private float _blockedHoverSeconds;
+        private bool _blockedHovered;
+        private bool _doorRattled;
+        private bool _openDoorOpened;
+        private bool _mainMissionReceived;
+        private bool _mainMissionCompleted;
+        private float _nextGateComment;
+
         private static readonly BindingFlags Private = BindingFlags.Instance | BindingFlags.NonPublic;
+
+        // ------------------------------------------------------------------ fila de falas
+
+        private readonly struct Line
+        {
+            public readonly string Who;
+            public readonly string Text;
+            public readonly Func<bool> Skip;
+
+            public Line(string who, string text, Func<bool> skip)
+            {
+                Who = who;
+                Text = text;
+                Skip = skip;
+            }
+        }
+
+        private readonly Queue<Line> _speech = new();
+        private float _nextLineTime;
 
         // ------------------------------------------------------------------ ciclo de vida
 
@@ -152,7 +200,18 @@ namespace Tutorial
         {
             if (batteryPickable != null) _batteryItemId = batteryPickable.ItemId;
 
+            // Armado desde o começo: quem achar o botão antes da hora já cumpriu a lição.
+            if (hiddenButton != null) hiddenButton.IsArmed = true;
+
             StartCoroutine(Run());
+        }
+
+        private void Update()
+        {
+            if (!_ready) return;
+
+            Track();
+            Speak();
         }
 
         private IEnumerator Run()
@@ -174,7 +233,7 @@ namespace Tutorial
             yield return LessonLights();
             yield return LessonEscape();
 
-            yield return Finish();
+            Finish();
         }
 
         /// <summary>Espera o host subir, o jogador nascer, o chat dele ligar e o monstro virar estátua.</summary>
@@ -192,7 +251,6 @@ namespace Tutorial
             _contributor = _player.GetComponent<AudienceContributor>();
             _missionHolder = _player.GetComponent<PlayerMissionHolder>();
             _health = _player.GetComponent<Health>();
-            _body = _player.GetComponent<Rigidbody>();
             _flashlight = _player.GetComponentInChildren<Flashlight>(true);
 
             ChatManager chat = _player.GetComponentInChildren<ChatManager>(true);
@@ -209,273 +267,293 @@ namespace Tutorial
 
             PrepareBattery();
 
-            if (lockedDoor != null) lockedDoor.CloseAndLock(100000f);
+            TutorialDoorGate.LockAll();
+            if (lockedDoor != null) lockedDoor.CloseAndLock(1000000f);
 
-            // Um instante para o chat do jogador acordar e o fade da cena terminar.
-            yield return new WaitForSeconds(1.2f);
+            if (decorDoors != null)
+            {
+                foreach (Door door in decorDoors)
+                {
+                    if (door != null) door.CloseAndLock(1000000f);
+                }
+            }
+
+            _ready = true;
+        }
+
+        /// <summary>
+        /// Confere a todo quadro o que o jogador fez. As lições só leem estas marcas (ou o estado do
+        /// jogo direto), então nada depende de o jogador agir depois da fala certa.
+        /// </summary>
+        private void Track()
+        {
+            if (_state != null)
+            {
+                _crouchSeconds = _state.IsCrouching ? _crouchSeconds + Time.deltaTime : 0f;
+                if (_crouchSeconds >= 0.35f) _crouched = true;
+            }
+
+            if (IsFlashlightOn()) _flashlightUsed = true;
+            if (_chatPanel != null && !_chatPanel.IsVisible) _chatHidden = true;
+            if (_puzzleStarted && _missionPanel != null && !_missionPanel.IsVisible) _missionPanelHidden = true;
+
+            bool hasBattery = HasBatteryInInventory();
+            if (hasBattery) _batteryPicked = true;
+            if (IsHoldingBattery()) _batteryHeld = true;
+            if (_batteryPicked && !hasBattery) _batteryUsed = true;
+
+            _blockedHoverSeconds = IsHoveringBlockedBox() ? _blockedHoverSeconds + Time.deltaTime : 0f;
+            if (_blockedHoverSeconds >= 0.3f) _blockedHovered = true;
+
+            if (openDoor != null && !openDoor.IsClosed) _openDoorOpened = true;
         }
 
         // ------------------------------------------------------------------ lições
 
         private IEnumerator LessonMovement()
         {
+            Func<bool> walked = () => TutorialZone.WasEntered(ZoneWalkMark);
+            Func<bool> ran = () => TutorialZone.WasEntered(ZoneRunEnd) && _runSeconds >= 1.2f;
+            Func<bool> crouched = () => _crouched;
+
             Step(1, "Movimento", $"Ande até a marca amarela no chão com {Key(TutorialKeys.Move)}");
 
-            yield return Say(
-                "Oi! Bem-vindo à live. Eu sou a Lia, moderadora do chat. Vou te ensinar tudo por aqui.",
-                "Este é o chat. Cada mensagem é de alguém assistindo a sua live. Fique de olho nele!",
-                $"Primeiro, andar: use {Key(TutorialKeys.Move)}. Vá até a marca amarela.");
+            Say(Dev, "Oi! Aqui é S4LeV, do time que fez o jogo. Bem-vindo à sua primeira live!");
+            Say(Camis, $"e a gente é o chat kkkk eu, {Sono} e {Tutu} vamos te ensinar tudo por aqui");
+            Teach(walked, Dev, $"Primeiro, andar: {Key(TutorialKeys.Move)}. Vá até a marca amarela no chão.");
+            Say(Tutu, "e olha a luz em cima da porta: vermelha = ainda não pode passar. termina a lição que ela fica verde e abre sozinha");
 
-            yield return WaitFor(() => TutorialZone.WasEntered(ZoneWalkMark), 14f,
-                Hint(Moderator, $"Use {Key(TutorialKeys.Move)} para andar. A marca amarela está ali na frente."),
+            yield return WaitFor(walked, 14f,
+                Hint(Dev, $"Use {Key(TutorialKeys.Move)} para andar. A marca amarela está no meio da sala."),
                 Hint(null, "anda pra frente mano kkkk"));
 
             Flavor(2, "andou!!", "primeiros passos do streamer", "boa boa", "ele anda sim");
 
-            // Zerado antes de abrir: quem sai correndo enquanto a moderadora ainda fala já conta.
-            _runSeconds = 0f;
-
-            TutorialGate.Open(GateRun);
+            TutorialDoorGate.Open(GateRun);
             SetObjective($"Segure {Key(TutorialKeys.Run)} e corra até o fim do corredor");
 
-            yield return Say(
-                $"Agora correr: segure {Key(TutorialKeys.Run)} enquanto anda. Corra até o fim do corredor.",
-                "Repare na barra de stamina: correr gasta, e quando acaba você precisa recuperar.");
+            Teach(ran, Sono, $"agora corre: segura {Key(TutorialKeys.Run)} enquanto anda, até o fim do corredor");
+            Teach(ran, Tutu, "olha a barra de stamina: correr gasta, e quando acaba tem que esperar recuperar");
 
-            yield return WaitFor(() => TutorialZone.WasEntered(ZoneRunEnd) && _runSeconds >= 1.2f, 18f,
-                Hint(Moderator, $"Segure {Key(TutorialKeys.Run)} e {Key("W")} ao mesmo tempo para correr."),
+            yield return WaitFor(ran, 18f,
+                Hint(Dev, $"Segure {Key(TutorialKeys.Run)} e {Key("W")} ao mesmo tempo para correr."),
                 Hint(null, "segura o shift!!!"),
-                Hint(Moderator, $"Se chegou andando, tudo bem: corre um pouco segurando {Key(TutorialKeys.Run)} para eu ver."));
+                Hint(Sono, $"chegou andando? corre um pouquinho segurando {Key(TutorialKeys.Run)} pra gente ver"));
 
-            yield return Say(
-                "Isso! Correr é rápido, mas faz barulho. Na partida, o monstro ouve.",
-                $"Por último: segure {Key(TutorialKeys.Crouch)} para agachar.");
+            Say(Dev, "Isso! Correr é rápido, mas faz barulho. Na partida, o monstro ouve.");
 
             SetObjective($"Segure {Key(TutorialKeys.Crouch)} para agachar");
+            Teach(crouched, Camis, $"por último: segura {Key(TutorialKeys.Crouch)} pra agachar");
 
-            float crouched = 0f;
-
-            yield return WaitFor(() =>
-                {
-                    crouched = _state.IsCrouching ? crouched + Time.deltaTime : 0f;
-                    return crouched >= 0.4f;
-                }, 12f,
-                Hint(Moderator, $"Segure {Key(TutorialKeys.Crouch)} (não é só apertar uma vez)."),
+            yield return WaitFor(crouched, 12f,
+                Hint(Dev, $"Segure {Key(TutorialKeys.Crouch)} (não é só apertar uma vez)."),
                 Hint(null, "agacha ai pra gnt ver"));
 
-            yield return Say("Agachado você anda mais devagar, mas faz menos barulho e cabe em lugares baixos.");
-
+            Say(Dev, "Agachado você anda mais devagar, mas faz menos barulho e cabe em lugares baixos.");
             Flavor(2, "kkkkk agachadinho", "ninja", "modo furtivo ativado");
-            TutorialGate.Open(GateCrouch);
+
+            TutorialDoorGate.Open(GateCrouch);
         }
 
         private IEnumerator LessonCrouchLimit()
         {
-            Step(2, "Agachar", $"Agache ({Key(TutorialKeys.Crouch)}) e passe por baixo do cano");
+            Func<bool> underDuct = () => TutorialZone.WasEntered(ZoneCrouchBeam) || TutorialZone.WasEntered(ZoneCrouchTable);
+            Func<bool> underTable = () => TutorialZone.WasEntered(ZoneCrouchTable);
 
-            yield return Say(
-                "Agachar serve para passar por baixo das coisas. Viu o cano atravessando a sala?",
-                $"Em pé não passa. Segure {Key(TutorialKeys.Crouch)} e passe por baixo dele.");
+            Step(2, "Agachar", $"Agache ({Key(TutorialKeys.Crouch)}) e passe por baixo do duto de ar");
 
-            yield return WaitFor(() => TutorialZone.WasEntered(ZoneCrouchBeam), 15f,
-                Hint(Moderator, $"Chegue no cano segurando {Key(TutorialKeys.Crouch)} o tempo todo."),
-                Hint(null, "agacha antes de chegar no cano"));
+            Teach(underDuct, Tutu, "agachar serve pra passar por baixo das coisas. viu o duto de ar atravessando a sala?");
+            Teach(underDuct, Dev, $"Em pé não passa. Segure {Key(TutorialKeys.Crouch)} e passe por baixo dele.");
+
+            yield return WaitFor(underDuct, 15f,
+                Hint(Dev, $"Chegue no duto segurando {Key(TutorialKeys.Crouch)} o tempo todo."),
+                Hint(null, "agacha antes de chegar no duto"));
 
             SetObjective($"Agora passe por baixo da mesa (segure {Key(TutorialKeys.Crouch)})");
 
-            yield return Say(
-                "Boa! Agora a mesa. Ela é ainda mais baixa: só passa agachado, e o seu chapéu amassa um pouquinho.",
-                "Fique agachado até sair do outro lado, senão você não levanta.");
+            Teach(underTable, Camis, "agora a mesa: é mais baixa ainda, só passa agachado e o seu chapéu amassa um pouquinho kkk");
+            Teach(underTable, Dev, "Fique agachado até sair do outro lado, senão você não levanta.");
 
-            yield return WaitFor(() => TutorialZone.WasEntered(ZoneCrouchTable), 15f,
-                Hint(Moderator, $"Segure {Key(TutorialKeys.Crouch)} e entre por baixo da mesa."),
+            yield return WaitFor(underTable, 15f,
+                Hint(Dev, $"Segure {Key(TutorialKeys.Crouch)} e entre por baixo da mesa."),
                 Hint(null, "o chapeu amassa kkkkkkk"));
 
-            yield return Say(
-                "Esse é o limite: o vão de baixo da mesa tem 1 metro. Mais baixo que isso, nem agachado.",
-                "Aquele duto na parede é o exemplo: baixo demais. Se não cabe com o chapéu amassado, não cabe.");
-
+            Say(Dev, "Esse é o limite: o vão de baixo da mesa tem 1 metro. Mais baixo que isso, nem agachado.");
+            Say(Sono, "tipo aquela grade de ventilação na parede: 0,8 m. não cabe nem com o chapéu amassado");
             Flavor(2, "o chapeu achatando kkkkkk", "mano passou raspando", "gostei do chapéu");
-            TutorialGate.Open(GateDark);
+
+            TutorialDoorGate.Open(GateDark);
         }
 
         private IEnumerator LessonFlashlight()
         {
+            Func<bool> inside = () => TutorialZone.WasEntered(ZoneDarkRoom);
+            Func<bool> lit = () => _flashlightUsed;
+            Func<bool> out_ = () => TutorialZone.WasEntered(ZoneDarkExit);
+
             Step(3, "Lanterna", "Entre na sala escura");
 
-            yield return WaitFor(() => TutorialZone.WasEntered(ZoneDarkRoom), 15f,
-                Hint(Moderator, "A próxima sala está aberta. Pode entrar, não morde (ainda)."));
+            yield return WaitFor(inside, 15f,
+                Hint(Dev, "A porta da próxima sala abriu. Pode entrar, não morde (ainda)."));
 
             SetBattery(darkRoomBattery);
             SetObjective($"Aperte {Key(TutorialKeys.Flashlight)} para ligar a lanterna");
 
-            yield return Say(
-                "Escuro, né? A lanterna é sua melhor amiga.",
-                $"Aperte {Key(TutorialKeys.Flashlight)} para ligar e desligar.");
+            Teach(lit, Camis, "escuro né? a lanterna é sua melhor amiga");
+            Teach(lit, Dev, $"Aperte {Key(TutorialKeys.Flashlight)} para ligar e desligar.");
 
-            yield return WaitFor(IsFlashlightOn, 10f,
-                Hint(Moderator, $"A tecla da lanterna é {Key(TutorialKeys.Flashlight)}."),
+            yield return WaitFor(lit, 10f,
+                Hint(Dev, $"A tecla da lanterna é {Key(TutorialKeys.Flashlight)}."),
                 Hint(null, "LIGA A LANTERNA"));
 
             Flavor(2, "agora sim", "que medo", "LUZ");
 
-            yield return Say(
-                "Viu a barra da bateria? A lanterna gasta enquanto está ligada. Desligue quando não precisar.",
-                "E o clique de ligar faz um barulhinho que o monstro pode ouvir.",
-                "Agora ache a saída desta sala no escuro.");
-
-            TutorialGate.Open(GateChat);
+            TutorialDoorGate.Open(GateChat);
             SetObjective("Ache a saída da sala escura");
+
+            Say(Tutu, "viu a barra da bateria? a lanterna gasta enquanto tá ligada. desliga quando não precisar");
+            Say(Dev, "E o clique de ligar faz um barulhinho que o monstro pode ouvir.");
+            Teach(out_, Sono, "agora acha a saída. procura a luz verde em cima de uma porta");
 
             yield return WaitFor(() =>
                 {
                     // Sem pilha aqui o jogador ficaria preso no escuro: a lição é achar a porta, não economizar.
                     if (GetBattery() < 8f) SetBattery(20f);
-                    return TutorialZone.WasEntered(ZoneDarkExit);
+                    return out_();
                 }, 25f,
                 Hint(null, "a saida ta na parede do fundo"),
-                Hint(Moderator, "Procure a luz verde no fundo da sala. É a porta."));
+                Hint(Dev, "Procure a luz verde em cima da porta, no fundo da sala, à direita."));
         }
 
         private IEnumerator LessonChat()
         {
+            Func<bool> hidden = () => _chatHidden;
+            Func<bool> shown = () => _chatPanel == null || _chatPanel.IsVisible;
+            Func<bool> pressed = () => hiddenButton == null || hiddenButton.IsPressed;
+
             Step(4, "Chat", "Leia o chat");
 
-            yield return Say(
-                "Agora sobre mim e a galera: o chat.",
-                "Aqui você recebe as mensagens da live. Os viewers reagem ao que você filma e ao que acontece.",
-                "E eles ajudam! Quando você empaca, o chat manda dica: missão, porta trancada, luz apagada...");
+            Say(Dev, "Agora sobre a gente: o chat.");
+            Say(Camis, "aqui chegam as mensagens da live. a galera reage ao que você filma e ao que acontece");
+            Say(Sono, "e a gente ajuda! quando você empaca, o chat manda dica: missão, porta trancada, luz apagada...");
 
             if (_chatPanel != null)
             {
                 SetObjective($"Aperte {Key(TutorialKeys.Chat)} para esconder o chat");
-                yield return Say($"Se o chat atrapalhar, aperte {Key(TutorialKeys.Chat)} para esconder. Tenta!");
+                Teach(hidden, Dev, $"Se o chat atrapalhar, aperte {Key(TutorialKeys.Chat)} para esconder. Tenta!");
 
-                yield return WaitFor(() => !_chatPanel.IsVisible, 10f,
-                    Hint(Moderator, $"A tecla é {Key(TutorialKeys.Chat)}."));
+                yield return WaitFor(hidden, 10f, Hint(Dev, $"A tecla é {Key(TutorialKeys.Chat)}."));
 
                 SetObjective($"Aperte {Key(TutorialKeys.Chat)} de novo para trazer o chat de volta");
 
-                // A moderadora fala com o chat fechado: a linha fica esperando no painel.
-                yield return WaitFor(() => _chatPanel.IsVisible, 8f,
-                    Hint(Moderator, $"Aperte {Key(TutorialKeys.Chat)} de novo! Sem o chat você perde as dicas."));
+                // Com o chat fechado a linha fica esperando no painel.
+                Teach(shown, Tutu, $"volta o chat! aperta {Key(TutorialKeys.Chat)} de novo, sem ele você perde as dicas");
 
-                yield return Say("Bem-vindo de volta! Nunca fique muito tempo sem olhar o chat.");
+                yield return WaitFor(shown, 8f,
+                    Hint(Dev, $"Aperte {Key(TutorialKeys.Chat)} de novo! Sem o chat você perde as dicas."));
+
+                Say(Camis, "bem-vindo de volta kkk nunca fica muito tempo sem olhar o chat");
             }
-
-            if (hiddenButton != null) hiddenButton.IsArmed = true;
 
             SetObjective("Ache o botão escondido que abre a próxima porta (o chat ajuda)");
 
-            yield return Say(
-                "Teste: tem um botão escondido nesta sala. Ele abre a próxima porta.",
-                "Não vou dizer onde. Se demorar, o chat vai começar a dar dica. Leia!");
+            Teach(pressed, Dev, "Teste: tem um botão escondido nesta sala. Ele abre a próxima porta.");
+            Teach(pressed, Dev, "Não vou dizer onde. Se demorar, o chat começa a dar dica. Leia!");
 
-            yield return WaitFor(() => hiddenButton == null || hiddenButton.IsPressed, 10f, 9f,
+            yield return WaitFor(pressed, 10f, 9f,
                 Hint(null, "procura atrás das coisas"),
-                Hint(null, "olha atrás do armário!!"),
-                Hint(null, "ATRÁS DO ARMÁRIO GRANDE MANO"),
-                Hint(Moderator, $"O pessoal tem razão: o botão está atrás do armário grande. Mire nele e use {Key(TutorialKeys.Interact)}."));
+                Hint(Sono, "olha atrás do armário!!"),
+                Hint(Tutu, "ATRÁS DO ARMÁRIO DE METAL MANO, NO CANTO"),
+                Hint(Dev, $"O pessoal tem razão: o botão está na parede atrás do armário de metal. Mire nele e use {Key(TutorialKeys.Interact)}."));
 
             Flavor(3, "EU FALEI", "o chat carregando", "de nada kkkkk", "chat > streamer");
+            Say(Dev, "Viu? Quando você empacar na partida, olhe o chat: alguém sempre sabe.");
 
-            yield return Say("Viu? Quando você empacar na partida, olhe o chat: alguém sempre sabe.");
-
-            TutorialGate.Open(GateItems);
+            TutorialDoorGate.Open(GateItems);
         }
 
         private IEnumerator LessonItems()
         {
+            Func<bool> picked = () => _batteryPicked;
+            Func<bool> held = () => _batteryHeld || _batteryUsed;
+            Func<bool> used = () => _batteryUsed;
+            Func<bool> hovered = () => _blockedHovered;
+
             Step(5, "Itens e bateria", $"Mire na pilha em cima da mesa e use {Key(TutorialKeys.Interact)} para pegar");
 
-            yield return Say(
-                "Itens! Quando você mira em algo que dá para usar, aparece o contorno e a tecla.",
-                $"Mire na pilha em cima da mesa e use {Key(TutorialKeys.Interact)} para pegar.");
+            Teach(picked, Dev, "Itens! Quando você mira em algo que dá para usar, aparece o contorno e a tecla.");
+            Teach(picked, Camis, $"pega a pilha em cima da mesa: mira nela e {Key(TutorialKeys.Interact)}");
 
-            yield return WaitFor(HasBatteryInInventory, 14f,
-                Hint(Moderator, $"Chegue perto da mesa, mire na pilha (ela fica contornada) e use {Key(TutorialKeys.Interact)}."),
+            yield return WaitFor(picked, 14f,
+                Hint(Dev, $"Chegue perto da mesa, mire na pilha (ela fica contornada) e use {Key(TutorialKeys.Interact)}."),
                 Hint(null, "pega a pilha"));
 
-            SetObjective($"Aperte {Key(TutorialKeys.Slot1)} para segurar a pilha");
+            SetObjective($"Aperte {Key(BatterySlotKey())} para segurar a pilha");
 
-            yield return Say(
-                "Ela foi para o inventário, aqui embaixo. São 4 espaços, nas teclas 1 a 4.",
-                $"Aperte {Key(BatterySlotKey())} para segurar a pilha.");
+            Teach(held, Dev, "Ela foi para o inventário, aqui embaixo. São 4 espaços, nas teclas 1 a 4.");
+            Teach(held, Sono, $"aperta {Key(BatterySlotKey())} pra segurar a pilha");
 
-            yield return WaitFor(IsHoldingBattery, 10f,
-                Hint(Moderator, $"Aperte o número do espaço onde a pilha está ({Key(BatterySlotKey())})."));
+            yield return WaitFor(held, 10f,
+                Hint(Dev, $"Aperte o número do espaço onde a pilha está ({Key(BatterySlotKey())})."));
 
             SetObjective($"Use {Key(TutorialKeys.Use)} para colocar a pilha na lanterna");
+            Teach(used, Dev, $"Com a pilha na mão, use {Key(TutorialKeys.Use)} para recarregar a lanterna. Olhe a barra!");
 
-            yield return Say($"Com a pilha na mão, use {Key(TutorialKeys.Use)} para recarregar a lanterna. Olhe a barra!");
-
-            // A pilha sai do inventário quando é usada. Comparar com a bateria de "antes" travava quem
-            // usava a pilha enquanto a moderadora ainda falava: o "antes" já era a bateria cheia.
-            yield return WaitFor(() => !HasBatteryInInventory(), 10f,
-                Hint(Moderator, $"Segurando a pilha, é só {Key(TutorialKeys.Use)}."));
+            // A pilha sai do inventário quando é usada.
+            yield return WaitFor(used, 10f,
+                Hint(Dev, $"Segurando a pilha, é só {Key(TutorialKeys.Use)}."));
 
             Flavor(2, "bateria cheia", "agora vai", "economiza essa ein");
+            Say(Tutu, "pilha tem espalhada pelo teatro. achou, pega!");
 
-            yield return Say(
-                "Bateria cheia! Pilhas ficam espalhadas pelo teatro. Pegue sempre que achar.",
-                "Agora: nem tudo dá para pegar. Mire naquela caixa do lado.");
+            SetObjective("Mire na caixa em cima do case de metal");
+            Teach(hovered, Dev, "Agora: nem tudo dá para pegar. Mire naquela caixa em cima do case, do lado da mesa.");
 
-            SetObjective("Mire na caixa ao lado da mesa");
+            yield return WaitFor(hovered, 12f,
+                Hint(Dev, "A caixa de papelão em cima do case de metal. Só mire nela."));
 
-            float hovered = 0f;
-
-            yield return WaitFor(() =>
-                {
-                    hovered = IsHoveringBlockedBox() ? hovered + Time.deltaTime : 0f;
-                    return hovered >= 0.4f;
-                }, 12f,
-                Hint(Moderator, "A caixa de papelão em cima do caixote. Mire nela."));
-
-            yield return Say(
-                "Contorno vermelho e INDISPONÍVEL: essa caixa é da missão de outro jogador. Só o dono pega.",
-                "Com o inventário cheio, pegar um item troca pelo que está na sua mão. Fique de olho no que carrega.");
-
+            Say(Dev, "Contorno vermelho e INDISPONÍVEL: essa caixa é da missão de outro jogador. Só o dono pega.");
+            Say(Camis, "e com o inventário cheio, pegar um item troca pelo que tá na sua mão. cuidado com o que carrega");
             Flavor(2, "nao é seu kkkkk", "ladrão de caixa", "devolve");
-            TutorialGate.Open(GateDoors);
+
+            TutorialDoorGate.Open(GateDoors);
         }
 
         private IEnumerator LessonDoors()
         {
-            _doorRattled = false;
+            Func<bool> passed = () => TutorialZone.WasEntered(ZoneDoorsAfter);
+            Func<bool> rattled = () => _doorRattled || passed();
+            Func<bool> opened = () => _openDoorOpened || passed();
+            Func<bool> closedBehind = () => passed() && TutorialZone.IsInside(ZoneDoorsAfter) && (openDoor == null || openDoor.IsClosed);
 
             Step(6, "Portas", $"Tente abrir a porta da esquerda ({Key(TutorialKeys.Interact)})");
 
-            yield return Say(
-                "Portas! Elas abrem e fecham com a tecla de interagir.",
-                $"Tente abrir a porta da esquerda: mire nela e use {Key(TutorialKeys.Interact)}.");
+            Teach(rattled, Dev, "Portas! Elas abrem e fecham com a tecla de interagir.");
+            Teach(rattled, Sono, $"tenta abrir a porta da esquerda: mira nela e {Key(TutorialKeys.Interact)}");
 
-            yield return WaitFor(() => _doorRattled, 15f,
-                Hint(Moderator, $"A porta da esquerda. Mire e {Key(TutorialKeys.Interact)}."));
+            yield return WaitFor(rattled, 15f,
+                Hint(Dev, $"A porta da esquerda. Mire e {Key(TutorialKeys.Interact)}."));
 
-            yield return Say(
-                "Chacoalhou e não abriu! Porta assim está sendo segurada pelo monstro (ou ele sabotou).",
-                "Na partida, isso passa sozinho em alguns segundos. Ou você acha outro caminho.");
+            Say(Dev, "Porta que chacoalha e não abre está sendo segurada pelo monstro (ou ele sabotou).");
+            Say(Tutu, "na partida isso passa sozinho em uns segundos. ou acha outro caminho");
 
             SetObjective($"Abra a porta da direita ({Key(TutorialKeys.Interact)})");
-            yield return Say("Use a porta da direita.");
+            Teach(opened, Camis, "vai pela da direita");
 
-            yield return WaitFor(() => openDoor == null || !openDoor.IsClosed, 12f,
-                Hint(Moderator, $"Porta da direita, {Key(TutorialKeys.Interact)}."));
+            yield return WaitFor(opened, 12f,
+                Hint(Dev, $"Porta da direita, {Key(TutorialKeys.Interact)}."));
 
             SetObjective($"Passe e feche a porta atrás de você ({Key(TutorialKeys.Interact)})");
 
-            yield return Say(
-                "Ela abre para o lado oposto de quem abre. Agora passe e feche atrás de você.",
-                "Cuidado: porta batendo derruba quem estiver no caminho. Não faça isso com seus amigos (ou faça).");
+            Teach(closedBehind, Dev, "Ela abre para o lado oposto de quem abre. Agora passe e feche atrás de você.");
+            Teach(closedBehind, Sono, "cuidado: porta batendo derruba quem tá no caminho. não faz isso com seus amigos (ou faz)");
 
-            yield return WaitFor(() => TutorialZone.WasEntered(ZoneDoorsAfter) && TutorialZone.IsInside(ZoneDoorsAfter) && (openDoor == null || openDoor.IsClosed), 14f,
-                Hint(Moderator, $"Do outro lado, vire para a porta e use {Key(TutorialKeys.Interact)} para fechar."),
+            yield return WaitFor(closedBehind, 14f,
+                Hint(Dev, $"Do outro lado, vire para a porta e use {Key(TutorialKeys.Interact)} para fechar."),
                 Hint(null, "fecha a porta!!"));
 
-            yield return Say(
-                "Porta fechada segura o monstro um pouco: ele tem que forçar para passar.",
-                "Mas abrir e fechar faz barulho. Use quando estiver fugindo.");
-
+            Say(Dev, "Porta fechada segura o monstro um pouco: ele tem que forçar para passar.");
+            Say(Camis, "mas abrir e fechar faz barulho. usa quando tiver fugindo");
             Flavor(2, "fecha a porta pra ele n entrar", "tranca tudo", "porta salva vidas");
         }
 
@@ -507,98 +585,105 @@ namespace Tutorial
             }
         }
 
-        private bool _holdAudience = true;
-
         private IEnumerator LessonAudience()
         {
+            Func<bool> one = () => RegisteredProps() >= 1;
+            Func<bool> two = () => RegisteredProps() >= 2;
+
             _holdAudience = false;
 
             Step(7, "Audiência", "Grave um objeto com o olho: deixe ele na câmera até registrar");
 
-            yield return Say(
-                "Agora o mais importante da live: AUDIÊNCIA.",
-                "Coisas que o público quer ver têm um olho em cima. Para gravar, é só manter na câmera.",
-                "Olhe para um desses objetos por uns segundos e veja o que acontece com o olho.");
+            Say(Dev, "Agora o mais importante da live: AUDIÊNCIA.");
+            Teach(one, Tutu, "as coisas que o público quer ver têm um OLHO em cima. pra gravar é só deixar na câmera");
+            Teach(one, Dev, "Olhe para um desses objetos por uns segundos e veja o que acontece com o olho.");
 
-            yield return WaitFor(() => RegisteredProps() >= 1, 18f,
-                Hint(Moderator, "Chegue perto (uns 5 metros) e mantenha o objeto no meio da tela por 3 segundos."),
+            yield return WaitFor(one, 18f,
+                Hint(Dev, "Chegue perto (uns 5 metros) e mantenha o objeto no meio da tela por 3 segundos."),
                 Hint(null, "fica olhando pra coroa"));
 
-            yield return Say(
-                "Viu o olho ficar VERMELHO? Isso quer dizer que a audiência daquele objeto entrou.",
-                "Enquanto grava, o olho respira. Vermelho é gravado e pago. Olhe a barra de audiência subir!");
+            Say(Dev, "Viu o olho ficar VERMELHO? Quer dizer que a audiência daquele objeto entrou.");
+            Say(Camis, "enquanto grava o olho respira. vermelho = gravado e pago. olha a barra de audiência subir!");
 
             SetObjective("Grave mais um objeto diferente");
+            Teach(two, Sono, "grava mais um, outro objeto");
 
-            yield return WaitFor(() => RegisteredProps() >= 2, 18f,
-                Hint(Moderator, "Outro objeto com olho: a espada ou a máscara."));
+            yield return WaitFor(two, 18f,
+                Hint(Dev, "Outro objeto com olho: a espada ou a máscara."));
 
-            yield return Say(
-                "Cada objeto paga uma vez. Depois de um tempo o olho volta ao normal e ele paga de novo.",
-                "Se você ficar muito tempo sem mostrar nada, a audiência cai. Mostre coisas sempre!",
-                "Na partida, 75% de audiência é uma das chaves para abrir a saída.");
-
+            Say(Dev, "Cada objeto paga uma vez. Depois de um tempo o olho volta ao normal e ele paga de novo.");
+            Say(Tutu, "se ficar muito tempo sem mostrar nada, a audiência cai. mostra coisa sempre!");
+            Say(Dev, "Na partida, 75% de audiência é uma das chaves para abrir a saída.");
             Flavor(3, "CONTEÚDO", "mostra a coroa de novo", "que live", "subiu a audiencia");
-            TutorialGate.Open(GatePuzzle);
+
+            TutorialDoorGate.Open(GatePuzzle);
         }
 
         private IEnumerator LessonPuzzle()
         {
+            Func<bool> inside = () => TutorialZone.WasEntered(ZonePuzzleRoom);
+            Func<bool> solved = () => puzzle == null || puzzle.IsComplete;
+            Func<bool> panelHidden = () => _missionPanelHidden || solved();
+            Func<bool> panelShown = () => _missionPanel == null || _missionPanel.IsVisible || solved();
+
             Step(8, "Missão e puzzle", "Entre na sala da missão");
 
-            yield return WaitFor(() => TutorialZone.WasEntered(ZonePuzzleRoom), 15f,
-                Hint(Moderator, "A próxima sala abriu. Vamos para a sua primeira missão."));
+            yield return WaitFor(inside, 15f,
+                Hint(Dev, "A porta abriu. Vamos para a sua primeira missão."));
 
             StartPuzzle();
 
-            yield return Say(
-                "Chegou missão! Ela aparece no painel de missões, no canto da tela.",
-                "Cada missão tem um TÍTULO (o que é) e uma DICA (como resolver). Leia com calma.");
+            Say(Dev, "Chegou missão! Ela aparece no painel de missões, no canto da tela.");
+            Say(Camis, "toda missão tem um TÍTULO (o que é) e uma DICA (como resolver). lê com calma");
 
             if (_missionPanel != null)
             {
                 SetObjective($"Aperte {Key(TutorialKeys.Missions)} para esconder e mostrar o painel de missões");
 
-                yield return WaitFor(() => !_missionPanel.IsVisible, 10f,
-                    Hint(Moderator, $"A tecla do painel de missões é {Key(TutorialKeys.Missions)}."));
+                Teach(panelHidden, Tutu, $"o painel também esconde: {Key(TutorialKeys.Missions)}");
 
-                yield return WaitFor(() => _missionPanel.IsVisible, 8f,
-                    Hint(Moderator, $"{Key(TutorialKeys.Missions)} de novo para ver a missão."));
+                yield return WaitFor(panelHidden, 10f,
+                    Hint(Dev, $"A tecla do painel de missões é {Key(TutorialKeys.Missions)}."));
+
+                yield return WaitFor(panelShown, 8f,
+                    Hint(Dev, $"{Key(TutorialKeys.Missions)} de novo para ver a missão."));
             }
 
             string title = puzzleSelector != null && puzzleSelector.Mission != null ? puzzleSelector.Mission.missionName : "a missão";
             string clue = puzzleSelector != null && puzzleSelector.Mission != null ? puzzleSelector.Mission.instructions : string.Empty;
 
-            yield return Say(
-                $"A missão é \"{title}\". A dica: \"{clue}\"",
-                "Interprete: as caixas têm símbolos. Os suportes perto das paredes também. Combine os iguais!",
-                $"Pegue uma caixa ({Key(TutorialKeys.Interact)}), segure ({Key("1-4")}), mire no suporte e use {Key(TutorialKeys.Use)}.");
-
             UpdatePuzzleObjective();
+
+            Teach(solved, Dev, $"A missão é \"{title}\". A dica: \"{clue}\"");
+            Teach(solved, Sono, "desalinhado = tem pedaço de cano virado errado. segue o cano que sai do chão, na parede da direita");
+            Teach(solved, Dev, $"Mire num pedaço de cano da parede e use {Key(TutorialKeys.Interact)} para girar. Gire até o caminho ficar inteiro.");
 
             yield return WaitFor(() =>
                 {
                     UpdatePuzzleObjective();
-                    return puzzle == null || puzzle.IsComplete;
-                }, 30f, 30f,
-                Hint(null, "estrela com estrela, circulo com circulo"),
-                Hint(Moderator, "Olhe o desenho na caixa e procure o mesmo desenho no suporte. Aparece uma caixa fantasma verde quando está certo de colocar."),
-                Hint(null, "segura a caixa (numero) e clica no suporte"),
-                Hint(Moderator, $"Se pôs no lugar errado, pode pegar de volta com {Key(TutorialKeys.Interact)} e tentar de novo."));
+                    return solved();
+                }, 25f, 25f,
+                Hint(null, "cada E gira um pouquinho, as vezes precisa de varias"),
+                Hint(Camis, "começa pela entrada, embaixo, e vai seguindo pedaço por pedaço até a saída"),
+                Hint(Dev, "A faixa embaixo conta quantos pedaços estão no lugar. Um pedaço certo encaixa reto com o vizinho."),
+                Hint(Tutu, "olha a mesa: tem pedaço de cano solto lá, mostra como é o encaixe"));
 
-            Flavor(3, "GENIO", "resolveu rapidinho", "puzzle facil kkkk", "big brain");
+            Flavor(3, "GENIO", "resolveu rapidinho", "puzzle facil kkkk", "big brain", "encanador profissional");
 
-            yield return Say(
-                "Missão completa! Ela some do painel e o chat comemora.",
-                "Na partida cada um recebe missões diferentes. Ajudem uns aos outros!");
+            Say(Dev, "Missão completa! Ela some do painel e o chat comemora.");
+            Say(Camis, "na partida cada um recebe missões diferentes. se ajudem!");
         }
 
         private IEnumerator LessonRecording()
         {
+            Func<bool> recorded = () => _mainMissionCompleted;
+
             Step(9, "Missão de gravação", "Leia a missão principal no painel");
 
-            // A missão principal nasce do MissionManager quando as missões pessoais acabam.
+            // A missão principal nasce do MissionManager quando as missões pessoais acabam. Em geral
+            // chega no mesmo quadro; o prazo é só para o caso de algo no jogo mudar.
             float waited = 0f;
+
             while (!_mainMissionReceived && waited < 4f)
             {
                 waited += Time.deltaTime;
@@ -611,28 +696,25 @@ namespace Tutorial
                 RevealMainMissionFallback();
             }
 
-            yield return Say(
-                "Terminando as missões, aparece a MISSÃO PRINCIPAL: a gravação que a live inteira quer ver.",
-                "Grave o monstro no palco principal. Sim, o monstro. Ele está na próxima sala.",
-                "Calma: só aqui no tutorial ele está congelado.");
-
-            TutorialGate.Open(GateStage);
+            TutorialDoorGate.Open(GateStage);
             SetObjective("Pare na marca do chão e grave o monstro no palco (monstro no meio da tela)");
 
-            yield return Say("A dica fala em marcas no chão: tem uma fita amarela em frente ao palco. Grave dali!");
+            Teach(recorded, Dev, "Terminando as missões, aparece a MISSÃO PRINCIPAL: a gravação que a live inteira quer ver.");
+            Teach(recorded, Dev, "Grave o monstro no palco principal. Sim, o monstro. Ele está na próxima sala.");
+            Say(Tutu, "calma, só aqui no tutorial ele tá congelado kkkk");
+            Teach(recorded, Sono, "a dica fala em marca no chão: tem um X amarelo na frente do palco. grava dali!");
 
-            yield return WaitFor(() => _mainMissionCompleted, 25f,
-                Hint(Moderator, "Fique na fita amarela em frente ao palco e deixe o monstro no meio da tela."),
+            yield return WaitFor(recorded, 25f,
+                Hint(Dev, "Fique no X amarelo em frente ao palco e deixe o monstro no meio da tela."),
                 Hint(null, "filma ele no palco!!!"),
-                Hint(Moderator, "Chegue mais perto: o palco e o monstro precisam aparecer juntos na câmera, a menos de 10 metros."));
+                Hint(Dev, "Chegue mais perto: o palco e o monstro precisam aparecer juntos na câmera, a menos de 10 metros."));
 
             StopMainMissionRecorder();
 
             Flavor(4, "QUE CENA", "CLIPA ISSO", "to com medo", "AAAAAA", "melhor live");
 
-            yield return Say(
-                "GRAVADO! Na partida, missão principal completa + 75% de audiência abrem a porta da saída.",
-                "Aí cada um pega o seu disquete e corre para fora.");
+            Say(Dev, "GRAVADO! Na partida, missão principal completa + 75% de audiência abrem a porta da saída.");
+            Say(Camis, "aí cada um pega o seu disquete e corre pra fora");
         }
 
         private IEnumerator LessonDonation()
@@ -641,79 +723,73 @@ namespace Tutorial
 
             bool spawned = SpawnTutorialDonation();
 
-            yield return Say(
-                "Opa, DOAÇÃO! O cartão no meio da tela é um pedido de quem doou.",
-                "Cumprir a doação dá audiência e deixa o chat feliz. Elas têm tempo para acabar.");
+            Say(Tutu, "OPA DOAÇÃO! o cartão no meio da tela é o pedido de quem doou");
+            Say(Dev, "Cumprir a doação dá audiência e deixa o chat feliz. Elas têm tempo para acabar.");
 
             if (!spawned)
             {
-                yield return Say("(Essa doação não chegou por algum problema. Seguimos sem ela.)");
+                Say(Dev, "(Essa doação não chegou por algum problema. Seguimos sem ela.)");
                 yield break;
             }
 
             SetObjective($"Cumpra a doação: grave o monstro por 5 segundos ({Key(TutorialKeys.Donate)} mostra os pedidos)");
 
-            yield return Say(
-                $"Depois do aviso, o pedido fica num ícone embaixo das missões. Aperte {Key(TutorialKeys.Donate)} para ver de novo.",
-                "Este pede para gravar o monstro por 5 segundos. A barrinha do cartão enche enquanto você grava.",
-                "Tem doação que pede para GRITAR perto do monstro. Aí é com o seu microfone. Coragem!");
+            Teach(IsDonationComplete, Dev, $"Depois do aviso, o pedido fica num ícone embaixo das missões. Aperte {Key(TutorialKeys.Donate)} para ver de novo.");
+            Teach(IsDonationComplete, Camis, "esse pede pra gravar o monstro por 5 segundos. a barrinha do cartão enche enquanto você grava");
+            Say(Sono, "tem doação que pede pra GRITAR perto do monstro. aí é com o seu microfone. coragem kkkk");
 
             yield return WaitFor(IsDonationComplete, 20f,
-                Hint(Moderator, "Mantenha o monstro na câmera até a barrinha da doação encher."),
+                Hint(Dev, "Mantenha o monstro na câmera até a barrinha da doação encher."),
                 Hint(null, "grava ele de novo"));
 
             Flavor(4, "valeu pela doação", "DOOU", "pix do terror", "obrigado pelo conteúdo");
-
-            yield return Say("Doação completa! Valeu demais.");
+            Say(Dev, "Doação completa! Valeu demais.");
         }
 
         private IEnumerator LessonLights()
         {
-            Step(11, "Luzes", "...");
+            Func<bool> fixedLights = () => !IsLightsOut();
 
-            yield return Say("Ih... o que foi isso?");
+            Step(11, "Luzes", "A luz caiu! Ache o quadro de luz e use-o para religar");
 
             SetLightsOut(true);
 
-            SetObjective("A luz caiu! Ache o quadro de luz e use-o para religar");
+            Say(Tutu, "ih... o que foi isso?");
+            Teach(fixedLights, Dev, "O monstro pode apagar as luzes do teatro inteiro! Ligue a lanterna.");
+            Teach(fixedLights, Dev, "Para religar, ache o QUADRO DE LUZ (uma caixa cinza na parede) e use.");
 
-            yield return Say(
-                "O monstro pode apagar as luzes do teatro inteiro! Ligue a lanterna.",
-                "Para religar, ache o QUADRO DE LUZ (uma caixa cinza na parede) e use.");
-
-            yield return WaitFor(() => !IsLightsOut(), 18f,
+            yield return WaitFor(fixedLights, 18f,
                 Hint(null, "o quadro tá na parede do lado do palco"),
-                Hint(Moderator, $"Ligue a lanterna ({Key(TutorialKeys.Flashlight)}) e procure na parede lateral do palco."),
-                Hint(Moderator, $"A caixa cinza com uma alavanca. Mire nela e use {Key(TutorialKeys.Interact)}."));
+                Hint(Camis, $"liga a lanterna ({Key(TutorialKeys.Flashlight)}) e procura na parede da esquerda"),
+                Hint(Dev, $"A caixa cinza com uma alavanca, na parede esquerda. Mire nela e use {Key(TutorialKeys.Interact)}."));
 
             Flavor(3, "LUZ VOLTOU", "ufa", "nem tava com medo", "eletricista");
-
-            yield return Say("Luz de volta! Na partida o quadro pode estar em outro lugar. O chat costuma lembrar onde.");
+            Say(Dev, "Luz de volta! Na partida o quadro pode estar em outro lugar. O chat costuma lembrar onde.");
         }
 
         private IEnumerator LessonEscape()
         {
-            Step(12, "Fugir do monstro", "Prepare-se...");
+            Func<bool> started = () => TutorialZone.WasEntered(ZoneFugaStart);
+            Func<bool> escaped = () => TutorialZone.WasEntered(ZoneExit);
 
-            yield return Say(
-                "Última lição: FUGIR. Na partida o monstro anda solto pelo teatro.",
-                "Ele te acha pela visão e pelo barulho. Correr, falar alto, porta e lanterna fazem barulho.",
-                "Se ele te vir: corra, feche portas atrás de você e saia da linha de visão dele.",
-                "Vou descongelar ele. Quando a porta abrir, corra até a SAÍDA!");
-
-            yield return new WaitForSeconds(0.8f);
+            Step(12, "Fugir do monstro", $"Corra pela porta do fundo do palco até a SAÍDA! ({Key(TutorialKeys.Run)} corre)");
 
             OpenEscapeDoors();
-            TutorialGate.Open(GateFuga);
-            SetObjective($"Corra até a SAÍDA! ({Key(TutorialKeys.Run)} corre · feche as portas atrás de você)");
+            TutorialDoorGate.Open(GateFuga);
 
-            yield return WaitFor(() => TutorialZone.WasEntered(ZoneFugaStart), 12f,
-                Hint(Moderator, "Pela porta aberta no fundo do palco. Vai!"));
+            Say(Dev, "Última lição: FUGIR. Na partida o monstro anda solto pelo teatro.");
+            Say(Sono, "ele te acha pela visão e pelo barulho. correr, falar alto, porta e lanterna fazem barulho");
+            Teach(started, Dev, "A porta do fundo do palco abriu. Quando você passar por ela, o monstro acorda. Corra até a SAÍDA!");
+
+            yield return WaitFor(started, 12f,
+                Hint(Dev, "Pela porta com a luz verde, no fundo do palco. Vai!"));
 
             ReleaseMonster();
             _inFuga = true;
             _hitsTaken = 0;
 
+            SetObjective($"Corra até a SAÍDA! ({Key(TutorialKeys.Run)} corre · feche as portas atrás de você)");
+            Say(Camis, "se ele te ver: corre, fecha porta atrás de você e sai da linha de visão dele");
             Flavor(4, "CORREEEE", "ELE TA VINDO", "AAAAAAAAA", "fecha a porta fecha a porta");
 
             float nudge = 0f;
@@ -729,10 +805,10 @@ namespace Tutorial
                         KeepMonsterOnTrail();
                     }
 
-                    return TutorialZone.WasEntered(ZoneExit);
+                    return escaped();
                 }, 20f, 15f,
                 Hint(null, "segue o corredor e vira a direita"),
-                Hint(Moderator, "Siga as luzes verdes até a placa de SAÍDA."));
+                Hint(Dev, "Siga as placas verdes de SAÍDA."));
 
             _inFuga = false;
 
@@ -741,17 +817,16 @@ namespace Tutorial
             Flavor(4, "ESCAPOU", "GG", "que fuga", "sobreviveu!!!", "clipa clipa");
         }
 
-        private IEnumerator Finish()
+        private void Finish()
         {
             _finished = true;
 
-            yield return Say(
-                "VOCÊ SOBREVIVEU! Tutorial completo.",
-                $"Lembrete: {Key(TutorialKeys.Pause)} pausa e tem as opções (volume, mouse, microfone).",
-                "Se você morrer na partida, vira espectador e assiste os amigos. Então não morra.",
-                "Boa live e boa sorte!");
-
             SetObjective("Tutorial concluído!");
+
+            Say(Dev, "VOCÊ SOBREVIVEU! Tutorial completo.");
+            Say(Camis, $"lembrete: {Key(TutorialKeys.Pause)} pausa e tem as opções (volume, mouse, microfone)");
+            Say(Sono, "se você morrer na partida vira espectador e assiste os amigos. então não morre kkkk");
+            Say(Tutu, "boa live e boa sorte!!");
 
             if (_state != null) _state.SetInputLocked(Interfaces.InputLockReason.EndGame, true);
 
@@ -859,6 +934,8 @@ namespace Tutorial
             puzzle.RequestSpawn();
 
             if (puzzleSelector.Mission != null) _missionHolder.ReceivePersonalMission(puzzleSelector.Mission);
+
+            _puzzleStarted = true;
         }
 
         private void UpdatePuzzleObjective()
@@ -868,13 +945,15 @@ namespace Tutorial
             int total = 0;
             int correct = 0;
 
-            foreach (ItemSlotTotem totem in FindObjectsByType<ItemSlotTotem>(FindObjectsSortMode.None))
+            foreach (PipeTotem pipe in FindObjectsByType<PipeTotem>(FindObjectsSortMode.None))
             {
+                if (!pipe.IsSpawned) continue;
+
                 total++;
-                if (totem.IsCorrect) correct++;
+                if (pipe.IsCorrect) correct++;
             }
 
-            SetObjective($"Coloque cada caixa no suporte com o mesmo símbolo  ({correct}/{Mathf.Max(total, 1)})");
+            SetObjective($"Gire os canos da parede ({Key(TutorialKeys.Interact)}) até o caminho ficar inteiro  ({correct}/{Mathf.Max(total, 1)} no lugar)");
         }
 
         private void RevealMainMissionFallback()
@@ -1032,9 +1111,18 @@ namespace Tutorial
 
         private void Door_OnBlocked(Vector3 position)
         {
-            if (lockedDoor == null) return;
+            if (lockedDoor != null && Vector3.Distance(position, lockedDoor.transform.position) < 2f)
+            {
+                _doorRattled = true;
+                return;
+            }
 
-            if (Vector3.Distance(position, lockedDoor.transform.position) < 2f) _doorRattled = true;
+            // Porta de lição ainda fechada: alguém do chat explica (sem repetir a cada tentativa).
+            if (_finished || !TutorialDoorGate.IsClosedGateAt(position) || Time.time < _nextGateComment) return;
+            if (_player != null && Vector3.Distance(_player.transform.position, position) > 4f) return;
+
+            _nextGateComment = Time.time + 8f;
+            Post(Tutu, "essa porta abre sozinha quando a luz em cima ficar VERDE. termina o que tá na faixa embaixo");
         }
 
         /// <summary>
@@ -1058,19 +1146,19 @@ namespace Tutorial
 
             if (!_inFuga)
             {
-                yield return Say("Ufa, aqui no tutorial você não morre. Na partida, cuidado!");
+                Post(Dev, "Ufa, aqui no tutorial você não morre. Na partida, cuidado!");
                 yield break;
             }
 
             if (_hitsTaken < 3)
             {
-                Post(Moderator, "Ele te pegou! No tutorial eu te curo. Na partida, cada golpe tira vida. CORRE!");
+                Post(Dev, "Ele te pegou! No tutorial eu te curo. Na partida, cada golpe tira vida. CORRE!");
                 yield break;
             }
 
             _hitsTaken = 0;
 
-            Post(Moderator, "Vamos de novo! Corra assim que a porta abrir e feche as portas atrás de você.");
+            Post(Dev, "Vamos de novo! Corra assim que entrar no corredor e feche as portas atrás de você.");
 
             if (monsterRemote != null) monsterRemote.SendHome();
 
@@ -1113,12 +1201,33 @@ namespace Tutorial
             if (hud != null) hud.SetObjective(_step, TotalSteps, _stepTitle, objective);
         }
 
-        private IEnumerator Say(params string[] lines)
+        /// <summary>Fala na fila: sai no ritmo de leitura, ninguém espera por ela.</summary>
+        private void Say(string who, string text) => _speech.Enqueue(new Line(who, text, null));
+
+        /// <summary>
+        /// Fala que ensina uma ação: se o jogador já fez (<paramref name="done"/>) quando chegar a vez
+        /// dela, ela é descartada.
+        /// </summary>
+        private void Teach(Func<bool> done, string who, string text) => _speech.Enqueue(new Line(who, text, done));
+
+        private void Speak()
         {
-            foreach (string line in lines)
+            if (Time.time < _nextLineTime) return;
+
+            while (_speech.Count > 0)
             {
-                Post(Moderator, line);
-                yield return new WaitForSeconds(Mathf.Max(minLineSeconds, line.Length * secondsPerCharacter));
+                Line line = _speech.Dequeue();
+
+                if (line.Skip != null && line.Skip()) continue;
+
+                Post(line.Who, line.Text);
+
+                // Fila comprida (o jogador está indo rápido): fala mais rápido também.
+                float gap = Mathf.Max(minLineSeconds, line.Text.Length * secondsPerCharacter);
+                if (_speech.Count > 3) gap *= 0.55f;
+
+                _nextLineTime = Time.time + gap;
+                return;
             }
         }
 
@@ -1126,8 +1235,7 @@ namespace Tutorial
         {
             if (string.IsNullOrWhiteSpace(viewer)) viewer = PickViewer();
 
-            string name = viewer == Moderator ? $"<color=#FFD54A>[MOD]</color> {viewer}" : viewer;
-            TutorialChat.Post(name, text);
+            TutorialChat.Post(viewer, text);
         }
 
         private string PickViewer()
@@ -1140,9 +1248,10 @@ namespace Tutorial
         private static void Flavor(int count, params string[] lines) => TutorialChat.Flavor(lines, count, 0.45f);
 
         /// <summary>
-        /// Espera <paramref name="done"/> ficar verdadeiro. Sem progresso por <paramref name="firstHint"/>
-        /// segundos, solta a próxima dica; depois uma a cada <paramref name="repeat"/> segundos, a última
-        /// se repetindo.
+        /// Espera <paramref name="done"/> ficar verdadeiro, conferindo a todo quadro. Sem progresso
+        /// por <paramref name="firstHint"/> segundos (contados depois que as falas pendentes saíram),
+        /// solta a próxima dica; depois uma a cada <paramref name="repeat"/> segundos, a última se
+        /// repetindo.
         /// </summary>
         private IEnumerator WaitFor(Func<bool> done, float firstHint, float repeat, params ChatHint[] hints)
         {
@@ -1151,7 +1260,7 @@ namespace Tutorial
 
             while (!done())
             {
-                timer += Time.deltaTime;
+                if (_speech.Count == 0) timer += Time.deltaTime;
 
                 float threshold = next == 0 ? firstHint : repeat;
 

@@ -133,10 +133,12 @@ namespace Tutorial
 
         private void BuildBanner()
         {
+            // Embaixo, no centro: o topo é do cartão de doação do jogo, e os cantos de baixo já têm
+            // vida, stamina e inventário.
             _banner = NewRect("Objetivo", transform);
-            _banner.anchorMin = _banner.anchorMax = new Vector2(0.5f, 1f);
-            _banner.pivot = new Vector2(0.5f, 1f);
-            _banner.anchoredPosition = new Vector2(0f, -22f);
+            _banner.anchorMin = _banner.anchorMax = new Vector2(0.5f, 0f);
+            _banner.pivot = new Vector2(0.5f, 0f);
+            _banner.anchoredPosition = new Vector2(0f, 26f);
             _banner.sizeDelta = new Vector2(860f, 112f);
 
             _bannerGroup = _banner.gameObject.AddComponent<CanvasGroup>();

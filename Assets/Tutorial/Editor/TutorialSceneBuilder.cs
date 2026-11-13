@@ -898,7 +898,7 @@ namespace Tutorial.Building
             Shutters.Add(shutter);
 
             GameObject lamp = Box(gate.transform, "Luz", Vector3.zero, new Vector3(0.7f, 0.14f, 0.05f), _gateLamp, _layerDefault, false);
-            lamp.transform.localPosition = new Vector3(0f, GateHeight + 0.25f, -Thickness * 0.5f - 0.04f);
+            lamp.transform.localPosition = new Vector3(0f, GateHeight + 0.11f, -Thickness * 0.5f - 0.04f);
 
             TutorialGate component = gate.AddComponent<TutorialGate>();
             component.Configure(id, shutter.transform, lamp.GetComponent<Renderer>(), false);
@@ -1056,7 +1056,7 @@ namespace Tutorial.Building
         private static void Sign(Transform labels, string title, string subtitle, float wallZ, float x, float wallHeight, bool high = false)
         {
             string text = string.IsNullOrEmpty(subtitle) ? $"<b>{title}</b>" : $"<b>{title}</b>\n<size=60%>{subtitle}</size>";
-            float y = high ? 4.1f : Mathf.Min(wallHeight - 0.35f, GateHeight + 0.62f);
+            float y = high ? 4.1f : wallHeight - 0.27f;
             Label(labels, text, new Vector3(x, y, wallZ - Thickness * 0.5f - 0.02f), FacingViewer(Vector3.back), 2.4f, 6f, new Color(1f, 0.85f, 0.35f));
         }
 

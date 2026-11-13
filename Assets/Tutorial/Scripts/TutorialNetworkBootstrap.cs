@@ -44,12 +44,27 @@ namespace Tutorial
         /// <summary>O host subiu e o jogador local existe.</summary>
         public bool IsReady => LocalPlayer != null;
 
-        private GameObject _temporaryTracker;
-        private GameObject _temporaryHostSingleton;
-        private GameObject _temporaryVoice;
+        // Estáticos de propósito: no "Jogar de novo" a cena nova reaproveita o que a antiga criou (o
+        // host novo sobe em cima do mesmo HostSingleton). Só somem quando o jogo sai do tutorial.
+        private static GameObject _temporaryTracker;
+        private static GameObject _temporaryHostSingleton;
+        private static GameObject _temporaryVoice;
+        private static bool _watchingScenes;
 
         private void Awake()
         {
+            Instance = this;
+
+            if (_watchingScenes) return;
+
+            _watchingScenes = true;
+            SceneManager.activeSceneChanged += SceneManager_OnActiveSceneChanged;
+        }
+
+        private async void Start()
+        {
+            // Decidido aqui e não no Awake: no "Jogar de novo" a cena nova acorda enquanto a antiga,
+            // com o NetworkManager dela, ainda está saindo. No Start a antiga já foi.
             Instance = this;
 
             // Um NetworkManager já vivo (o do jogo, vindo do menu) manda. O da cena só acorda sem ele.
@@ -60,11 +75,6 @@ namespace Tutorial
 
             EnsurePlayerTracker();
 
-            SceneManager.sceneUnloaded += SceneManager_OnSceneUnloaded;
-        }
-
-        private async void Start()
-        {
             await InitializeServicesAsync();
 
             if (this == null) return;
@@ -102,19 +112,15 @@ namespace Tutorial
         {
             if (Instance == this) Instance = null;
 
-            SceneManager.sceneUnloaded -= SceneManager_OnSceneUnloaded;
-
             if (NetworkManager.Singleton != null)
             {
                 NetworkManager.Singleton.OnClientConnectedCallback -= SpawnPlayer;
             }
-
-            CleanUpTemporaries();
         }
 
-        private void SceneManager_OnSceneUnloaded(Scene scene)
+        private static void SceneManager_OnActiveSceneChanged(Scene previous, Scene next)
         {
-            if (scene != gameObject.scene) return;
+            if (next.name == TutorialLauncher.SceneName) return;
 
             CleanUpTemporaries();
         }
@@ -123,7 +129,7 @@ namespace Tutorial
         /// O que foi criado só para o tutorial não pode sobrar para o menu: um PlayerTracker falso
         /// em DontDestroyOnLoad faria o do menu se destruir como duplicado.
         /// </summary>
-        private void CleanUpTemporaries()
+        private static void CleanUpTemporaries()
         {
             if (_temporaryTracker != null) Destroy(_temporaryTracker);
             if (_temporaryHostSingleton != null) Destroy(_temporaryHostSingleton);
@@ -273,6 +279,15 @@ namespace Tutorial
         }
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
-        private static void ResetStatics() => OnLocalPlayerSpawned = null;
+        private static void ResetStatics()
+        {
+            OnLocalPlayerSpawned = null;
+            _temporaryTracker = null;
+            _temporaryHostSingleton = null;
+            _temporaryVoice = null;
+
+            if (_watchingScenes) SceneManager.activeSceneChanged -= SceneManager_OnActiveSceneChanged;
+            _watchingScenes = false;
+        }
     }
 }

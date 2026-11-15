@@ -30,7 +30,7 @@ using UnityEngine.SceneManagement;
 namespace Tutorial.Building
 {
     /// <summary>
-    /// Gera Assets/Tutorial/Scenes/Game0_Tutorial.unity do zero: onze salas em linha, uma por lição,
+    /// Gera Assets/Scenes/Game0_Tutorial.unity do zero: onze salas em linha, uma por lição,
     /// mais o corredor da fuga. Tudo o que se vê é peça do cenário do jogo (paredes, pisos, tetos,
     /// móveis, palco, canos, luminárias) e as passagens entre as salas são portas de verdade do jogo,
     /// trancadas, com a luz de emergência em cima.
@@ -41,12 +41,14 @@ namespace Tutorial.Building
     /// </summary>
     public static class TutorialSceneBuilder
     {
-        public const string SceneFolder = "Assets/Tutorial/Scenes";
+        // O nome tem que começar com "Game" + dígito: chat, audiência, REC e música só ligam em cenas
+        // que SceneNames.IsGame reconhece como partida.
+        public const string SceneFolder = "Assets/Scenes";
         public const string ScenePath = SceneFolder + "/" + TutorialLauncher.SceneName + ".unity";
         private const string DataFolder = "Assets/Tutorial/Data";
         private const string GeneratedFolder = "Assets/Tutorial/Generated";
         private const string MeshAssetPath = GeneratedFolder + "/TutorialMeshes.asset";
-        private const string NavMeshPath = SceneFolder + "/" + TutorialLauncher.SceneName + "/NavMesh-Tutorial.asset";
+        private const string NavMeshPath = GeneratedFolder + "/NavMesh-Tutorial.asset";
 
         private const string Prefabs = "Assets/Prefabs/";
         private const string Props = Prefabs + "Rooms/Props/";
@@ -643,7 +645,8 @@ namespace Tutorial.Building
             }
 
 
-            Sign(labels, TutorialDirector.SignPuzzle, "8 · MISSÃO E PUZZLE", "leia · interprete · resolva", 134f, -2.9f);
+            // Do lado direito da porta: no esquerdo ficam os armários de ferro.
+            Sign(labels, TutorialDirector.SignPuzzle, "8 · MISSÃO E PUZZLE", "leia · interprete · resolva", 134f, 2.9f);
             Lamp(room, new Vector3(-3f, 0f, 122f), Height);
             Lamp(room, new Vector3(3f, 0f, 122f), Height);
             Lamp(room, new Vector3(-3f, 0f, 129.5f), Height);
@@ -707,14 +710,23 @@ namespace Tutorial.Building
 
             Zone(room, TutorialDirector.ZoneStageRoom, new Vector3(0f, 0f, 135.8f), new Vector3(18f, 2.5f, 2.4f));
 
-            // Palco do jogo, menor (60%), apoiado no piso (0,9 m). O monstro é solto ao lado do palco,
-            // já no chão; a escadinha da frente é só para o jogador.
+            // Palco do jogo, menor (60%), apoiado no piso (0,9 m). No modelo a frente (curva, com as
+            // escadas nos cantos) fica para +Z, como na Game, onde a plateia está em +Z; aqui a plateia
+            // está em -Z, então ele gira 180°. A colisão é a própria malha (frente curva e degraus).
             const float stageTop = 0.9f;
             const float stageFront = 150f;
-            Solid(room, "Palco (colisão)", new Vector3(0f, 0f, 154.7f), new Vector3(12f, stageTop, 9.4f), _layerGround);
-            GameObject stage = Spawn(room, S + "SM_Stage.prefab", 0f, Vector3.one * 0.6f);
+            GameObject stage = Spawn(room, S + "SM_Stage.prefab", 180f, Vector3.one * 0.6f);
             Bounds stageBounds = RendererBounds(stage);
             stage.transform.position += new Vector3(-stageBounds.center.x, stageTop - stageBounds.max.y, stageFront - stageBounds.min.z);
+
+            foreach (MeshFilter stageMesh in stage.GetComponentsInChildren<MeshFilter>(true))
+            {
+                if (stageMesh.sharedMesh == null || stageMesh.GetComponent<Collider>() != null) continue;
+
+                stageMesh.gameObject.layer = _layerGround;
+                stageMesh.gameObject.AddComponent<MeshCollider>().sharedMesh = stageMesh.sharedMesh;
+                GameObjectUtility.SetStaticEditorFlags(stageMesh.gameObject, StaticEditorFlags.NavigationStatic);
+            }
 
             foreach (float x in new[] { -4f, 0f, 4f })
             {
@@ -726,19 +738,14 @@ namespace Tutorial.Building
             GameObject curtainRight = Spawn(room, S + "SM_Curtain_Right.prefab", 0f, Vector3.one * 0.4f);
             Fit(curtainRight, new Vector3(4.6f, stageTop, 158.8f));
 
-            Prop(room, S + "SM_SoundBox.prefab", new Vector3(-5.2f, stageTop, 151f), Face(Vector3.back));
-            Prop(room, S + "SM_SoundBox.prefab", new Vector3(5.2f, stageTop, 151f), Face(Vector3.back));
-            Prop(room, S + "SM_SoundBox_Floor.prefab", new Vector3(-2.2f, stageTop, 150.4f), Face(Vector3.back));
-            Prop(room, S + "SM_SoundBox_Floor.prefab", new Vector3(2.2f, stageTop, 150.4f), Face(Vector3.back));
+            // As caixas grandes ficam nas marcas de fita do fundo do palco (a frente é curva e tem as
+            // escadas nos cantos: lá elas ficariam no ar ou na frente dos degraus).
+            Prop(room, S + "SM_SoundBox.prefab", new Vector3(-5.4f, stageTop, 155.6f), Face(Vector3.back));
+            Prop(room, S + "SM_SoundBox.prefab", new Vector3(5.4f, stageTop, 155.6f), Face(Vector3.back));
+            Prop(room, S + "SM_SoundBox_Floor.prefab", new Vector3(-2.2f, stageTop, 150.9f), Face(Vector3.back));
+            Prop(room, S + "SM_SoundBox_Floor.prefab", new Vector3(2.2f, stageTop, 150.9f), Face(Vector3.back));
             Prop(room, S + "SM_Microphone.prefab", new Vector3(-1.4f, stageTop, 152f), 0f);
 
-            // Escadinha na frente do palco (o SM_Stair sobe para +Z; 1 m de altura no modelo).
-            GameObject stair = Spawn(room, H + "SM_Stair.prefab", 0f, new Vector3(0.5f, stageTop, 0.45f));
-            if (stair != null)
-            {
-                Bounds stairBounds = RendererBounds(stair);
-                Fit(stair, new Vector3(-3.6f, 0f, stageFront - stairBounds.extents.z));
-            }
             Prop(room, S + "SM_Tripod_Spotilight_V1.prefab", new Vector3(-7.6f, 0f, 148.6f), Face(new Vector3(0.7f, 0f, 1f)));
             Prop(room, S + "SM_Tripod_Spotilight_V2.prefab", new Vector3(8.2f, 0f, 149.2f), Face(new Vector3(-0.7f, 0f, 1f)));
             Prop(room, S + "SM_Tripod_SoundBox.prefab", new Vector3(-7.9f, 0f, 147.6f), Face(Vector3.right));

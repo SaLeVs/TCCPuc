@@ -2,7 +2,7 @@
 
 Cena separada que ensina o jogo do começo ao fim, falando com o jogador pelo **chat de verdade** do
 jogo. Entra pelo botão **TUTORIAL** do menu principal (no armário ao lado de CRÉDITOS) ou dando Play
-direto em `Assets/Tutorial/Scenes/Game0_Tutorial.unity`.
+direto em `Assets/Scenes/Game0_Tutorial.unity`.
 
 Nenhum script do jogo foi alterado. Tudo mora em `Assets/Tutorial/`.
 
@@ -53,7 +53,8 @@ No fim, um cartão com **Voltar ao menu** e **Jogar de novo**.
 - **Se o jogador empaca,** quem puxou o assunto manda dicas, cada vez mais diretas, cada uma uma vez
   só (`WaitFor`; o tempo só conta depois que as falas pendentes saíram).
 - **Faixa de objetivo** no topo da tela, no centro (entre o painel de missões e o REC); na lição de
-  doação ela desce para baixo do cartão de doação. Texto comprido encolhe para caber.
+  doação, e sempre que o cartão de doação estiver na tela (chegou agora ou foi aberto com B), ela
+  desce para baixo dele; sem cartão volta para cima. Texto comprido encolhe para caber.
 - **Marcas e placas somem** quando a etapa delas termina (`TutorialFloorHint`): fita amarela, "ANDE
   ATÉ AQUI", "CORRA ATÉ AQUI", "PILHA", o X de gravação, a faixa verde da saída, e também as placas
   de parede de cada lição ("1 · MOVIMENTO", "2 · AGACHAR", DUTO/MESA/GRADE, "6 · PORTAS", "QUADRO DE
@@ -133,14 +134,15 @@ não mudou).
 
 `Tools/TCC/Tutorial/Gerar cena do tutorial`. A cena é reconstruída do zero: mudanças feitas à mão
 nela se perdem. Mude o gerador (posições, salas, luzes) e gere de novo. O NavMesh é assado junto
-(`Scenes/Game0_Tutorial/NavMesh-Tutorial.asset`) e a cena entra no Build Settings.
+(`Assets/Tutorial/Generated/NavMesh-Tutorial.asset`) e a cena entra no Build Settings.
 
 O gerador salva a cena duas vezes: na segunda, com a cena já em arquivo e no Build Settings, cada
 objeto de rede ganha o seu `GlobalObjectIdHash`. Sem isso as portas ficam com o ID do prefab, todas
 iguais, e o host não sobe vindo do menu. Se aparecer "IDs de rede repetidos" no resultado, gere de novo.
 
 O nome começa com `Game0` de propósito: chat, barra de audiência, REC e música só ligam em cenas que
-`Enums.SceneNames.IsGame` reconhece como partida (`Game` ou `Game` + dígito).
+`Enums.SceneNames.IsGame` reconhece como partida (`Game` ou `Game` + dígito). Pode mudar a pasta,
+mas não o nome: renomeada para `Tutorial`, a cena perde o chat e o botão do menu não acha a cena.
 
 ## Limites
 
@@ -150,7 +152,7 @@ O nome começa com `Game0` de propósito: chat, barra de audiência, REC e músi
 - Testado no Editor com um bot que joga pelo `InputReader`: Play direto na cena, do começo ao fim, com
   as duas grades de canos. O caminho Bootstrap → menu → TUTORIAL → voltar ao menu → partida LAN foi
   testado na versão anterior (o código de rede não mudou depois). Não testado em build.
-- O palco (0,9 m, apoiado no piso) tem uma escadinha na frente (`SM_Stair`). O monstro é solto no chão, ao lado do palco, perto da porta da fuga.
+- O palco é o `SM_Stage` do jogo (60%, 0,9 m, apoiado no piso), virado para a plateia como na Game: frente curva com as escadas dos cantos, colisão pela própria malha. As caixas de som grandes ficam nas marcas de fita do fundo. O monstro é solto no chão, ao lado do palco, perto da porta da fuga.
 
 ## Achados no jogo (não corrigidos)
 

@@ -145,6 +145,8 @@ namespace Tutorial
         private Flashlight _flashlight;
         private HudAnimationPanel _chatPanel;
         private HudAnimationPanel _missionPanel;
+        private DonationUIController _donationUi;
+        private float _bannerDrop;
 
         private bool _ready;
         private int _step;
@@ -246,6 +248,7 @@ namespace Tutorial
 
             Track();
             Speak();
+            FollowDonationCard();
         }
 
         private IEnumerator Run()
@@ -297,6 +300,7 @@ namespace Tutorial
 
             PlayerMissionHolderUi missionUi = _player.GetComponentInChildren<PlayerMissionHolderUi>(true);
             _missionPanel = missionUi != null ? missionUi.GetComponent<HudAnimationPanel>() : null;
+            _donationUi = _player.GetComponentInChildren<DonationUIController>(true);
 
             _state.OnRunEvent += PlayerState_OnRunEvent;
             _missionHolder.OnMainMissionReceived += MissionHolder_OnMainMissionReceived;
@@ -818,9 +822,6 @@ namespace Tutorial
         {
             Step(10, "Doação", "Leia o pedido da doação");
 
-            // O cartão da doação aparece no topo, no centro: a faixa desce para baixo dele nesta lição.
-            if (hud != null) hud.SetBannerDrop(DonationCardHeight);
-
             bool spawned = SpawnTutorialDonation();
 
             NewTopic();
@@ -830,7 +831,6 @@ namespace Tutorial
             {
                 Say("A doação não chegou, seguimos.");
                 yield return WaitSpeech();
-                if (hud != null) hud.SetBannerDrop(0f);
                 yield break;
             }
 
@@ -852,8 +852,6 @@ namespace Tutorial
             Say("Aí é no seu microfone, kkk");
 
             yield return WaitSpeech();
-
-            if (hud != null) hud.SetBannerDrop(0f);
         }
 
         private IEnumerator LessonLights()
@@ -1434,6 +1432,26 @@ namespace Tutorial
         private const int ChatLineBudget = 46;
 
         private static int VisibleLength(string text) => System.Text.RegularExpressions.Regex.Replace(text, "<[^>]+>", string.Empty).Length;
+
+        /// <summary>
+        /// O cartão de doação aparece no topo, no centro, bem onde fica a faixa de objetivo: enquanto
+        /// ele está na tela (chegou agora ou o jogador abriu com a tecla de doação), a faixa desce para
+        /// baixo dele; sem cartão, ela volta para cima.
+        /// </summary>
+        private void FollowDonationCard()
+        {
+            if (hud == null) return;
+
+            bool cardShown = _donationUi != null
+                             && _donationUi.isActiveAndEnabled
+                             && GetField(_donationUi, "_isCardShown") is true;
+
+            float target = cardShown ? DonationCardHeight : 0f;
+            if (Mathf.Approximately(_bannerDrop, target)) return;
+
+            _bannerDrop = Mathf.MoveTowards(_bannerDrop, target, 1200f * Time.unscaledDeltaTime);
+            hud.SetBannerDrop(_bannerDrop);
+        }
 
         /// <summary>
         /// No tutorial o chat é só da turma que ensina: a conversa da plateia (falas soltas e reações

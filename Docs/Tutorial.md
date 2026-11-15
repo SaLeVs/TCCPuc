@@ -33,10 +33,19 @@ No fim, um cartão com **Voltar ao menu** e **Jogar de novo**.
   a ação a todo quadro. O que o jogador fez antes de pedirem também vale (agachar no saguão, ligar a
   lanterna antes da sala escura, esconder o chat logo ao entrar): a lição passa na hora, e a fala que
   ensinaria a ação já feita é descartada. A faixa de baixo mostra sempre o que fazer agora.
-- **Ritmo:** uma fala a cada 3,4 s no mínimo (mais tempo para falas longas), uma instrução por ação.
-  Comentário de duas lições atrás é descartado, para o chat não ficar contando o que já passou.
-- **Se o jogador empaca,** o chat ajuda sozinho: primeiro um viewer, depois um dos narradores, cada vez
-  mais direto (`WaitFor` no diretor; o tempo das dicas só conta depois que as falas pendentes saíram).
+- **Só quem ensina fala.** A conversa da plateia e as reações automáticas do jogo ficam mudas no
+  tutorial (a fila da `ChatDirector` é esvaziada a cada quadro). Os comentários são da turma, como
+  retorno do que o jogador acabou de fazer.
+- **Ritmo:** a primeira mensagem sai 3 s depois de o jogador nascer (para ele olhar o cenário); depois,
+  no mínimo 4,5 s entre mensagens (0,1 s por letra nas maiores). Comentário de duas lições atrás é
+  descartado. Aviso urgente (golpe do monstro, porta de lição) fura a fila, mas espera a fala em
+  andamento terminar e dá pelo menos 2 s depois da anterior.
+- **Tamanho:** o chat do jogo encolhe a fonte quando o texto passa de duas linhas (uns 45 caracteres
+  com o nome). Fala maior vira várias mensagens: uma frase por mensagem e, se a frase não couber,
+  partes de tamanho parecido, cortando de preferência na vírgula. As partes de uma fala saem sempre
+  juntas (ou a fala inteira é descartada).
+- **Se o jogador empaca,** alguém da turma manda dica, cada vez mais direta (`WaitFor` no diretor; o
+  tempo das dicas só conta depois que as falas pendentes saíram).
 - **No tutorial ninguém morre:** depois de cada golpe o jogador é curado, e no terceiro golpe da fuga
   ela recomeça do início do corredor.
 
@@ -79,6 +88,7 @@ principal). A doação é `Assets/Tutorial/Data/TutorialDonation.asset`, que nun
 O que o tutorial faz por fora, por reflexão (campos privados, sem tocar no código):
 
 - `ChatManager.OnMessageSent`: as falas dos narradores entram direto no painel, na hora certa.
+- `ChatDirector` (`ambientEnabled`, `_queue`, `_gapTimer`): cala a plateia durante o tutorial.
 - `DonationManager.SpawnDonation`: a doação chega quando a lição pede.
 - `MonsterSabotage._lightsOut`: o apagão da lição 11.
 - `Flashlight` (máximo, gasto e carga da bateria, só na instância do tutorial): veja os achados.
@@ -98,6 +108,13 @@ O que o tutorial faz por fora, por reflexão (campos privados, sem tocar no cód
 | `Scripts/TutorialKeys.cs` | Nome das teclas lido do `PlayerActions` (acompanha rebind no asset). |
 | `Scripts/TutorialLauncher.cs` | O botão do menu chama `Launch()`. |
 | `Editor/TutorialSceneBuilder.cs` | Gera a cena inteira. |
+
+## Botão no menu
+
+O botão TUTORIAL fica na porta do armário ao lado de CRÉDITOS. O papel vermelho atrás dele
+(`CreditsPlane (1)`, com `HoverMaterialChange`) acende pelo raio do mouse; ele ficava 9 mm atrás do
+colisor do armário e nunca acendia. O `BoxCollider` dele foi engrossado 4 cm para a frente (o visual
+não mudou).
 
 ## Gerar a cena de novo
 

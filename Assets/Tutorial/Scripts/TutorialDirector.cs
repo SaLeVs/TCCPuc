@@ -106,8 +106,8 @@ namespace Tutorial
         [SerializeField] private float darkRoomBattery = 40f;
 
         [Header("Ritmo do chat")]
-        [SerializeField, Min(0.2f)] private float minLineSeconds = 3.4f;
-        [SerializeField, Min(0f)] private float secondsPerCharacter = 0.065f;
+        [SerializeField, Min(0.2f)] private float minLineSeconds = 4.5f;
+        [SerializeField, Min(0f)] private float secondsPerCharacter = 0.1f;
 
         // ------------------------------------------------------------------ estado
 
@@ -162,16 +162,28 @@ namespace Tutorial
             public readonly Func<bool> Skip;
             public readonly int Step;
 
-            public Line(string who, string text, Func<bool> skip, int step)
+            /// <summary>Partes de uma mesma fala (quebrada para caber no chat) têm o mesmo grupo.</summary>
+            public readonly int Group;
+
+            /// <summary>Primeira parte da fala: só ela decide se a fala sai. Começou, vai até o fim.</summary>
+            public readonly bool First;
+
+            public Line(string who, string text, Func<bool> skip, int step, int group, bool first)
             {
                 Who = who;
                 Text = text;
                 Skip = skip;
                 Step = step;
+                Group = group;
+                First = first;
             }
         }
 
-        private readonly Queue<Line> _speech = new();
+        private int _lineGroup;
+        private float _lastPostTime = -100f;
+
+        private readonly List<Line> _speech = new();
+        private ChatDirector _chatDirector;
         private float _nextLineTime;
 
         // ------------------------------------------------------------------ ciclo de vida
@@ -210,6 +222,8 @@ namespace Tutorial
 
         private void Update()
         {
+            MuteAudienceChat();
+
             if (!_ready) return;
 
             Track();
@@ -258,6 +272,10 @@ namespace Tutorial
             ChatManager chat = _player.GetComponentInChildren<ChatManager>(true);
             _chatPanel = chat != null ? chat.GetComponent<HudAnimationPanel>() : null;
 
+            // Sem conversa de fundo da plateia: o chat do tutorial é só de quem ensina.
+            _chatDirector = chat != null ? chat.GetComponent<ChatDirector>() : null;
+            if (_chatDirector != null) SetField(_chatDirector, "ambientEnabled", false);
+
             PlayerMissionHolderUi missionUi = _player.GetComponentInChildren<PlayerMissionHolderUi>(true);
             _missionPanel = missionUi != null ? missionUi.GetComponent<HudAnimationPanel>() : null;
 
@@ -280,6 +298,8 @@ namespace Tutorial
                 }
             }
 
+            // Uns segundos para o jogador olhar o cenário antes da primeira mensagem.
+            _nextLineTime = Time.time + 3f;
             _ready = true;
         }
 
@@ -320,15 +340,15 @@ namespace Tutorial
 
             Step(1, "Movimento", $"Ande até a marca amarela no chão com {Key(TutorialKeys.Move)}");
 
-            Say(Dev, $"Oi! Aqui é S4lev, do time do jogo. Eu, {Camis}, {Sono} e {Tutu} vamos te ensinar tudo pelo chat.");
+            Say(Dev, "Oi! Aqui é S4lev, do time do jogo.");
+            Say(Dev, "A gente vai te ensinar tudo pelo chat.");
             Teach(walked, Dev, $"Primeiro, andar: {Key(TutorialKeys.Move)}. Vá até a marca amarela no chão.");
             Say(Tutu, "e olha a luz em cima da porta: vermelha = ainda não pode passar. termina a lição que ela fica verde e abre sozinha");
 
             yield return WaitFor(walked, 14f,
                 Hint(Dev, $"Use {Key(TutorialKeys.Move)} para andar. A marca amarela está no meio da sala."),
-                Hint(null, "anda pra frente mano kkkk"));
+                Hint(Tutu, "anda pra frente mano kkkk"));
 
-            Flavor(2, "andou!!", "primeiros passos do streamer", "boa boa", "ele anda sim");
 
             TutorialDoorGate.Open(GateRun);
             SetObjective($"Segure {Key(TutorialKeys.Run)} e corra até o fim do corredor");
@@ -337,7 +357,7 @@ namespace Tutorial
 
             yield return WaitFor(ran, 18f,
                 Hint(Dev, $"Segure {Key(TutorialKeys.Run)} e {Key("W")} ao mesmo tempo para correr."),
-                Hint(null, "segura o shift!!!"),
+                Hint(Sono, "segura o shift!!!"),
                 Hint(Sono, $"chegou andando? corre um pouquinho segurando {Key(TutorialKeys.Run)} pra gente ver"));
 
             Say(Dev, "Isso! Correr é rápido, mas faz barulho. Na partida, o monstro ouve.");
@@ -347,10 +367,9 @@ namespace Tutorial
 
             yield return WaitFor(crouched, 12f,
                 Hint(Dev, $"Segure {Key(TutorialKeys.Crouch)} (não é só apertar uma vez)."),
-                Hint(null, "agacha ai pra gnt ver"));
+                Hint(Tutu, "agacha ai pra gnt ver"));
 
             Say(Dev, "Agachado você anda mais devagar, mas faz menos barulho e cabe em lugares baixos.");
-            Flavor(2, "kkkkk agachadinho", "ninja", "modo furtivo ativado");
 
             TutorialDoorGate.Open(GateCrouch);
         }
@@ -366,7 +385,7 @@ namespace Tutorial
 
             yield return WaitFor(underDuct, 15f,
                 Hint(Dev, $"Chegue no duto segurando {Key(TutorialKeys.Crouch)} o tempo todo."),
-                Hint(null, "agacha antes de chegar no duto"));
+                Hint(Sono, "agacha antes de chegar no duto"));
 
             SetObjective($"Agora passe por baixo da mesa (segure {Key(TutorialKeys.Crouch)})");
 
@@ -374,10 +393,9 @@ namespace Tutorial
 
             yield return WaitFor(underTable, 15f,
                 Hint(Dev, $"Segure {Key(TutorialKeys.Crouch)} e entre por baixo da mesa."),
-                Hint(null, "o chapeu amassa kkkkkkk"));
+                Hint(Tutu, "o chapeu amassa kkkkkkk"));
 
             Say(Dev, "Esse é o limite: 1 metro. A grade de 0,8 m na parede já não dá nem agachado.");
-            Flavor(2, "o chapeu achatando kkkkkk", "mano passou raspando", "gostei do chapéu");
 
             TutorialDoorGate.Open(GateDark);
         }
@@ -400,9 +418,8 @@ namespace Tutorial
 
             yield return WaitFor(lit, 10f,
                 Hint(Dev, $"A tecla da lanterna é {Key(TutorialKeys.Flashlight)}."),
-                Hint(null, "LIGA A LANTERNA"));
+                Hint(Sono, "LIGA A LANTERNA"));
 
-            Flavor(2, "agora sim", "que medo", "LUZ");
 
             TutorialDoorGate.Open(GateChat);
             SetObjective("Ache a saída da sala escura");
@@ -416,7 +433,7 @@ namespace Tutorial
                     if (GetBattery() < 8f) SetBattery(20f);
                     return out_();
                 }, 25f,
-                Hint(null, "a saida ta na parede do fundo"),
+                Hint(Tutu, "a saida ta na parede do fundo"),
                 Hint(Dev, "Procure a luz verde em cima da porta, no fundo da sala, à direita."));
         }
 
@@ -452,12 +469,11 @@ namespace Tutorial
             Teach(pressed, Dev, "Tem um botão escondido nesta sala que abre a porta. Se demorar, o chat dá dica!");
 
             yield return WaitFor(pressed, 10f, 9f,
-                Hint(null, "procura atrás das coisas"),
+                Hint(Sono, "procura atrás das coisas"),
                 Hint(Sono, "olha atrás do armário!!"),
                 Hint(Tutu, "ATRÁS DO ARMÁRIO DE METAL MANO, NO CANTO"),
                 Hint(Dev, $"O pessoal tem razão: o botão está na parede atrás do armário de metal. Mire nele e use {Key(TutorialKeys.Interact)}."));
 
-            Flavor(3, "EU FALEI", "o chat carregando", "de nada kkkkk", "chat > streamer");
             Say(Dev, "Viu? Quando você empacar na partida, olhe o chat: alguém sempre sabe.");
 
             TutorialDoorGate.Open(GateItems);
@@ -476,7 +492,7 @@ namespace Tutorial
 
             yield return WaitFor(picked, 14f,
                 Hint(Dev, $"Chegue perto da mesa, mire na pilha (ela fica contornada) e use {Key(TutorialKeys.Interact)}."),
-                Hint(null, "pega a pilha"));
+                Hint(Tutu, "pega a pilha"));
 
             SetObjective($"Aperte {Key(BatterySlotKey())} para segurar a pilha");
 
@@ -492,7 +508,6 @@ namespace Tutorial
             yield return WaitFor(used, 10f,
                 Hint(Dev, $"Segurando a pilha, é só {Key(TutorialKeys.Use)}."));
 
-            Flavor(2, "bateria cheia", "agora vai", "economiza essa ein");
 
             SetObjective("Mire na caixa em cima do case de metal");
             Teach(hovered, Dev, "Agora: nem tudo dá para pegar. Mire naquela caixa em cima do case, do lado da mesa.");
@@ -501,7 +516,6 @@ namespace Tutorial
                 Hint(Dev, "A caixa de papelão em cima do case de metal. Só mire nela."));
 
             Say(Dev, "Contorno vermelho e INDISPONÍVEL: essa caixa é da missão de outro jogador. Só o dono pega.");
-            Flavor(2, "nao é seu kkkkk", "ladrão de caixa", "devolve");
 
             TutorialDoorGate.Open(GateDoors);
         }
@@ -534,10 +548,9 @@ namespace Tutorial
 
             yield return WaitFor(closedBehind, 14f,
                 Hint(Dev, $"Do outro lado, vire para a porta e use {Key(TutorialKeys.Interact)} para fechar."),
-                Hint(null, "fecha a porta!!"));
+                Hint(Sono, "fecha a porta!!"));
 
             Say(Dev, "Porta fechada segura o monstro um pouco: ele tem que forçar para passar.");
-            Flavor(2, "fecha a porta pra ele n entrar", "tranca tudo", "porta salva vidas");
         }
 
         /// <summary>
@@ -582,7 +595,7 @@ namespace Tutorial
 
             yield return WaitFor(one, 18f,
                 Hint(Dev, "Chegue perto (uns 5 metros) e mantenha o objeto no meio da tela por 3 segundos."),
-                Hint(null, "fica olhando pra coroa"));
+                Hint(Tutu, "fica olhando pra coroa"));
 
             Say(Dev, "Viu o olho ficar VERMELHO? Quer dizer que a audiência daquele objeto entrou.");
 
@@ -593,7 +606,6 @@ namespace Tutorial
                 Hint(Dev, "Outro objeto com olho: a espada ou a máscara."));
 
             Say(Dev, "Na partida, 75% de audiência é uma das chaves para abrir a saída.");
-            Flavor(3, "CONTEÚDO", "mostra a coroa de novo", "que live", "subiu a audiencia");
 
             TutorialDoorGate.Open(GatePuzzle);
         }
@@ -642,12 +654,11 @@ namespace Tutorial
                     UpdatePuzzleObjective();
                     return solved();
                 }, 25f, 25f,
-                Hint(null, "cada E gira um pouquinho, as vezes precisa de varias"),
+                Hint(Sono, "cada E gira um pouquinho, as vezes precisa de varias"),
                 Hint(Camis, "começa numa ponta do cano e vai seguindo pedaço por pedaço até a outra"),
                 Hint(Dev, "A faixa embaixo conta quantos pedaços estão no lugar. Um pedaço certo encaixa reto com o vizinho."),
                 Hint(Tutu, "olha a mesa: tem pedaço de cano solto lá, mostra como é o encaixe"));
 
-            Flavor(3, "GENIO", "resolveu rapidinho", "puzzle facil kkkk", "big brain", "encanador profissional");
 
             Say(Dev, "Missão completa! Ela some do painel e o chat comemora.");
         }
@@ -683,12 +694,11 @@ namespace Tutorial
 
             yield return WaitFor(recorded, 25f,
                 Hint(Dev, "Fique no X amarelo em frente ao palco e deixe o monstro no meio da tela."),
-                Hint(null, "filma ele no palco!!!"),
+                Hint(Tutu, "filma ele no palco!!!"),
                 Hint(Dev, "Chegue mais perto: o palco e o monstro precisam aparecer juntos na câmera, a menos de 10 metros."));
 
             StopMainMissionRecorder();
 
-            Flavor(4, "QUE CENA", "CLIPA ISSO", "to com medo", "AAAAAA", "melhor live");
 
             Say(Dev, "GRAVADO! Na partida, missão principal completa + 75% de audiência abrem a porta da saída.");
         }
@@ -715,9 +725,8 @@ namespace Tutorial
 
             yield return WaitFor(IsDonationComplete, 20f,
                 Hint(Dev, "Mantenha o monstro na câmera até a barrinha da doação encher."),
-                Hint(null, "grava ele de novo"));
+                Hint(Sono, "grava ele de novo"));
 
-            Flavor(4, "valeu pela doação", "DOOU", "pix do terror", "obrigado pelo conteúdo");
             Say(Dev, "Doação completa! Valeu demais.");
         }
 
@@ -734,11 +743,10 @@ namespace Tutorial
             Teach(fixedLights, Dev, "Para religar, ache o QUADRO DE LUZ (uma caixa cinza na parede) e use.");
 
             yield return WaitFor(fixedLights, 18f,
-                Hint(null, "o quadro tá na parede do lado do palco"),
+                Hint(Tutu, "o quadro tá na parede do lado do palco"),
                 Hint(Camis, $"liga a lanterna ({Key(TutorialKeys.Flashlight)}) e procura na parede da esquerda"),
                 Hint(Dev, $"A caixa cinza com uma alavanca, na parede esquerda. Mire nela e use {Key(TutorialKeys.Interact)}."));
 
-            Flavor(3, "LUZ VOLTOU", "ufa", "nem tava com medo", "eletricista");
             Say(Dev, "Luz de volta! Na partida o quadro pode estar em outro lugar. O chat costuma lembrar onde.");
         }
 
@@ -764,7 +772,6 @@ namespace Tutorial
             _hitsTaken = 0;
 
             SetObjective($"Corra até a SAÍDA! ({Key(TutorialKeys.Run)} corre · feche as portas atrás de você)");
-            Flavor(4, "CORREEEE", "ELE TA VINDO", "AAAAAAAAA", "fecha a porta fecha a porta");
 
             float nudge = 0f;
 
@@ -781,14 +788,13 @@ namespace Tutorial
 
                     return escaped();
                 }, 20f, 15f,
-                Hint(null, "segue o corredor e vira a direita"),
+                Hint(Sono, "segue o corredor e vira a direita"),
                 Hint(Dev, "Siga as placas verdes de SAÍDA."));
 
             _inFuga = false;
 
             if (monsterRemote != null) monsterRemote.SetPaused(true);
 
-            Flavor(4, "ESCAPOU", "GG", "que fuga", "sobreviveu!!!", "clipa clipa");
         }
 
         private void Finish()
@@ -1105,7 +1111,7 @@ namespace Tutorial
             if (_player != null && Vector3.Distance(_player.transform.position, position) > 4f) return;
 
             _nextGateComment = Time.time + 8f;
-            Post(Tutu, "essa porta abre sozinha quando a luz em cima ficar VERDE. termina o que tá na faixa embaixo");
+            SayNow(Tutu, "essa porta abre sozinha quando a luz de cima ficar VERDE. termina o que tá na faixa de baixo");
         }
 
         /// <summary>
@@ -1129,19 +1135,19 @@ namespace Tutorial
 
             if (!_inFuga)
             {
-                Post(Dev, "Ufa, aqui no tutorial você não morre. Na partida, cuidado!");
+                SayNow(Dev, "Ufa! Aqui no tutorial você não morre. Na partida, cuidado!");
                 yield break;
             }
 
             if (_hitsTaken < 3)
             {
-                Post(Dev, "Ele te pegou! No tutorial eu te curo. Na partida, cada golpe tira vida. CORRE!");
+                SayNow(Dev, "Ele te pegou! Aqui eu te curo, mas na partida cada golpe tira vida. CORRE!");
                 yield break;
             }
 
             _hitsTaken = 0;
 
-            Post(Dev, "Vamos de novo! Corra assim que entrar no corredor e feche as portas atrás de você.");
+            SayNow(Dev, "Vamos de novo! Corra assim que entrar no corredor e feche as portas atrás de você.");
 
             if (monsterRemote != null) monsterRemote.SendHome();
 
@@ -1168,7 +1174,7 @@ namespace Tutorial
             }
         }
 
-        /// <summary>Dica dita por <paramref name="viewer"/>; null sorteia um viewer da plateia.</summary>
+        /// <summary>Dica dita por <paramref name="viewer"/> (sempre alguém da turma que ensina).</summary>
         private static ChatHint Hint(string viewer, string text) => new ChatHint(viewer, text);
 
         private void Step(int step, string title, string objective)
@@ -1185,13 +1191,37 @@ namespace Tutorial
         }
 
         /// <summary>Fala na fila: sai no ritmo de leitura, ninguém espera por ela.</summary>
-        private void Say(string who, string text) => _speech.Enqueue(new Line(who, text, null, _step));
+        private void Say(string who, string text) => Enqueue(who, text, null);
 
         /// <summary>
         /// Fala que ensina uma ação: se o jogador já fez (<paramref name="done"/>) quando chegar a vez
         /// dela, ela é descartada.
         /// </summary>
-        private void Teach(Func<bool> done, string who, string text) => _speech.Enqueue(new Line(who, text, done, _step));
+        private void Teach(Func<bool> done, string who, string text) => Enqueue(who, text, done);
+
+        /// <summary>Aviso que não pode esperar a fila (golpe do monstro, porta de lição): sai agora.</summary>
+        private void SayNow(string who, string text)
+        {
+            // Entra logo depois do resto da fala que já começou (não corta ninguém no meio).
+            int at = 0;
+            while (at < _speech.Count && !_speech[at].First) at++;
+
+            List<string> parts = SplitForChat(who, text);
+            int group = ++_lineGroup;
+
+            for (int i = 0; i < parts.Count; i++) _speech.Insert(at + i, new Line(who, parts[i], null, _step, group, i == 0));
+
+            // Urgente, mas não colado na mensagem anterior: dá pelo menos 2 s para ler.
+            if (at == 0) _nextLineTime = Mathf.Min(_nextLineTime, Mathf.Max(Time.time, _lastPostTime + 2f));
+        }
+
+        private void Enqueue(string who, string text, Func<bool> skip)
+        {
+            List<string> parts = SplitForChat(who, text);
+            int group = ++_lineGroup;
+
+            for (int i = 0; i < parts.Count; i++) _speech.Add(new Line(who, parts[i], skip, _step, group, i == 0));
+        }
 
         private void Speak()
         {
@@ -1199,46 +1229,202 @@ namespace Tutorial
 
             while (_speech.Count > 0)
             {
-                Line line = _speech.Dequeue();
+                Line line = _speech[0];
+                _speech.RemoveAt(0);
 
-                if (line.Skip != null && line.Skip()) continue;
+                // A fala inteira sai ou é descartada inteira: a decisão é na primeira parte.
+                // Descartada se a ação já foi feita, ou se é comentário de duas lições atrás (o
+                // fechamento de uma lição sai já na seguinte, por isso a folga de uma).
+                bool stale = line.Skip != null ? line.Skip() : line.Step < _step - 1 && !_finished;
 
-                // Comentário de duas lições atrás: o jogador seguiu, o chat também. (O fechamento de
-                // uma lição sai já na seguinte, por isso a folga de uma.)
-                if (line.Skip == null && line.Step < _step - 1 && !_finished) continue;
+                if (line.First && stale)
+                {
+                    while (_speech.Count > 0 && !_speech[0].First && _speech[0].Group == line.Group) _speech.RemoveAt(0);
+                    continue;
+                }
 
                 Post(line.Who, line.Text);
+                _lastPostTime = Time.time;
 
-                // Fila comprida (o jogador está indo rápido): fala mais rápido também.
-                float gap = Mathf.Max(minLineSeconds, line.Text.Length * secondsPerCharacter);
-                if (_speech.Count > 4) gap *= 0.8f;
-
-                _nextLineTime = Time.time + gap;
+                // Quem está começando lê devagar: tempo mínimo por mensagem, mais por letra.
+                _nextLineTime = Time.time + Mathf.Max(minLineSeconds, VisibleLength(line.Text) * secondsPerCharacter);
                 return;
             }
         }
 
-        private void Post(string viewer, string text)
-        {
-            if (string.IsNullOrWhiteSpace(viewer)) viewer = PickViewer();
+        private static void Post(string viewer, string text) => TutorialChat.Post(viewer, text);
 
-            TutorialChat.Post(viewer, text);
+        // O ChatUi encolhe a fonte quando o texto não cabe em duas linhas: com o nome junto, até uns
+        // 45 caracteres a mensagem sai no tamanho cheio. Mais que isso vira mais de uma mensagem.
+        private const int ChatLineBudget = 46;
+
+        /// <summary>
+        /// Quebra a fala em mensagens que caibam no chat sem a fonte encolher. Corta só entre palavras
+        /// (nunca dentro de uma tag de tecla) e, quando dá, depois de um ponto ou vírgula.
+        /// </summary>
+        private static List<string> SplitForChat(string who, string text)
+        {
+            int budget = Mathf.Max(22, ChatLineBudget - who.Length - 2);
+            List<string> parts = new();
+
+            if (VisibleLength(text) <= budget)
+            {
+                parts.Add(text);
+                return parts;
+            }
+
+            // 1) Uma frase por mensagem; 2) frase longa vira partes de tamanho parecido, cortando de
+            // preferência na vírgula; 3) frases curtas vizinhas voltam a se juntar se couberem.
+            List<string> pieces = new();
+
+            foreach (List<string> sentence in Sentences(Words(text)))
+            {
+                string joined = string.Join(" ", sentence);
+
+                if (VisibleLength(joined) <= budget) pieces.Add(joined);
+                else pieces.AddRange(Balanced(sentence, budget));
+            }
+
+            foreach (string piece in pieces)
+            {
+                int last = parts.Count - 1;
+
+                if (last >= 0 && VisibleLength(parts[last] + " " + piece) <= budget) parts[last] += " " + piece;
+                else parts.Add(piece);
+            }
+
+            return parts;
         }
 
-        private string PickViewer()
+        /// <summary>Palavras separadas por espaço fora de tags (a tecla com cor é uma palavra só).</summary>
+        private static List<string> Words(string text)
         {
-            if (viewers != null && viewers.TryPickName(out string name)) return name;
+            List<string> words = new();
+            int depth = 0;
+            int start = 0;
 
-            return "viewer";
+            for (int i = 0; i < text.Length; i++)
+            {
+                char c = text[i];
+                if (c == '<') depth++;
+                else if (c == '>') depth = Mathf.Max(0, depth - 1);
+                else if (c == ' ' && depth == 0)
+                {
+                    if (i > start) words.Add(text.Substring(start, i - start));
+                    start = i + 1;
+                }
+            }
+
+            if (start < text.Length) words.Add(text.Substring(start));
+            return words;
         }
 
-        private static void Flavor(int count, params string[] lines) => TutorialChat.Flavor(lines, Mathf.Min(count, 2), 0.35f);
+        private static IEnumerable<List<string>> Sentences(List<string> words)
+        {
+            List<string> current = new();
+
+            foreach (string word in words)
+            {
+                current.Add(word);
+
+                char end = VisibleTail(word);
+                if (end == '.' || end == '!' || end == '?')
+                {
+                    yield return current;
+                    current = new List<string>();
+                }
+            }
+
+            if (current.Count > 0) yield return current;
+        }
+
+        /// <summary>Divide em partes de tamanho parecido (nenhum pedaço órfão no fim), preferindo a vírgula.</summary>
+        private static List<string> Balanced(List<string> words, int budget)
+        {
+            int total = VisibleLength(string.Join(" ", words));
+            List<string> result = null;
+
+            // Se alguma parte estourar o limite, tenta com uma parte a mais.
+            for (int count = Mathf.CeilToInt(total / (float)budget); count <= words.Count; count++)
+            {
+                result = BalancedInto(words, budget, count);
+                if (result.TrueForAll(part => VisibleLength(part) <= budget)) break;
+            }
+
+            return result;
+        }
+
+        private static List<string> BalancedInto(List<string> words, int budget, int count)
+        {
+            List<string> result = new();
+            int index = 0;
+
+            for (int part = 0; part < count && index < words.Count; part++)
+            {
+                if (part == count - 1)
+                {
+                    result.Add(string.Join(" ", words.GetRange(index, words.Count - index)));
+                    break;
+                }
+
+                int remaining = VisibleLength(string.Join(" ", words.GetRange(index, words.Count - index)));
+                float target = remaining / (float)(count - part);
+
+                int bestEnd = index;
+                float bestScore = float.MaxValue;
+                int length = -1;
+
+                for (int j = index; j < words.Count - 1; j++)
+                {
+                    length += 1 + VisibleLength(words[j]);
+                    if (length > budget && j > index) break;
+
+                    float score = Mathf.Abs(length - target);
+                    if (VisibleTail(words[j]) == ',' || VisibleTail(words[j]) == ':') score -= 8f;
+
+                    if (score < bestScore)
+                    {
+                        bestScore = score;
+                        bestEnd = j;
+                    }
+                }
+
+                result.Add(string.Join(" ", words.GetRange(index, bestEnd - index + 1)));
+                index = bestEnd + 1;
+            }
+
+            return result;
+        }
+
+        private static char VisibleTail(string word)
+        {
+            string plain = System.Text.RegularExpressions.Regex.Replace(word, "<[^>]+>", string.Empty);
+            return plain.Length > 0 ? plain[plain.Length - 1] : ' ';
+        }
+
+        private static int VisibleLength(string text) => System.Text.RegularExpressions.Regex.Replace(text, "<[^>]+>", string.Empty).Length;
+
+        /// <summary>
+        /// No tutorial o chat é só da turma que ensina: a conversa da plateia (falas soltas e reações
+        /// automáticas do jogo) é descartada antes de sair. As falas do tutorial não passam pela
+        /// ChatDirector, então não são afetadas.
+        /// </summary>
+        private void MuteAudienceChat()
+        {
+            if (_chatDirector == null) return;
+
+            if (GetField(_chatDirector, "_queue") is System.Collections.IList queue && queue.Count > 0) queue.Clear();
+
+            // Uma reação pode entrar e sair da fila dela no mesmo quadro, antes da limpeza acima:
+            // com o intervalo dela sempre cheio, nada sai.
+            SetField(_chatDirector, "_gapTimer", 30f);
+        }
 
         /// <summary>
         /// Espera <paramref name="done"/> ficar verdadeiro, conferindo a todo quadro. Sem progresso
         /// por <paramref name="firstHint"/> segundos (contados depois que as falas pendentes saíram),
-        /// solta a próxima dica; depois uma a cada <paramref name="repeat"/> segundos, a última se
-        /// repetindo.
+        /// manda a próxima dica pela fila; depois uma a cada <paramref name="repeat"/> segundos, a
+        /// última se repetindo. A dica que chegar depois de a ação estar feita é descartada.
         /// </summary>
         private IEnumerator WaitFor(Func<bool> done, float firstHint, float repeat, params ChatHint[] hints)
         {
@@ -1247,7 +1433,7 @@ namespace Tutorial
 
             while (!done())
             {
-                if (_speech.Count == 0) timer += Time.deltaTime;
+                if (_speech.Count == 0 && Time.time >= _nextLineTime) timer += Time.deltaTime;
 
                 float threshold = next == 0 ? firstHint : repeat;
 
@@ -1255,7 +1441,7 @@ namespace Tutorial
                 {
                     timer = 0f;
                     ChatHint hint = hints[Mathf.Min(next, hints.Length - 1)];
-                    Post(hint.Viewer, hint.Text);
+                    Enqueue(hint.Viewer, hint.Text, done);
                     next++;
                 }
 

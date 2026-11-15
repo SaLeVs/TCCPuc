@@ -9,6 +9,7 @@ namespace Audience
 {
     public class MainDoorEscapeManager : NetworkBehaviour
     {
+        [Tooltip("Opcional. Sem porta, só manda as mensagens de objetivo.")]
         [SerializeField] private Animator escapeDoorAnimator;
         [SerializeField] private MissionManager missionManager;
         [SerializeField] private AudienceManager audienceManager;
@@ -74,6 +75,10 @@ namespace Audience
         [Rpc(SendTo.ClientsAndHost)]
         private void OpenEscapeRoomDoorRpc()
         {
+            // A porta é opcional: sem ela, este manager só manda as mensagens de objetivo (a saída
+            // abre pelo EscapeRoomManager, com os disquetes no totem).
+            if (escapeDoorAnimator == null) return;
+
             escapeDoorAnimator.SetTrigger(OpenHash);
             StartCoroutine(RebuildNavMeshAfterAnimation());
         }

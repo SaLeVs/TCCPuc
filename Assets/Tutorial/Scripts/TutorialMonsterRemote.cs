@@ -21,6 +21,10 @@ namespace Tutorial
         [SerializeField] private bool startPaused = true;
 
         private bool _startApplied;
+        private Animator _animator;
+
+        // Preso no palco ele fica em postura de combate, não no Idle de quem está à toa.
+        private static readonly int IdleCombat = Animator.StringToHash("IdleCombat");
 
         public MonsterBrain Monster => monster;
         public bool IsPaused { get; private set; }
@@ -105,6 +109,27 @@ namespace Tutorial
             {
                 agent.isStopped = true;
                 agent.velocity = Vector3.zero;
+            }
+
+            HoldCombatPose();
+        }
+
+        /// <summary>
+        /// Com o MonsterBrain desligado ninguém escolhe a animação, e ele ficava no Idle. Aqui o
+        /// servidor põe o IdleCombat (o MonsterAnimator é um NetworkAnimator: o estado vai para
+        /// todos) e segura nele enquanto estiver preso.
+        /// </summary>
+        private void HoldCombatPose()
+        {
+            if (!IsServer) return;
+
+            if (_animator == null) _animator = monster.GetComponentInChildren<Animator>();
+            if (_animator == null || !_animator.isActiveAndEnabled || _animator.IsInTransition(0)) return;
+            if (!_animator.HasState(0, IdleCombat)) return;
+
+            if (_animator.GetCurrentAnimatorStateInfo(0).shortNameHash != IdleCombat)
+            {
+                _animator.CrossFade(IdleCombat, 0.2f);
             }
         }
     }

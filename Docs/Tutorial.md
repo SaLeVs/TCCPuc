@@ -33,6 +33,8 @@ No fim, um cartão com **Voltar ao menu** e **Jogar de novo**.
   a ação a todo quadro. O que o jogador fez antes de pedirem também vale (agachar no saguão, ligar a
   lanterna antes da sala escura, esconder o chat logo ao entrar): a lição passa na hora, e a fala que
   ensinaria a ação já feita é descartada. A faixa de baixo mostra sempre o que fazer agora.
+- **Ritmo:** uma fala a cada 3,4 s no mínimo (mais tempo para falas longas), uma instrução por ação.
+  Comentário de duas lições atrás é descartado, para o chat não ficar contando o que já passou.
 - **Se o jogador empaca,** o chat ajuda sozinho: primeiro um viewer, depois um dos narradores, cada vez
   mais direto (`WaitFor` no diretor; o tempo das dicas só conta depois que as falas pendentes saíram).
 - **No tutorial ninguém morre:** depois de cada golpe o jogador é curado, e no terceiro golpe da fuga
@@ -90,7 +92,7 @@ O que o tutorial faz por fora, por reflexão (campos privados, sem tocar no cód
 | `Scripts/TutorialChat.cs` | Escreve no chat (os narradores) e manda falas de plateia para a `ChatDirector`. |
 | `Scripts/TutorialHud.cs` | Faixa de objetivo (embaixo, no centro) e cartão do fim. |
 | `Scripts/TutorialNetworkBootstrap.cs` | Sobe o host e cria o jogador (vindo do menu ou Play direto). |
-| `Scripts/TutorialMonsterRemote.cs` | Congela o monstro no palco e solta na fuga. |
+| `Scripts/TutorialMonsterRemote.cs` | Prende o monstro no palco (em postura de combate, IdleCombat) e solta na fuga. |
 | `Scripts/TutorialDoorGate.cs` | Porta do jogo trancada entre as salas, com a luz de emergência (vermelha/verde). |
 | `Scripts/TutorialZone.cs`, `TutorialButton.cs` | Zonas de chegada e o botão escondido. |
 | `Scripts/TutorialKeys.cs` | Nome das teclas lido do `PlayerActions` (acompanha rebind no asset). |
@@ -125,3 +127,9 @@ O nome começa com `Game0` de propósito: chat, barra de audiência, REC e músi
   gatilho do palco de fora se ele estiver baixo. No tutorial o gatilho fica na altura do monstro.
 - **Botão Créditos** chama `MainMenu.OpenOptionPanel` além do `ButtonCameraTrigger` (talvez devesse
   ser `OpenCreditsPanel`).
+- **Rótulo "Pegar" no quadro de luz e nos canos.** O `InteractionMarker` dos prefabs `EletricCircuit` e
+  `PipeJoint` ficou com o texto padrão "Pegar". No tutorial é trocado só nas peças da cena ("Religar" no
+  override da cena; "Girar" nos canos quando o puzzle nasce); na partida continua "Pegar".
+- **Ícone da missão "Exaustor"** (`Mission Pipes.asset`) aponta para um sprite que não existe mais: o
+  painel mostra um quadrado branco. O ícone novo `Sprites/MissionsIcons/UI_PipeIconMission.png` não está
+  ligado a ela.

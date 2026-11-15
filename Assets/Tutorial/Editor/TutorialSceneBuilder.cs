@@ -194,14 +194,12 @@ namespace Tutorial.Building
             Prop(room, B + "SM_Popcorn_Machine.prefab", new Vector3(4.4f, 0f, 5.8f), Face(Vector3.left));
             Prop(room, W + "SM_Bathroom_Trash_Can.prefab", new Vector3(4.5f, 0f, 7.3f), 0f);
 
-            foreach (float x in new[] { -1.8f, 1.8f })
-            {
-                Prop(room, B + "SM_Stanchion.prefab", new Vector3(x, 0f, 3.4f), 90f);
-                Prop(room, B + "SM_Stanchion.prefab", new Vector3(x, 0f, 4.75f), 90f);
-            }
+            // Corredor de fila até a marca, como na bilheteria.
+            Queue(room, new Vector3(-1.8f, 0f, 2.9f), new Vector3(-1.8f, 0f, 6.3f));
+            Queue(room, new Vector3(1.8f, 0f, 2.9f), new Vector3(1.8f, 0f, 6.3f));
 
-            WallProp(room, H + "SM_Frame_V1.prefab", new Vector3(-4.8f, 1.65f, 8.6f), Vector3.right);
-            WallProp(room, H + "SM_Frame_V2.prefab", new Vector3(4.8f, 1.65f, 8.6f), Vector3.left);
+            WallProp(room, H + "SM_Poster.prefab", new Vector3(-4.8f, 1.65f, 8.6f), Vector3.right);
+            WallProp(room, H + "SM_Poster_V2.prefab", new Vector3(4.8f, 1.65f, 8.6f), Vector3.left);
             WallProp(room, H + "SM_Poster.prefab", new Vector3(-2.6f, 1.6f, 0.2f), Vector3.forward);
             WallProp(room, H + "SM_Poster_V2.prefab", new Vector3(2.6f, 1.6f, 0.2f), Vector3.forward);
             WallProp(room, B + "SM_Snacks_Sign_New.prefab", new Vector3(4.78f, 2.45f, 4.5f), Vector3.left, true);
@@ -235,7 +233,7 @@ namespace Tutorial.Building
             for (float z = 13f; z < 33f; z += 4f)
             {
                 bool left = ((int)z / 4) % 2 == 0;
-                WallProp(run, H + (left ? "SM_Frame_V1.prefab" : "SM_Frame_V2.prefab"), new Vector3(left ? -1.3f : 1.3f, 1.6f, z), left ? Vector3.right : Vector3.left);
+                WallProp(run, H + (left ? "SM_Poster.prefab" : "SM_Poster_V2.prefab"), new Vector3(left ? -1.3f : 1.3f, 1.6f, z), left ? Vector3.right : Vector3.left);
                 WallProp(run, H + "SM_Poster.prefab", new Vector3(left ? 1.3f : -1.3f, 1.55f, z + 2f), left ? Vector3.left : Vector3.right);
             }
 
@@ -268,17 +266,18 @@ namespace Tutorial.Building
             const float tableTop = 1.08f;
             const float tableZ = 46.8f;
             Solid(room, "Mesa (tampo)", new Vector3(0f, tableTop, tableZ), new Vector3(8f, 0.1f, 1.6f), _layerWalls);
-            foreach (float x in new[] { -3.9f, 3.9f })
-            foreach (float z in new[] { tableZ - 0.7f, tableZ + 0.7f })
-            {
-                Solid(room, "Mesa (perna)", new Vector3(x, 0f, z), new Vector3(0.12f, tableTop, 0.12f), _layerWalls);
-            }
-
             foreach (float x in new[] { -3f, -1f, 1f, 3f })
             {
                 GameObject table = Spawn(room, W + "SM_Metal_Table_1.prefab", 0f, new Vector3(1f, (tableTop + 0.1f) / 0.85f, 2f));
                 Fit(table, new Vector3(x, 0f, tableZ));
                 DisableColliders(table);
+
+                // Colisor em cada perna de verdade da mesa do jogo (mais ou menos 0,957 no X e 0,354 no Z, aqui esticado 2x).
+                foreach (float legX in new[] { x - 0.957f, x + 0.957f })
+                foreach (float legZ in new[] { tableZ - 0.708f, tableZ + 0.708f })
+                {
+                    Solid(room, "Mesa (perna)", new Vector3(legX, 0f, legZ), new Vector3(0.06f, tableTop, 0.06f), _layerWalls);
+                }
             }
 
             Label(labels, "MESA · 1 m\n<size=70%>agachado, o chapéu amassa</size>", new Vector3(0f, 1.6f, tableZ - 0.82f), FacingViewer(Vector3.back), 1.3f, 6f, Color.white);
@@ -356,19 +355,19 @@ namespace Tutorial.Building
             TutorialButton button = Button(room, new Vector3(-3.7f, 1.25f, 80f - Thickness * 0.5f - 0.02f), Vector3.back);
             Refs["hiddenButton"] = button;
 
-            // Camarim: penteadeira com espelhos, banquetas, sofá, arara e chapéu.
-            Prop(room, D + "SM_Dressing_Table.prefab", new Vector3(4.45f, 0f, 72.4f), Face(Vector3.left));
-            Prop(room, D + "SM_High_Stool.prefab", new Vector3(3.6f, 0f, 70.6f), 30f);
-            Prop(room, D + "SM_High_Stool.prefab", new Vector3(3.6f, 0f, 73.9f), -20f);
-            Prop(room, D + "SM_Top_Hat.prefab", new Vector3(4.5f, 0.85f, 74.6f), 20f);
+            // Camarim: araras, cases e caixas de figurino, sofá e biombo.
+            Prop(room, D + "ConjuntoFlightCases.prefab", new Vector3(3.9f, 0f, 70.4f), Face(Vector3.left));
+            Prop(room, D + "SM_Clothes_Rack.prefab", new Vector3(4.2f, 0f, 73f), 0f);
+            Prop(room, D + "SM_Flight_Case_Big.prefab", new Vector3(4.3f, 0f, 75.4f), Face(Vector3.left));
+            Prop(room, D + "SM_Top_Hat.prefab", new Vector3(4.3f, 0.76f, 75.4f), 20f);
+            Prop(room, D + "SM_High_Stool.prefab", new Vector3(3.2f, 0f, 74.4f), 30f);
+            Prop(room, D + "SM_Costume_Box_Metal.prefab", new Vector3(4.3f, 0f, 68.6f), Face(Vector3.left));
             Prop(room, B + "SM_Sofa.prefab", new Vector3(-4.3f, 0f, 71.5f), Face(Vector3.right));
             Prop(room, D + "SM_Clothes_Rack.prefab", new Vector3(-1.2f, 0f, 77.6f), 90f);
             Prop(room, D + "SM_Costume_Box_Open.prefab", new Vector3(0.6f, 0f, 78.7f), Face(Vector3.back));
             Prop(room, D + "SM_Costume_Box.prefab", new Vector3(-4.4f, 0f, 67.4f), Face(Vector3.right));
-            WallProp(room, D + "SM_Notice_Board.prefab", new Vector3(-4.8f, 1.5f, 74.8f), Vector3.right);
-            WallProp(room, H + "SM_Frame_V2.prefab", new Vector3(3.9f, 1.7f, 66.2f), Vector3.forward);
+            WallProp(room, H + "SM_Poster_V2.prefab", new Vector3(3.9f, 1.7f, 66.2f), Vector3.forward);
             Prop(room, D + "SM_Biombo.prefab", new Vector3(-3.1f, 0f, 68.3f), Face(new Vector3(1f, 0f, 1f)));
-            Prop(room, O + "SM_Mirror.prefab", new Vector3(-0.6f, 0f, 66.2f), Face(Vector3.forward), 0.8f);
             Prop(room, D + "SM_Costume_Box_Metal.prefab", new Vector3(4.4f, 0f, 77.9f), Face(Vector3.left));
             Prop(room, D + "SM_Costume_Box_Open_Metal.prefab", new Vector3(4.4f, 0f, 78.9f), Face(Vector3.left));
             Prop(room, D + "SM_Flight_Case_Small_Wheels.prefab", new Vector3(-1.2f, 0f, 70.2f), 25f);
@@ -440,8 +439,7 @@ namespace Tutorial.Building
 
             Prop(room, H + "SM_Big_Bench.prefab", new Vector3(-4.4f, 0f, 96.5f), 0f);
             Prop(room, H + "SM_Small_Bench.prefab", new Vector3(4.4f, 0f, 95.5f), 0f);
-            WallProp(room, H + "SM_Notice_Board.prefab", new Vector3(4.8f, 1.5f, 98.6f), Vector3.left);
-            WallProp(room, H + "SM_Frame_V1.prefab", new Vector3(-4.8f, 1.65f, 99.4f), Vector3.right);
+            WallProp(room, H + "SM_Poster.prefab", new Vector3(-4.8f, 1.65f, 99.4f), Vector3.right);
             Prop(room, H + "SM_Carpet_05.prefab", new Vector3(0f, 0.002f, 96.5f), 0f, 2f);
 
             Lamp(room, new Vector3(0f, 0f, 96f), Height);
@@ -479,7 +477,7 @@ namespace Tutorial.Building
                 GameObject prop = PlaceOnFloor(room, Prefabs + props[i], new Vector3(xs[i], pedestal, exhibitZ), 180f);
                 if (prop != null) placed.Add(prop);
 
-                Prop(room, B + "SM_Stanchion.prefab", new Vector3(xs[i], 0f, exhibitZ - 1.1f), 0f);
+                Queue(room, new Vector3(xs[i] - 0.6f, 0f, exhibitZ - 1.1f), new Vector3(xs[i] + 0.6f, 0f, exhibitZ - 1.1f));
             }
 
             _audienceProps = placed.ToArray();
@@ -492,11 +490,9 @@ namespace Tutorial.Building
             Prop(room, H + "SM_Carpet_04.prefab", new Vector3(0f, 0.002f, 109.5f), 0f, 2.4f);
             Prop(room, H + "SM_Carpet_04.prefab", new Vector3(-3.5f, 0.002f, 109.5f), 0f, 2.4f);
             Prop(room, H + "SM_Carpet_04.prefab", new Vector3(3.5f, 0.002f, 109.5f), 0f, 2.4f);
-            Prop(room, B + "SM_Stand.prefab", new Vector3(-4.6f, 0f, 116.4f), 0f);
-            Prop(room, B + "SM_Stand.prefab", new Vector3(4.6f, 0f, 116.4f), 0f);
-            WallProp(room, H + "SM_Frame_V1.prefab", new Vector3(-5.8f, 1.65f, 106f), Vector3.right);
-            WallProp(room, H + "SM_Frame_V2.prefab", new Vector3(-5.8f, 1.65f, 110f), Vector3.right);
-            WallProp(room, H + "SM_Frame_V1.prefab", new Vector3(5.8f, 1.65f, 110f), Vector3.left);
+            WallProp(room, H + "SM_Poster.prefab", new Vector3(-5.8f, 1.65f, 106f), Vector3.right);
+            WallProp(room, H + "SM_Poster_V2.prefab", new Vector3(-5.8f, 1.65f, 110f), Vector3.right);
+            WallProp(room, H + "SM_Poster.prefab", new Vector3(5.8f, 1.65f, 110f), Vector3.left);
             WallProp(room, H + "SM_Poster_V2.prefab", new Vector3(5.8f, 1.6f, 114f), Vector3.left);
 
             Sign(labels, "7 · AUDIÊNCIA", "grave o que tem olho", 118f, -2.9f);
@@ -538,10 +534,10 @@ namespace Tutorial.Building
             const float top = 0.85f;
             Prop(room, W + "SM_Metal_Table_1.prefab", new Vector3(-1.6f, 0f, 125.4f), 0f);
             Prop(room, W + "SM_Metal_Table_1.prefab", new Vector3(-1.6f, 0f, 126.2f), 0f);
-            Prop(room, PipeModels + "SM_Pipe_L.fbx", new Vector3(-2.2f, top, 125.5f), 30f);
-            Prop(room, PipeModels + "SM_Pipe_Small.fbx", new Vector3(-1.5f, top, 125.3f), 80f);
-            Prop(room, PipeModels + "SM_Pipe_L.fbx", new Vector3(-0.9f, top, 126.3f), 200f);
-            Prop(room, PipeModels + "SM_Pipe_Small.fbx", new Vector3(-2.0f, top, 126.4f), 10f);
+            PipeProp(room, PipeModels + "SM_Pipe_L.fbx", new Vector3(-2.2f, top, 125.5f), 30f);
+            PipeProp(room, PipeModels + "SM_Pipe_Small.fbx", new Vector3(-1.5f, top, 125.3f), 80f);
+            PipeProp(room, PipeModels + "SM_Pipe_L.fbx", new Vector3(-0.9f, top, 126.3f), 200f);
+            PipeProp(room, PipeModels + "SM_Pipe_Small.fbx", new Vector3(-2.0f, top, 126.4f), 10f);
             Prop(room, B + "SM_Chair_Foyer.prefab", new Vector3(-1.2f, 0f, 124.4f), Face(Vector3.forward));
             Prop(room, B + "SM_Chair_Foyer.prefab", new Vector3(-2.2f, 0f, 127.3f), Face(Vector3.back));
 
@@ -599,6 +595,11 @@ namespace Tutorial.Building
                     GameObject copy = (GameObject)PrefabUtility.InstantiatePrefab(source, group);
                     copy.transform.SetPositionAndRotation(piece.position + delta, piece.rotation);
                     copy.transform.localScale = piece.lossyScale;
+
+                    // A sala do jogo troca o material do modelo (M_Pipes); o .fbx sozinho vem com o padrão.
+                    Renderer from = piece.GetComponentInChildren<Renderer>(true);
+                    Renderer to = copy.GetComponentInChildren<Renderer>(true);
+                    if (from != null && to != null) to.sharedMaterials = from.sharedMaterials;
                 }
             }
             finally
@@ -678,6 +679,7 @@ namespace Tutorial.Building
             // Quadro de luz na parede esquerda, de frente para a sala.
             GameObject circuit = PlaceAt(room, Prefabs + "Items/EletricCircuit.prefab", new Vector3(-9f + Thickness * 0.5f + 0.05f, 1.2f, 144f), 90f);
             Refs["circuit"] = circuit != null ? circuit.GetComponent<ElectricCircuit>() : null;
+            SetMarkerLabel(circuit, "Religar");
             Label(labels, "QUADRO DE LUZ", new Vector3(-8.78f, 2.4f, 144f), FacingViewer(Vector3.right), 1.3f, 3f, Color.white);
 
             for (int i = 0; i < 4; i++)
@@ -744,18 +746,18 @@ namespace Tutorial.Building
             ExitLight(root, new Vector3(28f, 2.45f, 204f - Thickness * 0.5f - 0.03f), Vector3.back, _exitLamp, new Color(0.1f, 1f, 0.25f));
 
             Prop(root, B + "SM_Sofa.prefab", new Vector3(24f, 0f, 200f), Face(Vector3.right));
-            Prop(root, B + "SM_Stanchion.prefab", new Vector3(26.2f, 0f, 202.6f), 0f);
-            Prop(root, B + "SM_Stanchion.prefab", new Vector3(29.8f, 0f, 202.6f), 0f);
             Prop(root, B + "SM_Popcorn_Machine.prefab", new Vector3(32.4f, 0f, 199f), Face(Vector3.left));
+            Queue(root, new Vector3(26.3f, 0f, 200.3f), new Vector3(26.3f, 0f, 203.5f));
+            Queue(root, new Vector3(29.7f, 0f, 200.3f), new Vector3(29.7f, 0f, 203.5f));
 
             // Placas de saída pelo caminho.
             ExitLight(root, new Vector3(7f, 2.45f, 178f - Thickness * 0.5f - 0.03f), Vector3.back, _exitLamp, new Color(0.1f, 1f, 0.25f));
             ExitLight(root, new Vector3(28.5f - Thickness * 0.5f - 0.03f, 2.45f, 176.5f), Vector3.left, _exitLamp, new Color(0.1f, 1f, 0.25f));
             ExitLight(root, new Vector3(27f, 2.45f, 196f + 0.05f), Vector3.back, _exitLamp, new Color(0.1f, 1f, 0.25f));
 
-            for (float z = 163f; z < 176f; z += 4f) WallProp(root, H + "SM_Frame_V1.prefab", new Vector3(5.7f, 1.6f, z), Vector3.right);
+            for (float z = 163f; z < 176f; z += 4f) WallProp(root, H + "SM_Poster.prefab", new Vector3(5.7f, 1.6f, z), Vector3.right);
             for (float x = 11f; x < 25f; x += 5f) WallProp(root, H + "SM_Poster.prefab", new Vector3(x, 1.55f, 175.2f), Vector3.forward);
-            for (float z = 181f; z < 195f; z += 5f) WallProp(root, H + "SM_Frame_V2.prefab", new Vector3(28.3f, 1.6f, z), Vector3.left);
+            for (float z = 181f; z < 195f; z += 5f) WallProp(root, H + "SM_Poster_V2.prefab", new Vector3(28.3f, 1.6f, z), Vector3.left);
 
             Zone(root, TutorialDirector.ZoneFugaStart, new Vector3(7f, 0f, 162f), new Vector3(3f, 2.5f, 2f));
             Zone(root, TutorialDirector.ZoneExit, new Vector3(28f, 0f, 200.5f), new Vector3(10f, 2.5f, 6.5f));
@@ -1312,6 +1314,22 @@ namespace Tutorial.Building
             return (light, renderer);
         }
 
+        /// <summary>
+        /// Texto da tecla no marcador de interação. Override só nesta cena: no prefab do jogo o padrão
+        /// é "Pegar", que não serve para quadro de luz.
+        /// </summary>
+        private static void SetMarkerLabel(GameObject go, string label)
+        {
+            if (go == null) return;
+
+            foreach (InteractionMarker marker in go.GetComponentsInChildren<InteractionMarker>(true))
+            {
+                SerializedObject so = new SerializedObject(marker);
+                so.FindProperty("actionLabel").stringValue = label;
+                so.ApplyModifiedPropertiesWithoutUndo();
+            }
+        }
+
         private static void EnsureNetworked(GameObject go)
         {
             if (go.GetComponentInParent<NetworkObject>(true) == null) go.AddComponent<NetworkObject>();
@@ -1641,6 +1659,42 @@ namespace Tutorial.Building
             }
 
             instance.transform.position += new Vector3(bottomCenter.x - bounds.center.x, bottomCenter.y - bounds.min.y, bottomCenter.z - bounds.center.z);
+        }
+
+        /// <summary>
+        /// Fila de pedestais com corda (como na bilheteria): poste sozinho em <paramref name="from"/> e
+        /// um pedestal com corda a cada 1,15 m (o tamanho da corda do modelo) indo até perto de
+        /// <paramref name="to"/>, cada corda presa no poste de trás. Assim nenhuma corda fica solta.
+        /// </summary>
+        private static void Queue(Transform parent, Vector3 from, Vector3 to)
+        {
+            const float span = 1.15f;
+
+            Vector3 direction = to - from;
+            direction.y = 0f;
+            int count = Mathf.Max(1, Mathf.RoundToInt(direction.magnitude / span));
+            direction.Normalize();
+
+            GameObject first = Spawn(parent, B + "SM_Stanchion_Solo.prefab", 0f);
+            if (first != null) first.transform.position = from;
+
+            for (int i = 1; i <= count; i++)
+            {
+                // O pivô do pedestal é o centro do poste e a corda sai para o -X local: virando o +X
+                // para a frente da fila, a corda alcança o poste anterior.
+                GameObject post = Spawn(parent, B + "SM_Stanchion.prefab", Face(direction, true));
+                if (post != null) post.transform.position = from + direction * (span * i);
+            }
+        }
+
+        /// <summary>Pedaço de cano solto (modelo .fbx) com o material dos canos do jogo, como na sala de canos.</summary>
+        private static void PipeProp(Transform parent, string path, Vector3 bottomCenter, float yaw)
+        {
+            GameObject pipe = Prop(parent, path, bottomCenter, yaw);
+            Material material = AssetDatabase.LoadAssetAtPath<Material>("Assets/Materials/Missions/Pipes/M_Pipes.mat");
+            if (pipe == null || material == null) return;
+
+            foreach (Renderer renderer in pipe.GetComponentsInChildren<Renderer>(true)) renderer.sharedMaterial = material;
         }
 
         /// <summary>Móvel ou objeto do jogo apoiado em <paramref name="bottomCenter"/>.</summary>

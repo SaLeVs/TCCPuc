@@ -25,7 +25,7 @@ namespace Tutorial
     /// <summary>
     /// Conduz o tutorial do começo ao fim, falando pelo chat do jogo.
     ///
-    /// <para>Quem ensina é a turma do chat: S4LeV, camisolinha, aaaquerodormir e TUTUJOOOJ. As falas
+    /// <para>Quem ensina é a turma do chat: S4lev, camisolinha, aaaquerodormir e tutujooj (mesmos nomes da plateia do jogo). As falas
     /// entram numa fila e saem no ritmo de leitura, mas <b>ninguém espera por elas</b>: cada lição
     /// confere a ação a todo quadro, e o que o jogador já fez (até antes de pedirem) conta na hora. A
     /// fala que ensina uma ação já feita é descartada. A faixa de baixo sempre mostra o que fazer
@@ -40,10 +40,10 @@ namespace Tutorial
         private const int TotalSteps = 12;
 
         // A turma que conduz o tutorial (nomes como aparecem no chat).
-        private const string Dev = "S4LeV";
+        private const string Dev = "S4lev";
         private const string Camis = "camisolinha";
         private const string Sono = "aaaquerodormir";
-        private const string Tutu = "TUTUJOOOJ";
+        private const string Tutu = "tutujooj";
 
         // Zonas (TutorialZone) e portões (TutorialDoorGate) que o gerador da cena cria com estes nomes.
         public const string ZoneWalkMark = "walk_mark";
@@ -318,7 +318,7 @@ namespace Tutorial
 
             Step(1, "Movimento", $"Ande até a marca amarela no chão com {Key(TutorialKeys.Move)}");
 
-            Say(Dev, "Oi! Aqui é S4LeV, do time que fez o jogo. Bem-vindo à sua primeira live!");
+            Say(Dev, "Oi! Aqui é S4lev, do time que fez o jogo. Bem-vindo à sua primeira live!");
             Say(Camis, $"e a gente é o chat kkkk eu, {Sono} e {Tutu} vamos te ensinar tudo por aqui");
             Teach(walked, Dev, $"Primeiro, andar: {Key(TutorialKeys.Move)}. Vá até a marca amarela no chão.");
             Say(Tutu, "e olha a luz em cima da porta: vermelha = ainda não pode passar. termina a lição que ela fica verde e abre sozinha");
@@ -655,7 +655,7 @@ namespace Tutorial
             UpdatePuzzleObjective();
 
             Teach(solved, Dev, $"A missão é \"{title}\". A dica: \"{clue}\"");
-            Teach(solved, Sono, "desalinhado = tem pedaço de cano virado errado. segue o cano que sai do chão, na parede da direita");
+            Teach(solved, Sono, "desalinhado = tem pedaço de cano virado errado. é a parede da direita: segue o cano de uma ponta até a outra");
             Teach(solved, Dev, $"Mire num pedaço de cano da parede e use {Key(TutorialKeys.Interact)} para girar. Gire até o caminho ficar inteiro.");
 
             yield return WaitFor(() =>
@@ -664,7 +664,7 @@ namespace Tutorial
                     return solved();
                 }, 25f, 25f,
                 Hint(null, "cada E gira um pouquinho, as vezes precisa de varias"),
-                Hint(Camis, "começa pela entrada, embaixo, e vai seguindo pedaço por pedaço até a saída"),
+                Hint(Camis, "começa numa ponta do cano e vai seguindo pedaço por pedaço até a outra"),
                 Hint(Dev, "A faixa embaixo conta quantos pedaços estão no lugar. Um pedaço certo encaixa reto com o vizinho."),
                 Hint(Tutu, "olha a mesa: tem pedaço de cano solto lá, mostra como é o encaixe"));
 

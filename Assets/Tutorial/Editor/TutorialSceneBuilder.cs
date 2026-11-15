@@ -31,9 +31,13 @@ namespace Tutorial.Building
 {
     /// <summary>
     /// Gera Assets/Tutorial/Scenes/Game0_Tutorial.unity do zero: onze salas em linha, uma por lição,
-    /// separadas por portões que o diretor abre, mais o corredor da fuga. As peças interativas são os
-    /// prefabs do jogo (portas, pilha, caixas, objetos de audiência, puzzle das caixas, palco, monstro,
-    /// quadro de luz e os managers). Paredes e piso são caixas com os materiais do jogo e UV em metros.
+    /// mais o corredor da fuga. Tudo o que se vê é peça do cenário do jogo (paredes, pisos, tetos,
+    /// móveis, palco, canos, luminárias) e as passagens entre as salas são portas de verdade do jogo,
+    /// trancadas, com a luz de emergência em cima.
+    ///
+    /// <para>A colisão das paredes e do piso é feita por caixas invisíveis do gerador: as peças de
+    /// parede do jogo não têm colisor (no jogo ele fica em outro objeto), e assim a passagem das portas
+    /// tem sempre a mesma medida para o jogador e para o NavMesh do monstro.</para>
     /// </summary>
     public static class TutorialSceneBuilder
     {
@@ -43,25 +47,46 @@ namespace Tutorial.Building
         private const string GeneratedFolder = "Assets/Tutorial/Generated";
         private const string MeshAssetPath = GeneratedFolder + "/TutorialMeshes.asset";
         private const string NavMeshPath = SceneFolder + "/" + TutorialLauncher.SceneName + "/NavMesh-Tutorial.asset";
+
         private const string Prefabs = "Assets/Prefabs/";
+        private const string Props = Prefabs + "Rooms/Props/";
+        private const string H = Props + "Hallway/";
+        private const string D = Props + "Dressing_Room/";
+        private const string B = Props + "Box_Office/";
+        private const string O = Props + "Other_Rooms/";
+        private const string S = Props + "Stage/";
+        private const string W = Props + "Bathroom/";
+        private const string A = Props + "Auditorium/";
+        private const string Doors = Props + "Doors/";
+        private const string PipeModels = "Assets/Models/Missions_objects/";
 
-        private const float Height = 3.4f;
-        private const float StageHeight = 5f;
-        private const float Thickness = 0.3f;
-        private const float GateWidth = 2.2f;
-        private const float GateHeight = 2.6f;
-        private const float DoorLintel = 2.15f;
+        // Pisos e tetos (todos visíveis de baixo, conferido em render).
+        private const string FloorHall = H + "SM_Unique_Floor_Hallway.prefab";
+        private const string FloorTiles = D + "SM_Unique_Floor.prefab";
+        private const string FloorPlanks = D + "SM_Unique_Floor_V2.prefab";
+        private const string FloorMarble = B + "SM_Foyer_Floor_2x2.prefab";
+        private const string RoofHall = H + "SM_Roof_2.prefab";
+        private const string RoofRoom = D + "SM_Unique_Roof.prefab";
+        private const string RoofFoyer = B + "SM_Foyer_Roof_2x2.prefab";
 
-        private static int _layerGround, _layerWalls, _layerScenary, _layerInteractable, _layerIgnoreRaycast, _layerDefault;
+        private const float Height = 3f;
+        private const float StageHeight = 5.5f;
+        private const float Thickness = 0.36f;
+        private const float DoorWidth = 0.94f;
+        private const float DoorLintel = 2.13f;
+        private const float WallPieceHeight = 3f;
 
-        private static Material _floor, _wall, _ceiling, _stageFloor, _stageWall, _stage, _wood, _metal, _dark, _curtain, _carpet;
-        private static Material _unlitYellow, _unlitGreen, _unlitRed, _unlitBlack, _gateLamp;
+        private static int _layerGround, _layerWalls, _layerInteractable, _layerIgnoreRaycast, _layerDefault;
+
+        private static Material _metal, _unlitYellow, _unlitGreen, _unlitRed, _unlitBlack, _gateLamp, _emergencyLamp, _exitLamp;
         private static TMP_FontAsset _font;
 
         private static readonly Dictionary<string, Mesh> Meshes = new();
-        private static readonly List<GameObject> Shutters = new();
         private static readonly List<PatrolSector> Sectors = new();
         private static readonly Dictionary<string, Object> Refs = new();
+        private static readonly List<Door> EscapeDoors = new();
+        private static readonly List<Door> DecorDoors = new();
+        private static GameObject[] _audienceProps;
 
         [MenuItem("Tools/TCC/Tutorial/Gerar cena do tutorial", priority = 10)]
         public static void BuildFromMenu()
@@ -101,9 +126,10 @@ namespace Tutorial.Building
             ResolveLayers();
             LoadMaterials();
             Meshes.Clear();
-            Shutters.Clear();
             Sectors.Clear();
             Refs.Clear();
+            EscapeDoors.Clear();
+            DecorDoors.Clear();
 
             VolumeProfile profile = GameVolumeProfile();
 
@@ -141,210 +167,297 @@ namespace Tutorial.Building
 
         // ================================================================== salas
 
-        /// <summary>Sala 0 (spawn, andar) e o corredor de correr.</summary>
+        /// <summary>Sala 1 (saguão: andar) e o corredor de correr.</summary>
         private static Transform BuildMovement(Transform world, Transform labels)
         {
-            Transform room = Group("1 · Movimento", world).transform;
+            Transform room = Group("1 · Movimento (saguão)", world).transform;
 
-            Room(room, -5f, 5f, 0f, 10f, Height, _floor, _wall);
-            WallZ(room, -5f, 0f, 10f, Height);
-            WallZ(room, 5f, 0f, 10f, Height);
-            WallX(room, 0f, -5f, 5f, Height);
-            WallX(room, 10f, -5f, 5f, Height, Gap(0f));
-            Gate(room, TutorialDirector.GateRun, new Vector3(0f, 0f, 10f), Vector3.forward);
+            Room(room, -5f, 5f, 0f, 10f, Height, FloorMarble, RoofFoyer, true);
+            Wall(room, false, -5f, 0f, 10f, Height);
+            Wall(room, false, 5f, 0f, 10f, Height);
+            Wall(room, true, 0f, -5f, 5f, Height);
+            Wall(room, true, 10f, -5f, 5f, Height, DoorGap(0f));
+            Gate(room, TutorialDirector.GateRun, 0f, 10f);
 
             Transform spawn = Marker(room, "Spawn", new Vector3(0f, 0.05f, 2f), Vector3.forward);
 
-            Box(room, "Marca amarela", new Vector3(0f, 0f, 7.5f), new Vector3(1.8f, 0.012f, 1.8f), _unlitYellow, _layerDefault, false);
-            Zone(room, TutorialDirector.ZoneWalkMark, new Vector3(0f, 0f, 7.5f), new Vector3(2.2f, 2.5f, 2.2f));
-            Label(labels, "ANDE ATÉ AQUI", new Vector3(0f, 0.03f, 6.1f), OnFloor(Vector3.forward), 2.4f, 4f, new Color(1f, 0.85f, 0.3f));
+            Box(room, "Marca amarela", new Vector3(0f, 0.004f, 7.2f), new Vector3(1.8f, 0.012f, 1.8f), _unlitYellow, _layerDefault, false);
+            Zone(room, TutorialDirector.ZoneWalkMark, new Vector3(0f, 0f, 7.2f), new Vector3(2.2f, 2.5f, 2.2f));
+            Label(labels, "ANDE ATÉ AQUI", new Vector3(0f, 0.03f, 5.8f), OnFloor(Vector3.forward), 2.4f, 4f, new Color(1f, 0.85f, 0.3f));
 
-            Sign(labels, "1 · MOVIMENTO", "andar · correr · agachar", 10f, 0f, Height);
-            Lamp(room, new Vector3(0f, 0f, 5f), Height);
+            // Saguão do teatro: sofá e poltronas de um lado, pipoca e refrigerante do outro.
+            Prop(room, B + "SM_Sofa.prefab", new Vector3(-4.3f, 0f, 4.6f), Face(Vector3.right));
+            Prop(room, B + "SM_Chair_Foyer.prefab", new Vector3(-4.3f, 0f, 2.1f), Face(new Vector3(1f, 0f, 0.4f)));
+            Prop(room, B + "SM_Chair_Foyer.prefab", new Vector3(-4.3f, 0f, 7.1f), Face(new Vector3(1f, 0f, -0.4f)));
+            Prop(room, B + "SM_Popcorn_Machine.prefab", new Vector3(4.4f, 0f, 3.2f), Face(Vector3.left));
+            Prop(room, B + "SM_Soda_Machine.prefab", new Vector3(4.4f, 0f, 4.5f), Face(Vector3.left));
+            Prop(room, B + "SM_Popcorn_Machine.prefab", new Vector3(4.4f, 0f, 5.8f), Face(Vector3.left));
+            Prop(room, W + "SM_Bathroom_Trash_Can.prefab", new Vector3(4.5f, 0f, 7.3f), 0f);
+
+            foreach (float x in new[] { -1.8f, 1.8f })
+            {
+                Prop(room, B + "SM_Stanchion.prefab", new Vector3(x, 0f, 3.4f), 90f);
+                Prop(room, B + "SM_Stanchion.prefab", new Vector3(x, 0f, 4.75f), 90f);
+            }
+
+            WallProp(room, H + "SM_Frame_V1.prefab", new Vector3(-4.8f, 1.65f, 8.6f), Vector3.right);
+            WallProp(room, H + "SM_Frame_V2.prefab", new Vector3(4.8f, 1.65f, 8.6f), Vector3.left);
+            WallProp(room, H + "SM_Poster.prefab", new Vector3(-2.6f, 1.6f, 0.2f), Vector3.forward);
+            WallProp(room, H + "SM_Poster_V2.prefab", new Vector3(2.6f, 1.6f, 0.2f), Vector3.forward);
+            WallProp(room, B + "SM_Snacks_Sign_New.prefab", new Vector3(4.78f, 2.45f, 4.5f), Vector3.left, true);
+            WallProp(room, B + "SM_Menu_Board_Big_Popcorn.prefab", new Vector3(4.76f, 1.75f, 2.4f), Vector3.left, true);
+            WallProp(room, B + "SM_Menu_Board_Big_Drinks.prefab", new Vector3(4.76f, 1.75f, 6.6f), Vector3.left, true);
+            WallProp(room, B + "SM_Tickets_Sign_New.prefab", new Vector3(0f, 2.55f, 0.22f), Vector3.forward, true);
+            Prop(room, H + "SM_Carpet_01.prefab", new Vector3(0f, 0.002f, 2.6f), 90f, 1.8f);
+            Prop(room, H + "SM_Carpet_01.prefab", new Vector3(0f, 0.002f, 4.6f), 90f, 1.8f);
+
+            Sign(labels, "1 · MOVIMENTO", "andar · correr · agachar", 10f, -2.9f);
+            Lamp(room, new Vector3(-2f, 0f, 3f), Height);
+            Lamp(room, new Vector3(2f, 0f, 7f), Height);
 
             // Corredor de correr.
             Transform run = Group("1b · Corredor de correr", world).transform;
-            Room(run, -1.5f, 1.5f, 10f, 36f, Height, _floor, _wall);
-            WallZ(run, -1.5f, 10f, 36f, Height);
-            WallZ(run, 1.5f, 10f, 36f, Height);
-            WallX(run, 36f, -4f, 4f, Height, Gap(0f));
-            Gate(run, TutorialDirector.GateCrouch, new Vector3(0f, 0f, 36f), Vector3.forward);
+            Room(run, -1.5f, 1.5f, 10f, 36f, Height, FloorHall, RoofHall, true);
+            Wall(run, false, -1.5f, 10f, 36f, Height);
+            Wall(run, false, 1.5f, 10f, 36f, Height);
+            Wall(run, true, 36f, -4f, 4f, Height, DoorGap(0f));
+            Gate(run, TutorialDirector.GateCrouch, 0f, 36f);
+
             Zone(run, TutorialDirector.ZoneRunEnd, new Vector3(0f, 0f, 34.2f), new Vector3(3f, 2.5f, 3.4f));
-            Box(run, "Faixa de chegada", new Vector3(0f, 0f, 33f), new Vector3(2.8f, 0.012f, 0.25f), _unlitYellow, _layerDefault, false);
+            Box(run, "Faixa de chegada", new Vector3(0f, 0.004f, 33f), new Vector3(2.8f, 0.012f, 0.25f), _unlitYellow, _layerDefault, false);
             Label(labels, "CORRA ATÉ AQUI", new Vector3(0f, 0.03f, 32.2f), OnFloor(Vector3.forward), 1.8f, 3f, new Color(1f, 0.85f, 0.3f));
 
-            for (float z = 14f; z < 36f; z += 7f) Lamp(run, new Vector3(0f, 0f, z), Height);
+            for (float z = 12f; z < 31f; z += 2f)
+            {
+                Prop(run, H + (((int)z / 2) % 2 == 0 ? "SM_Carpet_02.prefab" : "SM_Carpet_03.prefab"), new Vector3(0f, 0.002f, z), 90f, 1.6f);
+            }
 
-            Box(run, "Tapete", new Vector3(0f, 0f, 23f), new Vector3(1.6f, 0.01f, 24f), _carpet, _layerDefault, false);
+            for (float z = 13f; z < 33f; z += 4f)
+            {
+                bool left = ((int)z / 4) % 2 == 0;
+                WallProp(run, H + (left ? "SM_Frame_V1.prefab" : "SM_Frame_V2.prefab"), new Vector3(left ? -1.3f : 1.3f, 1.6f, z), left ? Vector3.right : Vector3.left);
+                WallProp(run, H + "SM_Poster.prefab", new Vector3(left ? 1.3f : -1.3f, 1.55f, z + 2f), left ? Vector3.left : Vector3.right);
+            }
+
+            for (float z = 14f; z < 36f; z += 7f) Lamp(run, new Vector3(0f, 0f, z), Height);
 
             return spawn;
         }
 
-        /// <summary>Sala 2: o cano a 1,3 m, a mesa a 1,08 m e o duto de 0,8 m que nem agachado passa.</summary>
+        /// <summary>Sala 2 (depósito): o duto de ar a 1,3 m, a mesa a 1,08 m e a grade de 0,8 m que nem agachado passa.</summary>
         private static void BuildCrouch(Transform world, Transform labels)
         {
-            Transform room = Group("2 · Agachar", world).transform;
+            Transform room = Group("2 · Agachar (depósito)", world).transform;
 
-            Room(room, -4f, 4f, 36f, 52f, Height, _floor, _wall);
-            WallZ(room, -4f, 36f, 52f, Height);
-            WallZ(room, 4f, 36f, 52f, Height);
-            WallX(room, 52f, -5f, 5f, Height, Gap(0f));
-            Gate(room, TutorialDirector.GateDark, new Vector3(0f, 0f, 52f), Vector3.forward);
+            Room(room, -4f, 4f, 36f, 52f, Height, FloorTiles, RoofRoom);
+            Wall(room, false, -4f, 36f, 52f, Height);
+            Wall(room, false, 4f, 36f, 52f, Height);
+            Wall(room, true, 52f, -5f, 5f, Height, DoorGap(0f));
+            Gate(room, TutorialDirector.GateDark, 0f, 52f);
 
-            // Cano: fundo a 1,30 m. Em pé (1,43 m) não passa; agachado (≈1,15 m) passa.
-            GameObject beam = Box(room, "Cano (1,30 m)", new Vector3(0f, 1.30f, 40.84f), new Vector3(8f, 0.32f, 0.32f), _metal, _layerWalls);
-            beam.GetComponent<MeshRenderer>().enabled = false;
-            GameObject pipe = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
-            Object.DestroyImmediate(pipe.GetComponent<Collider>());
-            pipe.name = "Cano (visual)";
-            pipe.transform.SetParent(beam.transform, false);
-
-            // Cilindro padrão: 2 m de altura no Y e 1 m de diâmetro. Deitado no X, 8 m × 0,32 m.
-            pipe.transform.localPosition = Vector3.zero;
-            pipe.transform.localRotation = Quaternion.Euler(0f, 0f, 90f);
-            pipe.transform.localScale = new Vector3(0.32f, 4f, 0.32f);
-            pipe.GetComponent<MeshRenderer>().sharedMaterial = _metal;
-
-            Label(labels, "CANO · 1,3 m\n<size=70%>passa agachado</size>", new Vector3(0f, 1.95f, 40.6f), FacingViewer(Vector3.back), 1.6f, 5f, Color.white);
+            // Duto de ar atravessando a sala: fundo a 1,30 m. Em pé (1,43 m) não passa; agachado passa.
+            const float ductBottom = 1.30f;
+            const float ductZ = 40.84f;
+            Solid(room, "Duto (colisão)", new Vector3(0f, ductBottom, ductZ), new Vector3(8f, 1.3f, 1.3f), _layerWalls);
+            Fit(Spawn(room, W + "SM_Air_Ventilation_Body.prefab", 0f), new Vector3(-2f, ductBottom, ductZ));
+            Fit(Spawn(room, W + "SM_Air_Ventilation_Body.prefab", 0f), new Vector3(2f, ductBottom, ductZ));
+            Label(labels, "DUTO DE AR · 1,3 m\n<size=70%>passa agachado</size>", new Vector3(0f, 1.0f, ductZ - 0.7f), FacingViewer(Vector3.back), 1.3f, 5f, Color.white);
             Zone(room, TutorialDirector.ZoneCrouchBeam, new Vector3(0f, 0f, 42.6f), new Vector3(8f, 2.5f, 1.8f));
 
             // Mesa: o vão de baixo tem 1,08 m. Só passa agachado e com o chapéu amassado.
             const float tableTop = 1.08f;
-            Box(room, "Mesa (tampo)", new Vector3(0f, tableTop, 46f), new Vector3(8f, 0.1f, 1.6f), _wood, _layerScenary);
-            foreach (float x in new[] { -3.8f, 3.8f })
-            foreach (float z in new[] { 45.35f, 46.65f })
+            const float tableZ = 46.8f;
+            Solid(room, "Mesa (tampo)", new Vector3(0f, tableTop, tableZ), new Vector3(8f, 0.1f, 1.6f), _layerWalls);
+            foreach (float x in new[] { -3.9f, 3.9f })
+            foreach (float z in new[] { tableZ - 0.7f, tableZ + 0.7f })
             {
-                Box(room, "Mesa (perna)", new Vector3(x, 0f, z), new Vector3(0.12f, tableTop, 0.12f), _wood, _layerScenary);
+                Solid(room, "Mesa (perna)", new Vector3(x, 0f, z), new Vector3(0.12f, tableTop, 0.12f), _layerWalls);
             }
 
-            Label(labels, "MESA · 1 m\n<size=70%>agachado, o chapéu amassa</size>", new Vector3(0f, 1.75f, 45.15f), FacingViewer(Vector3.back), 1.6f, 6f, Color.white);
-            Zone(room, TutorialDirector.ZoneCrouchTable, new Vector3(0f, 0f, 49.3f), new Vector3(8f, 2.5f, 2.2f));
+            foreach (float x in new[] { -3f, -1f, 1f, 3f })
+            {
+                GameObject table = Spawn(room, W + "SM_Metal_Table_1.prefab", 0f, new Vector3(1f, (tableTop + 0.1f) / 0.85f, 2f));
+                Fit(table, new Vector3(x, 0f, tableZ));
+                DisableColliders(table);
+            }
 
-            // Duto na parede: só mostra o limite (é um painel, não tem passagem).
-            Box(room, "Duto 0,8 m (moldura)", new Vector3(-3.83f, 0f, 43.5f), new Vector3(0.06f, 0.9f, 1.5f), _metal, _layerWalls);
-            Box(room, "Duto 0,8 m (boca)", new Vector3(-3.79f, 0.05f, 43.5f), new Vector3(0.04f, 0.75f, 1.3f), _unlitBlack, _layerDefault, false);
-            Label(labels, "DUTO · 0,8 m\n<size=70%>nem agachado: é o limite</size>", new Vector3(-3.76f, 1.35f, 43.5f), FacingViewer(Vector3.right), 1.3f, 3f, new Color(1f, 0.55f, 0.45f));
+            Label(labels, "MESA · 1 m\n<size=70%>agachado, o chapéu amassa</size>", new Vector3(0f, 1.6f, tableZ - 0.82f), FacingViewer(Vector3.back), 1.3f, 6f, Color.white);
+            Zone(room, TutorialDirector.ZoneCrouchTable, new Vector3(0f, 0f, 49.6f), new Vector3(8f, 2.5f, 2.2f));
 
-            Sign(labels, "2 · PASSAR POR BAIXO", "segure agachar", 52f, 0f, Height);
-            Lamp(room, new Vector3(0f, 0f, 38.5f), Height);
+            // Grade de ventilação de 0,8 m na parede: só mostra o limite (não tem passagem).
+            GameObject grate = Spawn(room, W + "SM_Air_Ventilation_Door.prefab", Face(Vector3.right, true), Vector3.one * (0.8f / 1.18f));
+            Fit(grate, new Vector3(-4f + Thickness * 0.5f + 0.03f, 0.02f, 43.6f));
+            Box(room, "Grade (fundo)", new Vector3(-3.81f, 0.03f, 43.6f), new Vector3(0.01f, 0.76f, 0.76f), _unlitBlack, _layerDefault, false);
+            Label(labels, "GRADE · 0,8 m\n<size=70%>nem agachado: é o limite</size>", new Vector3(-3.79f, 1.3f, 43.6f), FacingViewer(Vector3.right), 1.1f, 2.6f, new Color(1f, 0.55f, 0.45f));
+
+            // Bastidor: cases, caixas de figurino e araras encostados nas paredes.
+            Prop(room, D + "SM_Flight_Case_Big_Wheels.prefab", new Vector3(-3.2f, 0f, 37.3f), Face(Vector3.right));
+            Prop(room, D + "SM_Flight_Case_Small.prefab", new Vector3(-3.3f, 0f, 38.5f), Face(Vector3.right));
+            Prop(room, D + "SM_Flight_Case_Small.prefab", new Vector3(-3.3f, 0.76f, 38.5f), Face(new Vector3(1f, 0f, 0.3f)));
+            Prop(room, D + "SM_Costume_Box_Metal.prefab", new Vector3(3.3f, 0f, 37.3f), Face(Vector3.left));
+            Prop(room, D + "SM_Costume_Box_Open.prefab", new Vector3(3.3f, 0f, 38.4f), Face(Vector3.left));
+            Prop(room, D + "SM_Clothes_Rack.prefab", new Vector3(3.4f, 0f, 50.4f), 0f);
+            Prop(room, D + "SM_Cardboard_Box.prefab", new Vector3(-3.3f, 0f, 50.6f), 15f);
+            Prop(room, D + "SM_Cardboard_Small_Box.prefab", new Vector3(-3.3f, 0.57f, 50.6f), -10f);
+            Prop(room, D + "SM_Cardboard_Box.prefab", new Vector3(-3.2f, 0f, 49.4f), 80f);
+            Prop(room, S + "SM_Pallet_V3.prefab", new Vector3(3.2f, 0f, 44f), 90f);
+
+            Sign(labels, "2 · PASSAR POR BAIXO", "segure agachar", 52f, -2.7f);
+            Lamp(room, new Vector3(0f, 0f, 38.3f), Height);
             Lamp(room, new Vector3(0f, 0f, 44f), Height);
-            Lamp(room, new Vector3(0f, 0f, 50f), Height);
+            Lamp(room, new Vector3(0f, 0f, 49.8f), Height);
         }
 
-        /// <summary>Sala 3: escura, só a lanterna. A saída é o portão com a luz verde, no canto.</summary>
+        /// <summary>Sala 3 (almoxarifado escuro): só a lanterna. A saída é a porta com a luz, no canto.</summary>
         private static void BuildDark(Transform world, Transform labels)
         {
-            Transform room = Group("3 · Lanterna (escuro)", world).transform;
+            Transform room = Group("3 · Lanterna (almoxarifado escuro)", world).transform;
 
-            Room(room, -5f, 5f, 52f, 66f, Height, _floor, _wall);
-            WallZ(room, -5f, 52f, 66f, Height);
-            WallZ(room, 5f, 52f, 66f, Height);
-            WallX(room, 66f, -5f, 5f, Height, Gap(3f));
-            Gate(room, TutorialDirector.GateChat, new Vector3(3f, 0f, 66f), Vector3.forward);
+            Room(room, -5f, 5f, 52f, 66f, Height, FloorTiles, RoofRoom);
+            Wall(room, false, -5f, 52f, 66f, Height);
+            Wall(room, false, 5f, 52f, 66f, Height);
+            Wall(room, true, 66f, -5f, 5f, Height, DoorGap(2f));
+            Gate(room, TutorialDirector.GateChat, 2f, 66f);
 
             Zone(room, TutorialDirector.ZoneDarkRoom, new Vector3(0f, 0f, 53.8f), new Vector3(10f, 2.5f, 2.4f));
 
-            Box(room, "Caixote", new Vector3(-2f, 0f, 57f), new Vector3(1.2f, 1.2f, 1.2f), _wood, _layerScenary);
-            Box(room, "Caixote", new Vector3(-2.1f, 1.2f, 57.1f), new Vector3(0.8f, 0.8f, 0.8f), _wood, _layerScenary);
-            Box(room, "Caixotes", new Vector3(2f, 0f, 59.5f), new Vector3(2.4f, 1.1f, 1.1f), _wood, _layerScenary);
-            Box(room, "Estante", new Vector3(-3.6f, 0f, 62.5f), new Vector3(1.6f, 2.2f, 0.6f), _wood, _layerScenary);
-            Box(room, "Caixote", new Vector3(0.5f, 0f, 63.2f), new Vector3(1f, 0.9f, 1f), _wood, _layerScenary);
+            Prop(room, O + "ShelfConjunto.prefab", new Vector3(-4.4f, 0f, 56.5f), Face(Vector3.right));
+            Prop(room, O + "SM_Metal_Shelf_V2.prefab", new Vector3(-4.5f, 0f, 61.5f), Face(Vector3.right));
+            Prop(room, O + "SM_Iron_Locker.prefab", new Vector3(-4.4f, 0f, 64.4f), Face(Vector3.right));
+            Prop(room, D + "BoxConjunto.prefab", new Vector3(-1.8f, 0f, 57.2f), 20f);
+            Prop(room, S + "SM_Dolly_Cart.prefab", new Vector3(3.8f, 0f, 59.5f), 200f);
+            Prop(room, S + "ConjuntoPallets.prefab", new Vector3(3.8f, 0f, 55.6f), 0f);
+            Prop(room, D + "SM_Cardboard_Box.prefab", new Vector3(0.3f, 0f, 62.6f), 35f);
+            Prop(room, D + "SM_Cardboard_Box.prefab", new Vector3(0.1f, 0.57f, 62.7f), 10f);
+            Prop(room, D + "SM_Cardboard_Small_Box.prefab", new Vector3(-0.9f, 0f, 63.3f), 60f);
+            Prop(room, S + "SM_Layher_Tower.prefab", new Vector3(-1.8f, 0f, 53.7f), 0f);
+            Prop(room, O + "SM_Trash_Can_V1.prefab", new Vector3(4.4f, 0f, 64.9f), 0f);
 
-            Sign(labels, "3 · LANTERNA", "procure a saída", 66f, -1.5f, Height);
+            Sign(labels, "3 · LANTERNA", "procure a saída", 66f, -1.8f);
         }
 
-        /// <summary>Sala 4: o chat. O botão escondido fica atrás do armário grande.</summary>
+        /// <summary>Sala 4 (camarim): o chat. O botão escondido fica na parede atrás do armário de metal.</summary>
         private static void BuildChat(Transform world, Transform labels)
         {
-            Transform room = Group("4 · Chat", world).transform;
+            Transform room = Group("4 · Chat (camarim)", world).transform;
 
-            Room(room, -5f, 5f, 66f, 80f, Height, _floor, _wall);
-            WallZ(room, -5f, 66f, 80f, Height);
-            WallZ(room, 5f, 66f, 80f, Height);
-            WallX(room, 80f, -5f, 5f, Height, Gap(2.5f));
-            Gate(room, TutorialDirector.GateItems, new Vector3(2.5f, 0f, 80f), Vector3.forward);
+            Room(room, -5f, 5f, 66f, 80f, Height, FloorPlanks, RoofRoom);
+            Wall(room, false, -5f, 66f, 80f, Height);
+            Wall(room, false, 5f, 66f, 80f, Height);
+            Wall(room, true, 80f, -5f, 5f, Height, DoorGap(2f));
+            Gate(room, TutorialDirector.GateItems, 2f, 80f);
 
-            Zone(room, TutorialDirector.ZoneDarkExit, new Vector3(3f, 0f, 67.6f), new Vector3(3f, 2.5f, 2.2f));
+            Zone(room, TutorialDirector.ZoneDarkExit, new Vector3(2f, 0f, 67.6f), new Vector3(3f, 2.5f, 2.2f));
 
-            // Armário: de costas para a parede do fundo com um vão de 0,9 m, aberto pela direita.
-            Box(room, "Armário grande", new Vector3(-3.5f, 0f, 78.25f), new Vector3(2.4f, 2.6f, 0.8f), _wood, _layerScenary);
-            Box(room, "Sofá", new Vector3(3.2f, 0f, 71f), new Vector3(1f, 0.8f, 2.6f), _carpet, _layerScenary);
-            Box(room, "Mesinha", new Vector3(1.4f, 0f, 71f), new Vector3(0.8f, 0.5f, 1.2f), _wood, _layerScenary);
+            // Armário: dois armários de ferro de costas para a parede do fundo, com um vão de ~1 m.
+            Prop(room, O + "SM_Iron_Locker.prefab", new Vector3(-4.35f, 0f, 78.6f), Face(Vector3.back));
+            Prop(room, O + "SM_Iron_Locker.prefab", new Vector3(-3.15f, 0f, 78.6f), Face(Vector3.back));
 
             TutorialButton button = Button(room, new Vector3(-3.7f, 1.25f, 80f - Thickness * 0.5f - 0.02f), Vector3.back);
             Refs["hiddenButton"] = button;
 
-            Sign(labels, "4 · CHAT", "o chat te ajuda", 80f, -1f, Height);
+            // Camarim: penteadeira com espelhos, banquetas, sofá, arara e chapéu.
+            Prop(room, D + "SM_Dressing_Table.prefab", new Vector3(4.45f, 0f, 72.4f), Face(Vector3.left));
+            Prop(room, D + "SM_High_Stool.prefab", new Vector3(3.6f, 0f, 70.6f), 30f);
+            Prop(room, D + "SM_High_Stool.prefab", new Vector3(3.6f, 0f, 73.9f), -20f);
+            Prop(room, D + "SM_Top_Hat.prefab", new Vector3(4.5f, 0.85f, 74.6f), 20f);
+            Prop(room, B + "SM_Sofa.prefab", new Vector3(-4.3f, 0f, 71.5f), Face(Vector3.right));
+            Prop(room, D + "SM_Clothes_Rack.prefab", new Vector3(-1.2f, 0f, 77.6f), 90f);
+            Prop(room, D + "SM_Costume_Box_Open.prefab", new Vector3(0.6f, 0f, 78.7f), Face(Vector3.back));
+            Prop(room, D + "SM_Costume_Box.prefab", new Vector3(-4.4f, 0f, 67.4f), Face(Vector3.right));
+            WallProp(room, D + "SM_Notice_Board.prefab", new Vector3(-4.8f, 1.5f, 74.8f), Vector3.right);
+            WallProp(room, H + "SM_Frame_V2.prefab", new Vector3(3.9f, 1.7f, 66.2f), Vector3.forward);
+            Prop(room, D + "SM_Biombo.prefab", new Vector3(-3.1f, 0f, 68.3f), Face(new Vector3(1f, 0f, 1f)));
+            Prop(room, O + "SM_Mirror.prefab", new Vector3(-0.6f, 0f, 66.2f), Face(Vector3.forward), 0.8f);
+            Prop(room, D + "SM_Costume_Box_Metal.prefab", new Vector3(4.4f, 0f, 77.9f), Face(Vector3.left));
+            Prop(room, D + "SM_Costume_Box_Open_Metal.prefab", new Vector3(4.4f, 0f, 78.9f), Face(Vector3.left));
+            Prop(room, D + "SM_Flight_Case_Small_Wheels.prefab", new Vector3(-1.2f, 0f, 70.2f), 25f);
+
+            Sign(labels, "4 · CHAT", "o chat te ajuda", 80f, -0.6f);
             Lamp(room, new Vector3(0f, 0f, 70f), Height);
             Lamp(room, new Vector3(0f, 0f, 76f), Height);
         }
 
-        /// <summary>Sala 5: a pilha na mesa e a caixa que não é sua.</summary>
+        /// <summary>Sala 5 (almoxarifado): a pilha na mesa e a caixa que não é sua.</summary>
         private static void BuildItems(Transform world, Transform labels)
         {
-            Transform room = Group("5 · Itens", world).transform;
+            Transform room = Group("5 · Itens (almoxarifado)", world).transform;
 
-            Room(room, -5f, 5f, 80f, 92f, Height, _floor, _wall);
-            WallZ(room, -5f, 80f, 92f, Height);
-            WallZ(room, 5f, 80f, 92f, Height);
-            WallX(room, 92f, -5f, 5f, Height, Gap(0f));
-            Gate(room, TutorialDirector.GateDoors, new Vector3(0f, 0f, 92f), Vector3.forward);
+            Room(room, -5f, 5f, 80f, 92f, Height, FloorTiles, RoofRoom);
+            Wall(room, false, -5f, 80f, 92f, Height);
+            Wall(room, false, 5f, 80f, 92f, Height);
+            Wall(room, true, 92f, -5f, 5f, Height, DoorGap(0f));
+            Gate(room, TutorialDirector.GateDoors, 0f, 92f);
 
             const float tableTop = 0.85f;
-            Box(room, "Mesa", new Vector3(0f, 0f, 86.5f), new Vector3(2.4f, tableTop, 1f), _wood, _layerScenary);
+            Prop(room, W + "SM_Metal_Table_1.prefab", new Vector3(0f, 0f, 86.5f), 0f);
 
             GameObject battery = PlaceOnFloor(room, Prefabs + "Items/Pickables/FlashlightBatteryPickable.prefab", new Vector3(0f, tableTop, 86.5f), 90f);
             Refs["battery"] = battery != null ? battery.GetComponent<ItemPickable>() : null;
 
-            const float crateTop = 0.75f;
-            Box(room, "Caixote", new Vector3(2.7f, 0f, 86.5f), new Vector3(0.9f, crateTop, 0.9f), _wood, _layerScenary);
-
             // Caixa de missão sem puzzle ligado: o filtro de missão recusa todo mundo (INDISPONÍVEL).
-            GameObject box = PlaceOnFloor(room, Prefabs + "Items/Pickables/Missions/Box/BoxSquarePickable.prefab", new Vector3(2.7f, crateTop, 86.5f), 0f);
+            const float caseTop = 0.76f;
+            Prop(room, D + "SM_Flight_Case_Big.prefab", new Vector3(2.7f, 0f, 86.5f), 90f);
+            GameObject box = PlaceOnFloor(room, Prefabs + "Items/Pickables/Missions/Box/BoxSquarePickable.prefab", new Vector3(2.7f, caseTop, 86.5f), 0f);
             Refs["blockedBox"] = box;
 
+            Prop(room, O + "SM_Metal_Shelf_V2.prefab", new Vector3(-4.5f, 0f, 83.5f), Face(Vector3.right));
+            Prop(room, O + "SM_Metal_Shelf_V1.prefab", new Vector3(-4.5f, 0f, 88.5f), Face(Vector3.right));
+            Prop(room, O + "SM_Metal_Shelf_V2.prefab", new Vector3(4.5f, 0f, 89.6f), Face(Vector3.left));
+            Prop(room, O + "SM_Trash_Can_V1.prefab", new Vector3(4.4f, 0f, 81.6f), 0f);
+            Prop(room, W + "SM_Floor_Sign.prefab", new Vector3(-1.6f, 0f, 82.4f), 200f);
+            Prop(room, D + "SM_Cardboard_Box.prefab", new Vector3(4.3f, 0f, 84.2f), 80f);
+            Prop(room, O + "SM_Iron_Locker.prefab", new Vector3(4.45f, 0f, 86.6f), Face(Vector3.left));
+            Prop(room, O + "SM_Iron_Locker.prefab", new Vector3(-3.6f, 0f, 91.4f), Face(Vector3.back));
+            Prop(room, S + "SM_Pallet_V2.prefab", new Vector3(-3.5f, 0f, 81.2f), 10f);
+            Prop(room, D + "SM_Cardboard_Small_Box.prefab", new Vector3(-3.5f, 0.15f, 81.2f), 40f);
+
             Label(labels, "PILHA", new Vector3(0f, 0.03f, 85.6f), OnFloor(Vector3.forward), 1.6f, 2f, new Color(1f, 0.85f, 0.3f));
-            Sign(labels, "5 · ITENS E BATERIA", "pegar · segurar · usar", 92f, -2.5f, Height);
-            Lamp(room, new Vector3(0f, 0f, 85f), Height);
-            Lamp(room, new Vector3(0f, 0f, 90f), Height);
+            Sign(labels, "5 · ITENS E BATERIA", "pegar · segurar · usar", 92f, -2.8f);
+            Lamp(room, new Vector3(0f, 0f, 84.5f), Height);
+            Lamp(room, new Vector3(0f, 0f, 89.5f), Height);
         }
 
-        /// <summary>Sala 6: duas portas na parede do fundo. A da esquerda está presa pelo "monstro".</summary>
+        /// <summary>Sala 6 (corredor de portas): duas portas na parede do fundo. A da esquerda está presa pelo "monstro".</summary>
         private static void BuildDoors(Transform world, Transform labels)
         {
             Transform room = Group("6 · Portas", world).transform;
 
-            Room(room, -5f, 5f, 92f, 102f, Height, _floor, _wall);
-            WallZ(room, -5f, 92f, 102f, Height);
-            WallZ(room, 5f, 92f, 102f, Height);
+            Room(room, -5f, 5f, 92f, 102f, Height, FloorHall, RoofHall, true);
+            Wall(room, false, -5f, 92f, 102f, Height);
+            Wall(room, false, 5f, 92f, 102f, Height);
+            Wall(room, true, 102f, -6f, 6f, Height, DoorGap(-2.5f), DoorGap(2.5f));
 
-            GameObject left = DoorInWallX(room, Prefabs + "Rooms/Props/Doors/Door_Black.prefab", -2.5f, 102f, out float leftWidth);
-            GameObject right = DoorInWallX(room, Prefabs + "Rooms/Props/Doors/Door_Black.prefab", 2.5f, 102f, out float rightWidth);
+            Door left = DoorAt(room, Doors + "Door_Black.prefab", -2.5f, 102f, true);
+            Door right = DoorAt(room, Doors + "Door_Black.prefab", 2.5f, 102f, true);
+            Refs["lockedDoor"] = left;
+            Refs["openDoor"] = right;
 
-            WallX(room, 102f, -6f, 6f, Height,
-                new Opening(-2.5f, leftWidth + 0.02f, DoorLintel),
-                new Opening(2.5f, rightWidth + 0.02f, DoorLintel));
+            float face = 102f - Thickness * 0.5f - 0.02f;
+            Label(labels, "TRAVADA?", new Vector3(-2.5f, 2.5f, face), FacingViewer(Vector3.back), 1.2f, 2.5f, new Color(1f, 0.55f, 0.45f));
+            Label(labels, "ABERTA", new Vector3(2.5f, 2.5f, face), FacingViewer(Vector3.back), 1.2f, 2.5f, new Color(0.5f, 1f, 0.6f));
+            Label(labels, "<b>6 · PORTAS</b>", new Vector3(0f, 2.0f, face), FacingViewer(Vector3.back), 2f, 3f, new Color(1f, 0.85f, 0.35f));
 
-            Refs["lockedDoor"] = left != null ? left.GetComponent<Door>() : null;
-            Refs["openDoor"] = right != null ? right.GetComponent<Door>() : null;
-
-            Label(labels, "TRAVADA?", new Vector3(-2.5f, 2.6f, 102f - Thickness * 0.5f - 0.02f), FacingViewer(Vector3.back), 1.3f, 2.5f, new Color(1f, 0.55f, 0.45f));
-            Label(labels, "ABERTA", new Vector3(2.5f, 2.6f, 102f - Thickness * 0.5f - 0.02f), FacingViewer(Vector3.back), 1.3f, 2.5f, new Color(0.5f, 1f, 0.6f));
-            Label(labels, "<b>6 · PORTAS</b>", new Vector3(0f, 2.9f, 102f - Thickness * 0.5f - 0.02f), FacingViewer(Vector3.back), 2.2f, 4f, new Color(1f, 0.85f, 0.35f));
+            Prop(room, H + "SM_Big_Bench.prefab", new Vector3(-4.4f, 0f, 96.5f), 0f);
+            Prop(room, H + "SM_Small_Bench.prefab", new Vector3(4.4f, 0f, 95.5f), 0f);
+            WallProp(room, H + "SM_Notice_Board.prefab", new Vector3(4.8f, 1.5f, 98.6f), Vector3.left);
+            WallProp(room, H + "SM_Frame_V1.prefab", new Vector3(-4.8f, 1.65f, 99.4f), Vector3.right);
+            Prop(room, H + "SM_Carpet_05.prefab", new Vector3(0f, 0.002f, 96.5f), 0f, 2f);
 
             Lamp(room, new Vector3(0f, 0f, 96f), Height);
+            Lamp(room, new Vector3(0f, 0f, 100.2f), Height);
         }
 
-        /// <summary>Sala 7: três objetos de audiência em pedestais.</summary>
+        /// <summary>Sala 7 (exposição): três objetos de audiência em cima de cases, com corda e refletor.</summary>
         private static void BuildAudience(Transform world, Transform labels)
         {
-            Transform room = Group("7 · Audiência", world).transform;
+            Transform room = Group("7 · Audiência (exposição)", world).transform;
 
-            Room(room, -6f, 6f, 102f, 118f, Height, _floor, _wall);
-            WallZ(room, -6f, 102f, 118f, Height);
-            WallZ(room, 6f, 102f, 118f, Height);
-            WallX(room, 118f, -6f, 6f, Height, Gap(0f));
-            Gate(room, TutorialDirector.GatePuzzle, new Vector3(0f, 0f, 118f), Vector3.forward);
+            Room(room, -6f, 6f, 102f, 118f, Height, FloorMarble, RoofFoyer, true);
+            Wall(room, false, -6f, 102f, 118f, Height);
+            Wall(room, false, 6f, 102f, 118f, Height);
+            Wall(room, true, 118f, -6f, 6f, Height, DoorGap(0f));
+            Gate(room, TutorialDirector.GatePuzzle, 0f, 118f);
 
             Zone(room, TutorialDirector.ZoneDoorsAfter, new Vector3(3f, 0f, 104.4f), new Vector3(6f, 2.5f, 4.4f));
 
@@ -357,105 +470,194 @@ namespace Tutorial.Building
 
             float[] xs = { -3.5f, 0f, 3.5f };
             List<GameObject> placed = new();
-            const float pedestal = 1.05f;
+            const float pedestal = 0.76f;
+            const float exhibitZ = 112.5f;
 
             for (int i = 0; i < props.Length; i++)
             {
-                Box(room, "Pedestal", new Vector3(xs[i], 0f, 112.5f), new Vector3(0.7f, pedestal, 0.7f), _dark, _layerScenary);
-                GameObject prop = PlaceOnFloor(room, Prefabs + props[i], new Vector3(xs[i], pedestal, 112.5f), 180f);
+                Prop(room, D + "SM_Flight_Case_Big.prefab", new Vector3(xs[i], 0f, exhibitZ), 0f);
+                GameObject prop = PlaceOnFloor(room, Prefabs + props[i], new Vector3(xs[i], pedestal, exhibitZ), 180f);
                 if (prop != null) placed.Add(prop);
+
+                Prop(room, B + "SM_Stanchion.prefab", new Vector3(xs[i], 0f, exhibitZ - 1.1f), 0f);
             }
 
-            AudienceProps = placed.ToArray();
+            _audienceProps = placed.ToArray();
 
-            Box(room, "Tapete", new Vector3(0f, 0f, 110f), new Vector3(9f, 0.01f, 6f), _carpet, _layerDefault, false);
+            Prop(room, S + "SM_Tripod_Spotilight_V1.prefab", new Vector3(-5.2f, 0f, 109f), Face(new Vector3(1.4f, 0f, 3.5f)));
+            Prop(room, S + "SM_Tripod_Spotilight_V2.prefab", new Vector3(5.2f, 0f, 109f), Face(new Vector3(-1.4f, 0f, 3.5f)));
+            Prop(room, H + "SM_Small_Bench.prefab", new Vector3(-3f, 0f, 107f), 90f);
+            Prop(room, H + "SM_Big_Bench.prefab", new Vector3(-5.4f, 0f, 112.5f), 0f);
+            Prop(room, H + "SM_Big_Bench.prefab", new Vector3(5.4f, 0f, 112.5f), 0f);
+            Prop(room, H + "SM_Carpet_04.prefab", new Vector3(0f, 0.002f, 109.5f), 0f, 2.4f);
+            Prop(room, H + "SM_Carpet_04.prefab", new Vector3(-3.5f, 0.002f, 109.5f), 0f, 2.4f);
+            Prop(room, H + "SM_Carpet_04.prefab", new Vector3(3.5f, 0.002f, 109.5f), 0f, 2.4f);
+            Prop(room, B + "SM_Stand.prefab", new Vector3(-4.6f, 0f, 116.4f), 0f);
+            Prop(room, B + "SM_Stand.prefab", new Vector3(4.6f, 0f, 116.4f), 0f);
+            WallProp(room, H + "SM_Frame_V1.prefab", new Vector3(-5.8f, 1.65f, 106f), Vector3.right);
+            WallProp(room, H + "SM_Frame_V2.prefab", new Vector3(-5.8f, 1.65f, 110f), Vector3.right);
+            WallProp(room, H + "SM_Frame_V1.prefab", new Vector3(5.8f, 1.65f, 110f), Vector3.left);
+            WallProp(room, H + "SM_Poster_V2.prefab", new Vector3(5.8f, 1.6f, 114f), Vector3.left);
 
-            Sign(labels, "7 · AUDIÊNCIA", "grave o que tem olho", 118f, -2.5f, Height);
-            Lamp(room, new Vector3(-3f, 0f, 107f), Height);
-            Lamp(room, new Vector3(3f, 0f, 107f), Height);
-            Lamp(room, new Vector3(0f, 0f, 113.5f), Height);
+            Sign(labels, "7 · AUDIÊNCIA", "grave o que tem olho", 118f, -2.9f);
+            Lamp(room, new Vector3(-3f, 0f, 106.5f), Height);
+            Lamp(room, new Vector3(3f, 0f, 106.5f), Height);
+            Lamp(room, new Vector3(0f, 0f, 111f), Height);
+            Lamp(room, new Vector3(0f, 0f, 115.5f), Height);
         }
 
-        private static GameObject[] AudienceProps;
-
-        /// <summary>Sala 8: o puzzle das caixas de verdade (MissionTotemGroup), com os pontos remontados.</summary>
+        /// <summary>
+        /// Sala 8 (oficina): o puzzle dos canos de verdade (PipesManager), encaixado na parede da direita
+        /// do jeito que ele fica na sala de missão de canos do jogo, com os canos de entrada e saída, mesas
+        /// com pedaços de cano e prateleiras.
+        /// </summary>
         private static void BuildPuzzle(Transform world, Transform labels)
         {
-            Transform room = Group("8 · Puzzle", world).transform;
+            Transform room = Group("8 · Puzzle (oficina de canos)", world).transform;
 
-            Room(room, -6f, 6f, 118f, 134f, Height, _floor, _wall);
-            WallZ(room, -6f, 118f, 134f, Height);
-            WallZ(room, 6f, 118f, 134f, Height);
-            // Alta como o palco: do lado de lá o teto está a 5 m.
-            WallX(room, 134f, -9f, 9f, StageHeight, Gap(0f));
-            Gate(room, TutorialDirector.GateStage, new Vector3(0f, 0f, 134f), Vector3.forward);
+            Room(room, -6f, 6f, 118f, 134f, Height, FloorTiles, RoofRoom);
+            Wall(room, false, -6f, 118f, 134f, Height);
+            Wall(room, false, 6f, 118f, 134f, Height);
+            Wall(room, true, 134f, -9f, 9f, StageHeight, DoorGap(0f));
+            Gate(room, TutorialDirector.GateStage, 0f, 134f);
 
             Zone(room, TutorialDirector.ZonePuzzleRoom, new Vector3(0f, 0f, 120f), new Vector3(12f, 2.5f, 2.6f));
 
-            GameObject group = PlaceAt(room, Prefabs + "Missions/Totems/Box/MissionTotemGroup.prefab", new Vector3(0f, 0f, 126f), 0f);
+            // Mesma pose da sala de canos do jogo (RoomData MissionPipesRoom): parede em +X, yaw 180.
+            Vector3 managerPosition = new Vector3(6f - Thickness * 0.5f - 0.07f, 0.576f, 126f);
+            GameObject manager = PlaceAt(room, Prefabs + "Missions/Totems/Pipes/PipesManager.prefab", managerPosition, 180f);
 
-            if (group != null)
+            if (manager != null)
             {
-                ItemSlotPuzzleManager manager = group.GetComponent<ItemSlotPuzzleManager>();
-                Refs["puzzle"] = manager;
-                Refs["puzzleSelector"] = group.GetComponent<MissionOwnershipSelector>();
-
-                Vector3 center = new Vector3(0f, 0f, 127f);
-                float totemLift = PivotLift(FirstPrefab(manager, "totemConfigs"));
-                float boxLift = PivotLift(FirstPrefab(manager, "pickableConfigs"));
-
-                Vector3[] totems =
-                {
-                    new(-5.3f, 0f, 123f), new(-5.3f, 0f, 128f), new(5.3f, 0f, 123f), new(5.3f, 0f, 128f), new(0f, 0f, 133.3f),
-                };
-
-                for (int i = 0; i < totems.Length; i++)
-                {
-                    Transform point = group.transform.Find($"TotemsSpawnPoints/TotemBox{i + 1}");
-                    if (point == null) continue;
-
-                    point.position = totems[i] + Vector3.up * totemLift;
-                    Vector3 toCenter = center - totems[i];
-                    toCenter.y = 0f;
-                    point.rotation = Quaternion.LookRotation(toCenter.normalized);
-                }
-
-                Vector3[] boxes = { new(-2.2f, 0f, 121.5f), new(2.2f, 0f, 121.5f), new(-1.2f, 0f, 130f), new(1.2f, 0f, 130f) };
-
-                for (int i = 0; i < boxes.Length; i++)
-                {
-                    Transform point = group.transform.Find($"BoxSpawnPoints/Box{i + 1}");
-                    if (point == null) continue;
-
-                    point.position = boxes[i] + Vector3.up * boxLift;
-                    point.rotation = Quaternion.Euler(0f, 15f * i, 0f);
-                }
+                Refs["puzzle"] = manager.GetComponent<PipesPuzzleManager>();
+                Refs["puzzleSelector"] = manager.GetComponent<MissionOwnershipSelector>();
+                CopyPipeWall(room, manager.transform);
             }
 
-            Sign(labels, "8 · MISSÃO E PUZZLE", "leia · interprete · resolva", 134f, -3f, Height);
+            // Bancada no meio com pedaços de cano: mostra a peça que gira na parede.
+            const float top = 0.85f;
+            Prop(room, W + "SM_Metal_Table_1.prefab", new Vector3(-1.6f, 0f, 125.4f), 0f);
+            Prop(room, W + "SM_Metal_Table_1.prefab", new Vector3(-1.6f, 0f, 126.2f), 0f);
+            Prop(room, PipeModels + "SM_Pipe_L.fbx", new Vector3(-2.2f, top, 125.5f), 30f);
+            Prop(room, PipeModels + "SM_Pipe_Small.fbx", new Vector3(-1.5f, top, 125.3f), 80f);
+            Prop(room, PipeModels + "SM_Pipe_L.fbx", new Vector3(-0.9f, top, 126.3f), 200f);
+            Prop(room, PipeModels + "SM_Pipe_Small.fbx", new Vector3(-2.0f, top, 126.4f), 10f);
+            Prop(room, B + "SM_Chair_Foyer.prefab", new Vector3(-1.2f, 0f, 124.4f), Face(Vector3.forward));
+            Prop(room, B + "SM_Chair_Foyer.prefab", new Vector3(-2.2f, 0f, 127.3f), Face(Vector3.back));
+
+            Prop(room, O + "ShelfConjunto.prefab", new Vector3(-5.4f, 0f, 122.5f), Face(Vector3.right));
+            Prop(room, O + "SM_Metal_Shelf_V2.prefab", new Vector3(-5.5f, 0f, 128.6f), Face(Vector3.right));
+            Prop(room, O + "SM_Metal_Shelf_V1.prefab", new Vector3(-5.5f, 0f, 130.6f), Face(Vector3.right));
+            Prop(room, O + "SM_Iron_Locker.prefab", new Vector3(-4.6f, 0f, 133.4f), Face(Vector3.back));
+            Prop(room, O + "SM_Iron_Locker.prefab", new Vector3(-3.4f, 0f, 133.4f), Face(Vector3.back));
+            Prop(room, S + "ConjuntoPallets.prefab", new Vector3(-4.6f, 0f, 119.4f), 0f);
+            Prop(room, W + "SM_Bathroom_Trash.prefab", new Vector3(3.6f, 0f, 133.2f), 0f);
+            Prop(room, O + "SM_Trash_Can_V1.prefab", new Vector3(1.6f, 0f, 133.4f), 0f);
+
+            float[,] papers = { { 2.4f, 123.5f, 40f }, { 1.1f, 127.6f, 130f }, { -0.4f, 121.6f, 80f }, { 3.3f, 129.4f, 200f }, { -3.2f, 124.3f, 15f } };
+            for (int i = 0; i < papers.GetLength(0); i++)
+            {
+                Prop(room, H + "SM_Paper_28x40_V2.prefab", new Vector3(papers[i, 0], 0.003f, papers[i, 1]), papers[i, 2]);
+            }
+
+
+            Sign(labels, "8 · MISSÃO E PUZZLE", "leia · interprete · resolva", 134f, -2.9f);
             Lamp(room, new Vector3(-3f, 0f, 122f), Height);
             Lamp(room, new Vector3(3f, 0f, 122f), Height);
             Lamp(room, new Vector3(-3f, 0f, 129.5f), Height);
             Lamp(room, new Vector3(3f, 0f, 129.5f), Height);
         }
 
-        /// <summary>Sala 9: o palco com o monstro congelado, o MainStage e o quadro de luz.</summary>
+        /// <summary>
+        /// Os canos de entrada e saída da sala de canos do jogo, na mesma posição em relação ao
+        /// PipesManager: é o que dá sentido ao puzzle (a água vem de um lado e precisa chegar no outro).
+        /// </summary>
+        private static void CopyPipeWall(Transform parent, Transform manager)
+        {
+            GameObject roomPrefab = AssetDatabase.LoadAssetAtPath<GameObject>(Prefabs + "Rooms/Missions/MissionRoomPipes.prefab");
+            if (roomPrefab == null) return;
+
+            // Pose do PipesManager na sala do jogo (RoomData MissionPipesRoom).
+            Vector3 gameManagerPosition = new Vector3(5.762f, 0.576f, -1.127f);
+            GameObject temp = (GameObject)PrefabUtility.InstantiatePrefab(roomPrefab);
+
+            try
+            {
+                Transform group = Group("Canos da parede", parent).transform;
+                Vector3 delta = manager.position - gameManagerPosition;
+
+                foreach (Transform piece in temp.GetComponentsInChildren<Transform>(true))
+                {
+                    if (!piece.name.StartsWith("SM_Pipe_")) continue;
+                    if (piece.position.x < 5.5f) continue;
+                    if (!PrefabUtility.IsAnyPrefabInstanceRoot(piece.gameObject)) continue;
+
+                    // O modelo do cano em si (o .fbx), não o prefab de sala que contém ele.
+                    GameObject source = PrefabUtility.GetCorrespondingObjectFromOriginalSource(piece.gameObject);
+                    if (source == null || !AssetDatabase.GetAssetPath(source).EndsWith(".fbx")) continue;
+
+                    GameObject copy = (GameObject)PrefabUtility.InstantiatePrefab(source, group);
+                    copy.transform.SetPositionAndRotation(piece.position + delta, piece.rotation);
+                    copy.transform.localScale = piece.lossyScale;
+                }
+            }
+            finally
+            {
+                Object.DestroyImmediate(temp);
+            }
+        }
+
+        /// <summary>Sala 9 (auditório): o palco do jogo com o monstro congelado, a plateia, o MainStage e o quadro de luz.</summary>
         private static Transform BuildStage(Transform world, Transform labels)
         {
-            Transform room = Group("9 · Palco", world).transform;
+            Transform room = Group("9 · Palco (auditório)", world).transform;
 
-            Room(room, -9f, 9f, 134f, 160f, StageHeight, _stageFloor, _stageWall);
-            WallZ(room, -9f, 134f, 160f, StageHeight);
-            WallZ(room, 9f, 134f, 160f, StageHeight);
-            WallX(room, 160f, -9f, 9f, StageHeight, Gap(7f));
-            Gate(room, TutorialDirector.GateFuga, new Vector3(7f, 0f, 160f), Vector3.forward);
+            Room(room, -9f, 9f, 134f, 160f, StageHeight, FloorHall, RoofFoyer);
+            Wall(room, false, -9f, 134f, 160f, StageHeight);
+            Wall(room, false, 9f, 134f, 160f, StageHeight);
+            Wall(room, true, 160f, -9f, 9f, StageHeight, DoorGap(7f));
+            Gate(room, TutorialDirector.GateFuga, 7f, 160f);
 
             Zone(room, TutorialDirector.ZoneStageRoom, new Vector3(0f, 0f, 135.8f), new Vector3(18f, 2.5f, 2.4f));
 
-            // Palco baixo: 0,45 m. O monstro desce (passo do agente 0,5 m), o jogador não sobe.
+            // Palco do jogo, menor (60%) e afundado no piso: sobra 0,45 m. O monstro desce (passo do
+            // agente 0,5 m), o jogador não sobe.
             const float stageTop = 0.45f;
-            Box(room, "Palco", new Vector3(0f, 0f, 154.25f), new Vector3(12f, stageTop, 8.5f), _stage, _layerGround);
-            Box(room, "Cortina", new Vector3(0f, stageTop, 159.6f), new Vector3(12f, StageHeight - stageTop - 0.6f, 0.15f), _curtain, _layerWalls);
+            const float stageFront = 150f;
+            Solid(room, "Palco (colisão)", new Vector3(0f, 0f, 154.7f), new Vector3(12f, stageTop, 9.4f), _layerGround);
+            GameObject stage = Spawn(room, S + "SM_Stage.prefab", 0f, Vector3.one * 0.6f);
+            Bounds stageBounds = RendererBounds(stage);
+            stage.transform.position += new Vector3(-stageBounds.center.x, stageTop - stageBounds.max.y, stageFront - stageBounds.min.z);
+
+            foreach (float x in new[] { -4f, 0f, 4f })
+            {
+                Fit(Spawn(room, S + "SM_Stage_Wall_V2.prefab", 0f), new Vector3(x, 0f, 159.55f));
+            }
+
+            GameObject curtainLeft = Spawn(room, S + "SM_Curtain_Left.prefab", 0f, Vector3.one * 0.4f);
+            Fit(curtainLeft, new Vector3(-4.6f, stageTop, 158.8f));
+            GameObject curtainRight = Spawn(room, S + "SM_Curtain_Right.prefab", 0f, Vector3.one * 0.4f);
+            Fit(curtainRight, new Vector3(4.6f, stageTop, 158.8f));
+
+            Prop(room, S + "SM_SoundBox.prefab", new Vector3(-5.2f, stageTop, 151f), Face(Vector3.back));
+            Prop(room, S + "SM_SoundBox.prefab", new Vector3(5.2f, stageTop, 151f), Face(Vector3.back));
+            Prop(room, S + "SM_SoundBox_Floor.prefab", new Vector3(-2.2f, stageTop, 150.4f), Face(Vector3.back));
+            Prop(room, S + "SM_SoundBox_Floor.prefab", new Vector3(2.2f, stageTop, 150.4f), Face(Vector3.back));
+            Prop(room, S + "SM_Microphone.prefab", new Vector3(-1.4f, stageTop, 152f), 0f);
+            Prop(room, S + "SM_Tripod_Spotilight_V1.prefab", new Vector3(-7.6f, 0f, 148.6f), Face(new Vector3(0.7f, 0f, 1f)));
+            Prop(room, S + "SM_Tripod_Spotilight_V2.prefab", new Vector3(8.2f, 0f, 149.2f), Face(new Vector3(-0.7f, 0f, 1f)));
+            Prop(room, S + "SM_Tripod_SoundBox.prefab", new Vector3(-7.9f, 0f, 147.6f), Face(Vector3.right));
+
+            // Plateia: três fileiras de cada lado, com o corredor do meio livre até a marca.
+            foreach (float z in new[] { 138.8f, 140.3f, 141.8f })
+            {
+                for (int i = 0; i < 7; i++)
+                {
+                    float offset = 1.8f + i * 0.74f;
+                    Prop(room, A + "SM_Chair.prefab", new Vector3(-offset, 0f, z), 0f);
+                    Prop(room, A + "SM_Chair.prefab", new Vector3(offset, 0f, z), 0f);
+                }
+            }
 
             Transform home = Marker(room, "Monstro (casa)", new Vector3(0f, stageTop, 154.5f), Vector3.back);
 
@@ -464,89 +666,105 @@ namespace Tutorial.Building
             GameObject mainStage = PlaceAt(room, Prefabs + "Audience_Objects/MainStage.prefab", new Vector3(0f, 1.55f, 153.4f), 0f);
             if (mainStage != null) mainStage.name = "MainStage";
 
-            // "Procure marcas no chão": a marca de onde gravar, a uns 7 m do monstro.
-            Box(room, "Marca (fita 1)", new Vector3(0f, 0f, 147.5f), new Vector3(1.6f, 0.012f, 0.18f), _unlitYellow, _layerDefault, false)
+            // "Procure marcas no chão": o X de onde gravar, a uns 7 m do monstro.
+            Box(room, "Marca (fita 1)", new Vector3(0f, 0.004f, 147.2f), new Vector3(1.6f, 0.012f, 0.18f), _unlitYellow, _layerDefault, false)
                 .transform.localRotation = Quaternion.Euler(0f, 45f, 0f);
-            Box(room, "Marca (fita 2)", new Vector3(0f, 0f, 147.5f), new Vector3(1.6f, 0.012f, 0.18f), _unlitYellow, _layerDefault, false)
+            Box(room, "Marca (fita 2)", new Vector3(0f, 0.004f, 147.2f), new Vector3(1.6f, 0.012f, 0.18f), _unlitYellow, _layerDefault, false)
                 .transform.localRotation = Quaternion.Euler(0f, -45f, 0f);
-            Label(labels, "MARCA DE GRAVAÇÃO", new Vector3(0f, 0.03f, 146.2f), OnFloor(Vector3.forward), 1.6f, 4f, new Color(1f, 0.85f, 0.3f));
+            Label(labels, "MARCA DE GRAVAÇÃO", new Vector3(0f, 0.03f, 145.9f), OnFloor(Vector3.forward), 1.6f, 4f, new Color(1f, 0.85f, 0.3f));
 
-            Label(labels, "PALCO PRINCIPAL", new Vector3(0f, 3.8f, 159.45f), FacingViewer(Vector3.back), 3f, 8f, new Color(1f, 0.85f, 0.35f));
+            Label(labels, "PALCO PRINCIPAL", new Vector3(0f, 4.3f, 159.25f), FacingViewer(Vector3.back), 3f, 8f, new Color(1f, 0.85f, 0.35f));
 
             // Quadro de luz na parede esquerda, de frente para a sala.
             GameObject circuit = PlaceAt(room, Prefabs + "Items/EletricCircuit.prefab", new Vector3(-9f + Thickness * 0.5f + 0.05f, 1.2f, 144f), 90f);
             Refs["circuit"] = circuit != null ? circuit.GetComponent<ElectricCircuit>() : null;
-            Label(labels, "QUADRO DE LUZ", new Vector3(-8.8f, 2.6f, 144f), FacingViewer(Vector3.right), 1.4f, 3f, Color.white);
+            Label(labels, "QUADRO DE LUZ", new Vector3(-8.78f, 2.4f, 144f), FacingViewer(Vector3.right), 1.3f, 3f, Color.white);
 
             for (int i = 0; i < 4; i++)
             {
                 float x = i % 2 == 0 ? -4.5f : 4.5f;
-                float z = i < 2 ? 139.5f : 147f;
+                float z = i < 2 ? 139.5f : 146.5f;
                 Lamp(room, new Vector3(x, 0f, z), StageHeight);
             }
 
             Lamp(room, new Vector3(-3f, 0f, 154f), StageHeight);
             Lamp(room, new Vector3(3f, 0f, 154f), StageHeight);
+            Lamp(room, new Vector3(0f, 0f, 151f), StageHeight);
+            Lamp(room, new Vector3(0f, 0f, 157.5f), StageHeight);
 
-            EmergencyLamp(room, new Vector3(-8.4f, 3.8f, 140f));
-            EmergencyLamp(room, new Vector3(8.4f, 3.8f, 140f));
-            EmergencyLamp(room, new Vector3(-8.4f, 3.8f, 152f));
-            EmergencyLamp(room, new Vector3(8.4f, 3.8f, 152f));
+            EmergencyLamp(room, new Vector3(-8.5f, 3.8f, 140f));
+            EmergencyLamp(room, new Vector3(8.5f, 3.8f, 140f));
+            EmergencyLamp(room, new Vector3(-8.5f, 3.8f, 152f));
+            EmergencyLamp(room, new Vector3(8.5f, 3.8f, 152f));
 
             Refs["monsterRelease"] = Marker(room, "Monstro solto aqui", new Vector3(5.5f, 0f, 158f), Vector3.forward);
 
             Sector(room, "Setor palco", new Vector3(0f, 0f, 146f), 8f);
 
-            Sign(labels, "9 · GRAVAÇÃO", "", 134f, 0f, StageHeight, true);
+            Label(labels, "<b>9 · GRAVAÇÃO</b>", new Vector3(-3f, 2.2f, 134f + Thickness * 0.5f + 0.02f), FacingViewer(Vector3.forward), 2f, 5f, new Color(1f, 0.85f, 0.35f));
 
             return home;
         }
 
-        /// <summary>A fuga: corredor em S com duas portas até a sala da saída.</summary>
+        /// <summary>A fuga: corredor em S com duas portas até o saguão da saída.</summary>
         private static void BuildEscape(Transform world, Transform labels)
         {
             Transform root = Group("10 · Fuga", world).transform;
 
             // Trecho A: x 5,5..8,5, z 160..178, abre para o leste no fim.
-            Room(root, 5.5f, 8.5f, 160f, 178f, Height, _floor, _wall);
-            WallZ(root, 5.5f, 160f, 178f, Height);
-            WallZ(root, 8.5f, 160f, 175f, Height);
-            WallX(root, 178f, 5.5f, 8.5f, Height);
+            Room(root, 5.5f, 8.5f, 160f, 178f, Height, FloorHall, RoofHall, true);
+            Wall(root, false, 5.5f, 160f, 178f, Height);
+            Wall(root, false, 8.5f, 160f, 175f, Height);
+            Wall(root, true, 178f, 5.5f, 8.5f, Height);
 
             // Trecho B: x 8,5..28,5, z 175..178.
-            Room(root, 8.5f, 28.5f, 175f, 178f, Height, _floor, _wall);
-            WallX(root, 175f, 8.5f, 28.5f, Height);
-            WallX(root, 178f, 8.5f, 25.5f, Height);
-            WallZ(root, 28.5f, 175f, 178f, Height);
+            Room(root, 8.5f, 28.5f, 175f, 178f, Height, FloorHall, RoofHall, true);
+            Wall(root, true, 175f, 8.5f, 28.5f, Height);
+            Wall(root, true, 178f, 8.5f, 25.5f, Height);
+            Wall(root, false, 28.5f, 175f, 178f, Height);
 
-            GameObject first = DoorInWallZ(root, Prefabs + "Rooms/Props/Doors/Door_Black.prefab", 17f, 176.5f, out float firstWidth);
-            WallZ(root, 17f, 175f, 178f, Height, new Opening(176.5f, firstWidth + 0.02f, DoorLintel));
+            Wall(root, false, 17f, 175f, 178f, Height, DoorGap(176.5f));
+            EscapeDoors.Add(DoorAt(root, Doors + "Door_Red.prefab", 17f, 176.5f, false));
 
             // Trecho C: x 25,5..28,5, z 178..196.
-            Room(root, 25.5f, 28.5f, 178f, 196f, Height, _floor, _wall);
-            WallZ(root, 25.5f, 178f, 196f, Height);
-            WallZ(root, 28.5f, 178f, 196f, Height);
+            Room(root, 25.5f, 28.5f, 178f, 196f, Height, FloorHall, RoofHall, true);
+            Wall(root, false, 25.5f, 178f, 196f, Height);
+            Wall(root, false, 28.5f, 178f, 196f, Height);
 
-            GameObject second = DoorInWallX(root, Prefabs + "Rooms/Props/Doors/Door_Black.prefab", 27f, 187f, out float secondWidth);
-            WallX(root, 187f, 25.5f, 28.5f, Height, new Opening(27f, secondWidth + 0.02f, DoorLintel));
+            Wall(root, true, 187f, 25.5f, 28.5f, Height, DoorGap(27f));
+            EscapeDoors.Add(DoorAt(root, Doors + "Door_Red.prefab", 27f, 187f, true));
 
-            EscapeDoors = new[] { first, second }.Where(d => d != null).Select(d => d.GetComponent<Door>()).ToArray();
+            // Saguão da saída, com a porta dupla de emergência (de enfeite, trancada).
+            Room(root, 23f, 33f, 196f, 204f, Height, FloorMarble, RoofFoyer, true);
+            Wall(root, true, 196f, 23f, 33f, Height, Passage(27f, 3f));
+            Wall(root, true, 204f, 23f, 33f, Height, DoubleDoorFrame(28f));
+            Wall(root, false, 23f, 196f, 204f, Height);
+            Wall(root, false, 33f, 196f, 204f, Height);
+            DecorDoors.Add(DoorAt(root, Doors + "Door_Double_Exit.prefab", 28f, 204f, true));
+            ExitLight(root, new Vector3(28f, 2.45f, 204f - Thickness * 0.5f - 0.03f), Vector3.back, _exitLamp, new Color(0.1f, 1f, 0.25f));
 
-            // Sala da saída.
-            Room(root, 23f, 33f, 196f, 204f, Height, _floor, _wall);
-            WallX(root, 196f, 23f, 33f, Height, new Opening(27f, 3f, Height));
-            WallX(root, 204f, 23f, 33f, Height);
-            WallZ(root, 23f, 196f, 204f, Height);
-            WallZ(root, 33f, 196f, 204f, Height);
+            Prop(root, B + "SM_Sofa.prefab", new Vector3(24f, 0f, 200f), Face(Vector3.right));
+            Prop(root, B + "SM_Stanchion.prefab", new Vector3(26.2f, 0f, 202.6f), 0f);
+            Prop(root, B + "SM_Stanchion.prefab", new Vector3(29.8f, 0f, 202.6f), 0f);
+            Prop(root, B + "SM_Popcorn_Machine.prefab", new Vector3(32.4f, 0f, 199f), Face(Vector3.left));
 
-            Zone(root, TutorialDirector.ZoneFugaStart, new Vector3(7f, 0f, 164f), new Vector3(3f, 2.5f, 2f));
+            // Placas de saída pelo caminho.
+            ExitLight(root, new Vector3(7f, 2.45f, 178f - Thickness * 0.5f - 0.03f), Vector3.back, _exitLamp, new Color(0.1f, 1f, 0.25f));
+            ExitLight(root, new Vector3(28.5f - Thickness * 0.5f - 0.03f, 2.45f, 176.5f), Vector3.left, _exitLamp, new Color(0.1f, 1f, 0.25f));
+            ExitLight(root, new Vector3(27f, 2.45f, 196f + 0.05f), Vector3.back, _exitLamp, new Color(0.1f, 1f, 0.25f));
+
+            for (float z = 163f; z < 176f; z += 4f) WallProp(root, H + "SM_Frame_V1.prefab", new Vector3(5.7f, 1.6f, z), Vector3.right);
+            for (float x = 11f; x < 25f; x += 5f) WallProp(root, H + "SM_Poster.prefab", new Vector3(x, 1.55f, 175.2f), Vector3.forward);
+            for (float z = 181f; z < 195f; z += 5f) WallProp(root, H + "SM_Frame_V2.prefab", new Vector3(28.3f, 1.6f, z), Vector3.left);
+
+            Zone(root, TutorialDirector.ZoneFugaStart, new Vector3(7f, 0f, 162f), new Vector3(3f, 2.5f, 2f));
             Zone(root, TutorialDirector.ZoneExit, new Vector3(28f, 0f, 200.5f), new Vector3(10f, 2.5f, 6.5f));
             Refs["fugaRetry"] = Marker(root, "Recomeço da fuga", new Vector3(7f, 0.05f, 163f), Vector3.forward);
 
-            Label(labels, "SAÍDA >>", new Vector3(7f, 2.3f, 177.8f), FacingViewer(Vector3.back), 2.2f, 3f, new Color(0.4f, 1f, 0.5f));
-            Label(labels, "<< SAÍDA", new Vector3(28.3f, 2.3f, 176.5f), FacingViewer(Vector3.left), 2.2f, 3f, new Color(0.4f, 1f, 0.5f));
-            Label(labels, "<b>SAÍDA</b>", new Vector3(28f, 2.6f, 203.8f), FacingViewer(Vector3.back), 4f, 6f, new Color(0.4f, 1f, 0.5f));
-            Box(root, "Faixa verde", new Vector3(28f, 0f, 199f), new Vector3(6f, 0.012f, 0.3f), _unlitGreen, _layerDefault, false);
+            Label(labels, "SAÍDA >>", new Vector3(7f, 2.0f, 177.8f), FacingViewer(Vector3.back), 2f, 3f, new Color(0.4f, 1f, 0.5f));
+            Label(labels, "<< SAÍDA", new Vector3(28.3f, 2.0f, 176.5f), FacingViewer(Vector3.left), 2f, 3f, new Color(0.4f, 1f, 0.5f));
+            Label(labels, "<b>SAÍDA</b>", new Vector3(28f, 2.75f, 203.8f), FacingViewer(Vector3.back), 3f, 6f, new Color(0.4f, 1f, 0.5f));
+            Box(root, "Faixa verde", new Vector3(28f, 0.004f, 199f), new Vector3(6f, 0.012f, 0.3f), _unlitGreen, _layerDefault, false);
 
             Lamp(root, new Vector3(7f, 0f, 165f), Height);
             Lamp(root, new Vector3(7f, 0f, 172f), Height);
@@ -560,8 +778,6 @@ namespace Tutorial.Building
             Sector(root, "Setor fuga B", new Vector3(18f, 0f, 176.5f), 6f);
             Sector(root, "Setor fuga C", new Vector3(27f, 0f, 188f), 6f);
         }
-
-        private static Door[] EscapeDoors;
 
         // ================================================================== monstro e sistemas
 
@@ -593,7 +809,7 @@ namespace Tutorial.Building
             DonationDefinition donation = CreateDonation();
             ViewerPopulationSO viewers = AssetDatabase.LoadAssetAtPath<ViewerPopulationSO>("Assets/Scriptable_objects/Chat/ViewerPopulation.asset");
 
-            // Managers do jogo, os mesmos prefabs da cena Game.
+            // Managers do jogo, os mesmos prefabs da partida.
             GameObject missionManager = PlaceAt(systems, Prefabs + "Managers/MissionManager.prefab", Vector3.zero, 0f);
             Set(missionManager.GetComponent<MissionManager>(), "currentContract", contract);
 
@@ -611,10 +827,14 @@ namespace Tutorial.Building
             GameObject tts = PlaceAt(systems, Prefabs + "Managers/DonationAudioManager.prefab", Vector3.zero, 0f);
             tts.SetActive(false);
 
+            // Sem o comentário "o monstro está segurando a porta": as portas de lição trancadas não são
+            // o monstro, e o diretor explica elas no chat.
             GameObject hub = PlaceAt(systems, Prefabs + "Managers/ChatEventHub.prefab", Vector3.zero, 0f);
             SerializedObject hubSo = new SerializedObject(hub.GetComponent<ChatEventHub>());
             hubSo.FindProperty("missionNudge.idleSeconds").floatValue = 100000f;
             hubSo.FindProperty("explorationNudge.idleSeconds").floatValue = 100000f;
+            SerializedProperty doorRange = hubSo.FindProperty("doorCommentRange");
+            if (doorRange != null) doorRange.floatValue = 0f;
             hubSo.ApplyModifiedPropertiesWithoutUndo();
 
             PlaceAt(systems, Prefabs + "Managers/MissionRegisterManager.prefab", Vector3.zero, 0f);
@@ -691,16 +911,9 @@ namespace Tutorial.Building
             dir.FindProperty("monsterReleasePoint").objectReferenceValue = Refs.GetValueOrDefault("monsterRelease");
             dir.FindProperty("fugaRetryPoint").objectReferenceValue = Refs.GetValueOrDefault("fugaRetry");
 
-            SerializedProperty props = dir.FindProperty("audienceProps");
-            props.arraySize = AudienceProps?.Length ?? 0;
-            for (int i = 0; i < props.arraySize; i++) props.GetArrayElementAtIndex(i).objectReferenceValue = AudienceProps[i];
-
-            SerializedProperty escape = dir.FindProperty("escapeDoors");
-            if (escape != null)
-            {
-                escape.arraySize = EscapeDoors?.Length ?? 0;
-                for (int i = 0; i < escape.arraySize; i++) escape.GetArrayElementAtIndex(i).objectReferenceValue = EscapeDoors[i];
-            }
+            FillArray(dir.FindProperty("audienceProps"), _audienceProps);
+            FillArray(dir.FindProperty("escapeDoors"), EscapeDoors.Where(d => d != null).ToArray());
+            FillArray(dir.FindProperty("decorDoors"), DecorDoors.Where(d => d != null).ToArray());
 
             dir.ApplyModifiedPropertiesWithoutUndo();
 
@@ -732,13 +945,23 @@ namespace Tutorial.Building
                 volume.sharedProfile = profile;
             }
 
+            // NavMesh pelos colisores: paredes e piso são as caixas invisíveis do gerador (as peças de
+            // parede do jogo não têm colisor). Portas (camada Doors) ficam de fora, como no jogo.
             GameObject navMeshGo = new GameObject("NavMesh");
             navMeshGo.transform.SetParent(systems, false);
             NavMeshSurface surface = navMeshGo.AddComponent<NavMeshSurface>();
             surface.agentTypeID = 0;
             surface.collectObjects = CollectObjects.All;
-            surface.useGeometry = UnityEngine.AI.NavMeshCollectGeometry.RenderMeshes;
-            surface.layerMask = LayerMask.GetMask("Ground", "Interactable", "Scenary", "MainStage", "Recordable", "Walls");
+            surface.useGeometry = UnityEngine.AI.NavMeshCollectGeometry.PhysicsColliders;
+            surface.layerMask = LayerMask.GetMask("Default", "Ground", "Interactable", "Scenary", "Props", "MainStage", "Recordable", "Walls");
+        }
+
+        private static void FillArray(SerializedProperty property, Object[] values)
+        {
+            if (property == null) return;
+
+            property.arraySize = values?.Length ?? 0;
+            for (int i = 0; i < property.arraySize; i++) property.GetArrayElementAtIndex(i).objectReferenceValue = values[i];
         }
 
         private static ContractsSO CreateContract()
@@ -756,7 +979,7 @@ namespace Tutorial.Building
             contract.mainMissionPrefab = AssetDatabase.LoadAssetAtPath<GameObject>(Prefabs + "Missions/MissionLaerte.prefab");
             contract.mainMission = AssetDatabase.LoadAssetAtPath<MissionSO>("Assets/Scriptable_objects/Contracts/Main_missions/Mission Laerte.asset");
 
-            // Vazio de propósito: as missões do tutorial são entregues pelo diretor, uma por vez.
+            // Vazio de propósito: a missão do tutorial é entregue pelo diretor.
             contract.personalMissions = new List<MissionSO>();
             contract.baseRooms = new List<RoomDataSO>();
             contract.lootRooms = new List<RoomDataSO>();
@@ -802,106 +1025,342 @@ namespace Tutorial.Building
             return donation;
         }
 
-        // ================================================================== peças
+        // ================================================================== paredes, pisos e portas
 
         private readonly struct Opening
         {
             public readonly float Center;
             public readonly float Width;
             public readonly float Height;
+            public readonly string Piece;
+            public readonly float PieceLength;
+            public readonly bool Blocked;
 
-            public Opening(float center, float width = GateWidth, float height = GateHeight)
+            public Opening(float center, float width, float height, string piece, float pieceLength, bool blocked)
             {
                 Center = center;
                 Width = width;
                 Height = height;
+                Piece = piece;
+                PieceLength = pieceLength;
+                Blocked = blocked;
             }
         }
 
-        private static Opening Gap(float center) => new Opening(center);
+        /// <summary>Vão de porta simples: peça de parede com batente do jogo (2 m), passagem da largura da porta.</summary>
+        private static Opening DoorGap(float center) =>
+            new Opening(center, DoorWidth + 0.02f, DoorLintel, H + "SM_Sophisticated_Wall_Single_Door_2m_V1.prefab", 2f, false);
 
-        /// <summary>Piso e teto de uma sala retangular.</summary>
-        private static void Room(Transform parent, float x0, float x1, float z0, float z1, float height, Material floor, Material wall)
+        /// <summary>Batente de porta dupla (4 m) sem passagem: a porta de emergência do fim é enfeite.</summary>
+        private static Opening DoubleDoorFrame(float center) =>
+            new Opening(center, 0f, 0f, H + "SM_Sophisticated_Wall_Double_Door_4m_V1.prefab", 4f, true);
+
+        /// <summary>Passagem aberta, sem porta.</summary>
+        private static Opening Passage(float center, float width) => new Opening(center, width, 99f, null, width, false);
+
+        /// <summary>Piso (colisor + ladrilhos do jogo) e teto (peças do jogo) de uma sala retangular.</summary>
+        private static void Room(Transform parent, float x0, float x1, float z0, float z1, float height, string floor, string roof, bool wainscot = false)
         {
-            Vector3 size = new Vector3(x1 - x0, 0.2f, z1 - z0);
-            Vector3 center = new Vector3((x0 + x1) * 0.5f, -0.2f, (z0 + z1) * 0.5f);
+            // As paredes chamadas depois desta sala viram o lado escolhido para dentro dela.
+            _roomCenter = new Vector2((x0 + x1) * 0.5f, (z0 + z1) * 0.5f);
+            _wainscot = wainscot;
 
-            Box(parent, "Piso", center, size, floor, _layerGround);
-            Box(parent, "Teto", new Vector3(center.x, height, center.z), new Vector3(size.x, 0.2f, size.z), _ceiling, _layerWalls);
+            Solid(parent, "Piso (colisão)", new Vector3((x0 + x1) * 0.5f, -0.2f, (z0 + z1) * 0.5f), new Vector3(x1 - x0, 0.2f, z1 - z0), _layerGround);
 
-            _lastWall = wall;
+            Transform tiles = Group("Piso", parent).transform;
+            Tiles(tiles, floor, x0, x1, z0, z1, 0f);
+
+            Transform ceiling = Group("Teto", parent).transform;
+            Tiles(ceiling, roof, x0, x1, z0, z1, height);
         }
 
-        private static Material _lastWall;
-
-        /// <summary>Parede ao longo de X, em z fixo, de x0 a x1, com vãos.</summary>
-        private static void WallX(Transform parent, float z, float x0, float x1, float height, params Opening[] openings)
+        private static void Tiles(Transform parent, string path, float x0, float x1, float z0, float z1, float y, float target = 2f)
         {
-            float cursor = x0;
-
-            foreach (Opening opening in openings.OrderBy(o => o.Center))
+            GameObject prefab = AssetDatabase.LoadAssetAtPath<GameObject>(path);
+            if (prefab == null)
             {
+                Debug.LogWarning($"Tutorial: prefab não encontrado: {path}");
+                return;
+            }
+
+            Bounds native = NativeBounds(prefab);
+            if (native.size.x < 0.01f || native.size.z < 0.01f) return;
+
+            int nx = Mathf.Max(1, Mathf.RoundToInt((x1 - x0) / target));
+            int nz = Mathf.Max(1, Mathf.RoundToInt((z1 - z0) / target));
+            float sx = (x1 - x0) / nx;
+            float sz = (z1 - z0) / nz;
+            Vector3 scale = new Vector3(sx / native.size.x, 1f, sz / native.size.z);
+            Vector3 offset = Vector3.Scale(native.center, scale);
+
+            for (int i = 0; i < nx; i++)
+            for (int j = 0; j < nz; j++)
+            {
+                GameObject tile = (GameObject)PrefabUtility.InstantiatePrefab(prefab, parent);
+                tile.transform.localScale = scale;
+                Vector3 center = new Vector3(x0 + sx * (i + 0.5f), y, z0 + sz * (j + 0.5f));
+                tile.transform.position = center - new Vector3(offset.x, native.min.y, offset.z);
+                DisableColliders(tile);
+                GameObjectUtility.SetStaticEditorFlags(tile, StaticEditorFlags.BatchingStatic);
+            }
+        }
+
+        private static readonly Dictionary<GameObject, Bounds> NativeBoundsCache = new();
+
+        // Sala da vez (a última passada a Room) e o lado da parede que ela mostra: papel de parede
+        // vermelho (salas) ou lambri com papel escuro (corredores e saguões).
+        private static Vector2 _roomCenter;
+        private static bool _wainscot;
+
+        private static Bounds NativeBounds(GameObject prefab)
+        {
+            if (NativeBoundsCache.TryGetValue(prefab, out Bounds cached)) return cached;
+
+            GameObject probe = (GameObject)PrefabUtility.InstantiatePrefab(prefab);
+            probe.transform.SetPositionAndRotation(Vector3.zero, Quaternion.identity);
+
+            try
+            {
+                Bounds bounds = RendererBounds(probe);
+                NativeBoundsCache[prefab] = bounds;
+                return bounds;
+            }
+            finally
+            {
+                Object.DestroyImmediate(probe);
+            }
+        }
+
+        /// <summary>
+        /// Parede reta ao longo de X (<paramref name="alongX"/>, em z = <paramref name="fixedCoord"/>) ou
+        /// de Z (em x = <paramref name="fixedCoord"/>), de <paramref name="a"/> a <paramref name="b"/>.
+        /// Colisão por caixas invisíveis; o visual é peça de parede do jogo (2, 3 ou 4 m, esticada para
+        /// fechar a medida). Acima de 3 m, uma segunda fileira.
+        /// </summary>
+        private static void Wall(Transform parent, bool alongX, float fixedCoord, float a, float b, float height, params Opening[] openings)
+        {
+            Transform wall = Group(alongX ? $"Parede z={fixedCoord:0.#}" : $"Parede x={fixedCoord:0.#}", parent).transform;
+            Opening[] sorted = openings.OrderBy(o => o.Center).ToArray();
+
+            // Colisão.
+            float cursor = a;
+
+            foreach (Opening opening in sorted)
+            {
+                if (opening.Blocked) continue;
+
                 float start = opening.Center - opening.Width * 0.5f;
                 float end = opening.Center + opening.Width * 0.5f;
 
-                if (start > cursor + 0.01f) WallBlock(parent, new Vector3((cursor + start) * 0.5f, 0f, z), new Vector3(start - cursor, height, Thickness));
+                if (start > cursor + 0.01f) WallSolid(wall, alongX, fixedCoord, cursor, start, 0f, height);
+                if (opening.Height < height - 0.01f) WallSolid(wall, alongX, fixedCoord, start, end, opening.Height, height);
 
-                if (opening.Height < height - 0.01f)
+                cursor = end;
+            }
+
+            if (b > cursor + 0.01f) WallSolid(wall, alongX, fixedCoord, cursor, b, 0f, height);
+
+            // Visual.
+            cursor = a;
+
+            foreach (Opening opening in sorted)
+            {
+                float start = opening.Center - opening.PieceLength * 0.5f;
+                float end = opening.Center + opening.PieceLength * 0.5f;
+
+                if (start > cursor + 0.01f) WallVisual(wall, alongX, fixedCoord, cursor, start, height);
+
+                if (opening.Piece != null)
                 {
-                    WallBlock(parent, new Vector3(opening.Center, opening.Height, z), new Vector3(opening.Width, height - opening.Height, Thickness), "Verga");
+                    WallPiece(wall, opening.Piece, opening.PieceLength, alongX, fixedCoord, opening.Center, opening.PieceLength, 0f, 1f);
+                    if (height > WallPieceHeight + 0.05f) WallUpper(wall, alongX, fixedCoord, start, end, height);
+                }
+                else if (opening.Height < height - 0.01f)
+                {
+                    WallUpper(wall, alongX, fixedCoord, start, end, height);
                 }
 
                 cursor = end;
             }
 
-            if (x1 > cursor + 0.01f) WallBlock(parent, new Vector3((cursor + x1) * 0.5f, 0f, z), new Vector3(x1 - cursor, height, Thickness));
+            if (b > cursor + 0.01f) WallVisual(wall, alongX, fixedCoord, cursor, b, height);
         }
 
-        /// <summary>Parede ao longo de Z, em x fixo, de z0 a z1, com vãos.</summary>
-        private static void WallZ(Transform parent, float x, float z0, float z1, float height, params Opening[] openings)
+        private static void WallSolid(Transform parent, bool alongX, float fixedCoord, float from, float to, float y0, float y1)
         {
-            float cursor = z0;
+            float mid = (from + to) * 0.5f;
+            float length = to - from;
 
-            foreach (Opening opening in openings.OrderBy(o => o.Center))
+            Vector3 bottom = alongX ? new Vector3(mid, y0, fixedCoord) : new Vector3(fixedCoord, y0, mid);
+            Vector3 size = alongX ? new Vector3(length, y1 - y0, Thickness) : new Vector3(Thickness, y1 - y0, length);
+            Solid(parent, "Parede (colisão)", bottom, size, _layerWalls);
+        }
+
+        private static void WallVisual(Transform parent, bool alongX, float fixedCoord, float from, float to, float height)
+        {
+            WallRun(parent, alongX, fixedCoord, from, to, 0f, Mathf.Min(1f, height / WallPieceHeight));
+            if (height > WallPieceHeight + 0.05f) WallUpper(parent, alongX, fixedCoord, from, to, height);
+        }
+
+        private static void WallUpper(Transform parent, bool alongX, float fixedCoord, float from, float to, float height)
+        {
+            WallRun(parent, alongX, fixedCoord, from, to, WallPieceHeight, (height - WallPieceHeight) / WallPieceHeight);
+        }
+
+        private static void WallRun(Transform parent, bool alongX, float fixedCoord, float from, float to, float y, float heightScale)
+        {
+            float length = to - from;
+            if (length < 0.05f) return;
+
+            int count = Mathf.Max(1, Mathf.CeilToInt(length / 4f - 0.01f));
+            float piece = length / count;
+
+            string path;
+            float native;
+
+            if (piece > 3.5f) { path = H + "SM_Sophisticated_Wall_4m.prefab"; native = 4f; }
+            else if (piece > 2.5f) { path = H + "SM_Sophisticated_Wall_3m.prefab"; native = 3f; }
+            else { path = H + "SM_Sophisticated_Wall_2m.prefab"; native = 2f; }
+
+            for (int i = 0; i < count; i++)
             {
-                float start = opening.Center - opening.Width * 0.5f;
-                float end = opening.Center + opening.Width * 0.5f;
-
-                if (start > cursor + 0.01f) WallBlock(parent, new Vector3(x, 0f, (cursor + start) * 0.5f), new Vector3(Thickness, height, start - cursor));
-
-                if (opening.Height < height - 0.01f)
-                {
-                    WallBlock(parent, new Vector3(x, opening.Height, opening.Center), new Vector3(Thickness, height - opening.Height, opening.Width), "Verga");
-                }
-
-                cursor = end;
+                WallPiece(parent, path, native, alongX, fixedCoord, from + piece * (i + 0.5f), piece, y, heightScale);
             }
-
-            if (z1 > cursor + 0.01f) WallBlock(parent, new Vector3(x, 0f, (cursor + z1) * 0.5f), new Vector3(Thickness, height, z1 - cursor));
         }
 
-        private static void WallBlock(Transform parent, Vector3 bottomCenter, Vector3 size, string name = "Parede")
+        /// <summary>Peça de parede do jogo (comprimento no eixo Z local), esticada e centrada no trecho.</summary>
+        private static void WallPiece(Transform parent, string path, float native, bool alongX, float fixedCoord, float center, float length, float y, float heightScale)
         {
-            Box(parent, name, bottomCenter, size, _lastWall ?? _wall, _layerWalls);
+            // A face vermelha das peças é o +X local; o lambri, o -X. Vira a face da sala para dentro dela.
+            Vector3 inward = alongX
+                ? new Vector3(0f, 0f, Mathf.Sign(_roomCenter.y - fixedCoord))
+                : new Vector3(Mathf.Sign(_roomCenter.x - fixedCoord), 0f, 0f);
+            float yaw = Face(inward, true) + (_wainscot ? 180f : 0f);
+
+            GameObject piece = Spawn(parent, path, yaw, new Vector3(1f, heightScale, length / native));
+            if (piece == null) return;
+
+            Fit(piece, alongX ? new Vector3(center, y, fixedCoord) : new Vector3(fixedCoord, y, center));
+            DisableColliders(piece);
         }
 
-        /// <summary>Portão de correr no vão de uma parede ao longo de X ou Z, com a luz do lado de quem chega.</summary>
-        private static void Gate(Transform parent, string id, Vector3 bottomCenter, Vector3 approachFacing)
+        /// <summary>Porta do jogo no vão de uma parede ao longo de X (folha de frente para Z) ou de Z.</summary>
+        private static Door DoorAt(Transform parent, string path, float x, float z, bool alongX)
         {
+            GameObject door = Spawn(parent, path, alongX ? 0f : 90f);
+            if (door == null) return null;
+
+            EnsureNetworked(door);
+            Fit(door, new Vector3(x, 0f, z));
+            return door.GetComponent<Door>();
+        }
+
+        /// <summary>
+        /// Passagem para a próxima lição: porta do jogo trancada (precisa do <see cref="DoorGap"/> na
+        /// parede ao longo de X em <paramref name="z"/>) e a luz de emergência em cima, do lado de quem
+        /// chega (sempre de -Z).
+        /// </summary>
+        private static void Gate(Transform parent, string id, float x, float z)
+        {
+            Door door = DoorAt(parent, Doors + "Door_Black.prefab", x, z, true);
+
             GameObject gate = new GameObject($"Portão · {id}");
             gate.transform.SetParent(parent, false);
-            gate.transform.localPosition = bottomCenter;
-            gate.transform.localRotation = Quaternion.LookRotation(approachFacing);
+            gate.transform.localPosition = new Vector3(x, 0f, z);
+            gate.transform.localRotation = Quaternion.LookRotation(Vector3.back);
 
-            GameObject shutter = Box(gate.transform, "Folha", Vector3.zero, new Vector3(GateWidth, GateHeight, 0.16f), _metal, _layerWalls);
-            shutter.transform.localPosition = new Vector3(0f, GateHeight * 0.5f, 0f);
-            Shutters.Add(shutter);
+            Transform approach = Marker(gate.transform, "Lado de quem chega", Vector3.zero, Vector3.forward);
+            approach.position = new Vector3(x, 1f, z - 1.6f);
 
-            GameObject lamp = Box(gate.transform, "Luz", Vector3.zero, new Vector3(0.7f, 0.14f, 0.05f), _gateLamp, _layerDefault, false);
-            lamp.transform.localPosition = new Vector3(0f, GateHeight + 0.11f, -Thickness * 0.5f - 0.04f);
+            (Light light, Renderer renderer) = ExitLight(gate.transform, new Vector3(x, 2.3f, z - Thickness * 0.5f - 0.03f), Vector3.back, _emergencyLamp, new Color(1f, 0.06f, 0.04f));
 
-            TutorialGate component = gate.AddComponent<TutorialGate>();
-            component.Configure(id, shutter.transform, lamp.GetComponent<Renderer>(), false);
+            gate.AddComponent<TutorialDoorGate>().Configure(
+                id, door, approach,
+                light != null ? new[] { light } : new Light[0],
+                renderer != null ? new[] { renderer } : new Renderer[0]);
+        }
+
+        /// <summary>
+        /// Luz de saída/emergência do jogo (SM_Exit_Light) na parede, virada para <paramref name="facing"/>.
+        /// Sai do LightSabotage: o apagão do monstro não mexe nela.
+        /// </summary>
+        private static (Light, Renderer) ExitLight(Transform parent, Vector3 position, Vector3 facing, Material material, Color color)
+        {
+            GameObject lamp = Spawn(parent, H + "SM_Exit_Light.prefab", Face(facing));
+            if (lamp == null) return (null, null);
+
+            PrefabUtility.UnpackPrefabInstance(lamp, PrefabUnpackMode.Completely, InteractionMode.AutomatedAction);
+
+            Bounds bounds = RendererBounds(lamp);
+            lamp.transform.position += position - bounds.center;
+
+            foreach (LightSabotage sabotage in lamp.GetComponentsInChildren<LightSabotage>(true)) Object.DestroyImmediate(sabotage);
+
+            Light light = lamp.GetComponentInChildren<Light>(true);
+
+            if (light != null)
+            {
+                light.color = color;
+                light.intensity = 2.2f;
+                light.range = 6f;
+                light.enabled = true;
+            }
+
+            Renderer renderer = lamp.GetComponentInChildren<Renderer>(true);
+            if (renderer != null && material != null) renderer.sharedMaterial = material;
+
+            return (light, renderer);
+        }
+
+        private static void EnsureNetworked(GameObject go)
+        {
+            if (go.GetComponentInParent<NetworkObject>(true) == null) go.AddComponent<NetworkObject>();
+        }
+
+        /// <summary>Luminária do jogo (com LightSabotage) presa no teto.</summary>
+        private static void Lamp(Transform parent, Vector3 floorPoint, float ceiling)
+        {
+            GameObject lamp = PlaceAt(parent, H + "SM_Hallway_Light_Roof.prefab", floorPoint, 0f);
+            if (lamp == null) return;
+
+            Bounds bounds = RendererBounds(lamp);
+            lamp.transform.position += new Vector3(0f, ceiling - 0.01f - bounds.max.y, 0f);
+
+            // Override só nesta cena: a luminária do jogo (2,6 / 8 m) foi feita para corredor estreito.
+            bool tall = ceiling > Height + 0.1f;
+
+            foreach (Light light in lamp.GetComponentsInChildren<Light>(true))
+            {
+                light.intensity = tall ? 15f : 10f;
+                light.range = tall ? 18f : 14f;
+                EditorUtility.SetDirty(light);
+            }
+        }
+
+        /// <summary>Luz vermelha que só acende quando o monstro apaga as luzes.</summary>
+        private static void EmergencyLamp(Transform parent, Vector3 position)
+        {
+            GameObject go = new GameObject("Luz de emergência (apagão)");
+            go.transform.SetParent(parent, false);
+            go.transform.localPosition = position;
+            go.layer = LayerMask.NameToLayer("Lights") >= 0 ? LayerMask.NameToLayer("Lights") : 0;
+
+            Light light = go.AddComponent<Light>();
+            light.type = LightType.Point;
+            light.color = new Color(1f, 0.12f, 0.08f);
+            light.intensity = 3.5f;
+            light.range = 11f;
+            light.shadows = LightShadows.None;
+            light.enabled = false;
+
+            LightSabotage sabotage = go.AddComponent<LightSabotage>();
+            SerializedObject so = new SerializedObject(sabotage);
+            so.FindProperty("lightComponent").objectReferenceValue = light;
+            so.FindProperty("emergency").boolValue = true;
+            so.ApplyModifiedPropertiesWithoutUndo();
+
+            GameObject bulb = Box(go.transform, "Lâmpada", Vector3.zero, new Vector3(0.25f, 0.12f, 0.25f), _unlitRed, _layerDefault, false);
+            bulb.transform.localPosition = Vector3.zero;
         }
 
         private static void Zone(Transform parent, string id, Vector3 bottomCenter, Vector3 size)
@@ -957,85 +1416,6 @@ namespace Tutorial.Building
             return button;
         }
 
-        /// <summary>Porta numa parede ao longo de X (folha de frente para Z).</summary>
-        private static GameObject DoorInWallX(Transform parent, string path, float x, float z, out float width)
-        {
-            GameObject door = PlaceAt(parent, path, new Vector3(x, 0f, z), 0f);
-            width = 1.2f;
-            if (door == null) return null;
-
-            EnsureNetworked(door);
-            Bounds bounds = RendererBounds(door);
-            width = bounds.size.x;
-            door.transform.position += new Vector3(x - bounds.center.x, -bounds.min.y, z - bounds.center.z);
-            return door;
-        }
-
-        /// <summary>Porta numa parede ao longo de Z (folha de frente para X).</summary>
-        private static GameObject DoorInWallZ(Transform parent, string path, float x, float z, out float width)
-        {
-            GameObject door = PlaceAt(parent, path, new Vector3(x, 0f, z), 90f);
-            width = 1.2f;
-            if (door == null) return null;
-
-            EnsureNetworked(door);
-            Bounds bounds = RendererBounds(door);
-            width = bounds.size.z;
-            door.transform.position += new Vector3(x - bounds.center.x, -bounds.min.y, z - bounds.center.z);
-            return door;
-        }
-
-        private static void EnsureNetworked(GameObject go)
-        {
-            if (go.GetComponentInParent<NetworkObject>(true) == null) go.AddComponent<NetworkObject>();
-        }
-
-        /// <summary>Luminária do jogo (com LightSabotage) presa no teto.</summary>
-        private static void Lamp(Transform parent, Vector3 floorPoint, float ceiling)
-        {
-            GameObject lamp = PlaceAt(parent, Prefabs + "Rooms/Props/Hallway/SM_Hallway_Light_Roof.prefab", floorPoint, 0f);
-            if (lamp == null) return;
-
-            Bounds bounds = RendererBounds(lamp);
-            lamp.transform.position += new Vector3(0f, ceiling - 0.01f - bounds.max.y, 0f);
-
-            // Override só nesta cena: a luminária do jogo (2,6 / 8 m) foi feita para corredor estreito.
-            bool tall = ceiling > Height + 0.1f;
-
-            foreach (Light light in lamp.GetComponentsInChildren<Light>(true))
-            {
-                light.intensity = tall ? 12f : 8f;
-                light.range = tall ? 16f : 13f;
-                EditorUtility.SetDirty(light);
-            }
-        }
-
-        /// <summary>Luz vermelha que só acende quando o monstro apaga as luzes.</summary>
-        private static void EmergencyLamp(Transform parent, Vector3 position)
-        {
-            GameObject go = new GameObject("Luz de emergência");
-            go.transform.SetParent(parent, false);
-            go.transform.localPosition = position;
-            go.layer = LayerMask.NameToLayer("Lights") >= 0 ? LayerMask.NameToLayer("Lights") : 0;
-
-            Light light = go.AddComponent<Light>();
-            light.type = LightType.Point;
-            light.color = new Color(1f, 0.12f, 0.08f);
-            light.intensity = 3.5f;
-            light.range = 11f;
-            light.shadows = LightShadows.None;
-            light.enabled = false;
-
-            LightSabotage sabotage = go.AddComponent<LightSabotage>();
-            SerializedObject so = new SerializedObject(sabotage);
-            so.FindProperty("lightComponent").objectReferenceValue = light;
-            so.FindProperty("emergency").boolValue = true;
-            so.ApplyModifiedPropertiesWithoutUndo();
-
-            GameObject bulb = Box(go.transform, "Lâmpada", Vector3.zero, new Vector3(0.25f, 0.12f, 0.25f), _unlitRed, _layerDefault, false);
-            bulb.transform.localPosition = Vector3.zero;
-        }
-
         private static void Sector(Transform parent, string name, Vector3 position, float radius)
         {
             GameObject prefab = AssetDatabase.LoadAssetAtPath<GameObject>(Prefabs + "Managers/MapStages/SectorStage.prefab");
@@ -1052,12 +1432,11 @@ namespace Tutorial.Building
             Sectors.Add(sector);
         }
 
-        /// <summary>Placa com o número e o nome da lição, na parede do fundo (vista de quem entra).</summary>
-        private static void Sign(Transform labels, string title, string subtitle, float wallZ, float x, float wallHeight, bool high = false)
+        /// <summary>Placa com o número e o nome da lição, na parede do fundo, ao lado da porta (vista de quem chega).</summary>
+        private static void Sign(Transform labels, string title, string subtitle, float wallZ, float x)
         {
             string text = string.IsNullOrEmpty(subtitle) ? $"<b>{title}</b>" : $"<b>{title}</b>\n<size=60%>{subtitle}</size>";
-            float y = high ? 4.1f : wallHeight - 0.27f;
-            Label(labels, text, new Vector3(x, y, wallZ - Thickness * 0.5f - 0.02f), FacingViewer(Vector3.back), 2.4f, 6f, new Color(1f, 0.85f, 0.35f));
+            Label(labels, text, new Vector3(x, 2.05f, wallZ - Thickness * 0.5f - 0.02f), FacingViewer(Vector3.back), 1.9f, 3.6f, new Color(1f, 0.85f, 0.35f));
         }
 
         private static TextMeshPro Label(Transform parent, string text, Vector3 position, Quaternion rotation, float fontSize, float width, Color color)
@@ -1083,6 +1462,17 @@ namespace Tutorial.Building
 
         private static Quaternion OnFloor(Vector3 readingDirection) => Quaternion.LookRotation(Vector3.down, readingDirection.normalized);
 
+        /// <summary>
+        /// Yaw para um objeto do jogo ficar de frente para <paramref name="direction"/>. Os móveis têm a
+        /// frente em +Z local; quadros, cartazes e grades (finos no X) têm a frente em +X.
+        /// </summary>
+        private static float Face(Vector3 direction, bool frontIsX = false)
+        {
+            direction.y = 0f;
+            float yaw = Mathf.Atan2(direction.x, direction.z) * Mathf.Rad2Deg;
+            return frontIsX ? yaw - 90f : yaw;
+        }
+
         private static Transform Marker(Transform parent, string name, Vector3 position, Vector3 forward)
         {
             GameObject go = new GameObject(name);
@@ -1099,9 +1489,24 @@ namespace Tutorial.Building
             return go;
         }
 
-        // ================================================================== malha com UV em metros
+        // ================================================================== caixas (marcas, botão) e colisores
 
-        /// <summary>Caixa dada pelo centro da base, com UV em metros (a textura não estica).</summary>
+        /// <summary>Colisor invisível dado pelo centro da base.</summary>
+        private static GameObject Solid(Transform parent, string name, Vector3 bottomCenter, Vector3 size, int layer)
+        {
+            GameObject go = new GameObject(name);
+            go.transform.SetParent(parent, false);
+            go.transform.localPosition = bottomCenter + Vector3.up * (size.y * 0.5f);
+            go.layer = layer;
+
+            BoxCollider box = go.AddComponent<BoxCollider>();
+            box.size = size;
+
+            GameObjectUtility.SetStaticEditorFlags(go, StaticEditorFlags.NavigationStatic);
+            return go;
+        }
+
+        /// <summary>Caixa visível dada pelo centro da base, com UV em metros (marcas no chão, botão).</summary>
         private static GameObject Box(Transform parent, string name, Vector3 bottomCenter, Vector3 size, Material material, int layer, bool collider = true)
         {
             GameObject go = new GameObject(name);
@@ -1200,6 +1605,14 @@ namespace Tutorial.Building
 
         private static GameObject PlaceAt(Transform parent, string path, Vector3 position, float yaw)
         {
+            GameObject instance = Spawn(parent, path, yaw);
+            if (instance != null) instance.transform.localPosition = position;
+            return instance;
+        }
+
+        /// <summary>Instancia o prefab (ou modelo) na origem do pai, girado e escalado.</summary>
+        private static GameObject Spawn(Transform parent, string path, float yaw, Vector3? scale = null)
+        {
             GameObject prefab = AssetDatabase.LoadAssetAtPath<GameObject>(path);
 
             if (prefab == null)
@@ -1209,61 +1622,64 @@ namespace Tutorial.Building
             }
 
             GameObject instance = (GameObject)PrefabUtility.InstantiatePrefab(prefab, parent);
-            instance.transform.localPosition = position;
+            instance.transform.localPosition = Vector3.zero;
             instance.transform.localRotation = Quaternion.Euler(0f, yaw, 0f);
+            if (scale.HasValue) instance.transform.localScale = scale.Value;
+            return instance;
+        }
+
+        /// <summary>Move o objeto para o centro do que se vê dele ficar em (x, z) e a base em y, qualquer que seja o pivô.</summary>
+        private static void Fit(GameObject instance, Vector3 bottomCenter)
+        {
+            if (instance == null) return;
+
+            Bounds bounds = RendererBounds(instance);
+            if (bounds.size == Vector3.zero)
+            {
+                instance.transform.position = bottomCenter;
+                return;
+            }
+
+            instance.transform.position += new Vector3(bottomCenter.x - bounds.center.x, bottomCenter.y - bounds.min.y, bottomCenter.z - bounds.center.z);
+        }
+
+        /// <summary>Móvel ou objeto do jogo apoiado em <paramref name="bottomCenter"/>.</summary>
+        private static GameObject Prop(Transform parent, string path, Vector3 bottomCenter, float yaw, float scale = 1f)
+        {
+            GameObject instance = Spawn(parent, path, yaw, Mathf.Approximately(scale, 1f) ? null : Vector3.one * scale);
+            Fit(instance, bottomCenter + Vector3.up * 0.002f);
+            return instance;
+        }
+
+        /// <summary>
+        /// Quadro, cartaz, mural ou placa preso na parede, com o centro em <paramref name="center"/>.
+        /// Quadros e cartazes são finos no X com a frente em -X; placas finas no Z têm a frente em +Z.
+        /// </summary>
+        private static GameObject WallProp(Transform parent, string path, Vector3 center, Vector3 facing, bool thinInZ = false)
+        {
+            GameObject instance = Spawn(parent, path, thinInZ ? Face(facing) : Face(facing, true) + 180f);
+            if (instance == null) return null;
+
+            Bounds bounds = RendererBounds(instance);
+            instance.transform.position += center - bounds.center;
             return instance;
         }
 
         /// <summary>Encosta a base do que se vê do prefab em <paramref name="bottomCenter"/>, qualquer que seja o pivô.</summary>
         private static GameObject PlaceOnFloor(Transform parent, string path, Vector3 bottomCenter, float yaw)
         {
-            GameObject instance = PlaceAt(parent, path, Vector3.zero, yaw);
-            if (instance == null) return null;
-
-            Bounds bounds = RendererBounds(instance);
-
-            if (bounds.size == Vector3.zero)
-            {
-                instance.transform.localPosition = bottomCenter;
-                return instance;
-            }
-
-            Vector3 bottom = new Vector3(bounds.center.x, bounds.min.y, bounds.center.z);
-            instance.transform.position += parent.TransformPoint(bottomCenter) - bottom + Vector3.up * 0.002f;
+            GameObject instance = Spawn(parent, path, yaw);
+            Fit(instance, bottomCenter + Vector3.up * 0.002f);
             return instance;
         }
 
-        /// <summary>Quanto o pivô do prefab precisa subir para a base da malha ficar no chão.</summary>
-        private static float PivotLift(GameObject prefab)
+        /// <summary>
+        /// Desliga os colisores de uma peça visual: a colisão daquele trecho é a caixa invisível do
+        /// gerador (mesma medida para o jogador e para o NavMesh).
+        /// </summary>
+        private static void DisableColliders(GameObject go)
         {
-            if (prefab == null) return 0f;
-
-            GameObject instance = (GameObject)PrefabUtility.InstantiatePrefab(prefab);
-            instance.transform.SetPositionAndRotation(Vector3.zero, Quaternion.identity);
-
-            try
-            {
-                Bounds bounds = RendererBounds(instance);
-                return bounds.size == Vector3.zero ? 0f : -bounds.min.y + 0.002f;
-            }
-            finally
-            {
-                Object.DestroyImmediate(instance);
-            }
-        }
-
-        private static GameObject FirstPrefab(Object manager, string listName)
-        {
-            if (manager == null) return null;
-
-            SerializedObject so = new SerializedObject(manager);
-            SerializedProperty list = so.FindProperty(listName);
-            if (list == null || list.arraySize == 0) return null;
-
-            SerializedProperty prefabs = list.GetArrayElementAtIndex(0).FindPropertyRelative("prefabs");
-            if (prefabs == null || prefabs.arraySize == 0) return null;
-
-            return prefabs.GetArrayElementAtIndex(0).objectReferenceValue as GameObject;
+            foreach (Collider collider in go.GetComponentsInChildren<Collider>(true)) collider.enabled = false;
         }
 
         private static Bounds RendererBounds(GameObject root)
@@ -1289,9 +1705,9 @@ namespace Tutorial.Building
         private static void BuildLighting()
         {
             RenderSettings.ambientMode = AmbientMode.Trilight;
-            RenderSettings.ambientSkyColor = new Color(0.045f, 0.045f, 0.055f);
-            RenderSettings.ambientEquatorColor = new Color(0.035f, 0.03f, 0.028f);
-            RenderSettings.ambientGroundColor = new Color(0.012f, 0.011f, 0.01f);
+            RenderSettings.ambientSkyColor = new Color(0.05f, 0.05f, 0.06f);
+            RenderSettings.ambientEquatorColor = new Color(0.04f, 0.035f, 0.032f);
+            RenderSettings.ambientGroundColor = new Color(0.014f, 0.012f, 0.011f);
             RenderSettings.skybox = null;
             RenderSettings.fog = true;
             RenderSettings.fogMode = FogMode.ExponentialSquared;
@@ -1305,17 +1721,7 @@ namespace Tutorial.Building
             NavMeshSurface surface = Object.FindFirstObjectByType<NavMeshSurface>();
             if (surface == null) return;
 
-            // Portões abertos no bake: fechados, cortariam o NavMesh entre as salas.
-            foreach (GameObject shutter in Shutters) shutter.SetActive(false);
-
-            try
-            {
-                surface.BuildNavMesh();
-            }
-            finally
-            {
-                foreach (GameObject shutter in Shutters) shutter.SetActive(true);
-            }
+            surface.BuildNavMesh();
 
             EnsureFolder(Path.GetDirectoryName(NavMeshPath)?.Replace('\\', '/'));
             AssetDatabase.DeleteAsset(NavMeshPath);
@@ -1355,26 +1761,13 @@ namespace Tutorial.Building
             _layerDefault = 0;
             _layerGround = LayerMask.NameToLayer("Ground");
             _layerWalls = LayerMask.NameToLayer("Walls");
-            _layerScenary = LayerMask.NameToLayer("Scenary");
             _layerInteractable = LayerMask.NameToLayer("Interactable");
             _layerIgnoreRaycast = LayerMask.NameToLayer("Ignore Raycast");
         }
 
         private static void LoadMaterials()
         {
-            // As texturas de cenário do jogo são atlas feitos para um modelo cada (bake do Substance):
-            // numa parede reta viram blocos coloridos. Aqui são cores lisas, no clima de bastidor de teatro.
-            _floor = Lit("Tutorial_Piso", new Color(0.21f, 0.14f, 0.1f), 0.35f);
-            _wall = Lit("Tutorial_Parede", new Color(0.34f, 0.12f, 0.12f), 0.12f);
-            _ceiling = Lit("Tutorial_Teto", new Color(0.09f, 0.085f, 0.09f), 0.05f);
-            _stageFloor = Lit("Tutorial_PisoPalco", new Color(0.16f, 0.11f, 0.08f), 0.3f);
-            _stageWall = Lit("Tutorial_ParedePalco", new Color(0.11f, 0.08f, 0.09f), 0.1f);
-            _stage = Lit("Tutorial_Palco", new Color(0.27f, 0.17f, 0.1f), 0.4f);
-            _curtain = Lit("Tutorial_Cortina", new Color(0.38f, 0.04f, 0.05f), 0.15f);
-            _carpet = Lit("Tutorial_Tapete", new Color(0.3f, 0.06f, 0.07f), 0.05f);
             _metal = Lit("Tutorial_Metal", new Color(0.27f, 0.28f, 0.3f), 0.55f, 0.6f);
-            _wood = Lit("Tutorial_Madeira", new Color(0.33f, 0.21f, 0.13f), 0.3f);
-            _dark = Lit("Tutorial_Pedestal", new Color(0.07f, 0.06f, 0.06f), 0.4f);
 
             _unlitYellow = Unlit("Tutorial_Amarelo", new Color(1f, 0.8f, 0.2f), true);
             _unlitGreen = Unlit("Tutorial_Verde", new Color(0.3f, 0.95f, 0.45f), true);
@@ -1382,7 +1775,21 @@ namespace Tutorial.Building
             _unlitBlack = Unlit("Tutorial_Preto", new Color(0.01f, 0.01f, 0.01f), true);
             _gateLamp = Unlit("Tutorial_LuzPortao", Color.white, true);
 
+            // Luz de emergência das portas: a cor vem do TutorialDoorGate (vermelha/verde) em tempo de jogo.
+            _emergencyLamp = Emissive("Tutorial_LuzEmergencia", Color.white);
+            _exitLamp = Emissive("Tutorial_LuzSaida", new Color(0.1f, 1f, 0.25f));
+
             _font = AssetDatabase.LoadAssetAtPath<TMP_FontAsset>("Assets/Fonts/Acme-Regular SDF.asset");
+        }
+
+        private static Material Emissive(string name, Color color)
+        {
+            Material material = Lit(name, color, 0.6f);
+            material.EnableKeyword("_EMISSION");
+            material.globalIlluminationFlags = MaterialGlobalIlluminationFlags.RealtimeEmissive;
+            material.SetColor("_EmissionColor", color * 3f);
+            EditorUtility.SetDirty(material);
+            return material;
         }
 
         private static Material Lit(string name, Color color, float smoothness, float metallic = 0f)

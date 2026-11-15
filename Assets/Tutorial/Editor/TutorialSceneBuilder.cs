@@ -160,9 +160,73 @@ namespace Tutorial.Building
             EditorSceneManager.MarkSceneDirty(scene);
             EditorSceneManager.SaveScene(scene, ScenePath);
             AddToBuildSettings();
+
+            // Segunda passada, agora que a cena tem arquivo e está no Build Settings: só assim o
+            // Netcode consegue dar um ID próprio a cada objeto de rede da cena.
+            RefreshNetworkIds(scene);
+            EditorSceneManager.MarkSceneDirty(scene);
+            EditorSceneManager.SaveScene(scene, ScenePath);
             AssetDatabase.SaveAssets();
 
-            return $"Tutorial gerado em {ScenePath}.";
+            string problem = CheckNetworkIds(scene);
+            return problem ?? $"Tutorial gerado em {ScenePath}.";
+        }
+
+        /// <summary>
+        /// O NetworkObject calcula o GlobalObjectIdHash no OnValidate, a partir do GlobalObjectId do
+        /// objeto. Numa cena nova, ainda sem arquivo, esse ID não existe e o OnValidate desiste: cada
+        /// porta ficava com o hash do prefab, todas iguais. Pelo menu (gerenciamento de cenas do
+        /// Netcode ligado) isso derrubava o StartHost ("already contains the same GlobalObjectIdHash").
+        /// Aqui o OnValidate roda de novo com a cena salva, e a mudança vira override salvo na cena.
+        /// </summary>
+        private static void RefreshNetworkIds(Scene scene)
+        {
+            System.Reflection.MethodInfo validate = typeof(NetworkObject).GetMethod("OnValidate",
+                System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Public);
+
+            if (validate == null)
+            {
+                Debug.LogWarning("Tutorial: NetworkObject.OnValidate não foi encontrado; os IDs de rede da cena podem ficar repetidos.");
+                return;
+            }
+
+            foreach (GameObject root in scene.GetRootGameObjects())
+            {
+                foreach (NetworkObject networkObject in root.GetComponentsInChildren<NetworkObject>(true))
+                {
+                    validate.Invoke(networkObject, null);
+
+                    if (PrefabUtility.IsPartOfPrefabInstance(networkObject)) PrefabUtility.RecordPrefabInstancePropertyModifications(networkObject);
+                    EditorUtility.SetDirty(networkObject);
+                }
+            }
+        }
+
+        /// <summary>Confere que nenhum objeto de rede da cena repete ID (entre si ou com o do prefab).</summary>
+        private static string CheckNetworkIds(Scene scene)
+        {
+            System.Reflection.FieldInfo hashField = typeof(NetworkObject).GetField("GlobalObjectIdHash",
+                System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Public);
+            if (hashField == null) return null;
+
+            Dictionary<uint, string> seen = new();
+            List<string> problems = new();
+
+            foreach (GameObject root in scene.GetRootGameObjects())
+            {
+                foreach (NetworkObject networkObject in root.GetComponentsInChildren<NetworkObject>(true))
+                {
+                    uint hash = (uint)hashField.GetValue(networkObject);
+
+                    if (seen.TryGetValue(hash, out string other)) problems.Add($"{networkObject.name} = {other} ({hash})");
+                    else seen[hash] = networkObject.name;
+
+                    NetworkObject source = PrefabUtility.GetCorrespondingObjectFromSource(networkObject);
+                    if (source != null && (uint)hashField.GetValue(source) == hash) problems.Add($"{networkObject.name} com o ID do prefab ({hash})");
+                }
+            }
+
+            return problems.Count == 0 ? null : "Tutorial gerado, MAS com IDs de rede repetidos: " + string.Join("; ", problems);
         }
 
         // ================================================================== salas

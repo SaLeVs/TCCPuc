@@ -105,6 +105,10 @@ O que o tutorial faz por fora, por reflexão (campos privados, sem tocar no cód
 nela se perdem. Mude o gerador (posições, salas, luzes) e gere de novo. O NavMesh é assado junto
 (`Scenes/Game0_Tutorial/NavMesh-Tutorial.asset`) e a cena entra no Build Settings.
 
+O gerador salva a cena duas vezes: na segunda, com a cena já em arquivo e no Build Settings, cada
+objeto de rede ganha o seu `GlobalObjectIdHash`. Sem isso as portas ficam com o ID do prefab, todas
+iguais, e o host não sobe vindo do menu. Se aparecer "IDs de rede repetidos" no resultado, gere de novo.
+
 O nome começa com `Game0` de propósito: chat, barra de audiência, REC e música só ligam em cenas que
 `Enums.SceneNames.IsGame` reconhece como partida (`Game` ou `Game` + dígito).
 

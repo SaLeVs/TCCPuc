@@ -257,8 +257,10 @@ namespace Tutorial.Building
             const float ductBottom = 1.30f;
             const float ductZ = 40.84f;
             Solid(room, "Duto (colisão)", new Vector3(0f, ductBottom, ductZ), new Vector3(8f, 1.3f, 1.3f), _layerWalls);
-            Fit(Spawn(room, W + "SM_Air_Ventilation_Body.prefab", 0f), new Vector3(-2f, ductBottom, ductZ));
-            Fit(Spawn(room, W + "SM_Air_Ventilation_Body.prefab", 0f), new Vector3(2f, ductBottom, ductZ));
+            // Body_Big e não Body: a malha do SM_Air_Ventilation_Body tem o UV quebrado (a textura sai
+            // esticada em listras). A Body_Big tem a mesma seção de 1,3 m; encurtada de 4,53 para 4 m.
+            Fit(Spawn(room, W + "SM_Air_Ventilation_Body_Big.prefab", 0f, new Vector3(4f / 4.53f, 1f, 1f)), new Vector3(-2f, ductBottom, ductZ));
+            Fit(Spawn(room, W + "SM_Air_Ventilation_Body_Big.prefab", 0f, new Vector3(4f / 4.53f, 1f, 1f)), new Vector3(2f, ductBottom, ductZ));
             Label(labels, "DUTO DE AR · 1,3 m\n<size=70%>passa agachado</size>", new Vector3(0f, 1.0f, ductZ - 0.7f), FacingViewer(Vector3.back), 1.3f, 5f, Color.white);
             Zone(room, TutorialDirector.ZoneCrouchBeam, new Vector3(0f, 0f, 42.6f), new Vector3(8f, 2.5f, 1.8f));
 

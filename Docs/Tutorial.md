@@ -130,6 +130,8 @@ O nome começa com `Game0` de propósito: chat, barra de audiência, REC e músi
 - **Rótulo "Pegar" no quadro de luz e nos canos.** O `InteractionMarker` dos prefabs `EletricCircuit` e
   `PipeJoint` ficou com o texto padrão "Pegar". No tutorial é trocado só nas peças da cena ("Religar" no
   override da cena; "Girar" nos canos quando o puzzle nasce); na partida continua "Pegar".
-- **Ícone da missão "Exaustor"** (`Mission Pipes.asset`) aponta para um sprite que não existe mais: o
-  painel mostra um quadrado branco. O ícone novo `Sprites/MissionsIcons/UI_PipeIconMission.png` não está
-  ligado a ela.
+- **Ícones das missões** (corrigido em 2026-11-15): `Mission Box`, `Mission Lamps`, `Mission Pipes` e
+  `Mission Sound` apontavam para sprites que não existiam mais (quadrado branco no painel). Agora usam os
+  ícones de `Sprites/MissionsIcons`. A missão principal (`Mission Laerte`) não tem ícone nenhum.
+- **Malha do `SM_Air_Ventilation_Body`** tem o UV quebrado: a textura sai esticada em listras (na cena
+  Game também, 8 instâncias). O tutorial usa a `SM_Air_Ventilation_Body_Big`, que está certa.

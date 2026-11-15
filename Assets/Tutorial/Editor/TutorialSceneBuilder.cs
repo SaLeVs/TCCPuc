@@ -245,9 +245,10 @@ namespace Tutorial.Building
 
             Transform spawn = Marker(room, "Spawn", new Vector3(0f, 0.05f, 2f), Vector3.forward);
 
-            Box(room, "Marca amarela", new Vector3(0f, 0.004f, 7.2f), new Vector3(1.8f, 0.012f, 1.8f), _unlitYellow, _layerDefault, false);
+            Transform walkHint = FloorHint(labels, TutorialDirector.ZoneWalkMark);
+            Box(walkHint, "Marca amarela", new Vector3(0f, 0.004f, 7.2f), new Vector3(1.8f, 0.012f, 1.8f), _unlitYellow, _layerDefault, false);
             Zone(room, TutorialDirector.ZoneWalkMark, new Vector3(0f, 0f, 7.2f), new Vector3(2.2f, 2.5f, 2.2f));
-            Label(labels, "ANDE ATÉ AQUI", new Vector3(0f, 0.03f, 5.8f), OnFloor(Vector3.forward), 2.4f, 4f, new Color(1f, 0.85f, 0.3f));
+            Label(walkHint, "ANDE ATÉ AQUI", new Vector3(0f, 0.03f, 5.8f), OnFloor(Vector3.forward), 2.4f, 4f, new Color(1f, 0.85f, 0.3f));
 
             // Saguão do teatro: sofá e poltronas de um lado, pipoca e refrigerante do outro.
             Prop(room, B + "SM_Sofa.prefab", new Vector3(-4.3f, 0f, 4.6f), Face(Vector3.right));
@@ -286,8 +287,9 @@ namespace Tutorial.Building
             Gate(run, TutorialDirector.GateCrouch, 0f, 36f);
 
             Zone(run, TutorialDirector.ZoneRunEnd, new Vector3(0f, 0f, 34.2f), new Vector3(3f, 2.5f, 3.4f));
-            Box(run, "Faixa de chegada", new Vector3(0f, 0.004f, 33f), new Vector3(2.8f, 0.012f, 0.25f), _unlitYellow, _layerDefault, false);
-            Label(labels, "CORRA ATÉ AQUI", new Vector3(0f, 0.03f, 32.2f), OnFloor(Vector3.forward), 1.8f, 3f, new Color(1f, 0.85f, 0.3f));
+            Transform runHint = FloorHint(labels, TutorialDirector.ZoneRunEnd);
+            Box(runHint, "Faixa de chegada", new Vector3(0f, 0.004f, 33f), new Vector3(2.8f, 0.012f, 0.25f), _unlitYellow, _layerDefault, false);
+            Label(runHint, "CORRA ATÉ AQUI", new Vector3(0f, 0.03f, 32.2f), OnFloor(Vector3.forward), 1.8f, 3f, new Color(1f, 0.85f, 0.3f));
 
             for (float z = 12f; z < 31f; z += 2f)
             {
@@ -331,15 +333,17 @@ namespace Tutorial.Building
             // Mesa: o vão de baixo tem 1,08 m. Só passa agachado e com o chapéu amassado.
             const float tableTop = 1.08f;
             const float tableZ = 46.8f;
-            Solid(room, "Mesa (tampo)", new Vector3(0f, tableTop, tableZ), new Vector3(8f, 0.1f, 1.6f), _layerWalls);
-            foreach (float x in new[] { -3f, -1f, 1f, 3f })
+            Solid(room, "Mesa (tampo)", new Vector3(0f, tableTop, tableZ), new Vector3(7.6f, 0.1f, 1.6f), _layerWalls);
+            // Quatro mesas de 1,9 m (a do jogo tem 2 m; encolhida 5% para caber entre as paredes).
+            const float tableScaleX = 0.95f;
+            foreach (float x in new[] { -2.85f, -0.95f, 0.95f, 2.85f })
             {
-                GameObject table = Spawn(room, W + "SM_Metal_Table_1.prefab", 0f, new Vector3(1f, (tableTop + 0.1f) / 0.85f, 2f));
+                GameObject table = Spawn(room, W + "SM_Metal_Table_1.prefab", 0f, new Vector3(tableScaleX, (tableTop + 0.1f) / 0.85f, 2f));
                 Fit(table, new Vector3(x, 0f, tableZ));
                 DisableColliders(table);
 
                 // Colisor em cada perna de verdade da mesa do jogo (mais ou menos 0,957 no X e 0,354 no Z, aqui esticado 2x).
-                foreach (float legX in new[] { x - 0.957f, x + 0.957f })
+                foreach (float legX in new[] { x - 0.957f * tableScaleX, x + 0.957f * tableScaleX })
                 foreach (float legZ in new[] { tableZ - 0.708f, tableZ + 0.708f })
                 {
                     Solid(room, "Mesa (perna)", new Vector3(legX, 0f, legZ), new Vector3(0.06f, tableTop, 0.06f), _layerWalls);
@@ -386,7 +390,7 @@ namespace Tutorial.Building
 
             Zone(room, TutorialDirector.ZoneDarkRoom, new Vector3(0f, 0f, 53.8f), new Vector3(10f, 2.5f, 2.4f));
 
-            Prop(room, O + "ShelfConjunto.prefab", new Vector3(-4.4f, 0f, 56.5f), Face(Vector3.right));
+            Prop(room, O + "ShelfConjunto.prefab", new Vector3(-4.5f, 0f, 56.5f), 0f);
             Prop(room, O + "SM_Metal_Shelf_V2.prefab", new Vector3(-4.5f, 0f, 61.5f), Face(Vector3.right));
             Prop(room, O + "SM_Iron_Locker.prefab", new Vector3(-4.4f, 0f, 64.4f), Face(Vector3.right));
             Prop(room, D + "BoxConjunto.prefab", new Vector3(-1.8f, 0f, 57.2f), 20f);
@@ -415,8 +419,8 @@ namespace Tutorial.Building
             Zone(room, TutorialDirector.ZoneDarkExit, new Vector3(2f, 0f, 67.6f), new Vector3(3f, 2.5f, 2.2f));
 
             // Armário: dois armários de ferro de costas para a parede do fundo, com um vão de ~1 m.
-            Prop(room, O + "SM_Iron_Locker.prefab", new Vector3(-4.35f, 0f, 78.6f), Face(Vector3.back));
-            Prop(room, O + "SM_Iron_Locker.prefab", new Vector3(-3.15f, 0f, 78.6f), Face(Vector3.back));
+            Prop(room, O + "SM_Iron_Locker.prefab", new Vector3(-4.2f, 0f, 78.6f), Face(Vector3.back));
+            Prop(room, O + "SM_Iron_Locker.prefab", new Vector3(-3.0f, 0f, 78.6f), Face(Vector3.back));
 
             TutorialButton button = Button(room, new Vector3(-3.7f, 1.25f, 80f - Thickness * 0.5f - 0.02f), Vector3.back);
             Refs["hiddenButton"] = button;
@@ -477,7 +481,7 @@ namespace Tutorial.Building
             Prop(room, S + "SM_Pallet_V2.prefab", new Vector3(-3.5f, 0f, 81.2f), 10f);
             Prop(room, D + "SM_Cardboard_Small_Box.prefab", new Vector3(-3.5f, 0.15f, 81.2f), 40f);
 
-            Label(labels, "PILHA", new Vector3(0f, 0.03f, 85.6f), OnFloor(Vector3.forward), 1.6f, 2f, new Color(1f, 0.85f, 0.3f));
+            Label(FloorHint(labels, TutorialDirector.FloorHintBattery), "PILHA", new Vector3(0f, 0.03f, 85.6f), OnFloor(Vector3.forward), 1.6f, 2f, new Color(1f, 0.85f, 0.3f));
             Sign(labels, "5 · ITENS E BATERIA", "pegar · segurar · usar", 92f, -2.8f);
             Lamp(room, new Vector3(0f, 0f, 84.5f), Height);
             Lamp(room, new Vector3(0f, 0f, 89.5f), Height);
@@ -607,7 +611,7 @@ namespace Tutorial.Building
             Prop(room, B + "SM_Chair_Foyer.prefab", new Vector3(-1.2f, 0f, 124.4f), Face(Vector3.forward));
             Prop(room, B + "SM_Chair_Foyer.prefab", new Vector3(-2.2f, 0f, 127.3f), Face(Vector3.back));
 
-            Prop(room, O + "ShelfConjunto.prefab", new Vector3(-5.4f, 0f, 122.5f), Face(Vector3.right));
+            Prop(room, O + "ShelfConjunto.prefab", new Vector3(-5.5f, 0f, 122.5f), 0f);
             Prop(room, O + "SM_Metal_Shelf_V2.prefab", new Vector3(-5.5f, 0f, 128.6f), Face(Vector3.right));
             Prop(room, O + "SM_Metal_Shelf_V1.prefab", new Vector3(-5.5f, 0f, 130.6f), Face(Vector3.right));
             Prop(room, O + "SM_Iron_Locker.prefab", new Vector3(-4.6f, 0f, 133.4f), Face(Vector3.back));
@@ -734,11 +738,12 @@ namespace Tutorial.Building
             if (mainStage != null) mainStage.name = "MainStage";
 
             // "Procure marcas no chão": o X de onde gravar, a uns 7 m do monstro.
-            Box(room, "Marca (fita 1)", new Vector3(0f, 0.004f, 147.2f), new Vector3(1.6f, 0.012f, 0.18f), _unlitYellow, _layerDefault, false)
+            Transform recordHint = FloorHint(labels, TutorialDirector.FloorHintRecordMark);
+            Box(recordHint, "Marca (fita 1)", new Vector3(0f, 0.004f, 147.2f), new Vector3(1.6f, 0.012f, 0.18f), _unlitYellow, _layerDefault, false)
                 .transform.localRotation = Quaternion.Euler(0f, 45f, 0f);
-            Box(room, "Marca (fita 2)", new Vector3(0f, 0.004f, 147.2f), new Vector3(1.6f, 0.012f, 0.18f), _unlitYellow, _layerDefault, false)
+            Box(recordHint, "Marca (fita 2)", new Vector3(0f, 0.004f, 147.2f), new Vector3(1.6f, 0.012f, 0.18f), _unlitYellow, _layerDefault, false)
                 .transform.localRotation = Quaternion.Euler(0f, -45f, 0f);
-            Label(labels, "MARCA DE GRAVAÇÃO", new Vector3(0f, 0.03f, 145.9f), OnFloor(Vector3.forward), 1.6f, 4f, new Color(1f, 0.85f, 0.3f));
+            Label(recordHint, "MARCA DE GRAVAÇÃO", new Vector3(0f, 0.03f, 145.9f), OnFloor(Vector3.forward), 1.6f, 4f, new Color(1f, 0.85f, 0.3f));
 
             Label(labels, "PALCO PRINCIPAL", new Vector3(0f, 4.3f, 159.25f), FacingViewer(Vector3.back), 3f, 8f, new Color(1f, 0.85f, 0.35f));
 
@@ -813,8 +818,8 @@ namespace Tutorial.Building
 
             Prop(root, B + "SM_Sofa.prefab", new Vector3(24f, 0f, 200f), Face(Vector3.right));
             Prop(root, B + "SM_Popcorn_Machine.prefab", new Vector3(32.4f, 0f, 199f), Face(Vector3.left));
-            Queue(root, new Vector3(26.3f, 0f, 200.3f), new Vector3(26.3f, 0f, 203.5f));
-            Queue(root, new Vector3(29.7f, 0f, 200.3f), new Vector3(29.7f, 0f, 203.5f));
+            Queue(root, new Vector3(26.3f, 0f, 200.3f), new Vector3(26.3f, 0f, 202.9f));
+            Queue(root, new Vector3(29.7f, 0f, 200.3f), new Vector3(29.7f, 0f, 202.9f));
 
             // Placas de saída pelo caminho.
             ExitLight(root, new Vector3(7f, 2.45f, 178f - Thickness * 0.5f - 0.03f), Vector3.back, _exitLamp, new Color(0.1f, 1f, 0.25f));
@@ -832,7 +837,7 @@ namespace Tutorial.Building
             Label(labels, "SAÍDA >>", new Vector3(7f, 2.0f, 177.8f), FacingViewer(Vector3.back), 2f, 3f, new Color(0.4f, 1f, 0.5f));
             Label(labels, "<< SAÍDA", new Vector3(28.3f, 2.0f, 176.5f), FacingViewer(Vector3.left), 2f, 3f, new Color(0.4f, 1f, 0.5f));
             Label(labels, "<b>SAÍDA</b>", new Vector3(28f, 2.75f, 203.8f), FacingViewer(Vector3.back), 3f, 6f, new Color(0.4f, 1f, 0.5f));
-            Box(root, "Faixa verde", new Vector3(28f, 0.004f, 199f), new Vector3(6f, 0.012f, 0.3f), _unlitGreen, _layerDefault, false);
+            Box(FloorHint(labels, TutorialDirector.ZoneExit), "Faixa verde", new Vector3(28f, 0.004f, 199f), new Vector3(6f, 0.012f, 0.3f), _unlitGreen, _layerDefault, false);
 
             Lamp(root, new Vector3(7f, 0f, 165f), Height);
             Lamp(root, new Vector3(7f, 0f, 172f), Height);
@@ -1445,6 +1450,14 @@ namespace Tutorial.Building
 
             GameObject bulb = Box(go.transform, "Lâmpada", Vector3.zero, new Vector3(0.25f, 0.12f, 0.25f), _unlitRed, _layerDefault, false);
             bulb.transform.localPosition = Vector3.zero;
+        }
+
+        /// <summary>Grupo de marcas de chão que some quando a etapa <paramref name="id"/> termina.</summary>
+        private static Transform FloorHint(Transform parent, string id)
+        {
+            GameObject group = Group($"Marca de chão · {id}", parent);
+            group.AddComponent<TutorialFloorHint>().Configure(id);
+            return group.transform;
         }
 
         private static void Zone(Transform parent, string id, Vector3 bottomCenter, Vector3 size)

@@ -10,8 +10,8 @@ Nenhum script do jogo foi alterado. Tudo mora em `Assets/Tutorial/`.
 
 | # | Lição | O jogador faz | O tutorial confere por |
 |---|---|---|---|
-| 1 | Movimento | anda até a marca, corre (Shift) o corredor, agacha (Ctrl) | zona no chão, `OnRunEvent`, `IsCrouching` |
-| 2 | Passar por baixo | duto de ar a 1,3 m e mesa a 1,08 m (o chapéu amassa); grade de 0,8 m mostra o limite | zonas depois de cada obstáculo |
+| 1 | Movimento | anda até a marca e corre (Shift) o corredor; a porta abre ao chegar no fim | zona no chão, `OnRunEvent` |
+| 2 | Agachar | agacha (Ctrl), passa sob o duto de ar a 1,3 m e a mesa a 1,08 m (o chapéu amassa); grade de 0,8 m mostra o limite | `IsCrouching`, zonas depois de cada obstáculo |
 | 3 | Lanterna | sala escura: liga (F) e acha a porta com a luz verde | estado da lanterna, zona da saída |
 | 4 | Chat | esconde e mostra o chat (C); acha o botão escondido com dicas dos viewers | `HudAnimationPanel.IsVisible`, botão |
 | 5 | Itens e bateria | pega a pilha, segura (1), usa e vê a barra encher; mira na caixa INDISPONÍVEL | inventário, `IsHoveredBlocked` |
@@ -46,6 +46,10 @@ No fim, um cartão com **Voltar ao menu** e **Jogar de novo**.
   juntas (ou a fala inteira é descartada).
 - **Se o jogador empaca,** alguém da turma manda dica, cada vez mais direta (`WaitFor` no diretor; o
   tempo das dicas só conta depois que as falas pendentes saíram).
+- **Faixa de objetivo** no topo da tela, no centro (entre o painel de missões e o REC); na lição de
+  doação ela desce para baixo do cartão de doação. Texto comprido encolhe para caber.
+- **Marcas de chão** (fita amarela, "ANDE ATÉ AQUI", "CORRA ATÉ AQUI", "PILHA", o X de gravação, a
+  faixa verde da saída) somem quando a etapa delas termina (`TutorialFloorHint`).
 - **No tutorial ninguém morre:** depois de cada golpe o jogador é curado, e no terceiro golpe da fuga
   ela recomeça do início do corredor.
 
@@ -100,7 +104,8 @@ O que o tutorial faz por fora, por reflexão (campos privados, sem tocar no cód
 |---|---|
 | `Scripts/TutorialDirector.cs` | O roteiro: as 12 lições, falas, objetivos e dicas. **É aqui que se muda texto.** |
 | `Scripts/TutorialChat.cs` | Escreve no chat (os narradores) e manda falas de plateia para a `ChatDirector`. |
-| `Scripts/TutorialHud.cs` | Faixa de objetivo (embaixo, no centro) e cartão do fim. |
+| `Scripts/TutorialHud.cs` | Faixa de objetivo (no topo, no centro) e cartão do fim. |
+| `Scripts/TutorialFloorHint.cs` | Marcas de chão que somem quando a etapa termina. |
 | `Scripts/TutorialNetworkBootstrap.cs` | Sobe o host e cria o jogador (vindo do menu ou Play direto). |
 | `Scripts/TutorialMonsterRemote.cs` | Prende o monstro no palco (em postura de combate, IdleCombat) e solta na fuga. |
 | `Scripts/TutorialDoorGate.cs` | Porta do jogo trancada entre as salas, com a luz de emergência (vermelha/verde). |

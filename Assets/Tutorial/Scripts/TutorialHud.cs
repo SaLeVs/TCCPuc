@@ -92,6 +92,11 @@ namespace Tutorial
 
         public void HideBanner() => _bannerGroup.alpha = 0f;
 
+        private const float TopMargin = 24f;
+
+        /// <summary>Desce a faixa (em pixels de referência) para não ficar atrás de algo no topo; 0 volta ao lugar.</summary>
+        public void SetBannerDrop(float drop) => _banner.anchoredPosition = new Vector2(0f, -TopMargin - Mathf.Max(0f, drop));
+
         public void ShowEndCard(string title, string body, string primary, Action onPrimary, string secondary, Action onSecondary)
         {
             _progress.fillAmount = 1f;
@@ -133,12 +138,12 @@ namespace Tutorial
 
         private void BuildBanner()
         {
-            // Embaixo, no centro: o topo é do cartão de doação do jogo, e os cantos de baixo já têm
-            // vida, stamina e inventário.
+            // Em cima, no centro, entre o painel de missões (esquerda) e o REC (direita). Na lição
+            // de doação o diretor desce a faixa para baixo do cartão de doação do jogo.
             _banner = NewRect("Objetivo", transform);
-            _banner.anchorMin = _banner.anchorMax = new Vector2(0.5f, 0f);
-            _banner.pivot = new Vector2(0.5f, 0f);
-            _banner.anchoredPosition = new Vector2(0f, 26f);
+            _banner.anchorMin = _banner.anchorMax = new Vector2(0.5f, 1f);
+            _banner.pivot = new Vector2(0.5f, 1f);
+            _banner.anchoredPosition = new Vector2(0f, -TopMargin);
             _banner.sizeDelta = new Vector2(860f, 112f);
 
             _bannerGroup = _banner.gameObject.AddComponent<CanvasGroup>();
@@ -162,6 +167,11 @@ namespace Tutorial
             _objective = NewText("Texto", _banner, 30f, Color.white, TextAlignmentOptions.TopLeft);
             Place(_objective.rectTransform, new Vector2(28f, -42f), new Vector2(-40f, 62f));
             _objective.textWrappingMode = TextWrappingModes.Normal;
+
+            // Objetivo comprido encolhe para caber na faixa em vez de vazar por baixo dela.
+            _objective.enableAutoSizing = true;
+            _objective.fontSizeMin = 20f;
+            _objective.fontSizeMax = 30f;
             _objective.text = string.Empty;
 
             RectTransform bar = NewRect("Progresso", _banner);

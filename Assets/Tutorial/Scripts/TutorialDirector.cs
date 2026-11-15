@@ -58,6 +58,13 @@ namespace Tutorial
         public const string ZoneFugaStart = "fuga_start";
         public const string ZoneExit = "exit";
 
+        // Marcas de chão (TutorialFloorHint) que somem quando a etapa delas termina.
+        public const string FloorHintBattery = "battery";
+        public const string FloorHintRecordMark = "record_mark";
+
+        // Altura (pixels de referência) do cartão de doação do jogo no topo da tela.
+        private const float DonationCardHeight = 190f;
+
         public const string GateRun = "g_run";
         public const string GateCrouch = "g_crouch";
         public const string GateDark = "g_dark";
@@ -336,7 +343,6 @@ namespace Tutorial
         {
             Func<bool> walked = () => TutorialZone.WasEntered(ZoneWalkMark);
             Func<bool> ran = () => TutorialZone.WasEntered(ZoneRunEnd) && _runSeconds >= 1.2f;
-            Func<bool> crouched = () => _crouched;
 
             Step(1, "Movimento", $"Ande até a marca amarela no chão com {Key(TutorialKeys.Move)}");
 
@@ -349,7 +355,7 @@ namespace Tutorial
                 Hint(Dev, $"Use {Key(TutorialKeys.Move)} para andar. A marca amarela está no meio da sala."),
                 Hint(Tutu, "anda pra frente mano kkkk"));
 
-
+            TutorialFloorHint.Hide(ZoneWalkMark);
             TutorialDoorGate.Open(GateRun);
             SetObjective($"Segure {Key(TutorialKeys.Run)} e corra até o fim do corredor");
 
@@ -360,10 +366,22 @@ namespace Tutorial
                 Hint(Sono, "segura o shift!!!"),
                 Hint(Sono, $"chegou andando? corre um pouquinho segurando {Key(TutorialKeys.Run)} pra gente ver"));
 
-            Say(Dev, "Isso! Correr é rápido, mas faz barulho. Na partida, o monstro ouve.");
+            TutorialFloorHint.Hide(ZoneRunEnd);
 
-            SetObjective($"Segure {Key(TutorialKeys.Crouch)} para agachar");
-            Teach(crouched, Camis, $"por último: segura {Key(TutorialKeys.Crouch)} pra agachar");
+            // O corredor é só de correr: a porta abre logo, e agachar fica para a sala seguinte.
+            TutorialDoorGate.Open(GateCrouch);
+            Say(Dev, "Isso! Correr é rápido, mas faz barulho. Na partida, o monstro ouve.");
+        }
+
+        private IEnumerator LessonCrouchLimit()
+        {
+            Func<bool> crouched = () => _crouched;
+            Func<bool> underDuct = () => TutorialZone.WasEntered(ZoneCrouchBeam) || TutorialZone.WasEntered(ZoneCrouchTable);
+            Func<bool> underTable = () => TutorialZone.WasEntered(ZoneCrouchTable);
+
+            Step(2, "Agachar", $"Segure {Key(TutorialKeys.Crouch)} para agachar");
+
+            Teach(crouched, Camis, $"agora agachar: segura {Key(TutorialKeys.Crouch)}");
 
             yield return WaitFor(crouched, 12f,
                 Hint(Dev, $"Segure {Key(TutorialKeys.Crouch)} (não é só apertar uma vez)."),
@@ -371,17 +389,8 @@ namespace Tutorial
 
             Say(Dev, "Agachado você anda mais devagar, mas faz menos barulho e cabe em lugares baixos.");
 
-            TutorialDoorGate.Open(GateCrouch);
-        }
-
-        private IEnumerator LessonCrouchLimit()
-        {
-            Func<bool> underDuct = () => TutorialZone.WasEntered(ZoneCrouchBeam) || TutorialZone.WasEntered(ZoneCrouchTable);
-            Func<bool> underTable = () => TutorialZone.WasEntered(ZoneCrouchTable);
-
-            Step(2, "Agachar", $"Agache ({Key(TutorialKeys.Crouch)}) e passe por baixo do duto de ar");
-
-            Teach(underDuct, Dev, $"Em pé não passa. Segure {Key(TutorialKeys.Crouch)} e passe por baixo dele.");
+            SetObjective($"Agache ({Key(TutorialKeys.Crouch)}) e passe por baixo do duto de ar");
+            Teach(underDuct, Dev, $"Em pé não passa. Segure {Key(TutorialKeys.Crouch)} e passe por baixo do duto.");
 
             yield return WaitFor(underDuct, 15f,
                 Hint(Dev, $"Chegue no duto segurando {Key(TutorialKeys.Crouch)} o tempo todo."),
@@ -493,6 +502,8 @@ namespace Tutorial
             yield return WaitFor(picked, 14f,
                 Hint(Dev, $"Chegue perto da mesa, mire na pilha (ela fica contornada) e use {Key(TutorialKeys.Interact)}."),
                 Hint(Tutu, "pega a pilha"));
+
+            TutorialFloorHint.Hide(FloorHintBattery);
 
             SetObjective($"Aperte {Key(BatterySlotKey())} para segurar a pilha");
 
@@ -698,6 +709,7 @@ namespace Tutorial
                 Hint(Dev, "Chegue mais perto: o palco e o monstro precisam aparecer juntos na câmera, a menos de 10 metros."));
 
             StopMainMissionRecorder();
+            TutorialFloorHint.Hide(FloorHintRecordMark);
 
 
             Say(Dev, "GRAVADO! Na partida, missão principal completa + 75% de audiência abrem a porta da saída.");
@@ -707,6 +719,9 @@ namespace Tutorial
         {
             Step(10, "Doação", "Leia o pedido da doação");
 
+            // O cartão da doação aparece no topo, no centro: a faixa desce para baixo dele nesta lição.
+            if (hud != null) hud.SetBannerDrop(DonationCardHeight);
+
             bool spawned = SpawnTutorialDonation();
 
             Say(Tutu, "OPA DOAÇÃO! o cartão no meio da tela é o pedido de quem doou");
@@ -714,6 +729,7 @@ namespace Tutorial
             if (!spawned)
             {
                 Say(Dev, "(Essa doação não chegou por algum problema. Seguimos sem ela.)");
+                if (hud != null) hud.SetBannerDrop(0f);
                 yield break;
             }
 
@@ -728,6 +744,8 @@ namespace Tutorial
                 Hint(Sono, "grava ele de novo"));
 
             Say(Dev, "Doação completa! Valeu demais.");
+
+            if (hud != null) hud.SetBannerDrop(0f);
         }
 
         private IEnumerator LessonLights()
@@ -800,6 +818,7 @@ namespace Tutorial
         private void Finish()
         {
             _finished = true;
+            TutorialFloorHint.Hide(ZoneExit);
 
             SetObjective("Tutorial concluído!");
 
@@ -814,7 +833,7 @@ namespace Tutorial
                 hud.ShowEndCard(
                     "Tutorial concluído!",
                     "Na partida: faça suas missões, grave coisas para a audiência, cumpra as doações, " +
-                    "complete a missão principal e fuja pela saída antes que o monstro pegue vocês.",
+                    "complete a missão principal e fuja pela saída antes que o monstro te pegue.",
                     "Voltar ao menu", ReturnToMenu,
                     "Jogar de novo", Restart);
             }

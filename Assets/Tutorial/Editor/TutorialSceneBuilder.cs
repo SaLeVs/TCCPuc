@@ -274,7 +274,7 @@ namespace Tutorial.Building
             Prop(room, H + "SM_Carpet_01.prefab", new Vector3(0f, 0.002f, 2.6f), 90f, 1.8f);
             Prop(room, H + "SM_Carpet_01.prefab", new Vector3(0f, 0.002f, 4.6f), 90f, 1.8f);
 
-            Sign(labels, "1 · MOVIMENTO", "andar · correr · agachar", 10f, -2.9f);
+            Sign(labels, TutorialDirector.SignMovement, "1 · MOVIMENTO", "andar · correr", 10f, -2.9f);
             Lamp(room, new Vector3(-2f, 0f, 3f), Height);
             Lamp(room, new Vector3(2f, 0f, 7f), Height);
 
@@ -286,6 +286,7 @@ namespace Tutorial.Building
             Wall(run, true, 36f, -4f, 4f, Height, DoorGap(0f));
             Gate(run, TutorialDirector.GateCrouch, 0f, 36f);
 
+            Zone(run, TutorialDirector.ZoneRunStart, new Vector3(0f, 0f, 11.4f), new Vector3(3f, 2.5f, 2f));
             Zone(run, TutorialDirector.ZoneRunEnd, new Vector3(0f, 0f, 34.2f), new Vector3(3f, 2.5f, 3.4f));
             Transform runHint = FloorHint(labels, TutorialDirector.ZoneRunEnd);
             Box(runHint, "Faixa de chegada", new Vector3(0f, 0.004f, 33f), new Vector3(2.8f, 0.012f, 0.25f), _unlitYellow, _layerDefault, false);
@@ -327,7 +328,8 @@ namespace Tutorial.Building
             // esticada em listras). A Body_Big tem a mesma seção de 1,3 m; encurtada de 4,53 para 4 m.
             Fit(Spawn(room, W + "SM_Air_Ventilation_Body_Big.prefab", 0f, new Vector3(4f / 4.53f, 1f, 1f)), new Vector3(-2f, ductBottom, ductZ));
             Fit(Spawn(room, W + "SM_Air_Ventilation_Body_Big.prefab", 0f, new Vector3(4f / 4.53f, 1f, 1f)), new Vector3(2f, ductBottom, ductZ));
-            Label(labels, "DUTO DE AR · 1,3 m\n<size=70%>passa agachado</size>", new Vector3(0f, 1.0f, ductZ - 0.7f), FacingViewer(Vector3.back), 1.3f, 5f, Color.white);
+            Label(FloorHint(labels, TutorialDirector.SignCrouch), "DUTO DE AR · 1,3 m\n<size=70%>passa agachado</size>", new Vector3(0f, 1.0f, ductZ - 0.7f), FacingViewer(Vector3.back), 1.3f, 5f, Color.white);
+            Zone(room, TutorialDirector.ZoneCrouchRoom, new Vector3(0f, 0f, 37.6f), new Vector3(8f, 2.5f, 2.2f));
             Zone(room, TutorialDirector.ZoneCrouchBeam, new Vector3(0f, 0f, 42.6f), new Vector3(8f, 2.5f, 1.8f));
 
             // Mesa: o vão de baixo tem 1,08 m. Só passa agachado e com o chapéu amassado.
@@ -350,14 +352,14 @@ namespace Tutorial.Building
                 }
             }
 
-            Label(labels, "MESA · 1 m\n<size=70%>agachado, o chapéu amassa</size>", new Vector3(0f, 1.6f, tableZ - 0.82f), FacingViewer(Vector3.back), 1.3f, 6f, Color.white);
+            Label(FloorHint(labels, TutorialDirector.SignCrouch), "MESA · 1 m\n<size=70%>agachado, o chapéu amassa</size>", new Vector3(0f, 1.6f, tableZ - 0.82f), FacingViewer(Vector3.back), 1.3f, 6f, Color.white);
             Zone(room, TutorialDirector.ZoneCrouchTable, new Vector3(0f, 0f, 49.6f), new Vector3(8f, 2.5f, 2.2f));
 
             // Grade de ventilação de 0,8 m na parede: só mostra o limite (não tem passagem).
             GameObject grate = Spawn(room, W + "SM_Air_Ventilation_Door.prefab", Face(Vector3.right, true), Vector3.one * (0.8f / 1.18f));
             Fit(grate, new Vector3(-4f + Thickness * 0.5f + 0.03f, 0.02f, 43.6f));
             Box(room, "Grade (fundo)", new Vector3(-3.81f, 0.03f, 43.6f), new Vector3(0.01f, 0.76f, 0.76f), _unlitBlack, _layerDefault, false);
-            Label(labels, "GRADE · 0,8 m\n<size=70%>nem agachado: é o limite</size>", new Vector3(-3.79f, 1.3f, 43.6f), FacingViewer(Vector3.right), 1.1f, 2.6f, new Color(1f, 0.55f, 0.45f));
+            Label(FloorHint(labels, TutorialDirector.SignCrouch), "GRADE · 0,8 m\n<size=70%>nem agachado: é o limite</size>", new Vector3(-3.79f, 1.3f, 43.6f), FacingViewer(Vector3.right), 1.1f, 2.6f, new Color(1f, 0.55f, 0.45f));
 
             // Bastidor: cases, caixas de figurino e araras encostados nas paredes.
             Prop(room, D + "SM_Flight_Case_Big_Wheels.prefab", new Vector3(-3.2f, 0f, 37.3f), Face(Vector3.right));
@@ -371,7 +373,7 @@ namespace Tutorial.Building
             Prop(room, D + "SM_Cardboard_Box.prefab", new Vector3(-3.2f, 0f, 49.4f), 80f);
             Prop(room, S + "SM_Pallet_V3.prefab", new Vector3(3.2f, 0f, 44f), 90f);
 
-            Sign(labels, "2 · PASSAR POR BAIXO", "segure agachar", 52f, -2.7f);
+            Sign(labels, TutorialDirector.SignCrouch, "2 · AGACHAR", "passar por baixo", 52f, -2.7f);
             Lamp(room, new Vector3(0f, 0f, 38.3f), Height);
             Lamp(room, new Vector3(0f, 0f, 44f), Height);
             Lamp(room, new Vector3(0f, 0f, 49.8f), Height);
@@ -402,7 +404,7 @@ namespace Tutorial.Building
             Prop(room, S + "SM_Layher_Tower.prefab", new Vector3(-1.8f, 0f, 53.7f), 0f);
             Prop(room, O + "SM_Trash_Can_V1.prefab", new Vector3(4.4f, 0f, 64.9f), 0f);
 
-            Sign(labels, "3 · LANTERNA", "procure a saída", 66f, -1.8f);
+            Sign(labels, TutorialDirector.SignFlashlight, "3 · LANTERNA", "procure a saída", 66f, -1.8f);
         }
 
         /// <summary>Sala 4 (camarim): o chat. O botão escondido fica na parede atrás do armário de metal.</summary>
@@ -442,7 +444,7 @@ namespace Tutorial.Building
             Prop(room, D + "SM_Costume_Box_Open_Metal.prefab", new Vector3(4.4f, 0f, 78.9f), Face(Vector3.left));
             Prop(room, D + "SM_Flight_Case_Small_Wheels.prefab", new Vector3(-1.2f, 0f, 70.2f), 25f);
 
-            Sign(labels, "4 · CHAT", "o chat te ajuda", 80f, -0.6f);
+            Sign(labels, TutorialDirector.SignChat, "4 · CHAT", "o chat te ajuda", 80f, -0.6f);
             Lamp(room, new Vector3(0f, 0f, 70f), Height);
             Lamp(room, new Vector3(0f, 0f, 76f), Height);
         }
@@ -457,6 +459,7 @@ namespace Tutorial.Building
             Wall(room, false, 5f, 80f, 92f, Height);
             Wall(room, true, 92f, -5f, 5f, Height, DoorGap(0f));
             Gate(room, TutorialDirector.GateDoors, 0f, 92f);
+            Zone(room, TutorialDirector.ZoneItemsRoom, new Vector3(0f, 0f, 81.3f), new Vector3(10f, 2.5f, 2.4f));
 
             const float tableTop = 0.85f;
             Prop(room, W + "SM_Metal_Table_1.prefab", new Vector3(0f, 0f, 86.5f), 0f);
@@ -470,6 +473,18 @@ namespace Tutorial.Building
             GameObject box = PlaceOnFloor(room, Prefabs + "Items/Pickables/Missions/Box/BoxSquarePickable.prefab", new Vector3(2.7f, caseTop, 86.5f), 0f);
             Refs["blockedBox"] = box;
 
+            // Sem o "fantasma" de PEGAR ao chegar perto: a caixa só mostra o aviso quando a mira para
+            // nela (INDISPONÍVEL). Alcance quase zero só corta a revelação de longe.
+            if (box != null)
+            {
+                foreach (InteractionMarker boxMarker in box.GetComponentsInChildren<InteractionMarker>(true))
+                {
+                    SerializedObject so = new SerializedObject(boxMarker);
+                    so.FindProperty("revealDistance").floatValue = 0.01f;
+                    so.ApplyModifiedPropertiesWithoutUndo();
+                }
+            }
+
             Prop(room, O + "SM_Metal_Shelf_V2.prefab", new Vector3(-4.5f, 0f, 83.5f), Face(Vector3.right));
             Prop(room, O + "SM_Metal_Shelf_V1.prefab", new Vector3(-4.5f, 0f, 88.5f), Face(Vector3.right));
             Prop(room, O + "SM_Metal_Shelf_V2.prefab", new Vector3(4.5f, 0f, 89.6f), Face(Vector3.left));
@@ -477,12 +492,12 @@ namespace Tutorial.Building
             Prop(room, W + "SM_Floor_Sign.prefab", new Vector3(-1.6f, 0f, 82.4f), 200f);
             Prop(room, D + "SM_Cardboard_Box.prefab", new Vector3(4.3f, 0f, 84.2f), 80f);
             Prop(room, O + "SM_Iron_Locker.prefab", new Vector3(4.45f, 0f, 86.6f), Face(Vector3.left));
-            Prop(room, O + "SM_Iron_Locker.prefab", new Vector3(-3.6f, 0f, 91.4f), Face(Vector3.back));
+            Prop(room, O + "SM_Iron_Locker.prefab", new Vector3(3.6f, 0f, 91.4f), Face(Vector3.back));
             Prop(room, S + "SM_Pallet_V2.prefab", new Vector3(-3.5f, 0f, 81.2f), 10f);
             Prop(room, D + "SM_Cardboard_Small_Box.prefab", new Vector3(-3.5f, 0.15f, 81.2f), 40f);
 
             Label(FloorHint(labels, TutorialDirector.FloorHintBattery), "PILHA", new Vector3(0f, 0.03f, 85.6f), OnFloor(Vector3.forward), 1.6f, 2f, new Color(1f, 0.85f, 0.3f));
-            Sign(labels, "5 · ITENS E BATERIA", "pegar · segurar · usar", 92f, -2.8f);
+            Sign(labels, TutorialDirector.SignItems, "5 · ITENS E BATERIA", "pegar · segurar · usar", 92f, -2.8f);
             Lamp(room, new Vector3(0f, 0f, 84.5f), Height);
             Lamp(room, new Vector3(0f, 0f, 89.5f), Height);
         }
@@ -493,6 +508,7 @@ namespace Tutorial.Building
             Transform room = Group("6 · Portas", world).transform;
 
             Room(room, -5f, 5f, 92f, 102f, Height, FloorHall, RoofHall, true);
+            Zone(room, TutorialDirector.ZoneDoorsRoom, new Vector3(0f, 0f, 93.4f), new Vector3(10f, 2.5f, 2.2f));
             Wall(room, false, -5f, 92f, 102f, Height);
             Wall(room, false, 5f, 92f, 102f, Height);
             Wall(room, true, 102f, -6f, 6f, Height, DoorGap(-2.5f), DoorGap(2.5f));
@@ -503,9 +519,9 @@ namespace Tutorial.Building
             Refs["openDoor"] = right;
 
             float face = 102f - Thickness * 0.5f - 0.02f;
-            Label(labels, "TRAVADA?", new Vector3(-2.5f, 2.5f, face), FacingViewer(Vector3.back), 1.2f, 2.5f, new Color(1f, 0.55f, 0.45f));
-            Label(labels, "ABERTA", new Vector3(2.5f, 2.5f, face), FacingViewer(Vector3.back), 1.2f, 2.5f, new Color(0.5f, 1f, 0.6f));
-            Label(labels, "<b>6 · PORTAS</b>", new Vector3(0f, 2.0f, face), FacingViewer(Vector3.back), 2f, 3f, new Color(1f, 0.85f, 0.35f));
+            Label(FloorHint(labels, TutorialDirector.SignDoors), "TRAVADA?", new Vector3(-2.5f, 2.5f, face), FacingViewer(Vector3.back), 1.2f, 2.5f, new Color(1f, 0.55f, 0.45f));
+            Label(FloorHint(labels, TutorialDirector.SignDoors), "ABERTA", new Vector3(2.5f, 2.5f, face), FacingViewer(Vector3.back), 1.2f, 2.5f, new Color(0.5f, 1f, 0.6f));
+            Label(FloorHint(labels, TutorialDirector.SignDoors), "<b>6 · PORTAS</b>", new Vector3(0f, 2.0f, face), FacingViewer(Vector3.back), 2f, 3f, new Color(1f, 0.85f, 0.35f));
 
             Prop(room, H + "SM_Big_Bench.prefab", new Vector3(-4.4f, 0f, 96.5f), 0f);
             Prop(room, H + "SM_Small_Bench.prefab", new Vector3(4.4f, 0f, 95.5f), 0f);
@@ -565,7 +581,7 @@ namespace Tutorial.Building
             WallProp(room, H + "SM_Poster.prefab", new Vector3(5.8f, 1.65f, 110f), Vector3.left);
             WallProp(room, H + "SM_Poster_V2.prefab", new Vector3(5.8f, 1.6f, 114f), Vector3.left);
 
-            Sign(labels, "7 · AUDIÊNCIA", "grave o que tem olho", 118f, -2.9f);
+            Sign(labels, TutorialDirector.SignAudience, "7 · AUDIÊNCIA", "grave o que tem olho", 118f, -2.9f);
             Lamp(room, new Vector3(-3f, 0f, 106.5f), Height);
             Lamp(room, new Vector3(3f, 0f, 106.5f), Height);
             Lamp(room, new Vector3(0f, 0f, 111f), Height);
@@ -627,7 +643,7 @@ namespace Tutorial.Building
             }
 
 
-            Sign(labels, "8 · MISSÃO E PUZZLE", "leia · interprete · resolva", 134f, -2.9f);
+            Sign(labels, TutorialDirector.SignPuzzle, "8 · MISSÃO E PUZZLE", "leia · interprete · resolva", 134f, -2.9f);
             Lamp(room, new Vector3(-3f, 0f, 122f), Height);
             Lamp(room, new Vector3(3f, 0f, 122f), Height);
             Lamp(room, new Vector3(-3f, 0f, 129.5f), Height);
@@ -691,9 +707,9 @@ namespace Tutorial.Building
 
             Zone(room, TutorialDirector.ZoneStageRoom, new Vector3(0f, 0f, 135.8f), new Vector3(18f, 2.5f, 2.4f));
 
-            // Palco do jogo, menor (60%) e afundado no piso: sobra 0,45 m. O monstro desce (passo do
-            // agente 0,5 m), o jogador não sobe.
-            const float stageTop = 0.45f;
+            // Palco do jogo, menor (60%), apoiado no piso (0,9 m). O monstro é solto ao lado do palco,
+            // já no chão; a escadinha da frente é só para o jogador.
+            const float stageTop = 0.9f;
             const float stageFront = 150f;
             Solid(room, "Palco (colisão)", new Vector3(0f, 0f, 154.7f), new Vector3(12f, stageTop, 9.4f), _layerGround);
             GameObject stage = Spawn(room, S + "SM_Stage.prefab", 0f, Vector3.one * 0.6f);
@@ -715,6 +731,14 @@ namespace Tutorial.Building
             Prop(room, S + "SM_SoundBox_Floor.prefab", new Vector3(-2.2f, stageTop, 150.4f), Face(Vector3.back));
             Prop(room, S + "SM_SoundBox_Floor.prefab", new Vector3(2.2f, stageTop, 150.4f), Face(Vector3.back));
             Prop(room, S + "SM_Microphone.prefab", new Vector3(-1.4f, stageTop, 152f), 0f);
+
+            // Escadinha na frente do palco (o SM_Stair sobe para +Z; 1 m de altura no modelo).
+            GameObject stair = Spawn(room, H + "SM_Stair.prefab", 0f, new Vector3(0.5f, stageTop, 0.45f));
+            if (stair != null)
+            {
+                Bounds stairBounds = RendererBounds(stair);
+                Fit(stair, new Vector3(-3.6f, 0f, stageFront - stairBounds.extents.z));
+            }
             Prop(room, S + "SM_Tripod_Spotilight_V1.prefab", new Vector3(-7.6f, 0f, 148.6f), Face(new Vector3(0.7f, 0f, 1f)));
             Prop(room, S + "SM_Tripod_Spotilight_V2.prefab", new Vector3(8.2f, 0f, 149.2f), Face(new Vector3(-0.7f, 0f, 1f)));
             Prop(room, S + "SM_Tripod_SoundBox.prefab", new Vector3(-7.9f, 0f, 147.6f), Face(Vector3.right));
@@ -734,7 +758,7 @@ namespace Tutorial.Building
 
             // O sensor de visão do jogador só vê o que está numa faixa de 1,3 m em volta da mira. O
             // gatilho do palco fica na altura do corpo do monstro: quem enquadra o monstro pega os dois.
-            GameObject mainStage = PlaceAt(room, Prefabs + "Audience_Objects/MainStage.prefab", new Vector3(0f, 1.55f, 153.4f), 0f);
+            GameObject mainStage = PlaceAt(room, Prefabs + "Audience_Objects/MainStage.prefab", new Vector3(0f, 2.0f, 153.4f), 0f);
             if (mainStage != null) mainStage.name = "MainStage";
 
             // "Procure marcas no chão": o X de onde gravar, a uns 7 m do monstro.
@@ -751,7 +775,7 @@ namespace Tutorial.Building
             GameObject circuit = PlaceAt(room, Prefabs + "Items/EletricCircuit.prefab", new Vector3(-9f + Thickness * 0.5f + 0.05f, 1.2f, 144f), 90f);
             Refs["circuit"] = circuit != null ? circuit.GetComponent<ElectricCircuit>() : null;
             SetMarkerLabel(circuit, "Religar");
-            Label(labels, "QUADRO DE LUZ", new Vector3(-8.78f, 2.4f, 144f), FacingViewer(Vector3.right), 1.3f, 3f, Color.white);
+            Label(FloorHint(labels, TutorialDirector.SignLights), "QUADRO DE LUZ", new Vector3(-8.78f, 2.4f, 144f), FacingViewer(Vector3.right), 1.3f, 3f, Color.white);
 
             for (int i = 0; i < 4; i++)
             {
@@ -770,11 +794,11 @@ namespace Tutorial.Building
             EmergencyLamp(room, new Vector3(-8.5f, 3.8f, 152f));
             EmergencyLamp(room, new Vector3(8.5f, 3.8f, 152f));
 
-            Refs["monsterRelease"] = Marker(room, "Monstro solto aqui", new Vector3(5.5f, 0f, 158f), Vector3.forward);
+            Refs["monsterRelease"] = Marker(room, "Monstro solto aqui", new Vector3(7.4f, 0f, 157f), Vector3.forward);
 
             Sector(room, "Setor palco", new Vector3(0f, 0f, 146f), 8f);
 
-            Label(labels, "<b>9 · GRAVAÇÃO</b>", new Vector3(-3f, 2.2f, 134f + Thickness * 0.5f + 0.02f), FacingViewer(Vector3.forward), 2f, 5f, new Color(1f, 0.85f, 0.35f));
+            Label(FloorHint(labels, TutorialDirector.SignRecording), "<b>9 · GRAVAÇÃO</b>", new Vector3(-3f, 2.2f, 134f + Thickness * 0.5f + 0.02f), FacingViewer(Vector3.forward), 2f, 5f, new Color(1f, 0.85f, 0.35f));
 
             return home;
         }
@@ -1474,8 +1498,15 @@ namespace Tutorial.Building
             zone.AddComponent<TutorialZone>().Configure(id);
         }
 
+        /// <summary>
+        /// Botão de parede com o mesmo modelo do puzzle de luz (SM_Button do LampTotem: base preta,
+        /// botão vermelho). O modelo tem o botão para +Y; aqui ele é deitado para apontar para
+        /// <paramref name="facing"/>.
+        /// </summary>
         private static TutorialButton Button(Transform parent, Vector3 position, Vector3 facing)
         {
+            const float scale = 1.8f;
+
             GameObject root = new GameObject("Botão escondido");
             root.transform.SetParent(parent, false);
             root.transform.localPosition = position;
@@ -1483,16 +1514,33 @@ namespace Tutorial.Building
             root.layer = _layerInteractable;
 
             BoxCollider collider = root.AddComponent<BoxCollider>();
-            collider.size = new Vector3(0.45f, 0.45f, 0.2f);
-            collider.center = new Vector3(0f, 0f, 0.06f);
+            collider.size = new Vector3(0.2f * scale + 0.04f, 0.2f * scale + 0.04f, 0.1f);
+            collider.center = new Vector3(0f, 0f, 0.04f);
 
-            GameObject plate = Box(root.transform, "Placa", Vector3.zero, new Vector3(0.4f, 0.4f, 0.04f), _metal, _layerInteractable, false);
-            plate.transform.localPosition = new Vector3(0f, -0.2f, 0.02f);
+            GameObject modelAsset = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Models/Missions_objects/SM_Button.fbx");
+            GameObject model = (GameObject)PrefabUtility.InstantiatePrefab(modelAsset, root.transform);
+            PrefabUtility.UnpackPrefabInstance(model, PrefabUnpackMode.Completely, InteractionMode.AutomatedAction);
+            model.name = "SM_Button";
+            model.transform.localPosition = Vector3.zero;
+            model.transform.localRotation = Quaternion.Euler(90f, 0f, 0f); // +Y do modelo -> para fora da parede
+            model.transform.localScale = Vector3.one * scale;
 
-            GameObject cap = Box(root.transform, "Botão", Vector3.zero, new Vector3(0.18f, 0.18f, 0.08f), _gateLamp, _layerInteractable, false);
-            cap.transform.localPosition = new Vector3(0f, -0.09f, 0.06f);
+            Material holderMaterial = AssetDatabase.LoadAssetAtPath<Material>("Assets/Scenes/Assets_Preview/Black.mat");
+            Material capMaterial = AssetDatabase.LoadAssetAtPath<Material>("Assets/GYM/Gym/Materials/Gym_Pad_Red.mat");
 
-            Outline outline = cap.AddComponent<Outline>();
+            Renderer capRenderer = null;
+            foreach (Transform t in model.GetComponentsInChildren<Transform>(true))
+            {
+                t.gameObject.layer = _layerInteractable;
+                Renderer renderer = t.GetComponent<Renderer>();
+                if (renderer == null) continue;
+
+                bool isCap = t != model.transform;
+                renderer.sharedMaterial = isCap ? capMaterial : holderMaterial;
+                if (isCap) capRenderer = renderer;
+            }
+
+            Outline outline = capRenderer != null ? capRenderer.gameObject.AddComponent<Outline>() : model.AddComponent<Outline>();
             SerializedObject outlineSo = new SerializedObject(outline);
             outlineSo.FindProperty("outlineColor").colorValue = new Color(1f, 0.85f, 0.38f, 1f);
             outlineSo.FindProperty("outlineWidth").floatValue = 4f;
@@ -1509,7 +1557,7 @@ namespace Tutorial.Building
             markerSo.ApplyModifiedPropertiesWithoutUndo();
 
             TutorialButton button = root.AddComponent<TutorialButton>();
-            button.Configure("chat_button", cap.transform, cap.GetComponent<Renderer>());
+            button.Configure("chat_button", capRenderer != null ? capRenderer.transform : null, capRenderer);
             return button;
         }
 
@@ -1530,10 +1578,10 @@ namespace Tutorial.Building
         }
 
         /// <summary>Placa com o número e o nome da lição, na parede do fundo, ao lado da porta (vista de quem chega).</summary>
-        private static void Sign(Transform labels, string title, string subtitle, float wallZ, float x)
+        private static void Sign(Transform labels, string id, string title, string subtitle, float wallZ, float x)
         {
             string text = string.IsNullOrEmpty(subtitle) ? $"<b>{title}</b>" : $"<b>{title}</b>\n<size=60%>{subtitle}</size>";
-            Label(labels, text, new Vector3(x, 2.05f, wallZ - Thickness * 0.5f - 0.02f), FacingViewer(Vector3.back), 1.9f, 3.6f, new Color(1f, 0.85f, 0.35f));
+            Label(FloorHint(labels, id), text, new Vector3(x, 2.05f, wallZ - Thickness * 0.5f - 0.02f), FacingViewer(Vector3.back), 1.9f, 3.6f, new Color(1f, 0.85f, 0.35f));
         }
 
         private static TextMeshPro Label(Transform parent, string text, Vector3 position, Quaternion rotation, float fontSize, float width, Color color)

@@ -6,7 +6,8 @@ namespace Tutorial
 {
     /// <summary>
     /// Um botão de parede que o jogador aperta com a tecla de interagir. Usado na lição do chat
-    /// (o botão escondido que abre a porta). Só existe no host, como o resto do tutorial.
+    /// (o botão escondido que abre a porta), com o modelo do botão do puzzle de luz. Só existe no
+    /// host, como o resto do tutorial.
     /// </summary>
     public class TutorialButton : MonoBehaviour, IInteractable
     {
@@ -30,7 +31,7 @@ namespace Tutorial
             lamp = lampRenderer;
         }
 
-        private void Awake() => Paint(new Color(0.95f, 0.75f, 0.15f));
+        private const float PressDepth = 0.015f;
 
         public bool CanInteract(GameObject interactor) => IsArmed && !IsPressed;
 
@@ -40,7 +41,8 @@ namespace Tutorial
 
             IsPressed = true;
 
-            if (cap != null) cap.localPosition += cap.localRotation * Vector3.forward * 0.03f;
+            // O botão afunda na parede (o +Z do botão aponta para fora dela).
+            if (cap != null) cap.position -= transform.forward * PressDepth;
             Paint(new Color(0.2f, 0.9f, 0.3f));
 
             OnPressed?.Invoke();

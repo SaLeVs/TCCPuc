@@ -13,8 +13,8 @@ Nenhum script do jogo foi alterado. Tudo mora em `Assets/Tutorial/`.
 | 1 | Movimento | anda até a marca e corre (Shift) o corredor; a porta abre ao chegar no fim | zona no chão, `OnRunEvent` |
 | 2 | Agachar | agacha (Ctrl), passa sob o duto de ar a 1,3 m e a mesa a 1,08 m (o chapéu amassa); grade de 0,8 m mostra o limite | `IsCrouching`, zonas depois de cada obstáculo |
 | 3 | Lanterna | sala escura: liga (F) e acha a porta com a luz verde | estado da lanterna, zona da saída |
-| 4 | Chat | esconde e mostra o chat (C); acha o botão escondido com dicas dos viewers | `HudAnimationPanel.IsVisible`, botão |
-| 5 | Itens e bateria | pega a pilha, segura (1), usa e vê a barra encher; mira na caixa INDISPONÍVEL | inventário, `IsHoveredBlocked` |
+| 4 | Chat | esconde e mostra o chat (C); acha o botão escondido (o botão vermelho do puzzle de luz, atrás do armário) com dicas do chat | `HudAnimationPanel.IsVisible`, botão |
+| 5 | Itens e bateria | pega a pilha, segura (1), usa e vê a barra encher; mira na caixa INDISPONÍVEL (o marcador dela só aparece com a mira em cima, sem o "PEGAR" fantasma ao chegar perto: `revealDistance` 0,01 só nesta cena) | inventário, `IsHoveredBlocked` |
 | 6 | Portas | porta travada chacoalha; abre a outra, passa e fecha | `Door.OnDoorBlocked`, `Door.IsClosed` |
 | 7 | Audiência | grava dois objetos até o olho ficar vermelho | `AudienceContributor.HasBeenSeen` |
 | 8 | Missão e puzzle | recebe a missão "Exaustor", esconde/mostra o painel (V), lê título e dica, gira os canos da parede | `PuzzleManagerBase.IsComplete` |
@@ -28,28 +28,36 @@ No fim, um cartão com **Voltar ao menu** e **Jogar de novo**.
 ## Como o tutorial fala e espera
 
 - **Quem ensina:** S4lev, camisolinha, aaaquerodormir e tutujooj, com a mesma grafia da plateia do
-  jogo (`ViewerPopulation`), para não aparecerem duas versões da mesma pessoa no chat.
-- **Nada espera fala.** As falas entram numa fila e saem no ritmo de leitura, mas cada lição confere
-  a ação a todo quadro. O que o jogador fez antes de pedirem também vale (agachar no saguão, ligar a
-  lanterna antes da sala escura, esconder o chat logo ao entrar): a lição passa na hora, e a fala que
-  ensinaria a ação já feita é descartada. A faixa de baixo mostra sempre o que fazer agora.
+  jogo (`ViewerPopulation`), para não aparecerem duas versões da mesma pessoa no chat. No começo os
+  quatro se apresentam e pedem para o jogador prestar atenção no chat.
+- **Quem fala é sorteado por assunto.** Cada assunto (andar, correr, agachar, lanterna, o botão
+  escondido, a caixa INDISPONÍVEL...) é puxado por um dos quatro, sorteado, nunca quem puxou o
+  assunto anterior. Quem começa termina: falas, dicas e comentário final do assunto saem com o mesmo
+  nome (`NewTopic` no diretor). Na despedida os outros três também falam.
+- **Uma frase por mensagem.** Nenhuma frase é cortada entre duas mensagens: cada fala é uma frase
+  curta (até 30 letras, o que cabe com o nome mais comprido sem o chat encolher a fonte). Fala maior
+  avisa no Console ("fala longa para o chat").
+- **Uma sala por vez.** As falas de uma sala só começam quando o jogador entra nela (zona na
+  entrada de cada sala); até lá a faixa diz "A porta abriu! Vá para a próxima sala". E a porta da
+  próxima sala só abre depois que a turma terminou de falar e a última mensagem ficou o tempo de
+  leitura na tela (`OpenNext` → `WaitSpeech`). Assim o jogador não vê fala de bateria na sala do
+  chat, nem fala de uma sala que ainda não abriu.
+- **Ação antecipada vale.** Cada lição confere a ação a todo quadro. O que o jogador fez antes de
+  pedirem (agachar no saguão, ligar a lanterna antes da sala escura, esconder o chat logo ao entrar)
+  passa na hora, e a fala que ensinaria a ação já feita é descartada.
 - **Só quem ensina fala.** A conversa da plateia e as reações automáticas do jogo ficam mudas no
-  tutorial (a fila da `ChatDirector` é esvaziada a cada quadro). Os comentários são da turma, como
-  retorno do que o jogador acabou de fazer.
-- **Ritmo:** a primeira mensagem sai 3 s depois de o jogador nascer (para ele olhar o cenário); depois,
-  no mínimo 4,5 s entre mensagens (0,1 s por letra nas maiores). Comentário de duas lições atrás é
-  descartado. Aviso urgente (golpe do monstro, porta de lição) fura a fila, mas espera a fala em
-  andamento terminar e dá pelo menos 2 s depois da anterior.
-- **Tamanho:** o chat do jogo encolhe a fonte quando o texto passa de duas linhas (uns 45 caracteres
-  com o nome). Fala maior vira várias mensagens: uma frase por mensagem e, se a frase não couber,
-  partes de tamanho parecido, cortando de preferência na vírgula. As partes de uma fala saem sempre
-  juntas (ou a fala inteira é descartada).
-- **Se o jogador empaca,** alguém da turma manda dica, cada vez mais direta (`WaitFor` no diretor; o
-  tempo das dicas só conta depois que as falas pendentes saíram).
+  tutorial (a fila da `ChatDirector` é esvaziada a cada quadro).
+- **Ritmo:** a primeira mensagem sai 3 s depois de o jogador nascer; depois, no mínimo 4,5 s entre
+  mensagens (0,1 s por letra nas maiores). Aviso urgente (golpe do monstro, porta de lição ainda
+  fechada) fura a fila e dá pelo menos 2 s depois da mensagem anterior.
+- **Se o jogador empaca,** quem puxou o assunto manda dicas, cada vez mais diretas, cada uma uma vez
+  só (`WaitFor`; o tempo só conta depois que as falas pendentes saíram).
 - **Faixa de objetivo** no topo da tela, no centro (entre o painel de missões e o REC); na lição de
   doação ela desce para baixo do cartão de doação. Texto comprido encolhe para caber.
-- **Marcas de chão** (fita amarela, "ANDE ATÉ AQUI", "CORRA ATÉ AQUI", "PILHA", o X de gravação, a
-  faixa verde da saída) somem quando a etapa delas termina (`TutorialFloorHint`).
+- **Marcas e placas somem** quando a etapa delas termina (`TutorialFloorHint`): fita amarela, "ANDE
+  ATÉ AQUI", "CORRA ATÉ AQUI", "PILHA", o X de gravação, a faixa verde da saída, e também as placas
+  de parede de cada lição ("1 · MOVIMENTO", "2 · AGACHAR", DUTO/MESA/GRADE, "6 · PORTAS", "QUADRO DE
+  LUZ"...). "PALCO PRINCIPAL" fica, é cenário.
 - **No tutorial ninguém morre:** depois de cada golpe o jogador é curado, e no terceiro golpe da fuga
   ela recomeça do início do corredor.
 
@@ -142,7 +150,7 @@ O nome começa com `Game0` de propósito: chat, barra de audiência, REC e músi
 - Testado no Editor com um bot que joga pelo `InputReader`: Play direto na cena, do começo ao fim, com
   as duas grades de canos. O caminho Bootstrap → menu → TUTORIAL → voltar ao menu → partida LAN foi
   testado na versão anterior (o código de rede não mudou depois). Não testado em build.
-- O jogador não sobe no palco (0,45 m): para chegar à porta da fuga ele dá a volta pela lateral.
+- O palco (0,9 m, apoiado no piso) tem uma escadinha na frente (`SM_Stair`). O monstro é solto no chão, ao lado do palco, perto da porta da fuga.
 
 ## Achados no jogo (não corrigidos)
 

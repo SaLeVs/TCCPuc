@@ -41,14 +41,14 @@ namespace Network
             if (playerName.Length < minCharacterLength)
             {
                 errorMessage.SetActive(true);
-                errorMessageText.text = $"O nome precisa ter pelo menos {minCharacterLength} caracteres.";
+                errorMessageText.text = "Um nome maior\npor favor...";
                 return;
             }
 
             if (playerName.Length > maxCharacterLength)
             {
                 errorMessage.SetActive(true);
-                errorMessageText.text = $"O nome pode ter no máximo {maxCharacterLength} caracteres.";
+                errorMessageText.text = "Um nome menor\npor favor...";
                 return;
             }
 

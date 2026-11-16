@@ -152,7 +152,18 @@ mas não o nome: renomeada para `Tutorial`, a cena perde o chat e o botão do me
 - Testado no Editor com um bot que joga pelo `InputReader`: Play direto na cena, do começo ao fim, com
   as duas grades de canos. O caminho Bootstrap → menu → TUTORIAL → voltar ao menu → partida LAN foi
   testado na versão anterior (o código de rede não mudou depois). Não testado em build.
-- O palco é o `SM_Stage` do jogo (60%, 0,9 m, apoiado no piso), virado para a plateia como na Game: frente curva com as escadas dos cantos, colisão pela própria malha. As caixas de som grandes ficam nas marcas de fita do fundo. O monstro é solto no chão, ao lado do palco, perto da porta da fuga.
+- O palco é o `SM_Stage` do jogo (60%, 0,9 m, apoiado no piso), virado para a plateia como na Game: frente curva com as escadas dos cantos, colisão pela própria malha. As laterais (que na Game encostam nas paredes e não têm face) ganharam painel de madeira (`M_GroundHallway`, tábuas deitadas) com friso e rodapé. As caixas de som grandes ficam nas marcas de fita do fundo. O monstro é solto no chão, ao lado do palco, perto da porta da fuga.
+
+## Mudanças no jogo (pedidas pelo usuário)
+
+- `HudPanelHeightFitter` ganhou `foldWhenEmpty` (ligado no `MissionHolder` do `Player.prefab`): sem
+  missão na lista, o painel de missões fica na forma dobrada, rente ao título, em vez de deixar a
+  faixa da moldura embaixo. Apertar V com a lista vazia não muda nada na tela; a primeira missão
+  abre o painel (se o jogador não tiver escondido). Vale para a partida também.
+- Contador de espectadores (`ChatBar/TitleView/Panel` no `Player.prefab`): a forma aberta e a
+  fechada estavam trocadas. Agora, com o chat aberto, a caixa ocupa a largura da moldura, encostada
+  no canto esquerdo; com o chat fechado (C), encolhe para a ponta direita, ao lado da barra de
+  audiência. Só dados do prefab (offset do `Panel` e o `left` da linha dele no `HudAnimationPanel`).
 
 ## Achados no jogo (não corrigidos)
 

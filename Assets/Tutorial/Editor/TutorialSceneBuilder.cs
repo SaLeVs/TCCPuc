@@ -728,6 +728,8 @@ namespace Tutorial.Building
                 GameObjectUtility.SetStaticEditorFlags(stageMesh.gameObject, StaticEditorFlags.NavigationStatic);
             }
 
+            StageSides(room, RendererBounds(stage), stageTop);
+
             foreach (float x in new[] { -4f, 0f, 4f })
             {
                 Fit(Spawn(room, S + "SM_Stage_Wall_V2.prefab", 0f), new Vector3(x, 0f, 159.55f));
@@ -1658,15 +1660,50 @@ namespace Tutorial.Building
             return go;
         }
 
+        /// <summary>
+        /// Acabamento das laterais do palco. Na Game o SM_Stage encosta nas paredes do auditório e não
+        /// tem face nos lados: aqui, solto na sala, dava para ver por baixo dele. Cada lado, da escada
+        /// do canto até o fundo, ganha um painel na madeira do piso do corredor, com friso em cima e
+        /// rodapé embaixo.
+        /// </summary>
+        private static void StageSides(Transform room, Bounds stage, float stageTop)
+        {
+            // Atrás da escada do canto o palco já tem altura cheia: 3,44 m depois da frente (escala 60%).
+            const float stairBack = 3.44f;
+            const float panel = 0.04f;
+
+            Material wood = AssetDatabase.LoadAssetAtPath<Material>("Assets/Materials/Scenary/Hallway/Ground/M_GroundHallway.mat");
+            float zFrom = stage.min.z + stairBack;
+            float zTo = stage.max.z;
+            float length = zTo - zFrom;
+            float zMid = (zFrom + zTo) * 0.5f;
+
+            foreach (float side in new[] { -1f, 1f })
+            {
+                float edge = side > 0f ? stage.max.x : stage.min.x;
+                string name = side > 0f ? "direita" : "esquerda";
+
+                Box(room, $"Palco · lateral {name}", new Vector3(edge + side * panel * 0.5f, 0f, zMid),
+                    new Vector3(panel, stageTop, length), wood, _layerGround, true, 1f, true);
+
+                // Friso: passa um pouco do painel e cobre a quina de cima.
+                Box(room, $"Palco · friso {name}", new Vector3(edge + side * 0.04f, stageTop - 0.05f, zMid),
+                    new Vector3(0.08f, 0.07f, length + 0.04f), wood, _layerGround, false, 1f, true);
+
+                Box(room, $"Palco · rodapé {name}", new Vector3(edge + side * 0.035f, 0f, zMid),
+                    new Vector3(0.07f, 0.09f, length), wood, _layerGround, false, 1f, true);
+            }
+        }
+
         /// <summary>Caixa visível dada pelo centro da base, com UV em metros (marcas no chão, botão).</summary>
-        private static GameObject Box(Transform parent, string name, Vector3 bottomCenter, Vector3 size, Material material, int layer, bool collider = true)
+        private static GameObject Box(Transform parent, string name, Vector3 bottomCenter, Vector3 size, Material material, int layer, bool collider = true, float uvMeters = UvMeters, bool swapUv = false)
         {
             GameObject go = new GameObject(name);
             go.transform.SetParent(parent, false);
             go.transform.localPosition = bottomCenter + Vector3.up * (size.y * 0.5f);
             go.layer = layer;
 
-            go.AddComponent<MeshFilter>().sharedMesh = BoxMesh(size);
+            go.AddComponent<MeshFilter>().sharedMesh = BoxMesh(size, uvMeters, swapUv);
             go.AddComponent<MeshRenderer>().sharedMaterial = material;
 
             if (collider)
@@ -1681,9 +1718,9 @@ namespace Tutorial.Building
 
         private const float UvMeters = 2.5f;
 
-        private static Mesh BoxMesh(Vector3 size)
+        private static Mesh BoxMesh(Vector3 size, float uvMeters = UvMeters, bool swapUv = false)
         {
-            string key = $"{size.x:0.###}x{size.y:0.###}x{size.z:0.###}";
+            string key = $"{size.x:0.###}x{size.y:0.###}x{size.z:0.###}" + (Mathf.Approximately(uvMeters, UvMeters) ? "" : $"@{uvMeters:0.###}") + (swapUv ? "r" : "");
             if (Meshes.TryGetValue(key, out Mesh cached)) return cached;
 
             Vector3 h = size * 0.5f;
@@ -1706,12 +1743,13 @@ namespace Tutorial.Building
 
                 for (int i = 0; i < 4; i++) normals.Add(normal);
 
-                float uw = width / UvMeters;
-                float vh = height / UvMeters;
-                uvs.Add(new Vector2(0f, 0f));
-                uvs.Add(new Vector2(uw, 0f));
-                uvs.Add(new Vector2(uw, vh));
-                uvs.Add(new Vector2(0f, vh));
+                float uw = width / uvMeters;
+                float vh = height / uvMeters;
+                // swapUv deita a textura (tábuas do piso correndo ao longo da peça, e não em pé).
+                uvs.Add(swapUv ? new Vector2(0f, 0f) : new Vector2(0f, 0f));
+                uvs.Add(swapUv ? new Vector2(0f, uw) : new Vector2(uw, 0f));
+                uvs.Add(swapUv ? new Vector2(vh, uw) : new Vector2(uw, vh));
+                uvs.Add(swapUv ? new Vector2(vh, 0f) : new Vector2(0f, vh));
 
                 triangles.Add(start);
                 triangles.Add(start + 2);

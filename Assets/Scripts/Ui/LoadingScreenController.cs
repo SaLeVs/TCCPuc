@@ -40,9 +40,21 @@ public class LoadingScreenController : MonoBehaviour
 
     private IEnumerator Start()
     {
-        // Comeca a carregar a proxima cena em segundo plano, mas sem ativar ainda
-        AsyncOperation op = SceneManager.LoadSceneAsync(nextSceneName);
-        op.allowSceneActivation = false;
+        // Comeca a carregar a proxima cena em segundo plano, mas sem ativar ainda.
+        // Sem cena (campo vazio), a tela so faz o efeito: outra parte do jogo troca de cena.
+        AsyncOperation op = null;
+        if (!string.IsNullOrEmpty(nextSceneName))
+        {
+            if (Application.CanStreamedLevelBeLoaded(nextSceneName))
+            {
+                op = SceneManager.LoadSceneAsync(nextSceneName);
+                op.allowSceneActivation = false;
+            }
+            else
+            {
+                Debug.LogWarning($"LoadingScreenController: a cena '{nextSceneName}' não está na build; a tela só mostra o efeito.", this);
+            }
+        }
 
         // Tela comeca preta e faz fade in
         SetFade(1f);
@@ -80,6 +92,8 @@ public class LoadingScreenController : MonoBehaviour
 
             yield return null;
         }
+
+        if (op == null) yield break;
 
         // Garante que a cena ja terminou de carregar (o progress para em 0.9)
         while (op.progress < 0.9f)

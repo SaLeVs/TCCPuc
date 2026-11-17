@@ -108,6 +108,11 @@ namespace Network
         {
             try
             {
+                // Without a Vivox login the device does not exist yet and every call fails
+                // asynchronously ("Target Object Does Not Exist"), past this try. The level is
+                // applied again right after the login.
+                if (VivoxService.Instance == null || !VivoxService.Instance.IsLoggedIn) return;
+
                 volume = Clamp(volume);
                 if (VivoxService.Instance.InputDeviceVolume != volume) VivoxService.Instance.SetInputDeviceVolume(volume);
             }

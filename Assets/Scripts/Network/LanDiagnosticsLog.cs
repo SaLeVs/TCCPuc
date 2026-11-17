@@ -198,6 +198,9 @@ namespace Network
                 ProbePortIfChanged(nm);
             }
 
+            WatchSceneEvents(nm);
+            RunPendingDoorSnapshots();
+
             if (nm.IsListening != _wasListening)
             {
                 _wasListening = nm.IsListening;
@@ -262,7 +265,121 @@ namespace Network
             Write("ERROR", $"FALHA DE TRANSPORTE. {DescribeState(_subscribedManager)} | Porta livre agora? {ProbeUdpPort(CurrentPort(_subscribedManager))}");
         }
 
-        private void OnDestroy() => Unsubscribe();
+        private void OnDestroy()
+        {
+            Unsubscribe();
+            if (_watchedSceneManager != null) _watchedSceneManager.OnSceneEvent -= OnSceneEvent;
+        }
+
+        // ---------------------------------------------------------------- portas
+
+        // Fotos das portas depois de cada cena carregada pela rede: logo depois e de novo mais tarde,
+        // porque as salas sorteadas (com as portas delas) nascem alguns segundos depois da cena.
+        private static readonly float[] DoorSnapshotDelays = { 3f, 15f };
+
+        private NetworkSceneManager _watchedSceneManager;
+        private readonly System.Collections.Generic.List<(float time, string reason)> _pendingDoorSnapshots =
+            new System.Collections.Generic.List<(float, string)>();
+
+        private void WatchSceneEvents(NetworkManager nm)
+        {
+            NetworkSceneManager sm = nm.IsListening ? nm.SceneManager : null;
+            if (sm == _watchedSceneManager) return;
+
+            if (_watchedSceneManager != null) _watchedSceneManager.OnSceneEvent -= OnSceneEvent;
+            _watchedSceneManager = sm;
+            if (sm != null) sm.OnSceneEvent += OnSceneEvent;
+        }
+
+        private void OnSceneEvent(SceneEvent e)
+        {
+            NetworkManager nm = _subscribedManager;
+            if (nm == null) return;
+
+            // Só os eventos desta máquina: o host também recebe os dos clientes.
+            bool mine = e.ClientId == nm.LocalClientId;
+
+            switch (e.SceneEventType)
+            {
+                case SceneEventType.LoadEventCompleted:
+                    Write("NET", $"Cena '{e.SceneName}' carregada em todos. Faltaram: {(e.ClientsThatTimedOut?.Count > 0 ? string.Join(",", e.ClientsThatTimedOut) : "ninguém")}");
+                    ScheduleDoorSnapshots($"cena {e.SceneName}");
+                    break;
+                case SceneEventType.SynchronizeComplete when mine || nm.IsServer:
+                    Write("NET", $"Sincronização inicial concluída (cliente {e.ClientId}).");
+                    if (mine) ScheduleDoorSnapshots("sincronização inicial");
+                    break;
+                case SceneEventType.LoadComplete when mine:
+                    Write("NET", $"Cena '{e.SceneName}' carregada aqui.");
+                    break;
+            }
+        }
+
+        private void ScheduleDoorSnapshots(string reason)
+        {
+            // Fotos pendentes da cena anterior já não valem.
+            _pendingDoorSnapshots.Clear();
+
+            foreach (float delay in DoorSnapshotDelays)
+            {
+                _pendingDoorSnapshots.Add((Time.realtimeSinceStartup + delay, $"{reason}, +{delay:0}s"));
+            }
+        }
+
+        private void RunPendingDoorSnapshots()
+        {
+            for (int i = _pendingDoorSnapshots.Count - 1; i >= 0; i--)
+            {
+                if (Time.realtimeSinceStartup < _pendingDoorSnapshots[i].time) continue;
+
+                string reason = _pendingDoorSnapshots[i].reason;
+                _pendingDoorSnapshots.RemoveAt(i);
+                WriteDoorSnapshot(reason);
+            }
+        }
+
+        /// <summary>
+        /// Uma linha por porta: id de rede, se está spawnada, posição no mundo e caminho na hierarquia.
+        /// Comparando o arquivo do host com o do cliente dá para ver porta fora do lugar (ex.: no palco,
+        /// perto da origem), porta que só existe de um lado ou porta que nunca spawnou.
+        /// </summary>
+        private void WriteDoorSnapshot(string reason)
+        {
+            try
+            {
+                var doors = FindObjectsByType<NetworkBehaviour>(FindObjectsInactive.Include, FindObjectsSortMode.None)
+                    .Where(b => b != null && b.GetType().Name == "Door")
+                    .OrderBy(b => HierarchyPath(b.transform))
+                    .ToArray();
+
+                int notSpawned = doors.Count(d => !d.IsSpawned);
+                var sb = new StringBuilder();
+                sb.Append($"Portas ({reason}): {doors.Length} no total, {notSpawned} sem spawn.");
+
+                foreach (NetworkBehaviour d in doors)
+                {
+                    Vector3 p = d.transform.position;
+                    string id = d.IsSpawned ? $"#{d.NetworkObjectId}/{d.NetworkBehaviourId}" : "SEM SPAWN";
+                    string near = p.sqrMagnitude < 4f ? "  << PERTO DA ORIGEM" : "";
+                    string pos = string.Format(System.Globalization.CultureInfo.InvariantCulture,
+                        "({0,7:0.00}, {1,6:0.00}, {2,7:0.00})", p.x, p.y, p.z);
+                    sb.Append($"\n    {id,-12} {pos}  {HierarchyPath(d.transform)}{near}");
+                }
+
+                Write(notSpawned > 0 ? "WARNING" : "DOORS", sb.ToString());
+            }
+            catch (Exception e)
+            {
+                Write("WARNING", $"Não deu para listar as portas: {e.Message}");
+            }
+        }
+
+        private static string HierarchyPath(Transform t)
+        {
+            var sb = new StringBuilder(t.name);
+            for (Transform p = t.parent; p != null; p = p.parent) sb.Insert(0, p.name + "/");
+            return $"{t.gameObject.scene.name}:{sb}";
+        }
 
         // ---------------------------------------------------------------- porta
 

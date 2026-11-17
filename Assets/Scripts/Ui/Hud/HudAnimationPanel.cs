@@ -1,8 +1,10 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using Enums;
 using UnityEngine;
 using UnityEngine.Events;
+using UnityEngine.SceneManagement;
 
 namespace Ui
 {
@@ -71,6 +73,11 @@ namespace Ui
         [Header("Start")]
         [SerializeField] private bool visibleOnStart = true;
 
+        [Tooltip("Starts folded outside the match scenes (the lobby), whatever visibleOnStart says. " +
+                 "Decided in Awake with everything else, so the panel is born closed instead of " +
+                 "being shown and folded away a moment later.")]
+        [SerializeField] private bool hiddenOutsideGame;
+
         [Header("Events")]
         [Tooltip("Fires with the new state the moment the panel is told to change, not when the " +
                  "animation lands. Drop things like DonationUiController.SetCompact in here.")]
@@ -97,7 +104,8 @@ namespace Ui
                 move.shownMax = move.target.offsetMax;
             }
 
-            SetVisible(visibleOnStart, true);
+            bool outsideGame = !SceneNames.IsGame(SceneManager.GetActiveScene().name);
+            SetVisible(visibleOnStart && !(hiddenOutsideGame && outsideGame), true);
         }
 
         public void Show() => SetVisible(true);

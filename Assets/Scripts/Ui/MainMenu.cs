@@ -13,7 +13,6 @@ namespace UI
     {
         [SerializeField] private TMP_InputField lobbyCodeInputField;
         [SerializeField] private GameObject lobbyPanel;
-        [SerializeField] private GameObject joinPanel;
         [SerializeField] private GameObject onlinePanel;
         [SerializeField] private GameObject lanPanel;
         [SerializeField] private GameObject menuPanel;
@@ -53,7 +52,12 @@ namespace UI
 
             if (onlineNotice != null) onlineNotice.Closed += RefreshLock;
             if (lanNotice != null) lanNotice.Closed += RefreshLock;
+
+            // Enter in the code field does what the ENTRAR mirror next to it does.
+            if (lobbyCodeInputField != null) lobbyCodeInputField.onSubmit.AddListener(LobbyCode_OnSubmit);
         }
+
+        private void LobbyCode_OnSubmit(string _) => JoinLobby();
 
         private void OnEnable()
         {
@@ -282,11 +286,6 @@ namespace UI
             if (onlineNotice != null) onlineNotice.Hide();
             if (lanNotice != null) lanNotice.Hide();
             RefreshLock();
-        }
-
-        public void ToggleLobbyPanel()
-        {
-            joinPanel.SetActive(!joinPanel.activeSelf);
         }
 
         public void OpenOnlinePanel()

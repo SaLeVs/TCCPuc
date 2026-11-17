@@ -1,0 +1,34 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4291d0ec521026741a70ee8ae48becd1, type: 3}
+  m_Name: TutorialDonation
+  m_EditorClassIdentifier: Missions::Missions.Donations.DonationDefinition
+  donationId: tutorial_record
+  displayName: Grave o monstro
+  message: Grava o monstro 5 segundinhos pra mim, por favor!
+  icon: {fileID: 21300000, guid: 9b45a0dc6acc08f4b903d3f4c977a5ce, type: 3}
+  category: 0
+  targetType: 3
+  requiredRecordingSeconds: 5
+  micActionId: default
+  requiredSpeechSeconds: 3
+  minAmountMoney: 50
+  maxAmountMoney: 50
+  durationSeconds: 0
+  triggerRule:
+    viewerInfluenceWeight: 0.5
+    randomWeight: 0.5
+    minViewersRequired: 2147483647
+    maxViewersConsidered: 500
+    baseChance: 0
+    cooldownSeconds: 100000
+  fakeDonorNames: {fileID: 11400000, guid: 1fa2401af5784f2eccbfc3bb7d7d813c, type: 2}

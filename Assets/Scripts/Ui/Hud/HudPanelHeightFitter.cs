@@ -34,8 +34,15 @@ namespace Ui
         [Tooltip("What folds the panel away. Empty means the HudAnimationPanel on this object, if any.")]
         [SerializeField] private HudAnimationPanel foldingPanel;
 
+        [Tooltip("With nothing in the list, the panel takes the folding panel's folded shape (closed " +
+                 "round the title, as if hidden) while still counting as shown. Needs a folding panel.")]
+        [SerializeField] private bool foldWhenEmpty;
+
         private float _aroundContent;
         private float _authoredHeight;
+
+        // The folded shape was put on because the list was empty, not by the folding panel.
+        private bool _foldedForEmpty;
 
         // Per folding row: the bottom (x) and top (y) travel as authored.
         private Vector2[] _authoredTravel;
@@ -62,6 +69,12 @@ namespace Ui
 
         private void LateUpdate()
         {
+            FitHeight();
+            FoldWhileEmpty();
+        }
+
+        private void FitHeight()
+        {
             // Held while folded away: the folding panel only puts its shapes back while it animates,
             // so a height change now would drag the folded shape out of place. It catches up the
             // moment the panel starts coming back.
@@ -78,6 +91,53 @@ namespace Ui
 
             panel.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, height);
             KeepFoldedShape(height - _authoredHeight);
+        }
+
+        /// <summary>
+        /// An empty list would still leave the frame's own border as a strip under the title, so
+        /// with nothing in it the panel wears its folded shape instead - set after the folding
+        /// panel's animation each frame, so showing or hiding it while empty changes nothing on
+        /// screen. The first row brings the shown shape back, unless the player has folded the
+        /// panel away meanwhile: then it already holds the folded shape it should.
+        /// </summary>
+        private void FoldWhileEmpty()
+        {
+            if (!foldWhenEmpty || foldingPanel == null || content == null) return;
+
+            if (!HasRows())
+            {
+                ApplyShape(1f);
+                _foldedForEmpty = true;
+                return;
+            }
+
+            if (!_foldedForEmpty) return;
+
+            _foldedForEmpty = false;
+            if (foldingPanel.IsVisible) ApplyShape(0f);
+        }
+
+        // Counted by activeSelf, not by layout: a row added under a folded-away parent still counts.
+        private bool HasRows()
+        {
+            foreach (Transform row in content)
+            {
+                if (row.gameObject.activeSelf) return true;
+            }
+
+            return false;
+        }
+
+        // 0 is the shown shape, 1 the folded one - the same sum the folding panel itself uses.
+        private void ApplyShape(float folded)
+        {
+            foreach (HudAnimationPanel.Move move in foldingPanel.Moves)
+            {
+                if (move?.target == null) continue;
+
+                move.target.offsetMin = move.shownMin + new Vector2(move.left, move.bottom) * folded;
+                move.target.offsetMax = move.shownMax + new Vector2(move.right, move.top) * folded;
+            }
         }
 
         /// <summary>

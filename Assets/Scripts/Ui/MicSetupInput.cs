@@ -71,6 +71,12 @@ namespace Ui
         public float LevelDb { get; private set; } = -120f;
         public float Peak { get; private set; }
 
+        /// <summary>The looping one-second recording, or null while stopped.</summary>
+        public AudioClip Clip => _clip;
+
+        /// <summary>Where the recording is writing in <see cref="Clip"/>, in samples.</summary>
+        public int Position => _clip != null ? Microphone.GetPosition(_device) : -1;
+
         public void Start(string deviceName, float windowSeconds)
         {
             Stop();
@@ -149,8 +155,9 @@ namespace Ui
     }
 
     /// <summary>
-    /// The real one: the microphone read directly for the bar, and the mic test's echo channel joined
-    /// the whole time so the player can hear themselves and Vivox reports what the game reads.
+    /// The real one: the microphone read directly for the bar and played back locally for the player
+    /// to hear themselves, and the mic test's echo channel joined the whole time so Vivox reports what
+    /// the game reads. The echo itself stays muted: it comes back from the server about a second late.
     /// </summary>
     public class VivoxMicSetupInput : IMicSetupInput
     {
@@ -162,6 +169,7 @@ namespace Ui
         private readonly float _windowSeconds;
         private bool _begun;
         private bool _outputWasMuted;
+        private MicMonitor _monitor;
 
         public VivoxMicSetupInput(VivoxManager vivox, float windowSeconds)
         {
@@ -191,10 +199,22 @@ namespace Ui
             VivoxService.Instance.AvailableInputDevicesChanged += VivoxService_OnAvailableInputDevicesChanged;
 
             _microphone.Start(CurrentDevice, _windowSeconds);
+            _monitor = MicMonitor.Create(() => _microphone.Clip, () => _microphone.Position);
+            _monitor.SetLevel(MicSettings.CurrentInputVolume);
+
+            // Vivox's echo would arrive on top of the local one, a second late.
+            SetMuted(true);
             _vivox.EnterTestVoiceChannel();
         }
 
-        public void Tick() => _microphone.Read();
+        public void Tick()
+        {
+            _microphone.Read();
+
+            // Held every frame, not set once: the echo channel is joined asynchronously after Begin,
+            // and nothing here gets to know if Vivox reopens its output on the way in.
+            SetMuted(true);
+        }
 
         public void End()
         {
@@ -204,6 +224,8 @@ namespace Ui
             VivoxService.Instance.EffectiveInputDeviceChanged -= VivoxService_OnEffectiveInputDeviceChanged;
             VivoxService.Instance.AvailableInputDevicesChanged -= VivoxService_OnAvailableInputDevicesChanged;
 
+            if (_monitor != null) UnityEngine.Object.Destroy(_monitor.gameObject);
+            _monitor = null;
             _microphone.Stop();
 
             // Even mid-join: the walk towards the echo channel turns around, and the mic is never left
@@ -213,7 +235,11 @@ namespace Ui
             SetMuted(_outputWasMuted);
         }
 
-        public void SetVolume(int volume) => MicSettings.ApplyVolume(volume);
+        public void SetVolume(int volume)
+        {
+            MicSettings.ApplyVolume(volume);
+            _monitor?.SetLevel(MicSettings.Clamp(volume));
+        }
 
         public void Save(int volume, int listenerTrim)
         {
@@ -225,12 +251,12 @@ namespace Ui
         public void RestoreSaved() => MicSettings.ApplyToCurrentDevice();
 
         /// <summary>
-        /// Vivox's output carries the echo; the sheet comes before the menu's lobby, so nothing else is
-        /// muted with it. A player who had it muted keeps it muted.
+        /// The local playback, not Vivox's echo: that one stays muted for the whole sheet. A player who
+        /// had Vivox's output muted hears nothing here either.
         /// </summary>
         public void SetHearSelf(bool hear)
         {
-            if (_begun) SetMuted(!hear || _outputWasMuted);
+            if (_monitor != null) _monitor.Listening = hear && !_outputWasMuted;
         }
 
         public async Task SelectDevice(string deviceName)

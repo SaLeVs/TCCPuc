@@ -17,7 +17,16 @@ namespace UI
 
         private void PlayerSpectatorController_OnTargetChanged(string playerName)
         {
-            playerNameText.text = playerName;
+            // Nobody being watched: no label at all.
+            if (playerName == null)
+            {
+                playerNameText.text = string.Empty;
+                return;
+            }
+
+            // The name can still be on its way over the network; same placeholder as the player list.
+            string shownName = string.IsNullOrWhiteSpace(playerName) ? "..." : playerName;
+            playerNameText.text = $"Assistindo: <noparse>{shownName}</noparse>";
         }
         
         public void NextPlayerButton()

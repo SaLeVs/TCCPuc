@@ -123,6 +123,10 @@ namespace UI
         
         private void OnDisable()
         {
+            // The slots' volume and mute only write to PlayerPrefs in memory; leaving the lobby,
+            // or the match starting, is when they are done moving.
+            PlayerPrefs.Save();
+
             Lobby.instance.OnJoinedLobby -= LobbyManager_OnPlayerJoinedInLobby;
             Lobby.instance.OnLobbyUpdated -= LobbyManager_OnLobbyRefresh;
         }

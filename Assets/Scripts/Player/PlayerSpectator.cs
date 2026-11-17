@@ -3,6 +3,7 @@ using System.Collections;
 using Enums;
 using System.Collections.Generic;
 using Unity.Cinemachine;
+using Unity.Collections;
 using Unity.Netcode;
 using UnityEngine;
 
@@ -10,6 +11,11 @@ namespace Player
 {
     public class PlayerSpectator : NetworkBehaviour
     {
+        /// <summary>
+        /// The name of the player being watched, raised again whenever that name changes (it may
+        /// replicate after the target was picked, arriving empty first). Null when nobody is being
+        /// watched anymore.
+        /// </summary>
         public event Action<string> OnTargetChanged;
 
         [SerializeField] private PlayerState playerState;
@@ -24,6 +30,7 @@ namespace Player
         private const int SPECTATOR_PRIORITY = 20;
         private Coroutine _spectatorCoroutine;
         private PlayerState _currentTargetState;
+        private PlayerInfos _watchedInfos;
 
         
         public override void OnNetworkSpawn()
@@ -104,6 +111,7 @@ namespace Player
             if (playerState.HasWon)
             {
                 playerState.SetSpectatorMode(true);
+                ShowTargetName(null);
                 return;
             }
 
@@ -121,6 +129,34 @@ namespace Player
 
             _currentTargetVCam = null;
             _currentTargetState = null;
+            ShowTargetName(null);
+        }
+
+        /// <summary>
+        /// Follows the watched player's name, so the label fills in once it replicates.
+        /// </summary>
+        private void ShowTargetName(PlayerInfos infos)
+        {
+            if (_watchedInfos != null)
+            {
+                _watchedInfos.PlayerName.OnValueChanged -= WatchedPlayer_OnNameChanged;
+            }
+
+            _watchedInfos = infos;
+
+            if (_watchedInfos == null)
+            {
+                OnTargetChanged?.Invoke(null);
+                return;
+            }
+
+            _watchedInfos.PlayerName.OnValueChanged += WatchedPlayer_OnNameChanged;
+            OnTargetChanged?.Invoke(_watchedInfos.PlayerName.Value.ToString());
+        }
+
+        private void WatchedPlayer_OnNameChanged(FixedString32Bytes oldName, FixedString32Bytes newName)
+        {
+            OnTargetChanged?.Invoke(newName.ToString());
         }
 
         private void RefreshAliveList()
@@ -189,8 +225,12 @@ namespace Player
 
             ulong targetId = _alivePlayerIds[index];
 
-            if (!NetworkManager.Singleton.ConnectedClients.TryGetValue(targetId, out NetworkClient client) 
-                || client.PlayerObject == null) return;
+            if (!NetworkManager.Singleton.ConnectedClients.TryGetValue(targetId, out NetworkClient client)
+                || client.PlayerObject == null)
+            {
+                ShowTargetName(null);
+                return;
+            }
 
             if (client.PlayerObject.TryGetComponent(out PlayerState targetState))
             {
@@ -201,7 +241,7 @@ namespace Player
                 _currentTargetState.SetOcclusionVisible(false);
             }
 
-            OnTargetChanged?.Invoke($"Jogador {targetId}");
+            ShowTargetName(targetState != null ? targetState.PlayerInfos : null);
         }
 
         
@@ -215,7 +255,13 @@ namespace Player
             }
             
             _currentTargetState?.SetOcclusionVisible(true);
-            
+
+            if (_watchedInfos != null)
+            {
+                _watchedInfos.PlayerName.OnValueChanged -= WatchedPlayer_OnNameChanged;
+                _watchedInfos = null;
+            }
+
             playerState.OnPlayerDead -= PlayerState_OnDeathChanged;
             playerState.OnPlayerWon -= PlayerState_OnPlayerWon;
         }

@@ -271,6 +271,8 @@ namespace Ui
         {
             try
             {
+                // Logged out, the call fails asynchronously, outside this try.
+                if (!VivoxService.Instance.IsLoggedIn) return;
                 if (muted == VivoxService.Instance.IsOutputDeviceMuted) return;
 
                 if (muted) VivoxService.Instance.MuteOutputDevice();

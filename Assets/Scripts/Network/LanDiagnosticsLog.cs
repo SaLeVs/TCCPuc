@@ -45,6 +45,24 @@ namespace Network
             GameObject go = new GameObject("[LanDiagnosticsLog]") { hideFlags = HideFlags.HideAndDontSave };
             DontDestroyOnLoad(go);
             _instance = go.AddComponent<LanDiagnosticsLog>();
+
+            UnityEngine.SceneManagement.SceneManager.sceneLoaded += (scene, _) => RecordScenePlacedDoors(scene);
+        }
+
+        // Posição de cada porta de cena logo que a cena carrega, antes da rede mexer nela. Se a foto
+        // depois mostrar a porta em outro lugar, foi a sincronização que a moveu.
+        private static readonly System.Collections.Generic.Dictionary<int, Vector3> SceneDoorPositions =
+            new System.Collections.Generic.Dictionary<int, Vector3>();
+
+        private static void RecordScenePlacedDoors(UnityEngine.SceneManagement.Scene scene)
+        {
+            foreach (GameObject root in scene.GetRootGameObjects())
+            {
+                foreach (NetworkBehaviour b in root.GetComponentsInChildren<NetworkBehaviour>(true))
+                {
+                    if (b.GetType().Name == "Door") SceneDoorPositions[b.GetInstanceID()] = b.transform.position;
+                }
+            }
         }
 
         // ---------------------------------------------------------------- arquivo
@@ -58,7 +76,9 @@ namespace Network
             {
                 PruneOldFiles(dir);
 
-                FilePath = Path.Combine(dir, $"lan_{DateTime.Now:yyyy-MM-dd_HH-mm-ss}_{Environment.MachineName}.log");
+                // O id do processo evita que duas cópias abertas no mesmo segundo dividam o arquivo.
+                FilePath = Path.Combine(dir,
+                    $"lan_{DateTime.Now:yyyy-MM-dd_HH-mm-ss}_{Environment.MachineName}_{System.Diagnostics.Process.GetCurrentProcess().Id}.log");
                 _writer = new StreamWriter(FilePath, false, new UTF8Encoding(false)) { AutoFlush = true };
 
                 Application.logMessageReceivedThreaded += OnUnityLog;
@@ -114,6 +134,9 @@ namespace Network
                 try { f.Delete(); } catch { /* em uso por outra instância */ }
             }
         }
+
+        /// <summary>Linha livre no arquivo de diagnóstico.</summary>
+        public static void Note(string message) => Write("TEST", message);
 
         private static void Write(string category, string message)
         {
@@ -352,21 +375,41 @@ namespace Network
                     .OrderBy(b => HierarchyPath(b.transform))
                     .ToArray();
 
+                var ci = System.Globalization.CultureInfo.InvariantCulture;
                 int notSpawned = doors.Count(d => !d.IsSpawned);
+                int moved = 0;
                 var sb = new StringBuilder();
-                sb.Append($"Portas ({reason}): {doors.Length} no total, {notSpawned} sem spawn.");
 
                 foreach (NetworkBehaviour d in doors)
                 {
                     Vector3 p = d.transform.position;
                     string id = d.IsSpawned ? $"#{d.NetworkObjectId}/{d.NetworkBehaviourId}" : "SEM SPAWN";
-                    string near = p.sqrMagnitude < 4f ? "  << PERTO DA ORIGEM" : "";
-                    string pos = string.Format(System.Globalization.CultureInfo.InvariantCulture,
-                        "({0,7:0.00}, {1,6:0.00}, {2,7:0.00})", p.x, p.y, p.z);
-                    sb.Append($"\n    {id,-12} {pos}  {HierarchyPath(d.transform)}{near}");
+                    string flags = "";
+
+                    if (p.sqrMagnitude < 4f) flags += "  << PERTO DA ORIGEM";
+
+                    // Porta de cena: comparada com onde estava ao carregar a cena.
+                    if (SceneDoorPositions.TryGetValue(d.GetInstanceID(), out Vector3 original) && (p - original).sqrMagnitude > 0.25f)
+                    {
+                        moved++;
+                        flags += string.Format(ci, "  << MOVIDA PELA REDE, era ({0:0.00}, {1:0.00}, {2:0.00})", original.x, original.y, original.z);
+                    }
+
+                    // Porta de sala sorteada: não pode estar longe da raiz da sala.
+                    NetworkObject owner = d.NetworkObject;
+                    if (owner != null && owner.transform != d.transform && !owner.IsSceneObject.GetValueOrDefault(true)
+                        && (p - owner.transform.position).sqrMagnitude > 400f)
+                    {
+                        moved++;
+                        flags += "  << LONGE DA SALA DELA";
+                    }
+
+                    string pos = string.Format(ci, "({0,7:0.00}, {1,6:0.00}, {2,7:0.00})", p.x, p.y, p.z);
+                    sb.Append($"\n    {id,-12} {pos}  {HierarchyPath(d.transform)}{flags}");
                 }
 
-                Write(notSpawned > 0 ? "WARNING" : "DOORS", sb.ToString());
+                sb.Insert(0, $"Portas ({reason}): {doors.Length} no total, {notSpawned} sem spawn, {moved} fora do lugar.");
+                Write(notSpawned > 0 || moved > 0 ? "WARNING" : "DOORS", sb.ToString());
             }
             catch (Exception e)
             {

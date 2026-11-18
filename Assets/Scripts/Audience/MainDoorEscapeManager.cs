@@ -1,6 +1,7 @@
 using System.Collections;
 using Audience;
 using Missions;
+using Systems;
 using Unity.AI.Navigation;
 using Unity.Netcode;
 using UnityEngine;
@@ -18,6 +19,9 @@ namespace Audience
         [SerializeField] private string messageForAllObjectivesCompletion;
         [SerializeField] private NavMeshSurface navMeshSurface;
 
+        [Tooltip("Totem dos disquetes. Fica travado até as duas metas; vazio procura na cena.")]
+        [SerializeField] private FloppyDiskTotem floppyDiskTotem;
+
         private static readonly int OpenHash = Animator.StringToHash("Open");
 
         private bool _mainMissionCompleted;
@@ -27,6 +31,8 @@ namespace Audience
         public override void OnNetworkSpawn()
         {
             if (!IsServer) return;
+
+            if (floppyDiskTotem == null) floppyDiskTotem = FindAnyObjectByType<FloppyDiskTotem>();
 
             missionManager.OnMainMissionCompleted += MissionManager_OnMainMissionCompleted;
             audienceManager.OnAudienceThresholdReached += MissionManager_OnAudienceThreshold;
@@ -50,6 +56,9 @@ namespace Audience
 
         private void UpdateObjectiveMessage()
         {
+            if (floppyDiskTotem != null)
+                floppyDiskTotem.SetObjectivesProgress(_mainMissionCompleted, _audienceThresholdReached);
+
             if (_mainMissionCompleted && _audienceThresholdReached)
             {
                 missionManager.SendMessageToAllPlayers(messageForAllObjectivesCompletion);

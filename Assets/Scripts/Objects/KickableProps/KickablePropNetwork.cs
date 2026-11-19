@@ -374,6 +374,9 @@ namespace Objects
                 // A cup rocking on its rim can stay awake for long; past this it is at rest for everyone.
                 if (prop.StillTime >= RestAfter)
                 {
+                    // Sleep keeps the velocity it had, and the body creeps on with it once woken.
+                    body.linearVelocity = Vector3.zero;
+                    body.angularVelocity = Vector3.zero;
                     body.Sleep();
                     sleeping = true;
                 }

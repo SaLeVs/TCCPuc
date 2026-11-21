@@ -24,7 +24,30 @@ public class MirrorMovement : MonoBehaviour
     [Tooltip("Keeps the near plane from collapsing when the viewer presses against the glass.")]
     [SerializeField, Min(0.001f)] private float minNearClip = 0.01f;
 
+    [Header("Performance")]
+    [Tooltip("Beyond this many metres from the mirror the camera stays off.")]
+    [SerializeField, Min(1f)] private float maxViewDistance = 15f;
+
+    [Tooltip("Most refreshes per second while the mirror is seen. 0 = every frame; otherwise never below 60.")]
+    [SerializeField, Min(0)] private int maxRefreshRate;
+
+    [Tooltip("What hides the mirror from the viewer, such as walls and closed doors. Players, props and items are left out so they don't switch the reflection off.")]
+    [SerializeField] private LayerMask occluders = ~(
+        (1 << 1) | (1 << 2) | (1 << 5) | (1 << 6) | (1 << 8) |      // TransparentFX, Ignore Raycast, UI, Body, Interactable
+        (1 << 9) | (1 << 11) | (1 << 12) | (1 << 14) | (1 << 19));  // Monster, Player, DeadPlayer, Recordable, Props
+
+    private const int MinRefreshRate = 60;
+
+    /// <summary>Pulls the sight-line ends off the glass toward the viewer, so the mirror's own collider and its wall don't count.</summary>
+    private const float SampleLift = 0.05f;
+
+    /// <summary>The view was decided before the brain moved it this frame: a margin keeps the mirror from popping in late at the screen edge.</summary>
+    private const float FrustumMargin = 0.5f;
+
+    private readonly Plane[] _frustum = new Plane[6];
+
     private Camera _camera;
+    private float _nextRenderTime;
 
     private void Awake()
     {
@@ -43,6 +66,88 @@ public class MirrorMovement : MonoBehaviour
     {
         RenderPipelineManager.beginCameraRendering -= OnBeginCameraRendering;
         if (_camera != null) _camera.ResetProjectionMatrix();
+    }
+
+    private void OnValidate()
+    {
+        if (maxRefreshRate > 0 && maxRefreshRate < MinRefreshRate) maxRefreshRate = MinRefreshRate;
+    }
+
+    /// <summary>
+    /// The camera only runs while this machine's viewer can see the mirror; otherwise the texture
+    /// keeps its last image and the scene isn't drawn a second time.
+    /// </summary>
+    private void LateUpdate()
+    {
+        bool render = IsSeen() && IsRefreshDue();
+        if (_camera.enabled != render) _camera.enabled = render;
+    }
+
+    private bool IsRefreshDue()
+    {
+        if (maxRefreshRate <= 0) return true;
+
+        float now = Time.unscaledTime;
+
+        // Half a frame of slack: at exactly the cap, frame-time jitter would otherwise skip every other frame.
+        if (now + Time.unscaledDeltaTime * 0.5f < _nextRenderTime) return false;
+
+        _nextRenderTime = Mathf.Max(_nextRenderTime + 1f / Mathf.Max(maxRefreshRate, MinRefreshRate), now);
+        return true;
+    }
+
+    private bool IsSeen()
+    {
+        if (mirror == null || mirrorSurface == null || !mirrorSurface.enabled) return false;
+
+        Camera viewer = Camera.main;
+        if (viewer == null || viewer == _camera) return false;
+
+        Vector3 eye = viewer.transform.position;
+
+        // From behind the glass there is nothing to reflect.
+        if (mirror.InverseTransformPoint(eye).z >= 0f) return false;
+
+        Bounds bounds = mirrorSurface.bounds;
+        if ((bounds.ClosestPoint(eye) - eye).sqrMagnitude > maxViewDistance * maxViewDistance) return false;
+
+        bounds.Expand(FrustumMargin);
+        GeometryUtility.CalculateFrustumPlanes(viewer, _frustum);
+        if (!GeometryUtility.TestPlanesAABB(_frustum, bounds)) return false;
+
+        return HasLineOfSight(eye);
+    }
+
+    /// <summary>Seen when the eye reaches the centre or any corner of the glass without a wall in between.</summary>
+    private bool HasLineOfSight(Vector3 eye)
+    {
+        Bounds local = mirrorSurface.localBounds;
+        Transform surface = mirrorSurface.transform;
+        Vector3 centre = surface.TransformPoint(local.center);
+
+        if (IsClear(eye, centre)) return true;
+
+        for (int i = 0; i < 4; i++)
+        {
+            Vector3 corner = surface.TransformPoint(new Vector3(
+                (i & 1) == 0 ? local.min.x : local.max.x,
+                (i & 2) == 0 ? local.min.y : local.max.y,
+                local.center.z));
+
+            // A little inside the edge, so a frame around the glass doesn't hide it.
+            if (IsClear(eye, Vector3.Lerp(centre, corner, 0.8f))) return true;
+        }
+
+        return false;
+    }
+
+    private bool IsClear(Vector3 eye, Vector3 point)
+    {
+        Vector3 toEye = eye - point;
+        float distance = toEye.magnitude;
+        if (distance <= SampleLift) return true;
+
+        return !Physics.Linecast(eye, point + toEye * (SampleLift / distance), occluders, QueryTriggerInteraction.Ignore);
     }
 
     private void OnBeginCameraRendering(ScriptableRenderContext context, Camera rendering)

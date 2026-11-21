@@ -123,7 +123,6 @@ GameObject:
   m_Component:
   - component: {fileID: 3697285334982921330}
   - component: {fileID: 8118785099497855900}
-  - component: {fileID: 3414210224567985950}
   - component: {fileID: 731606320548908017}
   - component: {fileID: 8794496959665266388}
   m_Layer: 0
@@ -199,14 +198,6 @@ Camera:
   m_OcclusionCulling: 1
   m_StereoConvergence: 10
   m_StereoSeparation: 0.022
---- !u!81 &3414210224567985950
-AudioListener:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 3193498783351923853}
-  m_Enabled: 1
 --- !u!114 &731606320548908017
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -264,6 +255,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Objects::MirrorMovement
   mirror: {fileID: 1632850316585631665}
+  mirrorSurface: {fileID: 9054238905876483037}
+  minNearClip: 0.01
 --- !u!1 &5404009005296419983
 GameObject:
   m_ObjectHideFlags: 0

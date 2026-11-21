@@ -125,6 +125,7 @@ GameObject:
   - component: {fileID: 8118785099497855900}
   - component: {fileID: 3414210224567985950}
   - component: {fileID: 731606320548908017}
+  - component: {fileID: 8794496959665266388}
   m_Layer: 0
   m_Name: MirrorCamera
   m_TagString: Untagged
@@ -250,6 +251,19 @@ MonoBehaviour:
     m_VarianceClampScale: 0.9
     m_ContrastAdaptiveSharpening: 0
   m_Version: 2
+--- !u!114 &8794496959665266388
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3193498783351923853}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e39cacd45c8810143a20a92874f803fb, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Objects::MirrorMovement
+  mirror: {fileID: 1632850316585631665}
 --- !u!1 &5404009005296419983
 GameObject:
   m_ObjectHideFlags: 0
@@ -274,7 +288,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 5404009005296419983}
   serializedVersion: 2
-  m_LocalRotation: {x: -0, y: 0.707107, z: -0, w: 0.70710665}
+  m_LocalRotation: {x: 0, y: 0.7071068, z: 0, w: 0.7071068}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0

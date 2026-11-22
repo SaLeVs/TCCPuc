@@ -67,7 +67,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: e0ec6a6e2eab9aa46bdb62a82b2f1fe8, type: 2}
+  - {fileID: 2100000, guid: 5a07d056de8a42b4b9b0e832a62154d9, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -154,7 +154,7 @@ Camera:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 3193498783351923853}
-  m_Enabled: 1
+  m_Enabled: 0
   serializedVersion: 2
   m_ClearFlags: 1
   m_BackGroundColor: {r: 0.19215687, g: 0.3019608, b: 0.4745098, a: 0}
@@ -178,24 +178,24 @@ Camera:
     y: 0
     width: 1
     height: 1
-  near clip plane: 0.3
-  far clip plane: 1000
+  near clip plane: 0.01
+  far clip plane: 30
   field of view: 60
   orthographic: 0
   orthographic size: 5
-  m_Depth: 0
+  m_Depth: -50
   m_CullingMask:
     serializedVersion: 2
     m_Bits: 1048567
   m_RenderingPath: -1
-  m_TargetTexture: {fileID: 8600000, guid: 2305f7826cf8ca1439c68488147710b5, type: 2}
+  m_TargetTexture: {fileID: 0}
   m_TargetDisplay: 0
   m_TargetEye: 3
   m_HDR: 1
-  m_AllowMSAA: 1
+  m_AllowMSAA: 0
   m_AllowDynamicResolution: 0
   m_ForceIntoRT: 0
-  m_OcclusionCulling: 1
+  m_OcclusionCulling: 0
   m_StereoConvergence: 10
   m_StereoSeparation: 0.022
 --- !u!114 &731606320548908017
@@ -211,11 +211,11 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Unity.RenderPipelines.Universal.Runtime::UnityEngine.Rendering.Universal.UniversalAdditionalCameraData
   m_RenderShadows: 1
-  m_RequiresDepthTextureOption: 2
-  m_RequiresOpaqueTextureOption: 2
+  m_RequiresDepthTextureOption: 0
+  m_RequiresOpaqueTextureOption: 0
   m_CameraType: 0
   m_Cameras: []
-  m_RendererIndex: -1
+  m_RendererIndex: 1
   m_VolumeLayerMask:
     serializedVersion: 2
     m_Bits: 1
@@ -255,8 +255,15 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Objects::MirrorMovement
   mirror: {fileID: 1632850316585631665}
-  mirrorSurface: {fileID: 9054238905876483037}
+  surfaces:
+  - {fileID: 9054238905876483037}
+  resolutionScale: 0.75
   minNearClip: 0.01
+  maxViewDistance: 15
+  maxRefreshRate: 0
+  occluders:
+    serializedVersion: 2
+    m_Bits: 4294419609
 --- !u!1 &5404009005296419983
 GameObject:
   m_ObjectHideFlags: 0

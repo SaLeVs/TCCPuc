@@ -82,6 +82,8 @@ namespace Systems
         [SerializeField] private string readyLabel = "Estou pronto";
         [SerializeField] private string cancelLabel = "Cancelar";
         [SerializeField] private string readyCountFormat = "{0} de {1} prontos";
+        [Tooltip("{0} = current contract, {1} = how many there are.")]
+        [SerializeField] private string contractIndexFormat = "{0} / {1}";
         [SerializeField] private string countdownFormat = "A cortina abre em <size=160%>{0}</size>";
 
         private readonly List<ReadyBoardRosterRow> _rows = new();
@@ -102,8 +104,11 @@ namespace Systems
             SetArrow(previousButton, canPick, several);
             SetArrow(nextButton, canPick, several);
 
-            contractIndexText.text = count > 0 ? $"Contrato {index + 1} de {count}" : string.Empty;
-            pickerHintText.text = !canPick ? clientPickHint : several ? hostPickHint : hostOnlyContractHint;
+            contractIndexText.text = count > 0 ? string.Format(contractIndexFormat, index + 1, count) : string.Empty;
+            if (pickerHintText != null)
+            {
+                pickerHintText.text = !canPick ? clientPickHint : several ? hostPickHint : hostOnlyContractHint;
+            }
             BuildDots(index, count);
 
             if (contract == null)

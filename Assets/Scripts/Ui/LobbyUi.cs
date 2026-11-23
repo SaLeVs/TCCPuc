@@ -49,7 +49,8 @@ namespace UI
  
             if (currentLobby == null) return;
             
-            lobbyCodeText.text = currentLobby.LobbyCode;
+            // A missing reference must not break the lobby poll, which also detects the match start.
+            if (lobbyCodeText != null) lobbyCodeText.text = currentLobby.LobbyCode;
             
             List<Unity.Services.Lobbies.Models.Player> players = currentLobby.Players;
             string hostId = currentLobby.HostId;
@@ -73,7 +74,13 @@ namespace UI
         }
         
         private void UpdateStartButtonText()
-        { 
+        {
+            if (startButtonText == null)
+            {
+                Debug.LogWarning("LobbyUi: Start Button Text is not assigned.", this);
+                return;
+            }
+
             startButtonText.text = Lobby.instance.IsHost() ? HOST_START : (_isPlayerReady ? PLAYER_NOT_READY : PLAYER_READY);
         }
         

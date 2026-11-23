@@ -1,3 +1,4 @@
+using Interfaces;
 using Network;
 using Unity.Collections;
 using Unity.Netcode;
@@ -5,10 +6,12 @@ using UnityEngine;
 
 namespace Player
 {
-    public class PlayerInfos : NetworkBehaviour
+    public class PlayerInfos : NetworkBehaviour, IPlayerDisplayName
     {
         public NetworkVariable<FixedString32Bytes> PlayerName = new NetworkVariable<FixedString32Bytes>();
-        
+
+        public string DisplayName => PlayerName.Value.ToString();
+
         public override void OnNetworkSpawn()
         {
             if (IsServer)
@@ -16,9 +19,8 @@ namespace Player
                UserData userData = HostSingleton.instance.gameManager.NetworkServer.GetUserDataByClient(OwnerClientId);
                PlayerName.Value = userData.playerName;
             }
-            
-        }
-        
-    } 
-}
 
+        }
+
+    }
+}

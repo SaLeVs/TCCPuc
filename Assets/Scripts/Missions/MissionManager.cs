@@ -32,8 +32,20 @@ namespace Missions
         private bool _missionsDistributed;
         private bool _roomsSpawned;
         private bool _ownersAssigned;
-        
-        
+
+        // Only the real match takes the contract picked on the lobby board; the tutorial and the
+        // prototype levels (Game0_Tutorial, Game1..7) are built around their own contracts.
+        private const string LobbyContractScene = "Game";
+
+        private void Awake()
+        {
+            if (ContractSelection.Selected != null && gameObject.scene.name == LobbyContractScene)
+            {
+                currentContract = ContractSelection.Selected;
+            }
+        }
+
+
         public override void OnNetworkSpawn()
         {
             if (IsServer)

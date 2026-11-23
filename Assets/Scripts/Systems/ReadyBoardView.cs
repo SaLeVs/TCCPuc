@@ -53,6 +53,12 @@ namespace Systems
         [Header("Ready")]
         [SerializeField] private Image readyButtonImage;
         [SerializeField] private TMP_Text readyButtonText;
+        [Tooltip("Sprite while the local player is not ready. Empty = tint the image with the colors below.")]
+        [SerializeField] private Sprite readyButtonSprite;
+        [Tooltip("Sprite while the local player is ready (the button cancels).")]
+        [SerializeField] private Sprite cancelButtonSprite;
+        [SerializeField] private Color readyLabelColor = new Color(0.06f, 0.05f, 0.05f);
+        [SerializeField] private Color cancelLabelColor = new Color(0.93f, 0.89f, 0.82f);
         [SerializeField] private GameObject countdownRoot;
         [SerializeField] private TMP_Text countdownText;
 
@@ -162,7 +168,17 @@ namespace Systems
         public void ShowLocalReady(bool isReady)
         {
             readyButtonText.text = isReady ? cancelLabel : readyLabel;
-            readyButtonImage.color = isReady ? cancelButtonColor : readyButtonColor;
+
+            if (readyButtonSprite != null && cancelButtonSprite != null)
+            {
+                readyButtonImage.sprite = isReady ? cancelButtonSprite : readyButtonSprite;
+                readyButtonImage.color = Color.white;
+                readyButtonText.color = isReady ? cancelLabelColor : readyLabelColor;
+            }
+            else
+            {
+                readyButtonImage.color = isReady ? cancelButtonColor : readyButtonColor;
+            }
         }
 
         /// <param name="secondsLeft">Negative hides the countdown.</param>

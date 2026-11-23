@@ -180,6 +180,9 @@ namespace Player
         [Rpc(SendTo.Server)]
         private void NotifyDeathServerRpc()
         {
+            // In a match the director decides (an escape elsewhere makes this a victory, not a game over).
+            if (MatchEndDirector.TryEvaluateServer()) return;
+
             if (AllPlayersDead())
             {
                 BroadcastGameOverRpc();

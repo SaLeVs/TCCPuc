@@ -20,6 +20,13 @@ namespace Objects
             playerState.HidePlayerRpc();
             playerState.HasEscapedServerSide = true;
 
+            // In a match the director ends it once nobody is left inside; until then this one spectates.
+            if (MatchEndDirector.TryEvaluateServer())
+            {
+                playerState.WinRpc();
+                return;
+            }
+
             if (AllAlivePlayersEscaped())
             {
                 BroadcastVictoryRpc();

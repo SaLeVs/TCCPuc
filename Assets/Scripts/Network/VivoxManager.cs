@@ -178,6 +178,9 @@ namespace Network
             };
 
             await VivoxService.Instance.LoginAsync(loginOptions);
+
+            // MicSettings skips the level while logged out, so it goes on now.
+            MicSettings.ApplyToCurrentDevice();
         }
 
         /// <summary>

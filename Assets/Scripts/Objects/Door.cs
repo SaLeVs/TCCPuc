@@ -278,6 +278,8 @@ namespace Objects
 
         private void Awake()
         {
+            KeepScenePoseOutOfSync();
+
             if (occupantLayers.value == 0)
             {
                 occupantLayers = LayerMask.GetMask("Player", "Monster");
@@ -299,6 +301,28 @@ namespace Objects
                     AddLeaf(extra.leafRigidbody, extra.closedAngle, extra.mirror < 0f ? -1f : 1f);
                 }
             }
+        }
+
+        /// <summary>
+        /// A door never moves: only its leaves turn, and every peer turns them itself from the
+        /// state. Its own NetworkObject (a door placed in a scene) is therefore told to leave the
+        /// transform and the parent alone, so the pose every peer loaded from the scene is the one
+        /// it keeps.
+        ///
+        /// <para>Synchronised, the client re-applied the server's pose on spawn and could detach the
+        /// door from its parent along the way. In LAN builds that put doors on the stage, near the
+        /// world origin, or in another door's place. Runs in Awake, before the server serialises the
+        /// scene objects and before the client spawns them, and Netcode reads both flags on each side.</para>
+        ///
+        /// <para>A door inside a spawned room has no NetworkObject of its own — it rides on the
+        /// room's, whose transform must still sync — and is left untouched.</para>
+        /// </summary>
+        private void KeepScenePoseOutOfSync()
+        {
+            if (!TryGetComponent(out NetworkObject ownObject)) return;
+
+            ownObject.SynchronizeTransform = false;
+            ownObject.AutoObjectParentSync = false;
         }
 
         private void AddLeaf(Rigidbody body, float closedYaw, float mirror)

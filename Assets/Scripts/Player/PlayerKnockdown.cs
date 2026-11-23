@@ -66,6 +66,11 @@ namespace Player
         private bool _wasKinematic;
         private bool _bodyHidden;
 
+        // Owner-side. Where the player stood when they went down: a spot the capsule is known to
+        // fit, for when no free spot is found round the body.
+        private Vector3 _standingBeforeKnockdown;
+        private bool _hasStandingBeforeKnockdown;
+
         public override void OnNetworkSpawn()
         {
             _state.OnValueChanged += Knockdown_OnStateChanged;
@@ -169,6 +174,9 @@ namespace Player
             if (IsOwner)
             {
                 playerState.SetInputLocked(InputLockReason.Knockdown, true);
+
+                _standingBeforeKnockdown = transform.position;
+                _hasStandingBeforeKnockdown = true;
             }
 
             SpawnRagdoll(impulse);
@@ -230,6 +238,15 @@ namespace Player
             if (!StandingSpotFinder.TryFind(origin, radius, height, standingBlockingMask, lineOfSightMask,
                     searchMaxDistance, searchStepSize, searchAngleStep, out Vector3 spot))
             {
+                // Getting up at the hips put the capsule inside whatever the body lay against, and
+                // the physics pushed it out on top. Where they stood before going down is known to fit.
+                if (_hasStandingBeforeKnockdown)
+                {
+                    Debug.LogWarning($"PlayerKnockdown: no free standing spot within {searchMaxDistance}m of {origin}; getting up where the player stood before the knockdown.");
+                    Teleport(_standingBeforeKnockdown);
+                    return;
+                }
+
                 Debug.LogWarning($"PlayerKnockdown: no free standing spot within {searchMaxDistance}m of {origin}; getting up where the body landed.");
                 spot = origin;
             }

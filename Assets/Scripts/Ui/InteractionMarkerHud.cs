@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using Audience;
 using Components;
 using Inputs;
+using Interfaces;
 using Player;
 using TMPro;
 using UnityEngine;
@@ -125,6 +126,9 @@ namespace Ui
             public float Registered;
             public bool WasFocused;
             public float LockTime;
+
+            public string BlockedReason;
+            public string BlockedText;
 
             public bool Wanted;
             public bool Visible;
@@ -482,7 +486,7 @@ namespace Ui
             if (show <= 0.01f) return;
 
             bool blocked = widget.Blocked > 0.5f;
-            string label = blocked ? BlockedLabel : widget.Marker.ActionLabel.ToUpperInvariant();
+            string label = blocked ? BlockedText(widget) : widget.Marker.ActionLabel.ToUpperInvariant();
 
             if (widget.Label.text != label) widget.Label.text = label;
             widget.Label.gameObject.SetActive(!string.IsNullOrEmpty(label));
@@ -491,6 +495,24 @@ namespace Ui
             widget.Label.color = Color.Lerp(focusColor, blockedColor, widget.Blocked);
             widget.PromptGroup.alpha = show;
             widget.Prompt.anchoredPosition = new Vector2(0f, -halfH - 12f - (1f - show) * 10f);
+        }
+
+        /// <summary>
+        /// "Unavailable", plus the object's own explanation in smaller lines when it gives one.
+        /// Rebuilt only when the reason changes, since this runs every frame on the focused marker.
+        /// </summary>
+        private string BlockedText(Widget widget)
+        {
+            string reason = widget.Marker.Interactable is IInteractionBlockReason explainer && interactor != null
+                ? explainer.GetBlockedReason(interactor.gameObject)
+                : null;
+
+            if (string.IsNullOrEmpty(reason)) return BlockedLabel;
+            if (reason == widget.BlockedReason) return widget.BlockedText;
+
+            widget.BlockedReason = reason;
+            widget.BlockedText = $"{BlockedLabel}\n<size=60%><cspace=1>{reason}</cspace></size>";
+            return widget.BlockedText;
         }
 
         private static void PlaceCorner(Image image, float x, float y, float size, Color color)

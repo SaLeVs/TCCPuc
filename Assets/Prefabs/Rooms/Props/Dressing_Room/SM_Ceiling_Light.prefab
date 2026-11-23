@@ -16,7 +16,7 @@ GameObject:
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
+  m_StaticEditorFlags: 1
   m_IsActive: 1
 --- !u!4 &6491327392744740596
 Transform:
@@ -66,7 +66,7 @@ MeshRenderer:
   m_ProbeAnchor: {fileID: 0}
   m_LightProbeVolumeOverride: {fileID: 0}
   m_ScaleInLightmap: 1
-  m_ReceiveGI: 1
+  m_ReceiveGI: 2
   m_PreserveUVs: 0
   m_IgnoreNormalsForChartDetection: 0
   m_ImportantGI: 0
@@ -287,6 +287,10 @@ PrefabInstance:
     - target: {fileID: 919132149155446097, guid: f578397b025251c4bbe2f7fbedcd42df, type: 3}
       propertyPath: m_Name
       value: SM_Ceiling_Light
+      objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: f578397b025251c4bbe2f7fbedcd42df, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 2147483647
       objectReference: {fileID: 0}
     m_RemovedComponents:
     - {fileID: -5754084199372789682, guid: f578397b025251c4bbe2f7fbedcd42df, type: 3}

@@ -8,12 +8,33 @@ namespace Player
     /// </summary>
     public static class StandingSpotFinder
     {
-        private const float GroundProbeHeight = 2.5f;
         private const float CapsuleSlack = 0.95f;
         private const float FloorClearance = 0.05f;
 
         // The ragdoll's hips lie close to the floor; lift the start of the sight line off it.
         private const float BodySightLift = 0.25f;
+
+        // How far below the hips the floor the body lies on is looked for.
+        private const float BodyFloorProbeLift = 0.3f;
+        private const float BodyFloorProbeDistance = 3f;
+
+        // A spot may sit at most this much above or below the floor the body lies on. The ground
+        // probe used to start 2.5 m over the candidate and take whatever it met first, so the
+        // player stood up on top of boxes, sofas, door leaves and even the walls themselves.
+        private const float MaxStepUp = 0.35f;
+        private const float MaxStepDown = 0.6f;
+
+        // Never something to stand on, even when it happens to be under the candidate.
+        private static int _notGroundLayers = -1;
+
+        private static int NotGroundLayers
+        {
+            get
+            {
+                if (_notGroundLayers < 0) _notGroundLayers = LayerMask.GetMask("Player", "Monster", "Doors");
+                return _notGroundLayers;
+            }
+        }
 
         /// <summary>
         /// Searches ring by ring, so the first spot that fits is also the closest one.
@@ -28,7 +49,10 @@ namespace Player
         public static bool TryFind(Vector3 origin, float radius, float height, LayerMask blockingMask,
             LayerMask lineOfSightMask, float maxDistance, float stepSize, float angleStep, out Vector3 result)
         {
-            if (TryPlace(origin, origin, radius, height, blockingMask, lineOfSightMask, out result))
+            int groundMask = blockingMask & ~NotGroundLayers;
+            float floorY = BodyFloorY(origin, groundMask);
+
+            if (TryPlace(origin, origin, floorY, radius, height, blockingMask, groundMask, lineOfSightMask, out result))
             {
                 return true;
             }
@@ -47,7 +71,8 @@ namespace Player
                     float radians = angle * Mathf.Deg2Rad;
                     Vector3 offset = new Vector3(Mathf.Cos(radians), 0f, Mathf.Sin(radians)) * distance;
 
-                    if (TryPlace(origin, origin + offset, radius, height, blockingMask, lineOfSightMask, out result))
+                    if (TryPlace(origin, origin + offset, floorY, radius, height, blockingMask, groundMask,
+                            lineOfSightMask, out result))
                     {
                         return true;
                     }
@@ -58,16 +83,31 @@ namespace Player
             return false;
         }
 
-        private static bool TryPlace(Vector3 origin, Vector3 candidate, float radius, float height,
-            LayerMask blockingMask, LayerMask lineOfSightMask, out Vector3 placed)
+        /// <summary>The floor right under the body, or a little under the hips when there is none.</summary>
+        public static float BodyFloorY(Vector3 origin, int groundMask)
+        {
+            if (Physics.Raycast(origin + Vector3.up * BodyFloorProbeLift, Vector3.down, out RaycastHit floor,
+                    BodyFloorProbeDistance, groundMask, QueryTriggerInteraction.Ignore))
+            {
+                return floor.point.y;
+            }
+
+            return origin.y - BodySightLift;
+        }
+
+        private static bool TryPlace(Vector3 origin, Vector3 candidate, float floorY, float radius, float height,
+            LayerMask blockingMask, int groundMask, LayerMask lineOfSightMask, out Vector3 placed)
         {
             placed = candidate;
 
-            // There has to be a floor under the candidate before anything can stand on it.
-            Vector3 probeStart = candidate + Vector3.up * GroundProbeHeight;
+            // There has to be a floor under the candidate, at about the height of the body's own.
+            // Starting the probe just one step over that floor means anything taller — a wall, a
+            // cabinet, a box — has the probe start inside it, so the probe passes through and finds
+            // the floor at its foot, where the capsule check below then turns the spot down.
+            Vector3 probeStart = new Vector3(candidate.x, floorY + MaxStepUp + FloorClearance, candidate.z);
 
-            if (!Physics.Raycast(probeStart, Vector3.down, out RaycastHit ground, GroundProbeHeight * 2f,
-                    blockingMask, QueryTriggerInteraction.Ignore))
+            if (!Physics.Raycast(probeStart, Vector3.down, out RaycastHit ground, MaxStepUp + FloorClearance + MaxStepDown,
+                    groundMask, QueryTriggerInteraction.Ignore))
             {
                 return false;
             }

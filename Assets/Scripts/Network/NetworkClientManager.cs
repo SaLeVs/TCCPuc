@@ -24,6 +24,19 @@ namespace Network
 
             if (clientId != 0 && clientId != _networkManager.LocalClientId) return;
 
+            // The session is gone, and with it the match's lobby and voice channel. Staying in them
+            // kept this player in the old voice channel on the menu, and kept the lobby marked as
+            // started, so the next online match never began.
+            try
+            {
+                VivoxManager.instance?.LeaveVoiceChannel();
+                Lobby.instance?.LeaveLobby();
+            }
+            catch (Exception e)
+            {
+                Debug.LogException(e);
+            }
+
             if (Loader.GetCurrentScene() != Loader.GetSceneByName(Loader.Scene.MainMenu))
             {
                 Loader.Load(Loader.Scene.MainMenu);

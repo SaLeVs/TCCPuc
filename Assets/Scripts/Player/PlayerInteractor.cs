@@ -153,7 +153,10 @@ namespace Player
 
         private void Interact()
         {
-            if (!IsOwner || _isDead) return;
+            // Locked - a minigame, the ready board, knocked down, the match over - the key is not
+            // ours: the minigame confirms with the same key, and it used to also use whatever the
+            // crosshair rested on (a knocked-down player could still open doors and take items).
+            if (!IsOwner || _isDead || _isLocked) return;
 
             // Look again now rather than trust the timed check, which can be a fifth of a second
             // old: at a run that is more than a metre, and the door the crosshair is on now was not
@@ -170,7 +173,8 @@ namespace Player
 
         private void Update()
         {
-            if (IsOwner && !_isDead)
+            // Nothing to aim at while locked: the lock cleared the target, and it stays clear.
+            if (IsOwner && !_isDead && !_isLocked)
             {
                 _checkTimer += Time.deltaTime;
 

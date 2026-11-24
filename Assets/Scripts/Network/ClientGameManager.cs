@@ -15,6 +15,10 @@ namespace Network
     public class ClientGameManager : IDisposable
     {
         private const int MAX_TRIES_TO_AUTH = 5;
+
+        // How long the boot waits on the services before opening the menu without them.
+        private const int SERVICES_TIMEOUT_MS = 8000;
+        private const int AUTH_TIMEOUT_MS = 12000;
         
         private JoinAllocation _allocation;
         
@@ -23,18 +27,45 @@ namespace Network
         
         public async Task<bool> InitAsync()
         {
-            await UnityServices.InitializeAsync();
-            
+            // Needs no service, and has to exist offline too: it is what takes a client back to the
+            // menu when a LAN session drops.
             _networkClientManager = new NetworkClientManager(NetworkManager.Singleton);
-            
-            AuthenticationState authState = await AuthenticationController.Authenticate(MAX_TRIES_TO_AUTH);
-            
-            if (authState == AuthenticationState.Authenticated)
+
+            // A firewall that drops packets instead of refusing them leaves these calls retrying for a
+            // long time, and the menu waited on them behind a black screen. Each gets a hard limit.
+            try
+            {
+                Task init = UnityServices.InitializeAsync();
+
+                if (await Task.WhenAny(init, Task.Delay(SERVICES_TIMEOUT_MS)) != init)
+                {
+                    Debug.LogWarning("ClientGameManager: Unity Services did not answer in time. Online play is off, LAN still works.");
+                    return false;
+                }
+
+                await init;
+            }
+            catch (Exception e)
+            {
+                Debug.LogWarning($"ClientGameManager: Unity Services are unavailable. Online play is off, LAN still works. {e.Message}");
+                return false;
+            }
+
+            Task<AuthenticationState> auth = AuthenticationController.Authenticate(MAX_TRIES_TO_AUTH);
+
+            if (await Task.WhenAny(auth, Task.Delay(AUTH_TIMEOUT_MS)) != auth)
+            {
+                AuthenticationController.MarkTimedOut();
+                Debug.LogWarning("ClientGameManager: signing in did not finish in time. Online play is off, LAN still works.");
+                return false;
+            }
+
+            if (await auth == AuthenticationState.Authenticated)
             {
                 return true;
             }
-            
-            Debug.LogError("ClientGameManager: Failed to initialize");
+
+            Debug.LogWarning("ClientGameManager: could not sign in. Online play is off, LAN still works.");
             return false;
         }
 

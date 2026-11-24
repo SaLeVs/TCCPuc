@@ -269,6 +269,25 @@ namespace Monster
             OnPlayerExitInVision?.Invoke(player.transform);
         }
 
+        /// <summary>
+        /// Drops players destroyed while in view - someone who left the session. The vision sensor
+        /// skips destroyed objects, so their exit never came: the dead Transform stayed in the list,
+        /// the list never emptied, and the monster stood frozen in Hunt with nobody to chase until
+        /// someone else walked into its cone.
+        /// </summary>
+        private void PruneDestroyedTargets()
+        {
+            if (_playersInVision.RemoveAll(player => player == null) == 0) return;
+            if (_playersInVision.Count > 0) return;
+
+            // Still coasting on someone else it lost sight of a moment ago: that chase goes on.
+            if (IsTrackingLostTarget) return;
+
+            // Nobody left in view and nothing to track: the chase is over, the same as going cold.
+            _trackingTimer = 0f;
+            MonsterChase.ForgetTarget();
+        }
+
         private void TickTracking(float deltaTime)
         {
             if (_trackingTimer <= 0f) return;
@@ -302,6 +321,7 @@ namespace Monster
             // this object despawns — leaving Play Mode, going back to the menu.
             if (!IsServer || !IsSpawned) return;
 
+            PruneDestroyedTargets();
             TickTracking(Time.deltaTime);
             TickAwareness(Time.deltaTime);
 

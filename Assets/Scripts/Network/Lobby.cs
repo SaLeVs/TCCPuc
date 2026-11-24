@@ -94,13 +94,25 @@ namespace Network
                 {
                     Unity.Services.Lobbies.Models.Lobby lobby = await LobbyService.Instance.GetLobbyAsync(_joinedLobby.Id);
                     _joinedLobby = lobby;
-
-                    OnLobbyUpdated?.Invoke();
-                    CheckIfGameStarted();
                 }
                 catch (Exception e)
                 {
                     Debug.LogWarning($"Lobby poll failed: {e.Message}");
+                    return;
+                }
+
+                // The start is checked before anyone is told about the update. It used to come after,
+                // inside the same try, so any listener that threw (a menu with a missing reference)
+                // made this client miss the match starting, poll after poll.
+                CheckIfGameStarted();
+
+                try
+                {
+                    OnLobbyUpdated?.Invoke();
+                }
+                catch (Exception e)
+                {
+                    Debug.LogException(e);
                 }
             }
         }
@@ -142,6 +154,9 @@ namespace Network
 
             _hostLobby = lobby;
             _joinedLobby = _hostLobby;
+
+            // A new lobby is a new match. Left over from the last one, this made StartGame refuse.
+            _hasJoinedGame = false;
 
             OnJoinedLobby?.Invoke();
             return true;
@@ -204,6 +219,9 @@ namespace Network
             }
 
             _joinedLobby = lobby;
+
+            // Left over from the last match, this stopped the polling that notices the start.
+            _hasJoinedGame = false;
 
             OnJoinedLobby?.Invoke();
             return true;
@@ -278,20 +296,42 @@ namespace Network
 
                 if (IsHost())
                 {
+                    string lobbyId = _joinedLobby.Id;
+
+                    // The player list stops being refreshed once the match starts, so after a match it
+                    // can still name players who have already left. Handing the lobby to one of them
+                    // fails; the lobby is deleted instead, which is what an empty one gets anyway.
+                    bool migrated = false;
+
                     if (_joinedLobby.Players.Count > 1)
                     {
-                        await MigrateHostAsync();
-                        await LobbyService.Instance.RemovePlayerAsync(_joinedLobby.Id, AuthenticationService.Instance.PlayerId);
+                        try
+                        {
+                            await MigrateHostAsync();
+                            await LobbyService.Instance.RemovePlayerAsync(lobbyId, AuthenticationService.Instance.PlayerId);
+                            migrated = true;
+                        }
+                        catch (Exception e)
+                        {
+                            Debug.LogWarning($"Lobby: could not hand the lobby over, deleting it instead. {e.Message}");
+                        }
                     }
-                    else
+
+                    if (!migrated)
                     {
-                        await LobbyService.Instance.DeleteLobbyAsync(_joinedLobby.Id);
+                        await LobbyService.Instance.DeleteLobbyAsync(lobbyId);
                     }
                 }
                 else
                 {
                     await LobbyService.Instance.RemovePlayerAsync(_joinedLobby.Id, AuthenticationService.Instance.PlayerId);
                 }
+            }
+            catch (Exception e)
+            {
+                // async void: anything not caught here only shows up as an unhandled exception. The
+                // lobby expires on its own without a heartbeat, so leaving it is best effort.
+                Debug.LogWarning($"Lobby: could not leave the lobby cleanly. {e.Message}");
             }
             finally
             {

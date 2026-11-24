@@ -20,6 +20,7 @@ namespace Rooms
         private List<RoomDataSO> _roomsToSpawn = new List<RoomDataSO>();
         private int _totalSpawnPoints;
         private int _remainingSlots;
+        private bool _roomsGenerated;
 
         
         public override void OnNetworkSpawn()
@@ -36,7 +37,12 @@ namespace Rooms
         
         private void GenerateRooms()
         {
+            // Once per match. In LAN the tracker raises "all connected" again whenever someone leaves,
+            // and every room used to be spawned a second time on top of the first set.
+            if (_roomsGenerated) return;
             if (!BuildRoomList()) return;
+
+            _roomsGenerated = true;
 
             ShuffleList(_roomsToSpawn);
             SpawnAllRooms();

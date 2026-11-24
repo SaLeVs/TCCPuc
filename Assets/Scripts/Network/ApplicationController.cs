@@ -20,24 +20,27 @@ namespace Network
 
         private async Task LaunchClientAndHost()
         {
+            ClientSingleton clientSingletonObject = null;
+
             try
             {
                 HostSingleton hostSingletonObject = Instantiate(hostSingleton);
                 hostSingletonObject.CreateHost();
-                
-                ClientSingleton clientSingletonObject = Instantiate(clientSingleton);
-                bool authenticated = await clientSingletonObject.CreateClient();
-                
 
-                if (authenticated)
-                {
-                    clientSingletonObject.gameManager.StartMenu();
-                }
-                
+                clientSingletonObject = Instantiate(clientSingleton);
+                await clientSingletonObject.CreateClient();
             }
             catch (Exception e)
             {
                 Debug.LogException(e);
+            }
+
+            // Always, signed in or not. The menu used to load only after a successful sign-in, so a
+            // network that blocks the Unity services left a black screen - even for LAN, which needs
+            // none of them. Online play reports the problem itself when it is tried.
+            if (clientSingletonObject != null && clientSingletonObject.gameManager != null)
+            {
+                clientSingletonObject.gameManager.StartMenu();
             }
         }
         

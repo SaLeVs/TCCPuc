@@ -118,6 +118,14 @@ namespace Systems
                 {
                     SetExpectedPlayerCount(_connectedPlayers.Count == 0 ? 1 : _connectedPlayers.Count);
                 }
+                else
+                {
+                    // Online the expected count comes from the lobby when the match is started, and
+                    // nothing lowered it: one player leaving before everyone was ready left the board
+                    // waiting for them forever. One fewer is expected now - not "as many as are
+                    // connected", which would stop waiting for someone still on their way in.
+                    SetExpectedPlayerCount(_expectedPlayerCount - 1);
+                }
             }
         }
 

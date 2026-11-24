@@ -18,15 +18,74 @@ namespace Player
         [SerializeField] private ItemListSO itemDatabase;
         [SerializeField] private GameObject diskItem;
 
+        private bool _sceneChanging;
+
         
         public override void OnNetworkSpawn()
         {
             if (!IsServer) return;
             
             playerDead.OnDeathEvent += PlayerDead_OnPlayerDied;
+
+            if (NetworkManager.SceneManager != null)
+            {
+                NetworkManager.SceneManager.OnSceneEvent += SceneManager_OnSceneEvent;
+            }
         }
 
-        
+        // A scene change despawns every player too; only an owner leaving should drop anything.
+        private void SceneManager_OnSceneEvent(SceneEvent sceneEvent)
+        {
+            if (sceneEvent.SceneEventType == SceneEventType.Load || sceneEvent.SceneEventType == SceneEventType.Unload)
+            {
+                _sceneChanging = true;
+            }
+        }
+
+        /// <summary>
+        /// Someone leaving drops what they carried, the same as dying. Their items used to vanish with
+        /// the player object - mission items included, which made those missions impossible.
+        ///
+        /// <para>From the despawn and not from OnClientDisconnectCallback: Netcode despawns the leaving
+        /// player's object first and raises that callback afterwards, when there is nothing left to
+        /// read. A despawn for any other reason - the session shutting down, the scene changing, the
+        /// host itself - drops nothing.</para>
+        /// </summary>
+        private bool IsOwnerLeaving()
+        {
+            NetworkManager networkManager = NetworkManager;
+
+            if (networkManager == null || networkManager.ShutdownInProgress || !networkManager.IsListening) return false;
+            if (_sceneChanging) return false;
+            if (OwnerClientId == NetworkManager.ServerClientId) return false;
+
+            return !playerDead.IsDead;
+        }
+
+        private void DropInventoryOfLeaver()
+        {
+            // Read only: the object is being despawned, too late to write its replicated slots.
+            for (int i = 0; i < playerInventory.MaxInventorySize; i++)
+            {
+                int itemId = playerInventory.GetItemInSlot(i);
+                if (itemId == -1) continue;
+
+                ItemDataSO item = itemDatabase.GetItem(itemId);
+                if (item != null)
+                {
+                    SpawnPickable(item.prefabPickable, itemId);
+                }
+            }
+
+            if (diskItem == null || playerDiskHolder == null) return;
+
+            for (int i = 0; i < playerDiskHolder.DiskCount; i++)
+            {
+                SpawnPickable(diskItem);
+            }
+        }
+
+
         private void PlayerDead_OnPlayerDied(bool isDead)
         {
             if (!isDead) return;
@@ -85,8 +144,18 @@ namespace Player
         public override void OnNetworkDespawn()
         {
             if (!IsServer) return;
-            
+
+            if (IsOwnerLeaving())
+            {
+                DropInventoryOfLeaver();
+            }
+
             playerDead.OnDeathEvent -= PlayerDead_OnPlayerDied;
+
+            if (NetworkManager != null && NetworkManager.SceneManager != null)
+            {
+                NetworkManager.SceneManager.OnSceneEvent -= SceneManager_OnSceneEvent;
+            }
         }
         
         

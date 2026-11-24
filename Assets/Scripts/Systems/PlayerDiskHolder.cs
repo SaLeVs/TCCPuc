@@ -11,6 +11,7 @@ namespace Systems
             NetworkVariableWritePermission.Server);
 
         public bool HasDisk => _diskCount.Value > 0;
+        public int DiskCount => _diskCount.Value;
 
         public void GiveDisk()
         {

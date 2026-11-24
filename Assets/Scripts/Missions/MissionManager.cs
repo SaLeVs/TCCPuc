@@ -57,7 +57,16 @@ namespace Missions
         }
 
 
-        public void HandlePlayerDeath(ulong deadClientId)
+        public void HandlePlayerDeath(ulong deadClientId) => TransferMissionsOf(deadClientId, clearOldHolder: true);
+
+        /// <summary>
+        /// Same hand-over as a death. Only deaths used to pass missions on, so the missions of someone
+        /// who left stayed theirs: nobody could pick up their pieces, they still counted towards the
+        /// total, and the main mission - and with it the escape - never came.
+        /// </summary>
+        public void HandlePlayerLeft(ulong leftClientId) => TransferMissionsOf(leftClientId, clearOldHolder: false);
+
+        private void TransferMissionsOf(ulong deadClientId, bool clearOldHolder)
         {
             if (!IsServer) return;
 
@@ -99,7 +108,8 @@ namespace Missions
 
             StartCoroutine(ReassignOwnersNextFrame(transferMap));
 
-            if (NetworkManager.Singleton.ConnectedClients.TryGetValue(deadClientId, out NetworkClient deadClient) && deadClient.PlayerObject != null && deadClient.PlayerObject.TryGetComponent(out PlayerMissionHolder deadHolder))
+            // A player who left has nobody to clear the HUD for.
+            if (clearOldHolder && NetworkManager.Singleton.ConnectedClients.TryGetValue(deadClientId, out NetworkClient deadClient) && deadClient.PlayerObject != null && deadClient.PlayerObject.TryGetComponent(out PlayerMissionHolder deadHolder))
             {
                 deadHolder.ClearPersonalMissionsRpc();
             }
@@ -213,6 +223,12 @@ namespace Missions
 
         private void DistributeMissionsForPlayers()
         {
+            // Once per match. In LAN the tracker raises "all connected" again whenever someone leaves
+            // (the count drops below the expected one, then the expected one follows it down), and
+            // this used to deal every mission out a second time mid-match: duplicates on the HUD and
+            // twice the missions needed before the main mission showed up.
+            if (_missionsDistributed) return;
+
             _allMissionsAtContract.Clear();
             _allMissionsAtContract.AddRange(currentContract.personalMissions);
 

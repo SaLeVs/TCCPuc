@@ -27,6 +27,9 @@ namespace Ui
         private float _peak;
         private float _peakUntil;
 
+        private VivoxManager _vivox;
+        private float _nextVivoxLookup;
+
 
         private void OnEnable()
         {
@@ -42,7 +45,7 @@ namespace Ui
         {
             if (label == null) return;
 
-            float energy = VivoxManager.instance != null ? VivoxManager.instance.GetSelfAudioEnergy() : 0f;
+            float energy = ResolveVivox() != null ? _vivox.GetSelfAudioEnergy() : 0f;
 
             if (energy >= _peak || Time.unscaledTime >= _peakUntil)
             {
@@ -51,6 +54,21 @@ namespace Ui
             }
 
             label.text = $"{NameFor(_peak)}  {_peak:0.00}";
+        }
+
+        /// <summary>
+        /// Found here rather than through VivoxManager.instance, which logs an error every time it
+        /// finds nothing - every frame, in a scene opened without the boot (about a hundred a second).
+        /// Looked up again at most once a second while missing.
+        /// </summary>
+        private VivoxManager ResolveVivox()
+        {
+            if (_vivox != null || Time.unscaledTime < _nextVivoxLookup) return _vivox;
+
+            _nextVivoxLookup = Time.unscaledTime + 1f;
+            _vivox = FindFirstObjectByType<VivoxManager>();
+
+            return _vivox;
         }
 
         private string NameFor(float energy)

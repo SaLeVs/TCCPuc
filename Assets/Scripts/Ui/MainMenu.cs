@@ -77,6 +77,7 @@ namespace UI
         public async void CreateLobby()
         {
             if (_isBusy) return;
+            if (!CheckOnlineAvailable()) return;
 
             SetBusy(true);
             ShowWaiting(onlineNotice, "Criando a partida...");
@@ -107,6 +108,8 @@ namespace UI
                 ShowNotice(onlineNotice, problem);
                 return;
             }
+
+            if (!CheckOnlineAvailable()) return;
 
             SetBusy(true);
             ShowWaiting(onlineNotice, "Procurando a partida...");
@@ -251,6 +254,18 @@ namespace UI
             if (lanNotice != null && lanPanel != null && lanPanel.activeInHierarchy) return lanNotice;
             if (onlineNotice != null && onlinePanel != null && onlinePanel.activeInHierarchy) return onlineNotice;
             return null;
+        }
+
+        /// <summary>
+        /// Offline - the boot could not sign in - online play cannot work, so it says so at once
+        /// instead of waiting on a service that will not answer.
+        /// </summary>
+        private bool CheckOnlineAvailable()
+        {
+            if (OnlineServices.IsAvailable) return true;
+
+            ShowNotice(onlineNotice, "Servidores online indisponíveis nesta rede. Use o modo LAN.");
+            return false;
         }
 
         private void ShowNotice(MenuNoticePanel notice, string message)

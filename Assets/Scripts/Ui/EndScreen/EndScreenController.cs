@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using Enums;
+using Network;
 using Systems;
 using TMPro;
 using Unity.Netcode;
@@ -130,6 +131,21 @@ namespace Ui.EndScreen
         {
             if (_isReturningToMenu) return;
             _isReturningToMenu = true;
+
+            // The same way out as the pause menu. Shutting the session down alone left this player in
+            // the match's voice channel and in its lobby, still marked as having started it - so the
+            // next online match never started (the host's StartGame refused, the clients stopped
+            // polling for the start).
+            try
+            {
+                if (VivoxManager.instance != null) VivoxManager.instance.LeaveVoiceChannel();
+                if (Lobby.instance != null) Lobby.instance.LeaveLobby();
+                HostSingleton.instance?.gameManager?.Dispose();
+            }
+            catch (System.Exception e)
+            {
+                Debug.LogException(e);
+            }
 
             if (NetworkManager.Singleton != null) NetworkManager.Singleton.Shutdown();
             MatchResult.Clear();

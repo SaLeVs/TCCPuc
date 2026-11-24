@@ -128,7 +128,6 @@ namespace Ui
 
         // Vivox's reading minus the microphone's, in dB: where the bar's scale meets the game's.
         private float _offsetDb;
-        private float _loggedOffsetDb;
         private readonly List<float> _offsetReadings = new();
 
         // Every 50 ms: the last ten seconds of levels, for the room's noise; and every reading of
@@ -255,12 +254,6 @@ namespace Ui
             if (_offsetReadings.Count < 8) return;
 
             _offsetDb = Mathf.Clamp(Mathf.Lerp(_offsetDb, Percentile(_offsetReadings, 0.5f), 0.25f), -30f, 30f);
-
-            if (Mathf.Abs(_offsetDb - _loggedOffsetDb) >= 3f)
-            {
-                _loggedOffsetDb = _offsetDb;
-                Debug.Log($"[MicSetup] Microphone vs Vivox: {_offsetDb:+0.0;-0.0} dB over {_offsetReadings.Count} readings.");
-            }
         }
 
         private void OnMainButton()
@@ -296,10 +289,6 @@ namespace Ui
             }
 
             _input.Save(_volume, _trim);
-
-            Debug.Log($"[MicSetup] Saved {FormatDb(_volume)} for \"{_input.CurrentDevice}\": loudest {loudest:0.00} " +
-                      $"over {_voiceDb.Count} readings of voice (ceiling {Ceiling:0.00}) -> listeners {FormatDb(_trim)}; " +
-                      $"microphone vs Vivox {_offsetDb:+0.0;-0.0} dB ({_offsetReadings.Count} readings).");
 
             if (_trim == 0)
             {

@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Unity.Netcode;
 using UnityEngine;
 using Unity.Services.Vivox;
+using Components;
 
 namespace Network
 {
@@ -22,19 +23,31 @@ namespace Network
         public event Action<string> OnLeftChannel;
 
         private static VivoxManager Instance;
+        private static bool _reportedMissing;
+        private static float _nextSearchTime;
 
         public static VivoxManager instance
         {
             get
             {
                 if (Instance != null) return Instance;
+
+                // Asked every frame by the voice components; with none in the scene (a scene opened
+                // straight in the Editor) the search and the error used to run every frame too; now once a second.
+                if (Time.unscaledTime < _nextSearchTime) return null;
+
                 Instance = FindFirstObjectByType<VivoxManager>();
-                if (Instance == null)
+                if (Instance != null) return Instance;
+
+                _nextSearchTime = Time.unscaledTime + 1f;
+
+                if (!_reportedMissing)
                 {
-                    Debug.LogError("VivoxManager not found");
-                    return null;
+                    _reportedMissing = true;
+                    Debug.LogWarning("VivoxManager not found: voice chat is off in this scene.");
                 }
-                return Instance;
+
+                return null;
             }
         }
 
@@ -120,6 +133,12 @@ namespace Network
         private VoiceChannel _joinedChannel;
         private bool _isInTestChannel;
         private bool _isReconciling;
+
+        // Consecutive failed walks. Retries back off from FirstRetrySeconds, doubling up to MaxRetrySeconds.
+        private int _failedAttempts;
+        private const float FirstRetrySeconds = 2f;
+        private const float MaxRetrySeconds = 30f;
+        private const int WarnAfterFailures = 3;
 
         private string _currentChannelName;
 
@@ -255,20 +274,59 @@ namespace Network
             if (_isReconciling) return;
 
             _isReconciling = true;
+            float retryIn = -1f;
 
             try
             {
                 await ReconcileChannelsAsync();
+
+                if (_failedAttempts >= WarnAfterFailures)
+                {
+                    ScreenToast.Show("Chat de voz reconectado.", ToastKind.Info);
+                }
+
+                _failedAttempts = 0;
             }
             catch (Exception e)
             {
-                Debug.LogError($"Error switching voice channel: {e.Message}");
+                // A failed login or join used to be the end of it: logged, and the player spent the
+                // match without voice. It keeps trying, further apart each time, for as long as the
+                // game still wants a channel.
+                _failedAttempts++;
+                retryIn = Mathf.Min(MaxRetrySeconds, FirstRetrySeconds * Mathf.Pow(2f, _failedAttempts - 1));
+
+                if (_failedAttempts <= WarnAfterFailures || _failedAttempts % 10 == 0)
+                {
+                    Debug.LogWarning($"Voice channel: attempt {_failedAttempts} failed ({e.Message}). Trying again in {retryIn:0} s.");
+                }
+
+                if (_failedAttempts == WarnAfterFailures)
+                {
+                    ScreenToast.Show("Sem conexão com o chat de voz. Tentando reconectar...", ToastKind.Warning);
+                }
             }
             finally
             {
                 _isReconciling = false;
             }
+
+            if (retryIn >= 0f && this != null && isActiveAndEnabled)
+            {
+                CancelInvoke(nameof(RetryReconcile));
+                Invoke(nameof(RetryReconcile), retryIn);
+            }
         }
+
+        private void RetryReconcile()
+        {
+            if (IsReconciled) return;
+
+            ReconcileChannels();
+        }
+
+        /// <summary>Vivox is where the game wants it: nothing left to join or leave.</summary>
+        private bool IsReconciled =>
+            _joinedChannel?.Name == _wantedChannel?.Name && _wantsTestChannel == _isInTestChannel;
 
         private async Task ReconcileChannelsAsync()
         {
@@ -317,6 +375,16 @@ namespace Network
         private async Task JoinAsync(VoiceChannel channel)
         {
             await EnsureLoggedInAsync();
+
+            // A retry after a join that went through but failed to report it: Vivox refuses to join
+            // the same channel twice, so take the one it is already in.
+            if (VivoxService.Instance.ActiveChannels.ContainsKey(channel.Name))
+            {
+                _joinedChannel = channel;
+                _currentChannelName = channel.Name;
+                ApplyOutputVolume();
+                return;
+            }
 
             if (channel.Positional)
             {
@@ -658,13 +726,17 @@ namespace Network
             VivoxService.Instance.ChannelLeft -= VivoxService_OnChannelLeft;
             VivoxService.Instance.EffectiveInputDeviceChanged -= MicSettings.ApplyToCurrentDevice;
 
+            CancelInvoke(nameof(RetryReconcile));
+
+            VoiceChatSettings.OnChanged -= ApplyOutputVolume;
+            Application.quitting -= Application_ApplicationQuit;
+
+            // Gone first when the game shuts down.
+            if (Lobby.instance == null) return;
+
             Lobby.instance.OnJoinedLobby -= VivoxService_OnJoinedLobby;
             Lobby.instance.OnLeftLobby -= VivoxService_OnLeftLobby;
             Lobby.instance.OnLobbyUpdated -= Lobby_OnLobbyUpdated;
-
-            VoiceChatSettings.OnChanged -= ApplyOutputVolume;
-
-            Application.quitting -= Application_ApplicationQuit;
         }
         
     }

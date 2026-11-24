@@ -309,6 +309,9 @@ namespace Missions
 
         public void OnRoomsSpawned()
         {
+            // Once per match: everything below lays pieces in the world.
+            if (_roomsSpawned) return;
+
             _roomsSpawned = true;
 
             IMissionSpawnable[] spawnables = FindObjectsByType<MonoBehaviour>(FindObjectsSortMode.None).OfType<IMissionSpawnable>().ToArray();

@@ -14,7 +14,7 @@ namespace Player
             if (!IsOwner) return;
             
             enabled = true;
-            VivoxManager.instance.EnterGameVoice();
+            VivoxManager.instance?.EnterGameVoice();
         }
 
         private void Update()

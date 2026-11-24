@@ -247,7 +247,8 @@ namespace Monster
 
         private void VisionSensor_OnTargetEnter(GameObject player)
         {
-            _playersInVision.Add(player.transform);
+            // Never twice: one exit has to be enough to take a player out of view.
+            if (!_playersInVision.Contains(player.transform)) _playersInVision.Add(player.transform);
 
             _trackingTimer = 0f;
 

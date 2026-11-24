@@ -93,7 +93,6 @@ namespace Audio
             VivoxService.Instance.LoggedIn -= ApplyVoice;
 
             IList<string> voices = VivoxService.Instance.TextToSpeechAvailableVoices ?? (IList<string>)Array.Empty<string>();
-            Debug.Log($"DonationTTSManager: Vivox TTS voices: {string.Join(", ", voices)}");
 
             string voice = null;
 

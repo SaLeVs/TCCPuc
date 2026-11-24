@@ -38,11 +38,17 @@ namespace UI
                  "and who has voice.")]
         [SerializeField, Min(0.1f)] private float refreshInterval = 0.5f;
 
+        [Tooltip("JAF symbols handed out to the players, one each. Drawn anew every match, the same " +
+                 "on every machine, and never repeated while there are no more players than symbols.")]
+        [SerializeField] private Sprite[] playerIcons = System.Array.Empty<Sprite>();
+
         private readonly Dictionary<ulong, PlayerListItemUi> _rosterEntries = new Dictionary<ulong, PlayerListItemUi>();
         private readonly HashSet<ulong> _seen = new HashSet<ulong>();
         private readonly List<ulong> _gone = new List<ulong>();
 
         private VivoxManager _vivox;
+        private int[] _iconOrder;
+        private string _iconOrderKey;
         private bool _isOpen;
         private float _nextRefreshTime;
 
@@ -141,6 +147,8 @@ namespace UI
                     _vivox != null && _vivox.IsParticipantLocallyMuted(playerId),
                     StatusOf(StateOf(player), isSelf, localOut));
 
+                entry.SetIcon(IconFor(clientId, identity));
+
                 entry.transform.SetSiblingIndex(row++);
             }
 
@@ -176,6 +184,47 @@ namespace UI
             return localOut
                 ? $"<color=#8fd18f>({what} · fala com você)</color>"
                 : $"<color=#9a9a9a>({what} · você não ouve)</color>";
+        }
+
+        /// <summary>
+        /// The JAF symbol of the player with <paramref name="clientId"/>. The symbols are shuffled
+        /// with the match's voice key, which the host draws at random and every machine has, so each
+        /// match deals them differently and every machine deals them the same; consecutive client
+        /// ids then never share one while there are enough to go round.
+        /// </summary>
+        private Sprite IconFor(ulong clientId, PlayerVoiceIdentity identity)
+        {
+            if (playerIcons == null || playerIcons.Length == 0) return null;
+
+            string key = identity != null ? identity.VoiceSessionKey : null;
+            if (_iconOrder == null || _iconOrderKey != key) _iconOrder = ShuffledIconOrder(key);
+
+            return playerIcons[_iconOrder[(int)(clientId % (ulong)_iconOrder.Length)]];
+        }
+
+        private int[] ShuffledIconOrder(string key)
+        {
+            _iconOrderKey = key;
+
+            // FNV-1a: string.GetHashCode is not promised to agree between machines.
+            uint hash = 2166136261u;
+            foreach (char c in key ?? string.Empty)
+            {
+                hash ^= c;
+                hash *= 16777619u;
+            }
+
+            System.Random random = new System.Random((int)hash);
+            int[] order = new int[playerIcons.Length];
+            for (int i = 0; i < order.Length; i++) order[i] = i;
+
+            for (int i = order.Length - 1; i > 0; i--)
+            {
+                int j = random.Next(i + 1);
+                (order[i], order[j]) = (order[j], order[i]);
+            }
+
+            return order;
         }
 
         private static PlayerState StateOf(PlayerInfos player) =>

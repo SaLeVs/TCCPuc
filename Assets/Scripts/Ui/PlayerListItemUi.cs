@@ -11,7 +11,20 @@ namespace UI
         [SerializeField] private Slider volumeSlider;
         [SerializeField] private Toggle muteToggle;
 
+        [Tooltip("The JAF symbol in front of the name.")]
+        [SerializeField] private Image iconImage;
+
         private string _playerId;
+
+        /// <summary>The player's JAF symbol. Null leaves the row's own image alone.</summary>
+        public void SetIcon(Sprite icon)
+        {
+            if (iconImage == null || icon == null || iconImage.sprite == icon) return;
+
+            iconImage.sprite = icon;
+            iconImage.color = Color.white;
+            iconImage.preserveAspect = true;
+        }
         private Action<string, int> _onVolumeChanged;
         private Action<string, bool> _onMuteChanged;
 

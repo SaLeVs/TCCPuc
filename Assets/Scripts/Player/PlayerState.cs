@@ -146,6 +146,9 @@ namespace Player
             OnPlayerLocked?.Invoke(_isInputLocked);
         }
         
+        /// <summary>Owner-side: whether this particular reason is holding the input.</summary>
+        public bool HasInputLock(InputLockReason reason) => _inputLockReasons.Contains(reason);
+
         public void SetSpectatorMode(bool isSpectating) => playerCamera.SetSpectatorMode(isSpectating);
         
         

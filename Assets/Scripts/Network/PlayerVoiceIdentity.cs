@@ -19,14 +19,37 @@ namespace Network
 
         public string VivoxPlayerId => _vivoxPlayerId.Value.ToString();
 
+        /// <summary>
+        /// The match's voice key reached this player (or changed), on every peer. A LAN match takes
+        /// its channel name from it; with a Unity lobby it is never needed.
+        /// </summary>
+        public event Action<string> OnVoiceSessionKeyChanged;
+
+        // Server-written, the same on every player: what a LAN match names its voice channel after.
+        private readonly NetworkVariable<FixedString64Bytes> _voiceSessionKey =
+            new NetworkVariable<FixedString64Bytes>(writePerm: NetworkVariableWritePermission.Server);
+
+        public string VoiceSessionKey => _voiceSessionKey.Value.ToString();
+
 
         public override void OnNetworkSpawn()
         {
             _vivoxPlayerId.OnValueChanged += VivoxPlayerId_OnValueChanged;
+            _voiceSessionKey.OnValueChanged += VoiceSessionKey_OnValueChanged;
+
+            if (IsServer)
+            {
+                _voiceSessionKey.Value = global::Network.VoiceSessionKey.ForThisServer(NetworkManager);
+            }
 
             if (IsOwner)
             {
                 _vivoxPlayerId.Value = SafePlayerId();
+            }
+
+            if (!_voiceSessionKey.Value.IsEmpty)
+            {
+                OnVoiceSessionKeyChanged?.Invoke(VoiceSessionKey);
             }
 
             // Spawned with the value already in it (a late spawn): the pairing gets its chance now.
@@ -39,6 +62,12 @@ namespace Network
         public override void OnNetworkDespawn()
         {
             _vivoxPlayerId.OnValueChanged -= VivoxPlayerId_OnValueChanged;
+            _voiceSessionKey.OnValueChanged -= VoiceSessionKey_OnValueChanged;
+        }
+
+        private void VoiceSessionKey_OnValueChanged(FixedString64Bytes previous, FixedString64Bytes current)
+        {
+            OnVoiceSessionKeyChanged?.Invoke(current.ToString());
         }
 
         private void VivoxPlayerId_OnValueChanged(FixedString128Bytes previous, FixedString128Bytes current)

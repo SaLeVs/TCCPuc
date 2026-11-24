@@ -45,9 +45,15 @@ namespace UI
         /// <param name="hasVoice">Whether the player is in the voice channel right now. The row stays either way.</param>
         /// <param name="savedVolume">What this player last chose for them, on Vivox's -50..50 scale.</param>
         /// <param name="savedMuted">Whether this player last muted them.</param>
-        public void Refresh(string displayName, string playerId, bool hasVoice, int savedVolume, bool savedMuted)
+        /// <param name="status">Shown after the name, already formatted: whether they are dead and whether
+        /// this player hears them. Null or empty for nothing.</param>
+        public void Refresh(string displayName, string playerId, bool hasVoice, int savedVolume, bool savedMuted,
+            string status = null)
         {
-            nameText.text = hasVoice ? displayName : $"{displayName} <color=#9a9a9a>(sem voz)</color>";
+            string text = hasVoice ? displayName : $"{displayName} <color=#9a9a9a>(sem voz)</color>";
+            if (!string.IsNullOrEmpty(status)) text += $" {status}";
+
+            nameText.text = text;
 
             if (string.IsNullOrEmpty(playerId) || playerId == _playerId) return;
 

@@ -31,6 +31,7 @@ namespace Player
         private Coroutine _spectatorCoroutine;
         private PlayerState _currentTargetState;
         private PlayerInfos _watchedInfos;
+        private ISpectatorHud _spectatorHud;
 
         
         public override void OnNetworkSpawn()
@@ -66,7 +67,7 @@ namespace Player
         {
             yield return new WaitForSeconds(timeToEnterInSpectator);
             
-            gameplayCanvas.SetActive(false);
+            EnterSpectatorHud();
             spectatorCanvas.SetActive(true);
 
             CursorState.Hold(CursorReason.Spectating);
@@ -77,9 +78,26 @@ namespace Player
         }
 
 
+        /// <summary>
+        /// With a spectator HUD on this object the gameplay HUD stays up and shows whoever is
+        /// watched; without one it goes dark as it always did.
+        /// </summary>
+        private void EnterSpectatorHud()
+        {
+            _spectatorHud ??= GetComponent<ISpectatorHud>();
+
+            if (_spectatorHud == null)
+            {
+                gameplayCanvas.SetActive(false);
+                return;
+            }
+
+            _spectatorHud.EnterSpectating();
+        }
+
         private void PlayerState_OnPlayerWon()
         {
-            gameplayCanvas.SetActive(false);
+            EnterSpectatorHud();
             spectatorCanvas.SetActive(true);
 
             CursorState.Hold(CursorReason.Spectating);
@@ -143,6 +161,9 @@ namespace Player
             }
 
             _watchedInfos = infos;
+
+            // The HUD follows the same target as the name: chat, missions and life of whoever is watched.
+            _spectatorHud?.Watch(infos != null ? infos.GetComponentInParent<PlayerState>() : null);
 
             if (_watchedInfos == null)
             {

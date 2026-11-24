@@ -108,6 +108,9 @@ namespace Network
         private const string ECHO_CHANNEL_NAME = "MicTestChannel";
         private const string LOBBY_CHANNEL_SUFFIX = "_lobby";
         private const string GAME_CHANNEL_SUFFIX = "_game";
+        private const string LAN_CHANNEL_PREFIX = "lan_";
+
+        private bool _reportedNoServices;
 
         private sealed class VoiceChannel
         {
@@ -186,6 +189,13 @@ namespace Network
 
         private async Task EnsureLoggedInAsync()
         {
+            // Vivox failed to start at sign-in (its servers unreachable then): a retry starts it now.
+            if (!OnlineServices.IsVoiceAvailable)
+            {
+                await VivoxService.Instance.InitializeAsync();
+                OnlineServices.IsVoiceAvailable = true;
+            }
+
             ApplyGlobalAudioSettings();
 
             if (VivoxService.Instance.IsLoggedIn) return;
@@ -235,11 +245,31 @@ namespace Network
             ReconcileChannels();
         }
 
-        public void EnterGameVoice()
+        /// <param name="lanSessionKey">The match's key from the host (PlayerVoiceIdentity), used when
+        /// there is no Unity lobby to name the channel after - a LAN match. It used to have no voice at all.</param>
+        public void EnterGameVoice(string lanSessionKey = null)
         {
-            if (lobbyManager.JoinedLobby == null) return;
+            string channelBase = lobbyManager != null && lobbyManager.JoinedLobby != null
+                ? lobbyManager.JoinedLobby.Id
+                : string.IsNullOrEmpty(lanSessionKey) ? null : LAN_CHANNEL_PREFIX + lanSessionKey;
 
-            _wantedChannel = new VoiceChannel(lobbyManager.JoinedLobby.Id + GAME_CHANNEL_SUFFIX, ChatCapability.AudioOnly, positional: true);
+            if (channelBase == null) return;
+
+            // Signed out of the Unity services (a network that blocks them): Vivox cannot log in,
+            // and retrying would only fail every thirty seconds for the whole match.
+            if (!OnlineServices.IsAvailable)
+            {
+                if (!_reportedNoServices)
+                {
+                    _reportedNoServices = true;
+                    LanDiagnosticsLog.Note("VOZ: sem login nos serviços da Unity nesta rede; partida sem chat de voz.");
+                    ScreenToast.Show("Chat de voz indisponível: esta rede bloqueia os serviços da Unity.", ToastKind.Warning);
+                }
+
+                return;
+            }
+
+            _wantedChannel = new VoiceChannel(channelBase + GAME_CHANNEL_SUFFIX, ChatCapability.AudioOnly, positional: true);
             ReconcileChannels();
         }
 
@@ -298,6 +328,7 @@ namespace Network
                 if (_failedAttempts <= WarnAfterFailures || _failedAttempts % 10 == 0)
                 {
                     Debug.LogWarning($"Voice channel: attempt {_failedAttempts} failed ({e.Message}). Trying again in {retryIn:0} s.");
+                    LanDiagnosticsLog.Note($"VOZ: tentativa {_failedAttempts} falhou ({e.Message}); nova tentativa em {retryIn:0} s.");
                 }
 
                 if (_failedAttempts == WarnAfterFailures)
@@ -399,6 +430,7 @@ namespace Network
             }
 
             _joinedChannel = channel;
+            LanDiagnosticsLog.Note($"VOZ: entrou no canal {channel.Name}");
             _currentChannelName = channel.Name;
             ApplyOutputVolume();
         }

@@ -96,7 +96,19 @@ namespace UI
             if (_vivox == null) _vivox = FindFirstObjectByType<VivoxManager>();
 
             PlayerInfos[] players = FindObjectsByType<PlayerInfos>(FindObjectsSortMode.None);
-            System.Array.Sort(players, (a, b) => a.OwnerClientId.CompareTo(b.OwnerClientId));
+            // Out of the match, the ones still heard are the others out of it: they go to the top.
+            bool localOut = IsOutOfPlay(LocalPlayerState());
+
+            System.Array.Sort(players, (a, b) =>
+            {
+                if (localOut)
+                {
+                    int byOut = IsOutOfPlay(StateOf(b)).CompareTo(IsOutOfPlay(StateOf(a)));
+                    if (byOut != 0) return byOut;
+                }
+
+                return a.OwnerClientId.CompareTo(b.OwnerClientId);
+            });
 
             _seen.Clear();
             int row = 0;
@@ -126,7 +138,8 @@ namespace UI
                 entry.Refresh(string.IsNullOrEmpty(displayName) ? "..." : displayName, playerId,
                     _vivox != null && _vivox.IsInCurrentChannel(playerId),
                     _vivox != null ? _vivox.GetParticipantVolume(playerId) : 0,
-                    _vivox != null && _vivox.IsParticipantLocallyMuted(playerId));
+                    _vivox != null && _vivox.IsParticipantLocallyMuted(playerId),
+                    StatusOf(StateOf(player), isSelf, localOut));
 
                 entry.transform.SetSiblingIndex(row++);
             }
@@ -144,6 +157,38 @@ namespace UI
                 _rosterEntries.Remove(clientId);
             }
         }
+
+        /// <summary>
+        /// Who is out of the match and whether this player hears them. The dead hear each other
+        /// wherever they are and the living do not hear them (RemoteVoiceFilter): this is where the
+        /// dead find the other dead to turn up or down.
+        /// </summary>
+        private static string StatusOf(PlayerState state, bool isSelf, bool localOut)
+        {
+            if (state == null) return null;
+
+            bool out_ = IsOutOfPlay(state);
+            string what = state.HasWon ? "escapou" : "morto";
+
+            if (isSelf) return out_ ? $"<color=#9a9a9a>({what})</color>" : null;
+            if (!out_) return null;
+
+            return localOut
+                ? $"<color=#8fd18f>({what} · fala com você)</color>"
+                : $"<color=#9a9a9a>({what} · você não ouve)</color>";
+        }
+
+        private static PlayerState StateOf(PlayerInfos player) =>
+            player != null ? player.GetComponentInParent<PlayerState>() : null;
+
+        private PlayerState LocalPlayerState()
+        {
+            NetworkObject local = NetworkManager != null ? NetworkManager.LocalClient?.PlayerObject : null;
+            return local != null ? local.GetComponent<PlayerState>() : null;
+        }
+
+        // Dead or escaped, as the voice sees it: HasWon is what every peer is told on an escape.
+        private static bool IsOutOfPlay(PlayerState state) => state != null && (state.IsDead || state.HasWon);
 
         private void ClearRoster()
         {

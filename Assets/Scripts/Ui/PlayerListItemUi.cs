@@ -25,7 +25,14 @@ namespace UI
             volumeSlider.gameObject.SetActive(!isSelf);
             muteToggle.gameObject.SetActive(!isSelf);
 
-            if (isSelf) return;
+            if (isSelf)
+            {
+                // No volume line under it: the name sits in the middle of the row instead of on top.
+                RectTransform nameRect = nameText.rectTransform;
+                RectTransform row = (RectTransform)transform;
+                nameRect.anchoredPosition = new Vector2(nameRect.anchoredPosition.x, -row.rect.height * 0.5f);
+                return;
+            }
 
             volumeSlider.minValue = -50;
             volumeSlider.maxValue = 50;

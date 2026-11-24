@@ -111,6 +111,8 @@ namespace Network
         private const string LAN_CHANNEL_PREFIX = "lan_";
 
         private bool _reportedNoServices;
+        private bool _leavingTestChannel;
+        private bool _reloginBeforeJoin;
 
         private sealed class VoiceChannel
         {
@@ -398,13 +400,36 @@ namespace Network
         {
             // The default back first, so the mic is never left talking to no channel at all.
             await VivoxService.Instance.SetChannelTransmissionModeAsync(TransmissionMode.All);
-            await LeaveIfActiveAsync(ECHO_CHANNEL_NAME);
+            // Flagged so the ChannelLeft this raises is not taken for Vivox dropping the test.
+            _leavingTestChannel = true;
+
+            try
+            {
+                await LeaveIfActiveAsync(ECHO_CHANNEL_NAME);
+            }
+            finally
+            {
+                _leavingTestChannel = false;
+            }
+
             _isInTestChannel = false;
             ApplyOutputVolume();
         }
 
         private async Task JoinAsync(VoiceChannel channel)
         {
+            if (_reloginBeforeJoin)
+            {
+                if (VivoxService.Instance.IsLoggedIn)
+                {
+                    _isInTestChannel = false;
+                    await VivoxService.Instance.LogoutAsync();
+                }
+
+                // Only once the logout went through: a failed one is tried again with the next join.
+                _reloginBeforeJoin = false;
+            }
+
             await EnsureLoggedInAsync();
 
             // A retry after a join that went through but failed to report it: Vivox refuses to join
@@ -731,8 +756,45 @@ namespace Network
 
         private void VivoxService_OnChannelLeft(string channelName)
         {
-            if (channelName == ECHO_CHANNEL_NAME) return;
+            if (channelName == ECHO_CHANNEL_NAME)
+            {
+                // Dropped by Vivox rather than left: the walk below opens it again if still wanted.
+                if (_isInTestChannel && !_leavingTestChannel) HandleDroppedChannel(channelName, isTest: true);
+                return;
+            }
+
+            // A leave this machine asked for has already forgotten the channel before awaiting it,
+            // so a channel still held here was dropped by Vivox - an RTP timeout, the network
+            // blinking. It used to stay "joined": no voice for the rest of the match, never retried.
+            if (_joinedChannel != null && _joinedChannel.Name == channelName)
+            {
+                HandleDroppedChannel(channelName, isTest: false);
+            }
+
             OnLeftChannel?.Invoke(channelName);
+        }
+
+        private void HandleDroppedChannel(string channelName, bool isTest)
+        {
+            if (isTest)
+            {
+                _isInTestChannel = false;
+            }
+            else
+            {
+                _joinedChannel = null;
+                _currentChannelName = null;
+            }
+
+            // Vivox keeps the dropped session in its group, and joining the same channel again is
+            // refused ("Handle Taken") until the client logs out: the next join starts from a fresh login.
+            _reloginBeforeJoin = true;
+
+            Debug.LogWarning($"Voice channel {channelName} dropped by Vivox; joining it again.");
+            LanDiagnosticsLog.Note($"VOZ: canal {channelName} caiu; entrando de novo.");
+
+            ApplyOutputVolume();
+            ReconcileChannels();
         }
 
         private async void Application_ApplicationQuit()

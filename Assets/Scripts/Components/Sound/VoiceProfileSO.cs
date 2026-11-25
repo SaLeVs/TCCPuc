@@ -25,7 +25,12 @@ namespace Components.Sound
 
         [Tooltip("At or above this it counts as a shout: it reaches the voice channel's audible " +
                  "distance, and the monster hears it from the shout distance.")]
-        [SerializeField, Range(0f, 1f)] private float shoutEnergy = 0.65f;
+        [SerializeField, Range(0f, 1f)] private float shoutEnergy = 0.55f;
+
+        [Tooltip("The shout line the mic setup calibrates against: its shout zone and the ceiling past " +
+                 "which a voice gets trimmed for the listeners. Kept apart from Shout Energy so the game " +
+                 "can hear a shout sooner without everyone's mic setup trimming more.")]
+        [SerializeField, Range(0f, 1f)] private float micSetupShoutEnergy = 0.65f;
 
         [Tooltip("At or above this the player counts as talking for the donation missions.")]
         [SerializeField, Range(0f, 1f)] private float talkingEnergy = 0.65f;
@@ -64,6 +69,7 @@ namespace Components.Sound
 
         public float SpeechEnergy => speechEnergy;
         public float ShoutEnergy => shoutEnergy;
+        public float MicSetupShoutEnergy => micSetupShoutEnergy;
         public float TalkingEnergy => talkingEnergy;
         public float WhisperRange => whisperRange;
         public float SpeechRange => speechRange;
@@ -114,6 +120,7 @@ namespace Components.Sound
             // Mathf.InverseLerp silently inverts when these cross, which would make speaking
             // quietly the thing that carries furthest.
             shoutEnergy = Mathf.Max(shoutEnergy, speechEnergy);
+            micSetupShoutEnergy = Mathf.Max(micSetupShoutEnergy, speechEnergy);
             speechRange = Mathf.Max(speechRange, whisperRange);
         }
     }

@@ -311,7 +311,8 @@ public class OptionsMenuManager : MonoBehaviour
         if (_isMicTestRunning) return;
 
         _isMicTestRunning = true;
-        VivoxManager.instance?.EnterTestVoiceChannel();
+        // Local, not Vivox's echo channel: see OptionsMicTest.
+        Ui.OptionsMicTest.Begin();
         UpdateMicTestText();
     }
 
@@ -320,7 +321,7 @@ public class OptionsMenuManager : MonoBehaviour
         if (!_isMicTestRunning) return;
 
         _isMicTestRunning = false;
-        VivoxManager.instance?.LeaveTestVoiceChannel();
+        Ui.OptionsMicTest.End();
         UpdateMicTestText();
     }
 

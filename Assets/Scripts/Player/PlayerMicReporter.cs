@@ -34,6 +34,7 @@ namespace Player
         private bool _isReportingSpeech;
         private float _nextVoiceReportTime;
         private VoiceTier _lastReportedTier = VoiceTier.Silent;
+        private PlayerState _playerState;
 
         private enum VoiceTier
         {
@@ -179,6 +180,9 @@ namespace Player
         {
             if (!voiceMakesNoise) return;
 
+            // A corpse does not talk to the monster: it used to hear the dead shouting where they fell.
+            if (IsOutOfPlay()) return;
+
             VoiceTier tier = TierFor(energy);
 
             if (tier == VoiceTier.Silent)
@@ -201,6 +205,13 @@ namespace Player
             ReportVoiceNoiseServerRpc(loudness);
         }
 
+        private bool IsOutOfPlay()
+        {
+            if (_playerState == null) _playerState = GetComponentInParent<PlayerState>();
+
+            return _playerState != null && _playerState.IsOutOfPlay;
+        }
+
         private VoiceTier TierFor(float energy)
         {
             if (voiceProfile == null) return VoiceTier.Silent;
@@ -219,6 +230,9 @@ namespace Player
         [Rpc(SendTo.Server)]
         private void ReportVoiceNoiseServerRpc(float loudness)
         {
+            // Checked again here: the server is the one that knows who escaped.
+            if (IsOutOfPlay()) return;
+
             // Position comes from the server's copy of this player, not from the client —
             // a client can only tell us how loud it was, never where it was.
             NoiseBus.Report(transform.position, loudness, NoiseType.Voice, transform.root);

@@ -5,6 +5,8 @@ using Unity.Netcode;
 using Unity.Services.Vivox;
 using UnityEngine;
 using UnityEngine.Audio;
+using Interfaces;
+using Object = UnityEngine.Object;
 
 namespace Audio
 {
@@ -58,6 +60,9 @@ namespace Audio
         private AudioListener _listener;
         private NetworkObject _owner;
         private float _currentRange;
+        private IHuntable _speaker;
+        private IHuntable _localPlayer;
+        private bool _isGhostVoice;
 
 
         private void OnEnable()
@@ -71,10 +76,28 @@ namespace Audio
                 TryBindExistingParticipant();
             }
 
+            if (voiceIdentity != null)
+            {
+                voiceIdentity.OnVivoxPlayerIdChanged += VoiceIdentity_OnVivoxPlayerIdChanged;
+            }
+
             if (zoneState != null)
             {
                 zoneState.OnZonePresetChanged += PlayerZoneAudioState_OnZonePresetChanged;
             }
+        }
+
+        /// <summary>
+        /// The id is empty here when this object is created and only replicates after; a participant
+        /// that joined the channel before it arrived was announced to nobody who could match it, and
+        /// its voice went out untapped — through Vivox's own mix, at its 1000 m range, across the map.
+        /// </summary>
+        private void VoiceIdentity_OnVivoxPlayerIdChanged(string playerId)
+        {
+            if (_participant != null && _participantPlayerId == playerId) return;
+            if (VivoxManager.instance == null) return;
+
+            TryBindExistingParticipant();
         }
 
 
@@ -252,6 +275,60 @@ namespace Audio
         /// distance law alone sets the level, and a cosine takes it from there to silence. The
         /// (1 - x²)² window used before acted over the whole range and already took 8 dB at 60% of it.</para>
         /// </summary>
+        private IHuntable GetSpeaker()
+        {
+            if (_speaker == null) _speaker = GetComponentInParent<IHuntable>();
+            return _speaker;
+        }
+
+        private IHuntable GetLocalPlayer()
+        {
+            if (_localPlayer != null) return _localPlayer;
+
+            NetworkObject local = NetworkManager.Singleton != null ? NetworkManager.Singleton.LocalClient?.PlayerObject : null;
+            if (local != null) _localPlayer = local.GetComponent<IHuntable>();
+
+            return _localPlayer;
+        }
+
+        private static bool IsOutOfPlay(IHuntable player)
+        {
+            return player is Object unityObject && unityObject != null && !player.IsHuntable;
+        }
+
+        /// <summary>
+        /// Between two dead players the voice is a radio, not a mouth: no direction, no walls, no
+        /// distance. Steam Audio would still spatialise it from the corpse, so it is switched off
+        /// for as long as both are out, and back on otherwise.
+        /// </summary>
+        private void SetGhostVoice(bool ghost)
+        {
+            if (_isGhostVoice == ghost || _audioSource == null) return;
+
+            _isGhostVoice = ghost;
+
+            _audioSource.spatialBlend = ghost ? 0f : 1f;
+            _audioSource.spatialize = !ghost && spatialProfile != null;
+
+            // By name: this assembly does not reference Steam Audio's.
+            if (_audioSource.GetComponent("SteamAudioSource") is Behaviour steamSource)
+            {
+                steamSource.enabled = !ghost;
+            }
+
+            if (_reverbFilter != null) _reverbFilter.enabled = !ghost;
+
+            // Unity only picks up a change of spatializer when a sound starts (see the tap's creation
+            // above), so the switch restarts it. Also when it is not playing: the tap pauses its source
+            // whenever the speaker is silent, and a pause resumes with the old spatializer. The tap's
+            // drift correction realigns after the restart and pauses it again if nothing comes in.
+            if (_audioSource.clip != null)
+            {
+                _audioSource.Stop();
+                _audioSource.Play();
+            }
+        }
+
         private void ApplyRange(bool reading)
         {
             float window = 0f;
@@ -271,6 +348,17 @@ namespace Audio
                     window = 0.5f * (1f + Mathf.Cos(Mathf.PI * (x - fadeStart) / (1f - fadeStart)));
                 }
             }
+
+            // The dead (and whoever escaped) are out of the building: the players still in it do not
+            // hear them, and they hear each other wherever they are, with no distance in between.
+            bool speakerOut = IsOutOfPlay(GetSpeaker());
+            bool listenerOut = IsOutOfPlay(GetLocalPlayer());
+            bool ghost = speakerOut && listenerOut;
+
+            SetGhostVoice(ghost);
+
+            if (ghost) window = 1f;
+            else if (speakerOut) window = 0f;
 
             float playerVolume = VivoxManager.instance != null
                 ? VivoxManager.instance.GetParticipantTapVolume(_participant.PlayerId)
@@ -415,11 +503,12 @@ namespace Audio
             _audioSource = null;
             _listener = null;
             _currentRange = 0f;
+            _isGhostVoice = false;
         }
 
         private void TryBindExistingParticipant()
         {
-            if (voiceIdentity == null) return;
+            if (voiceIdentity == null || string.IsNullOrEmpty(voiceIdentity.VivoxPlayerId)) return;
 
             foreach (VivoxParticipant participant in VivoxManager.instance.CurrentParticipants)
             {
@@ -439,6 +528,11 @@ namespace Audio
                 VivoxManager.instance.OnParticipantJoinedChannel -= VivoxManager_OnParticipantJoined;
                 VivoxManager.instance.OnParticipantLeftChannel -= VivoxManager_OnParticipantLeft;
                 VivoxManager.instance.OnLeftChannel -= VivoxManager_OnLeftChannel;
+            }
+
+            if (voiceIdentity != null)
+            {
+                voiceIdentity.OnVivoxPlayerIdChanged -= VoiceIdentity_OnVivoxPlayerIdChanged;
             }
 
             if (zoneState != null)

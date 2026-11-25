@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using Inputs;
+using Interfaces;
 using Player;
 using Unity.Netcode;
 using UnityEngine;
@@ -54,6 +55,14 @@ namespace Ui
 
         private bool _isLocked;
         private bool _isPaused;
+        private bool _isSpectating;
+
+        /// <summary>Owner-side: this player now watches someone else, through the HUD of the one they watch.</summary>
+        public void SetSpectating(bool spectating)
+        {
+            _isSpectating = spectating;
+            ApplyHudVisibility();
+        }
 
         // Owner only: this HUD lives inside the player prefab and the InputReader is a shared
         // asset, so without the gate every player in the session answers the local keystroke.
@@ -103,7 +112,13 @@ namespace Ui
         {
             if (gameplayCanvas == null) return;
 
-            bool shouldBeActive = !_isLocked && !_isPaused;
+            // Spectating, the HUD shows the watched player's stream: whatever locked this player's own
+            // input (a knockdown they died in) no longer hides it - only the end of the match does.
+            bool locked = _isSpectating
+                ? playerState != null && playerState.HasInputLock(InputLockReason.EndGame)
+                : _isLocked;
+
+            bool shouldBeActive = !locked && !_isPaused;
             if (gameplayCanvas.activeSelf == shouldBeActive) return;
 
             gameplayCanvas.SetActive(shouldBeActive);

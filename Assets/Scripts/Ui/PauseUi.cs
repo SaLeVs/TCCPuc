@@ -22,6 +22,10 @@ namespace Ui
 
         private void Start()
         {
+            // The options (and the device panel inside them) are saved switched on in the prefab, so
+            // the very first pause opened straight onto "Dispositivos". Their Awake has run by now -
+            // it is what applies the saved volumes - so they can be put away.
+            CloseOptionPanel();
             pausePanel.SetActive(false);
             playerCamera.OnPauseToggled += PlayerCamera_OnPauseToggled;
             NetworkManager.Singleton.OnClientDisconnectCallback += OnClientDisconnected;
@@ -31,11 +35,8 @@ namespace Ui
         private void PlayerCamera_OnPauseToggled(bool isPaused)
         {
             // Options lives inside the pause canvas, so whatever was left open there came back with
-            // it. Closed on the way out, every pause starts on the pause menu itself.
-            if (!isPaused)
-            {
-                CloseOptionPanel();
-            }
+            // it. Closed both ways, every pause starts on the pause menu itself.
+            CloseOptionPanel();
 
             pausePanel.SetActive(isPaused);
             isPanelEnabled = isPaused;

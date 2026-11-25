@@ -48,6 +48,23 @@ namespace Missions
             
             return selector.IsMissionOwner(clientId);
         }
+
+        /// <summary>Why <see cref="CanClientInteract"/> says no, in the HUD's words; null when it says yes.</summary>
+        public string GetBlockReason(ulong clientId)
+        {
+            PuzzleManagerBase manager = Manager;
+
+            if (manager == null) return Interfaces.InteractionBlockText.NotYourMission;
+            if (manager.IsComplete) return Interfaces.InteractionBlockText.MissionComplete;
+
+            MissionOwnershipSelector selector = manager.OwnershipSelector;
+
+            if (selector == null) return Interfaces.InteractionBlockText.NotYourMission;
+            if (selector.IsMissionOwner(clientId)) return null;
+
+            return Interfaces.InteractionBlockText.Ownership(selector.IsMissionOwnerAssigned,
+                Interfaces.InteractionBlockText.OnlyOwnerTakes);
+        }
         
     }
 }

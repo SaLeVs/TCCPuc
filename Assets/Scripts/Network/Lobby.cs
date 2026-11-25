@@ -28,6 +28,13 @@ namespace Network
             }
         }
         
+        /// <summary>The lobby object, without the error instance logs when there is none (a LAN match, the GYM).</summary>
+        public static Lobby FindQuietly()
+        {
+            if (Instance == null) Instance = FindFirstObjectByType<Lobby>();
+            return Instance;
+        }
+
         public event Action OnJoinedLobby;
         public event Action OnLobbyUpdated;
         public event Action OnLeftLobby;
@@ -50,6 +57,10 @@ namespace Network
         private float _lobbyUpdateMaxTimer = 1.1f;
         
         private bool _hasJoinedGame;
+
+        // One deal of the player cards in flight at a time; the next poll deals again if it is still needed.
+        private bool _isDealingCards;
+        private readonly System.Random _cardRandom = new System.Random();
         
 
         private void Update()
@@ -90,17 +101,38 @@ namespace Network
             {
                 _lobbyUpdateTimer = _lobbyUpdateMaxTimer;
 
+                string polledId = _joinedLobby.Id;
+
                 try
                 {
-                    Unity.Services.Lobbies.Models.Lobby lobby = await LobbyService.Instance.GetLobbyAsync(_joinedLobby.Id);
-                    _joinedLobby = lobby;
+                    Unity.Services.Lobbies.Models.Lobby lobby = await LobbyService.Instance.GetLobbyAsync(polledId);
 
-                    OnLobbyUpdated?.Invoke();
-                    CheckIfGameStarted();
+                    // Left (or moved to another lobby) while the poll was out: an answer for the old
+                    // one must not bring it back.
+                    if (_joinedLobby == null || _joinedLobby.Id != polledId) return;
+
+                    _joinedLobby = lobby;
+                    PlayerCards.Refresh(lobby);
                 }
                 catch (Exception e)
                 {
                     Debug.LogWarning($"Lobby poll failed: {e.Message}");
+                    return;
+                }
+
+                // The start is checked before anyone is told about the update. It used to come after,
+                // inside the same try, so any listener that threw (a menu with a missing reference)
+                // made this client miss the match starting, poll after poll.
+                CheckIfGameStarted();
+                DealCardsIfHost();
+
+                try
+                {
+                    OnLobbyUpdated?.Invoke();
+                }
+                catch (Exception e)
+                {
+                    Debug.LogException(e);
                 }
             }
         }
@@ -124,10 +156,15 @@ namespace Network
                         },
                         {
                             "StartGame", new DataObject(DataObject.VisibilityOptions.Member, "0")
+                        },
+                        {
+                            // The host's own card, drawn now: the others get theirs as they arrive.
+                            PlayerCards.LOBBY_KEY, new DataObject(DataObject.VisibilityOptions.Member,
+                                $"{AuthenticationService.Instance.PlayerId}={_cardRandom.Next(PlayerCards.COUNT)}")
                         }
                     }
                 };
-                
+
                 string lobbyName = "Lobby";
                 
                 lobby = await LobbyService.Instance.CreateLobbyAsync(lobbyName, MAX_PLAYERS, createLobbyOptions);
@@ -142,6 +179,10 @@ namespace Network
 
             _hostLobby = lobby;
             _joinedLobby = _hostLobby;
+            PlayerCards.Refresh(lobby);
+
+            // A new lobby is a new match. Left over from the last one, this made StartGame refuse.
+            _hasJoinedGame = false;
 
             OnJoinedLobby?.Invoke();
             return true;
@@ -204,6 +245,10 @@ namespace Network
             }
 
             _joinedLobby = lobby;
+            PlayerCards.Refresh(lobby);
+
+            // Left over from the last match, this stopped the polling that notices the start.
+            _hasJoinedGame = false;
 
             OnJoinedLobby?.Invoke();
             return true;
@@ -272,50 +317,81 @@ namespace Network
 
         public async void LeaveLobby()
         {
+            Unity.Services.Lobbies.Models.Lobby leaving = _joinedLobby;
+            if (leaving == null) return;
+
+            bool wasHost = IsHost();
+
+            // Forgotten and announced before the service calls, not after them. Those take a second or
+            // more (the host hands the lobby over, then leaves), and in the meantime the player could
+            // already be in the next lobby — which the old "finally" then wiped out, voice channel and
+            // all: no voice on the second run, the host first of all. A second call while this one is
+            // still waiting (the end screen and the disconnect callback both leave) now finds nothing.
+            ResetLobbyState();
+
             try
             {
-                if (_joinedLobby == null) return;
+                OnLeftLobby?.Invoke();
+            }
+            catch (Exception e)
+            {
+                Debug.LogException(e);
+            }
 
-                if (IsHost())
+            try
+            {
+                string lobbyId = leaving.Id;
+
+                if (wasHost)
                 {
-                    if (_joinedLobby.Players.Count > 1)
+                    // The player list stops being refreshed once the match starts, so after a match it
+                    // can still name players who have already left. Handing the lobby to one of them
+                    // fails; the lobby is deleted instead, which is what an empty one gets anyway.
+                    bool migrated = false;
+
+                    if (leaving.Players.Count > 1)
                     {
-                        await MigrateHostAsync();
-                        await LobbyService.Instance.RemovePlayerAsync(_joinedLobby.Id, AuthenticationService.Instance.PlayerId);
+                        try
+                        {
+                            await MigrateHostAsync(leaving);
+                            await LobbyService.Instance.RemovePlayerAsync(lobbyId, AuthenticationService.Instance.PlayerId);
+                            migrated = true;
+                        }
+                        catch (Exception e)
+                        {
+                            Debug.LogWarning($"Lobby: could not hand the lobby over, deleting it instead. {e.Message}");
+                        }
                     }
-                    else
+
+                    if (!migrated)
                     {
-                        await LobbyService.Instance.DeleteLobbyAsync(_joinedLobby.Id);
+                        await LobbyService.Instance.DeleteLobbyAsync(lobbyId);
                     }
                 }
                 else
                 {
-                    await LobbyService.Instance.RemovePlayerAsync(_joinedLobby.Id, AuthenticationService.Instance.PlayerId);
+                    await LobbyService.Instance.RemovePlayerAsync(lobbyId, AuthenticationService.Instance.PlayerId);
                 }
             }
-            finally
+            catch (Exception e)
             {
-                _joinedLobby = null;
-                _hostLobby = null;
-                _hasJoinedGame = false;
-                ResetLobbyState();
-                OnLeftLobby?.Invoke();
+                // async void: anything not caught here only shows up as an unhandled exception. The
+                // lobby expires on its own without a heartbeat, so leaving it is best effort.
+                Debug.LogWarning($"Lobby: could not leave the lobby cleanly. {e.Message}");
             }
-            
         }
 
-        private async Task MigrateHostAsync()
+        private static async Task MigrateHostAsync(Unity.Services.Lobbies.Models.Lobby lobby)
         {
             string myId = AuthenticationService.Instance.PlayerId;
-            Player nextHost = _joinedLobby.Players.Find(p => p.Id != myId);
+            Player nextHost = lobby.Players.Find(p => p.Id != myId);
 
             if (nextHost == null) return;
 
-            _hostLobby = await LobbyService.Instance.UpdateLobbyAsync(_joinedLobby.Id, new UpdateLobbyOptions
+            await LobbyService.Instance.UpdateLobbyAsync(lobby.Id, new UpdateLobbyOptions
             {
                 HostId = nextHost.Id
             });
-            _joinedLobby = _hostLobby;
         }
 
         public async void KickPlayer()
@@ -411,6 +487,52 @@ namespace Network
             return true;
         }
         
+        /// <summary>
+        /// The host deals a JAF card colour to whoever arrived (and takes back the colours of whoever
+        /// left), so the slots of the lobby and the pause roster of the match show the same colour for
+        /// each player on every machine. Stops once the match starts: the deal is final then.
+        /// </summary>
+        private async void DealCardsIfHost()
+        {
+            if (_isDealingCards || _hasJoinedGame) return;
+            if (_joinedLobby == null || !IsHost()) return;
+
+            string deal = PlayerCards.Deal(_joinedLobby, _cardRandom);
+            if (deal == null) return;
+
+            _isDealingCards = true;
+            string lobbyId = _joinedLobby.Id;
+
+            try
+            {
+                Unity.Services.Lobbies.Models.Lobby updated = await LobbyService.Instance.UpdateLobbyAsync(lobbyId,
+                    new UpdateLobbyOptions
+                    {
+                        Data = new Dictionary<string, DataObject>
+                        {
+                            { PlayerCards.LOBBY_KEY, new DataObject(DataObject.VisibilityOptions.Member, deal) }
+                        }
+                    });
+
+                // Left, or the match started, while the update was out: that answer is stale.
+                if (_joinedLobby == null || _joinedLobby.Id != lobbyId || _hasJoinedGame) return;
+
+                _joinedLobby = updated;
+                if (_hostLobby != null) _hostLobby = updated;
+                PlayerCards.Refresh(updated);
+
+                OnLobbyUpdated?.Invoke();
+            }
+            catch (Exception e)
+            {
+                Debug.LogWarning($"Lobby: could not deal the player cards. {e.Message}");
+            }
+            finally
+            {
+                _isDealingCards = false;
+            }
+        }
+
         private async void CheckIfGameStarted()
         {
             if (_hasJoinedGame) return;

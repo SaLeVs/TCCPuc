@@ -22,8 +22,15 @@ namespace Objects
         [Tooltip("Optional. The click the monster can hear when this is switched on or off.")]
         [SerializeField] private NoiseEmitter clickNoise;
 
-        [SerializeField] private int batteryPercentMax = 100;
-        [SerializeField] private int batteryPercentDecreasePerSecond = 10;
+        [Tooltip("Keep it a real number: int.MaxValue as 'infinite' never drained in a float and " +
+                 "overflowed back to negative on the HUD (black bar) after a battery.")]
+        [SerializeField, Min(1)] private int batteryPercentMax = 100;
+
+        // Balanced for 4 players, ~15 min match, light on ~70% of the time, 19 batteries in the
+        // Game scene at 50% each: a full charge lasts ~4 min on, every player needs ~3 batteries
+        // and 7 are left over for an uneven split.
+        [Tooltip("Percent per second while on. 0.4 = a full charge lasts about four minutes.")]
+        [SerializeField, Min(0f)] private float batteryPercentDecreasePerSecond = 0.4f;
 
         public int BatteryPercentMax => batteryPercentMax;
         

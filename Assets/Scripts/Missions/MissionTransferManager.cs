@@ -59,7 +59,17 @@ namespace Missions
             Debug.LogWarning($"MissionTransferManager: Timed out waiting for PlayerObject of client {clientId}.");
         }
 
-        private void OnClientDisconnected(ulong clientId) => UnregisterClient(clientId);
+        private void OnClientDisconnected(ulong clientId)
+        {
+            UnregisterClient(clientId);
+
+            // Leaving hands the missions over the same as dying does. A player who already died has
+            // none left, so this does nothing for them.
+            if (missionManager != null)
+            {
+                missionManager.HandlePlayerLeft(clientId);
+            }
+        }
 
         private void UnregisterClient(ulong clientId)
         {

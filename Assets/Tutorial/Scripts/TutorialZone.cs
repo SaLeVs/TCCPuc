@@ -41,6 +41,13 @@ namespace Tutorial
 
         public static void Forget(string id) => Entered.Remove(id);
 
+        /// <summary>
+        /// Esquece todas as zonas já pisadas. A lista é estática e sobrevive à troca de cena: sem
+        /// isso, na segunda vez que o tutorial roda (Jogar de novo, ou voltar do menu) toda zona já
+        /// conta como pisada e o tutorial termina sem o jogador chegar na saída.
+        /// </summary>
+        public static void ForgetAll() => Entered.Clear();
+
         public static bool IsInside(string id) => ById.TryGetValue(id, out TutorialZone zone) && zone.PlayerInside;
 
         public static TutorialZone Find(string id) => ById.TryGetValue(id, out TutorialZone zone) ? zone : null;

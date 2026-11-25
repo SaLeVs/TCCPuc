@@ -101,6 +101,11 @@ namespace Components
 
                 GameObject objectDetected = currentCollider.gameObject;
 
+                // One object with two colliders on the target layers came through twice: entered
+                // twice in the same scan and left only once, so the monster went on "seeing" it.
+                if (detectedObjects.Contains(objectDetected))
+                    continue;
+
                 if (!IsObjectInVision(objectDetected))
                     continue;
 
@@ -419,6 +424,17 @@ namespace Components
 
         private void OnDisable()
         {
+            // Whatever was in sight leaves it: listeners would otherwise keep a target the sensor
+            // has stopped looking at.
+            if (IsServer && IsSpawned)
+            {
+                foreach (GameObject detectedObject in detectedObjects)
+                {
+                    if (detectedObject != null && detectedObject.TryGetComponent(out RecordableIdentifier identifier))
+                        TargetExit(detectedObject, identifier);
+                }
+            }
+
             _collidersCount = 0;
 
             for (int i = 0; i < _collidersDetected.Length; i++)

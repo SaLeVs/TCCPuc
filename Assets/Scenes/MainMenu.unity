@@ -837,6 +837,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8491afe572c63d342948bf64c52a8ced, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Game::HoverMaterialChange
+  onlyOverClickableButton: 1
   normalMaterial: {fileID: 2100000, guid: c744ebd40427c9844bd29bf77a130a03, type: 2}
   hoverMaterial: {fileID: 2100000, guid: 45507cbfde15cee46bb01b97c9443d28, type: 2}
   useEmissionInstead: 0
@@ -1724,7 +1725,7 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 75810022}
   m_TextViewport: {fileID: 832180719}
   m_TextComponent: {fileID: 2063003472}
-  m_Placeholder: {fileID: 0}
+  m_Placeholder: {fileID: 316061278}
   m_VerticalScrollbar: {fileID: 0}
   m_VerticalScrollbarEventHandler: {fileID: 0}
   m_LayoutGroup: {fileID: 0}
@@ -2131,6 +2132,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8491afe572c63d342948bf64c52a8ced, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Game::HoverMaterialChange
+  onlyOverClickableButton: 1
   normalMaterial: {fileID: 2100000, guid: c744ebd40427c9844bd29bf77a130a03, type: 2}
   hoverMaterial: {fileID: 2100000, guid: 45507cbfde15cee46bb01b97c9443d28, type: 2}
   useEmissionInstead: 0
@@ -3098,6 +3100,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8491afe572c63d342948bf64c52a8ced, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Game::HoverMaterialChange
+  onlyOverClickableButton: 1
   normalMaterial: {fileID: 2100000, guid: c4036813edbfeae428efdb6a86656f31, type: 2}
   hoverMaterial: {fileID: 2100000, guid: 9ba13125970da0941b7379cfa1693da4, type: 2}
   useEmissionInstead: 0
@@ -4129,7 +4132,7 @@ MonoBehaviour:
   m_fontColor32:
     serializedVersion: 2
     rgba: 4291546067
-  m_fontColor: {r: 0.827451, g: 0.79607844, b: 0.79607844, a: 1}
+  m_fontColor: {r: 0.8509804, g: 0.81960785, b: 0.81960785, a: 1}
   m_enableVertexGradient: 0
   m_colorMode: 3
   m_fontColorGradient:
@@ -4395,6 +4398,30 @@ PrefabInstance:
     - target: {fileID: 5977151173471940534, guid: 6e8edf3958477ba4dbf3cb978468835d, type: 3}
       propertyPath: m_fontSize
       value: 31.4
+      objectReference: {fileID: 0}
+    - target: {fileID: 6018283740516240287, guid: 6e8edf3958477ba4dbf3cb978468835d, type: 3}
+      propertyPath: m_Color.b
+      value: 0.81960785
+      objectReference: {fileID: 0}
+    - target: {fileID: 6018283740516240287, guid: 6e8edf3958477ba4dbf3cb978468835d, type: 3}
+      propertyPath: m_Color.g
+      value: 0.81960785
+      objectReference: {fileID: 0}
+    - target: {fileID: 6018283740516240287, guid: 6e8edf3958477ba4dbf3cb978468835d, type: 3}
+      propertyPath: m_Color.r
+      value: 0.8509804
+      objectReference: {fileID: 0}
+    - target: {fileID: 7297412407552621194, guid: 6e8edf3958477ba4dbf3cb978468835d, type: 3}
+      propertyPath: m_Color.b
+      value: 0.81960785
+      objectReference: {fileID: 0}
+    - target: {fileID: 7297412407552621194, guid: 6e8edf3958477ba4dbf3cb978468835d, type: 3}
+      propertyPath: m_Color.g
+      value: 0.81960785
+      objectReference: {fileID: 0}
+    - target: {fileID: 7297412407552621194, guid: 6e8edf3958477ba4dbf3cb978468835d, type: 3}
+      propertyPath: m_Color.r
+      value: 0.8509804
       objectReference: {fileID: 0}
     - target: {fileID: 7299975422305447819, guid: 6e8edf3958477ba4dbf3cb978468835d, type: 3}
       propertyPath: m_fontSize
@@ -4678,6 +4705,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8491afe572c63d342948bf64c52a8ced, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Game::HoverMaterialChange
+  onlyOverClickableButton: 1
   normalMaterial: {fileID: 2100000, guid: c744ebd40427c9844bd29bf77a130a03, type: 2}
   hoverMaterial: {fileID: 2100000, guid: 45507cbfde15cee46bb01b97c9443d28, type: 2}
   useEmissionInstead: 0
@@ -5244,10 +5272,12 @@ Transform:
   - {fileID: 2066425079}
   - {fileID: 1897730732}
   - {fileID: 423567564}
+  - {fileID: 650851726}
   - {fileID: 964024071}
   - {fileID: 1359955253}
   - {fileID: 1419217839}
   - {fileID: 1853473388}
+  - {fileID: 1552142895}
   - {fileID: 1602679440}
   - {fileID: 512979416}
   - {fileID: 416567309}
@@ -5821,7 +5851,7 @@ MonoBehaviour:
   m_fontColor32:
     serializedVersion: 2
     rgba: 1942735827
-  m_fontColor: {r: 0.827, g: 0.796, b: 0.796, a: 0.45}
+  m_fontColor: {r: 0.8509804, g: 0.81960785, b: 0.81960785, a: 1}
   m_enableVertexGradient: 0
   m_colorMode: 3
   m_fontColorGradient:
@@ -6714,7 +6744,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 57.304, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 409, y: 431}
+  m_AnchoredPosition: {x: 409, y: 413}
   m_SizeDelta: {x: 350, y: 50}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &359750148
@@ -6764,8 +6794,8 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 36
-  m_fontSizeBase: 36
+  m_fontSize: 40
+  m_fontSizeBase: 40
   m_fontWeight: 400
   m_enableAutoSizing: 0
   m_fontSizeMin: 18
@@ -8104,8 +8134,8 @@ MonoBehaviour:
   m_fontMaterials: []
   m_fontColor32:
     serializedVersion: 2
-    rgba: 4291546067
-  m_fontColor: {r: 0.827451, g: 0.79607844, b: 0.79607844, a: 1}
+    rgba: 4291940825
+  m_fontColor: {r: 0.8509804, g: 0.81960785, b: 0.81960785, a: 1}
   m_enableVertexGradient: 0
   m_colorMode: 3
   m_fontColorGradient:
@@ -8686,6 +8716,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8491afe572c63d342948bf64c52a8ced, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Game::HoverMaterialChange
+  onlyOverClickableButton: 1
   normalMaterial: {fileID: 2100000, guid: c744ebd40427c9844bd29bf77a130a03, type: 2}
   hoverMaterial: {fileID: 2100000, guid: 45507cbfde15cee46bb01b97c9443d28, type: 2}
   useEmissionInstead: 0
@@ -11259,7 +11290,7 @@ RectTransform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 622698344}
   m_LocalRotation: {x: 0.041908454, y: 0.46009356, z: -0.004895837, w: 0.88686734}
-  m_LocalPosition: {x: 0, y: 0, z: -357}
+  m_LocalPosition: {x: 0, y: 0, z: -349}
   m_LocalScale: {x: 0.6865513, y: 0.8176442, z: 0.81764406}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -11268,7 +11299,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 508, y: 467}
+  m_AnchoredPosition: {x: 500, y: 439}
   m_SizeDelta: {x: 184.49384, y: 201.38379}
   m_Pivot: {x: 0.5, y: 0}
 --- !u!114 &622698346
@@ -11507,6 +11538,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8491afe572c63d342948bf64c52a8ced, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Game::HoverMaterialChange
+  onlyOverClickableButton: 1
   normalMaterial: {fileID: 2100000, guid: c744ebd40427c9844bd29bf77a130a03, type: 2}
   hoverMaterial: {fileID: 2100000, guid: c744ebd40427c9844bd29bf77a130a03, type: 2}
   useEmissionInstead: 0
@@ -11845,6 +11877,76 @@ PrefabInstance:
 Transform:
   m_CorrespondingSourceObject: {fileID: 4436942330475129209, guid: 46f5d0acdfcf0f441a3e8b27f5a8e247, type: 3}
   m_PrefabInstance: {fileID: 646588536}
+  m_PrefabAsset: {fileID: 0}
+--- !u!1001 &650851725
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 246407918}
+    m_Modifications:
+    - target: {fileID: 4869371842619939577, guid: 316b7fc2ee4bef443835da8daed1064b, type: 3}
+      propertyPath: m_Name
+      value: SM_Paper_12x16 (4)
+      objectReference: {fileID: 0}
+    - target: {fileID: 5249133694984568899, guid: 316b7fc2ee4bef443835da8daed1064b, type: 3}
+      propertyPath: m_LocalScale.y
+      value: 0.8082
+      objectReference: {fileID: 0}
+    - target: {fileID: 5249133694984568899, guid: 316b7fc2ee4bef443835da8daed1064b, type: 3}
+      propertyPath: m_LocalScale.z
+      value: 1.8233302
+      objectReference: {fileID: 0}
+    - target: {fileID: 5249133694984568899, guid: 316b7fc2ee4bef443835da8daed1064b, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 7.9812
+      objectReference: {fileID: 0}
+    - target: {fileID: 5249133694984568899, guid: 316b7fc2ee4bef443835da8daed1064b, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 1.8467
+      objectReference: {fileID: 0}
+    - target: {fileID: 5249133694984568899, guid: 316b7fc2ee4bef443835da8daed1064b, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: -0.7977
+      objectReference: {fileID: 0}
+    - target: {fileID: 5249133694984568899, guid: 316b7fc2ee4bef443835da8daed1064b, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 0.976071
+      objectReference: {fileID: 0}
+    - target: {fileID: 5249133694984568899, guid: 316b7fc2ee4bef443835da8daed1064b, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5249133694984568899, guid: 316b7fc2ee4bef443835da8daed1064b, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: -0.217452
+      objectReference: {fileID: 0}
+    - target: {fileID: 5249133694984568899, guid: 316b7fc2ee4bef443835da8daed1064b, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5249133694984568899, guid: 316b7fc2ee4bef443835da8daed1064b, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5249133694984568899, guid: 316b7fc2ee4bef443835da8daed1064b, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 15
+      objectReference: {fileID: 0}
+    - target: {fileID: 5249133694984568899, guid: 316b7fc2ee4bef443835da8daed1064b, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: 316b7fc2ee4bef443835da8daed1064b, type: 3}
+--- !u!4 &650851726 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 5249133694984568899, guid: 316b7fc2ee4bef443835da8daed1064b, type: 3}
+  m_PrefabInstance: {fileID: 650851725}
   m_PrefabAsset: {fileID: 0}
 --- !u!1001 &653605747
 PrefabInstance:
@@ -12279,6 +12381,30 @@ PrefabInstance:
     - target: {fileID: 5977151173471940534, guid: 6e8edf3958477ba4dbf3cb978468835d, type: 3}
       propertyPath: m_fontColor32.rgba
       value: 4280558630
+      objectReference: {fileID: 0}
+    - target: {fileID: 6018283740516240287, guid: 6e8edf3958477ba4dbf3cb978468835d, type: 3}
+      propertyPath: m_Color.b
+      value: 0.81960785
+      objectReference: {fileID: 0}
+    - target: {fileID: 6018283740516240287, guid: 6e8edf3958477ba4dbf3cb978468835d, type: 3}
+      propertyPath: m_Color.g
+      value: 0.81960785
+      objectReference: {fileID: 0}
+    - target: {fileID: 6018283740516240287, guid: 6e8edf3958477ba4dbf3cb978468835d, type: 3}
+      propertyPath: m_Color.r
+      value: 0.8509804
+      objectReference: {fileID: 0}
+    - target: {fileID: 7297412407552621194, guid: 6e8edf3958477ba4dbf3cb978468835d, type: 3}
+      propertyPath: m_Color.b
+      value: 0.81960785
+      objectReference: {fileID: 0}
+    - target: {fileID: 7297412407552621194, guid: 6e8edf3958477ba4dbf3cb978468835d, type: 3}
+      propertyPath: m_Color.g
+      value: 0.81960785
+      objectReference: {fileID: 0}
+    - target: {fileID: 7297412407552621194, guid: 6e8edf3958477ba4dbf3cb978468835d, type: 3}
+      propertyPath: m_Color.r
+      value: 0.8509804
       objectReference: {fileID: 0}
     - target: {fileID: 7299975422305447819, guid: 6e8edf3958477ba4dbf3cb978468835d, type: 3}
       propertyPath: m_fontSize
@@ -13959,7 +14085,7 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 767551903}
   m_TextViewport: {fileID: 234868232}
   m_TextComponent: {fileID: 1690781894}
-  m_Placeholder: {fileID: 0}
+  m_Placeholder: {fileID: 1653581642}
   m_VerticalScrollbar: {fileID: 0}
   m_VerticalScrollbarEventHandler: {fileID: 0}
   m_LayoutGroup: {fileID: 0}
@@ -16177,7 +16303,7 @@ MonoBehaviour:
   m_fontColor32:
     serializedVersion: 2
     rgba: 4292929261
-  m_fontColor: {r: 0.93, g: 0.9, b: 0.88, a: 1}
+  m_fontColor: {r: 0.8509804, g: 0.81960785, b: 0.81960785, a: 1}
   m_enableVertexGradient: 0
   m_colorMode: 3
   m_fontColorGradient:
@@ -17204,8 +17330,8 @@ MonoBehaviour:
   m_fontMaterials: []
   m_fontColor32:
     serializedVersion: 2
-    rgba: 4291546067
-  m_fontColor: {r: 0.827451, g: 0.79607844, b: 0.79607844, a: 1}
+    rgba: 4291940825
+  m_fontColor: {r: 0.8509804, g: 0.81960785, b: 0.81960785, a: 1}
   m_enableVertexGradient: 0
   m_colorMode: 3
   m_fontColorGradient:
@@ -25643,6 +25769,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8491afe572c63d342948bf64c52a8ced, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Game::HoverMaterialChange
+  onlyOverClickableButton: 1
   normalMaterial: {fileID: 2100000, guid: c4036813edbfeae428efdb6a86656f31, type: 2}
   hoverMaterial: {fileID: 2100000, guid: 9ba13125970da0941b7379cfa1693da4, type: 2}
   useEmissionInstead: 0
@@ -25872,7 +25999,7 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 1126496768}
   m_TextViewport: {fileID: 795228654}
   m_TextComponent: {fileID: 11105125}
-  m_Placeholder: {fileID: 0}
+  m_Placeholder: {fileID: 1869246323}
   m_VerticalScrollbar: {fileID: 0}
   m_VerticalScrollbarEventHandler: {fileID: 0}
   m_LayoutGroup: {fileID: 0}
@@ -26293,6 +26420,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8491afe572c63d342948bf64c52a8ced, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Game::HoverMaterialChange
+  onlyOverClickableButton: 1
   normalMaterial: {fileID: 2100000, guid: c744ebd40427c9844bd29bf77a130a03, type: 2}
   hoverMaterial: {fileID: 2100000, guid: 45507cbfde15cee46bb01b97c9443d28, type: 2}
   useEmissionInstead: 0
@@ -27490,6 +27618,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8491afe572c63d342948bf64c52a8ced, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Game::HoverMaterialChange
+  onlyOverClickableButton: 1
   normalMaterial: {fileID: 2100000, guid: c744ebd40427c9844bd29bf77a130a03, type: 2}
   hoverMaterial: {fileID: 2100000, guid: 45507cbfde15cee46bb01b97c9443d28, type: 2}
   useEmissionInstead: 0
@@ -28084,8 +28213,8 @@ MonoBehaviour:
   m_fontMaterials: []
   m_fontColor32:
     serializedVersion: 2
-    rgba: 4291546067
-  m_fontColor: {r: 0.827451, g: 0.79607844, b: 0.79607844, a: 1}
+    rgba: 4291940825
+  m_fontColor: {r: 0.8509804, g: 0.81960785, b: 0.81960785, a: 1}
   m_enableVertexGradient: 0
   m_colorMode: 3
   m_fontColorGradient:
@@ -28254,8 +28383,8 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1214918651}
   serializedVersion: 2
-  m_LocalRotation: {x: 0.09759736, y: 0.6816823, z: -0.08010241, w: 0.72067165}
-  m_LocalPosition: {x: -1.395, y: 1.648, z: 0.209}
+  m_LocalRotation: {x: -0.09410588, y: -0.6504477, z: 0.0841768, w: -0.7489835}
+  m_LocalPosition: {x: -1.406, y: 1.665, z: 0.141}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -28591,6 +28720,30 @@ PrefabInstance:
     - target: {fileID: 5977151173471940534, guid: 6e8edf3958477ba4dbf3cb978468835d, type: 3}
       propertyPath: m_fontSize
       value: 31.4
+      objectReference: {fileID: 0}
+    - target: {fileID: 6018283740516240287, guid: 6e8edf3958477ba4dbf3cb978468835d, type: 3}
+      propertyPath: m_Color.b
+      value: 0.81960785
+      objectReference: {fileID: 0}
+    - target: {fileID: 6018283740516240287, guid: 6e8edf3958477ba4dbf3cb978468835d, type: 3}
+      propertyPath: m_Color.g
+      value: 0.81960785
+      objectReference: {fileID: 0}
+    - target: {fileID: 6018283740516240287, guid: 6e8edf3958477ba4dbf3cb978468835d, type: 3}
+      propertyPath: m_Color.r
+      value: 0.8509804
+      objectReference: {fileID: 0}
+    - target: {fileID: 7297412407552621194, guid: 6e8edf3958477ba4dbf3cb978468835d, type: 3}
+      propertyPath: m_Color.b
+      value: 0.81960785
+      objectReference: {fileID: 0}
+    - target: {fileID: 7297412407552621194, guid: 6e8edf3958477ba4dbf3cb978468835d, type: 3}
+      propertyPath: m_Color.g
+      value: 0.81960785
+      objectReference: {fileID: 0}
+    - target: {fileID: 7297412407552621194, guid: 6e8edf3958477ba4dbf3cb978468835d, type: 3}
+      propertyPath: m_Color.r
+      value: 0.8509804
       objectReference: {fileID: 0}
     - target: {fileID: 7299975422305447819, guid: 6e8edf3958477ba4dbf3cb978468835d, type: 3}
       propertyPath: m_fontSize
@@ -28978,6 +29131,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8491afe572c63d342948bf64c52a8ced, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Game::HoverMaterialChange
+  onlyOverClickableButton: 1
   normalMaterial: {fileID: 2100000, guid: eb7efa950258c6141a2d75e172bb91eb, type: 2}
   hoverMaterial: {fileID: 2100000, guid: 79b3f2a2b77f8324b9f345842148a444, type: 2}
   useEmissionInstead: 0
@@ -30966,8 +31120,8 @@ MonoBehaviour:
   m_fontMaterials: []
   m_fontColor32:
     serializedVersion: 2
-    rgba: 4291546067
-  m_fontColor: {r: 0.827451, g: 0.79607844, b: 0.79607844, a: 1}
+    rgba: 4291940825
+  m_fontColor: {r: 0.8509804, g: 0.81960785, b: 0.81960785, a: 1}
   m_enableVertexGradient: 0
   m_colorMode: 3
   m_fontColorGradient:
@@ -31090,7 +31244,7 @@ MonoBehaviour:
   m_fontColor32:
     serializedVersion: 2
     rgba: 4291546067
-  m_fontColor: {r: 0.827451, g: 0.79607844, b: 0.79607844, a: 1}
+  m_fontColor: {r: 0.8509804, g: 0.81960785, b: 0.81960785, a: 1}
   m_enableVertexGradient: 0
   m_colorMode: 3
   m_fontColorGradient:
@@ -31892,6 +32046,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8491afe572c63d342948bf64c52a8ced, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Game::HoverMaterialChange
+  onlyOverClickableButton: 1
   normalMaterial: {fileID: 2100000, guid: c4036813edbfeae428efdb6a86656f31, type: 2}
   hoverMaterial: {fileID: 2100000, guid: 9ba13125970da0941b7379cfa1693da4, type: 2}
   useEmissionInstead: 0
@@ -33237,8 +33392,8 @@ MonoBehaviour:
   m_fontMaterials: []
   m_fontColor32:
     serializedVersion: 2
-    rgba: 4291546067
-  m_fontColor: {r: 0.827451, g: 0.79607844, b: 0.79607844, a: 1}
+    rgba: 4291940825
+  m_fontColor: {r: 0.8509804, g: 0.81960785, b: 0.81960785, a: 1}
   m_enableVertexGradient: 0
   m_colorMode: 3
   m_fontColorGradient:
@@ -33513,6 +33668,30 @@ PrefabInstance:
     - target: {fileID: 5977151173471940534, guid: 6e8edf3958477ba4dbf3cb978468835d, type: 3}
       propertyPath: m_fontColor32.rgba
       value: 4280558630
+      objectReference: {fileID: 0}
+    - target: {fileID: 6018283740516240287, guid: 6e8edf3958477ba4dbf3cb978468835d, type: 3}
+      propertyPath: m_Color.b
+      value: 0.81960785
+      objectReference: {fileID: 0}
+    - target: {fileID: 6018283740516240287, guid: 6e8edf3958477ba4dbf3cb978468835d, type: 3}
+      propertyPath: m_Color.g
+      value: 0.81960785
+      objectReference: {fileID: 0}
+    - target: {fileID: 6018283740516240287, guid: 6e8edf3958477ba4dbf3cb978468835d, type: 3}
+      propertyPath: m_Color.r
+      value: 0.8509804
+      objectReference: {fileID: 0}
+    - target: {fileID: 7297412407552621194, guid: 6e8edf3958477ba4dbf3cb978468835d, type: 3}
+      propertyPath: m_Color.b
+      value: 0.81960785
+      objectReference: {fileID: 0}
+    - target: {fileID: 7297412407552621194, guid: 6e8edf3958477ba4dbf3cb978468835d, type: 3}
+      propertyPath: m_Color.g
+      value: 0.81960785
+      objectReference: {fileID: 0}
+    - target: {fileID: 7297412407552621194, guid: 6e8edf3958477ba4dbf3cb978468835d, type: 3}
+      propertyPath: m_Color.r
+      value: 0.8509804
       objectReference: {fileID: 0}
     - target: {fileID: 7299975422305447819, guid: 6e8edf3958477ba4dbf3cb978468835d, type: 3}
       propertyPath: m_fontSize
@@ -34405,6 +34584,68 @@ CanvasGroup:
   m_Interactable: 1
   m_BlocksRaycasts: 1
   m_IgnoreParentGroups: 0
+--- !u!1001 &1552142894
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 246407918}
+    m_Modifications:
+    - target: {fileID: 6264254651177176156, guid: 5df988b56c39a844c815565f202acb4a, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 7.98
+      objectReference: {fileID: 0}
+    - target: {fileID: 6264254651177176156, guid: 5df988b56c39a844c815565f202acb4a, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 1.912
+      objectReference: {fileID: 0}
+    - target: {fileID: 6264254651177176156, guid: 5df988b56c39a844c815565f202acb4a, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: -0.792
+      objectReference: {fileID: 0}
+    - target: {fileID: 6264254651177176156, guid: 5df988b56c39a844c815565f202acb4a, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 0.97607094
+      objectReference: {fileID: 0}
+    - target: {fileID: 6264254651177176156, guid: 5df988b56c39a844c815565f202acb4a, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6264254651177176156, guid: 5df988b56c39a844c815565f202acb4a, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: -0.21745248
+      objectReference: {fileID: 0}
+    - target: {fileID: 6264254651177176156, guid: 5df988b56c39a844c815565f202acb4a, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6264254651177176156, guid: 5df988b56c39a844c815565f202acb4a, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6264254651177176156, guid: 5df988b56c39a844c815565f202acb4a, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 15
+      objectReference: {fileID: 0}
+    - target: {fileID: 6264254651177176156, guid: 5df988b56c39a844c815565f202acb4a, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6747741097364117222, guid: 5df988b56c39a844c815565f202acb4a, type: 3}
+      propertyPath: m_Name
+      value: SM_Pin_V2 (24)
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: 5df988b56c39a844c815565f202acb4a, type: 3}
+--- !u!4 &1552142895 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 6264254651177176156, guid: 5df988b56c39a844c815565f202acb4a, type: 3}
+  m_PrefabInstance: {fileID: 1552142894}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1001 &1556140571
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -34904,15 +35145,15 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 345572142135000980, guid: 5cf6b8053c5361a41a8f02f6e53a1363, type: 3}
       propertyPath: m_LocalPosition.x
-      value: 8.084
+      value: 8.08
       objectReference: {fileID: 0}
     - target: {fileID: 345572142135000980, guid: 5cf6b8053c5361a41a8f02f6e53a1363, type: 3}
       propertyPath: m_LocalPosition.y
-      value: 1.953
+      value: 1.927
       objectReference: {fileID: 0}
     - target: {fileID: 345572142135000980, guid: 5cf6b8053c5361a41a8f02f6e53a1363, type: 3}
       propertyPath: m_LocalPosition.z
-      value: -0.973
+      value: -0.962
       objectReference: {fileID: 0}
     - target: {fileID: 345572142135000980, guid: 5cf6b8053c5361a41a8f02f6e53a1363, type: 3}
       propertyPath: m_LocalRotation.w
@@ -35004,6 +35245,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8491afe572c63d342948bf64c52a8ced, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Game::HoverMaterialChange
+  onlyOverClickableButton: 1
   normalMaterial: {fileID: 2100000, guid: c744ebd40427c9844bd29bf77a130a03, type: 2}
   hoverMaterial: {fileID: 2100000, guid: 45507cbfde15cee46bb01b97c9443d28, type: 2}
   useEmissionInstead: 0
@@ -35093,13 +35335,13 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 1384294091}
-        m_TargetAssemblyTypeName: UI.MainMenu, Ui
-        m_MethodName: OpenOptionPanel
+      - m_Target: {fileID: 2045807972}
+        m_TargetAssemblyTypeName: MenuOptionsRoute, Game
+        m_MethodName: OpenFromLobby
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
-          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_ObjectArgumentAssemblyTypeName: 
           m_IntArgument: 0
           m_FloatArgument: 0
           m_StringArgument: 
@@ -35504,7 +35746,7 @@ Light:
   serializedVersion: 12
   m_Type: 2
   m_Color: {r: 1, g: 0.06508875, b: 0, a: 1}
-  m_Intensity: 27
+  m_Intensity: 19
   m_Range: 3.1
   m_SpotAngle: 30
   m_InnerSpotAngle: 21.80208
@@ -35783,9 +36025,9 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: "Klayton Santos\nLuke Regel\nRog\xE9rio Cardoso\nVincente Martin\nReinaldo
-    Ramos\nGilles Pedroza\nPedro Marcondes\nLuigi Carvalho\nHugo Melo\nGabriel Mera\nEric
-    Fraz\xE3o\nJo\xE3o Kecek"
+  m_text: "Eric Fraz\xE3o\nGabriel Mera\nGilles Pedroza\nHugo Melo\nJo\xE3o Kecek\nKlayton
+    Santos\nLuigi Carvalho\nLuke Regel\nPedro Marcondes\nReinaldo Ramos\nRog\xE9rio
+    Cardoso\nVincente Martin"
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: f9510c6a1c61fcf4eadc3e90f22c28b7, type: 2}
   m_sharedMaterial: {fileID: -1934331382444124442, guid: f9510c6a1c61fcf4eadc3e90f22c28b7, type: 2}
@@ -37188,6 +37430,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8491afe572c63d342948bf64c52a8ced, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Game::HoverMaterialChange
+  onlyOverClickableButton: 1
   normalMaterial: {fileID: 2100000, guid: c744ebd40427c9844bd29bf77a130a03, type: 2}
   hoverMaterial: {fileID: 2100000, guid: 45507cbfde15cee46bb01b97c9443d28, type: 2}
   useEmissionInstead: 0
@@ -38422,6 +38665,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8491afe572c63d342948bf64c52a8ced, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Game::HoverMaterialChange
+  onlyOverClickableButton: 1
   normalMaterial: {fileID: 2100000, guid: c744ebd40427c9844bd29bf77a130a03, type: 2}
   hoverMaterial: {fileID: 2100000, guid: 45507cbfde15cee46bb01b97c9443d28, type: 2}
   useEmissionInstead: 0
@@ -38644,7 +38888,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6264254651177176156, guid: 5df988b56c39a844c815565f202acb4a, type: 3}
       propertyPath: m_LocalPosition.y
-      value: 1.111
+      value: 1.142
       objectReference: {fileID: 0}
     - target: {fileID: 6264254651177176156, guid: 5df988b56c39a844c815565f202acb4a, type: 3}
       propertyPath: m_LocalPosition.z
@@ -40201,6 +40445,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8491afe572c63d342948bf64c52a8ced, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Game::HoverMaterialChange
+  onlyOverClickableButton: 1
   normalMaterial: {fileID: 2100000, guid: c4036813edbfeae428efdb6a86656f31, type: 2}
   hoverMaterial: {fileID: 2100000, guid: 9ba13125970da0941b7379cfa1693da4, type: 2}
   useEmissionInstead: 0
@@ -41538,7 +41783,7 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 1946227092}
   m_TextViewport: {fileID: 1778258154}
   m_TextComponent: {fileID: 2051327196}
-  m_Placeholder: {fileID: 0}
+  m_Placeholder: {fileID: 20493575}
   m_VerticalScrollbar: {fileID: 0}
   m_VerticalScrollbarEventHandler: {fileID: 0}
   m_LayoutGroup: {fileID: 0}
@@ -42577,6 +42822,7 @@ GameObject:
   - component: {fileID: 2045807970}
   - component: {fileID: 2045807969}
   - component: {fileID: 2045807968}
+  - component: {fileID: 2045807972}
   m_Layer: 5
   m_Name: OptionsBoardCanvas
   m_TagString: Untagged
@@ -42667,6 +42913,26 @@ RectTransform:
   m_AnchoredPosition: {x: 1.7150482, y: 1.669}
   m_SizeDelta: {x: 1920, y: 1080}
   m_Pivot: {x: 0.5, y: 0.5}
+--- !u!114 &2045807972
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2045807967}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8a371be3e4e2761409569b46e539c04a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Game::MenuOptionsRoute
+  cameraController: {fileID: 74660614}
+  optionsCameraTarget: {fileID: 1247201003}
+  optionsPanel: {fileID: 1768559100}
+  optionsDissolve: {fileID: 1768559103}
+  closeTrigger: {fileID: 2063740114}
+  lobbyCameraTarget: {fileID: 239468931}
+  lobbyPanel: {fileID: 1032173488}
+  lobbyDissolve: {fileID: 1032173492}
 --- !u!1001 &2045954723
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -42783,7 +43049,7 @@ MonoBehaviour:
   m_fontColor32:
     serializedVersion: 2
     rgba: 4291546067
-  m_fontColor: {r: 0.827451, g: 0.79607844, b: 0.79607844, a: 1}
+  m_fontColor: {r: 0.8509804, g: 0.81960785, b: 0.81960785, a: 1}
   m_enableVertexGradient: 0
   m_colorMode: 3
   m_fontColorGradient:
@@ -43346,7 +43612,7 @@ MonoBehaviour:
   m_fontColor32:
     serializedVersion: 2
     rgba: 4291546067
-  m_fontColor: {r: 0.827, g: 0.796, b: 0.796, a: 1}
+  m_fontColor: {r: 0.8509804, g: 0.81960785, b: 0.81960785, a: 1}
   m_enableVertexGradient: 0
   m_colorMode: 3
   m_fontColorGradient:
@@ -43507,6 +43773,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8491afe572c63d342948bf64c52a8ced, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Game::HoverMaterialChange
+  onlyOverClickableButton: 1
   normalMaterial: {fileID: 2100000, guid: eb7efa950258c6141a2d75e172bb91eb, type: 2}
   hoverMaterial: {fileID: 2100000, guid: 79b3f2a2b77f8324b9f345842148a444, type: 2}
   useEmissionInstead: 0
@@ -43760,15 +44027,15 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6264254651177176156, guid: 5df988b56c39a844c815565f202acb4a, type: 3}
       propertyPath: m_LocalPosition.x
-      value: 8.08
+      value: 8.076
       objectReference: {fileID: 0}
     - target: {fileID: 6264254651177176156, guid: 5df988b56c39a844c815565f202acb4a, type: 3}
       propertyPath: m_LocalPosition.y
-      value: 1.933
+      value: 1.907
       objectReference: {fileID: 0}
     - target: {fileID: 6264254651177176156, guid: 5df988b56c39a844c815565f202acb4a, type: 3}
       propertyPath: m_LocalPosition.z
-      value: -0.97
+      value: -0.959
       objectReference: {fileID: 0}
     - target: {fileID: 6264254651177176156, guid: 5df988b56c39a844c815565f202acb4a, type: 3}
       propertyPath: m_LocalRotation.w
@@ -43992,6 +44259,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8491afe572c63d342948bf64c52a8ced, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Game::HoverMaterialChange
+  onlyOverClickableButton: 1
   normalMaterial: {fileID: 2100000, guid: c744ebd40427c9844bd29bf77a130a03, type: 2}
   hoverMaterial: {fileID: 2100000, guid: 45507cbfde15cee46bb01b97c9443d28, type: 2}
   useEmissionInstead: 0
@@ -44382,8 +44650,8 @@ MonoBehaviour:
   m_fontMaterials: []
   m_fontColor32:
     serializedVersion: 2
-    rgba: 4291546067
-  m_fontColor: {r: 0.827451, g: 0.79607844, b: 0.79607844, a: 1}
+    rgba: 4291940825
+  m_fontColor: {r: 0.8509804, g: 0.81960785, b: 0.81960785, a: 1}
   m_enableVertexGradient: 0
   m_colorMode: 3
   m_fontColorGradient:

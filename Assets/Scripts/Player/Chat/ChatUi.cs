@@ -87,7 +87,61 @@ namespace Player.Chat
         {
             if (!SceneNames.IsGame(SceneManager.GetActiveScene().name)) return;
 
-            chatManager.OnMessageSent += ChatManager_OnMessageSent;
+            Subscribe();
+        }
+
+        // Another player's chat while spectating them; null for this player's own.
+        private ChatRelay _feed;
+
+        /// <summary>
+        /// Shows <paramref name="feed"/>'s chat instead of this player's own - a spectator watching
+        /// someone sees that someone's stream. The box is refilled from what that player's chat
+        /// already said, so switching to them never starts empty. Null goes back to the own chat.
+        /// </summary>
+        public void ShowFeed(ChatRelay feed)
+        {
+            if (feed == _feed) return;
+
+            bool listening = isActiveAndEnabled && SceneNames.IsGame(SceneManager.GetActiveScene().name);
+
+            if (listening) Unsubscribe();
+
+            _feed = feed;
+            ClearMessages();
+
+            if (_feed != null)
+            {
+                IReadOnlyList<ChatRelay.ChatLine> history = _feed.History;
+
+                for (int i = Mathf.Max(0, history.Count - _pool.Count); i < history.Count; i++)
+                {
+                    ChatManager_OnMessageSent(history[i].Viewer, history[i].Message);
+                }
+            }
+
+            if (listening) Subscribe();
+        }
+
+        private void Subscribe()
+        {
+            if (_feed != null) _feed.OnLine += ChatManager_OnMessageSent;
+            else chatManager.OnMessageSent += ChatManager_OnMessageSent;
+        }
+
+        private void Unsubscribe()
+        {
+            if (_feed != null) _feed.OnLine -= ChatManager_OnMessageSent;
+            else chatManager.OnMessageSent -= ChatManager_OnMessageSent;
+        }
+
+        private void ClearMessages()
+        {
+            foreach (GameObject root in _poolRoots)
+            {
+                if (root != null) root.SetActive(false);
+            }
+
+            _currentIndex = 0;
         }
 
 
@@ -166,7 +220,7 @@ namespace Player.Chat
         {
             if (!SceneNames.IsGame(SceneManager.GetActiveScene().name)) return;
 
-            chatManager.OnMessageSent -= ChatManager_OnMessageSent;
+            Unsubscribe();
         }
 
     }

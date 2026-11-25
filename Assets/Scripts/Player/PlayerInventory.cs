@@ -64,7 +64,9 @@ namespace Player
 
         private void InputReader_OnSlotEvent(int slotSelected)
         {
-            if(_isDead) return;
+            // Locking empties the hand; picking a slot while still locked put the item back in it -
+            // on a knocked-down body, or in the middle of a minigame.
+            if(_isDead || _isLocked) return;
             
             if (_currentSlotSelected != slotSelected)
             {
@@ -353,6 +355,7 @@ namespace Player
             {
                 inputReader.OnSlotEvent -= InputReader_OnSlotEvent;
                 playerState.OnPlayerDead -= PlayerState_OnPlayerDead;
+                playerState.OnPlayerLocked -= PlayerState_OnPlayerLocked;
             }
         }
     }

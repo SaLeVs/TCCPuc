@@ -88,7 +88,7 @@ namespace Audience
 
             if (IsServer)
             {
-                _audience.Value = Mathf.Clamp(startingAudience, 0f, _maxAudience);
+                _audience.Value = Mathf.Max(startingAudience, 0f);
             }
         }
 
@@ -198,7 +198,9 @@ namespace Audience
             if (amount <= 0f) return;
 
             float before = _audience.Value;
-            _audience.Value = Mathf.Clamp(_audience.Value + amount, 0f, _maxAudience);
+            // The contract's maxAudience is the goal, not a ceiling: the bar is full there and the
+            // escape threshold counts from it, but viewers past it are still counted.
+            _audience.Value = _audience.Value + amount;
             float audienceAmount = _audience.Value - before;
 
             if (audienceAmount > 0f)
@@ -219,7 +221,7 @@ namespace Audience
             if (amount <= 0f) return;
 
             float before = _audience.Value;
-            _audience.Value = Mathf.Clamp(_audience.Value - amount, 0f, _maxAudience);
+            _audience.Value = Mathf.Max(_audience.Value - amount, 0f);
             float audienceAmount = before - _audience.Value;
 
             if (audienceAmount > 0f)

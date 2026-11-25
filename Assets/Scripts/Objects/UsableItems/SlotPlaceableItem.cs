@@ -124,6 +124,10 @@ namespace Objects.UsableItems
             if (_interactor.HoveredInteractable is not ItemSlotTotem totem) return null;
             if (totem.IsOccupied || totem.PlacementPoint == null) return null;
 
+            // Only where placing will work. A red copy on someone else's slot was a ghost of
+            // something that can never happen there; the HUD already says UNAVAILABLE and why.
+            if (_interactor.IsHoveredBlocked) return null;
+
             return totem;
         }
 

@@ -10,7 +10,7 @@ using UnityEngine;
 
 namespace Objects.PickupItems
 {
-    public class ItemPickable : NetworkBehaviour, IInteractable, IMissionOwnerAware
+    public class ItemPickable : NetworkBehaviour, IInteractable, IInteractionBlockReason, IMissionOwnerAware
     {
         [SerializeField] private ItemDataSO itemData;
 
@@ -39,6 +39,25 @@ namespace Objects.PickupItems
             // Asked on the interacting player's own machine, where the selected slot is known.
             return !interactor.TryGetComponent(out PlayerInventory playerInventory)
                    || TotemAllowsTaking(playerInventory, playerInventory.CurrentSelectedSlot, out _);
+        }
+
+        public string GetBlockedReason(GameObject interactor)
+        {
+            if (!interactor.TryGetComponent(out NetworkObject networkObject)) return null;
+
+            if (_ownershipFilter != null)
+            {
+                string ownership = _ownershipFilter.GetBlockReason(networkObject.OwnerClientId);
+                if (ownership != null) return ownership;
+            }
+
+            if (interactor.TryGetComponent(out PlayerInventory playerInventory)
+                && !TotemAllowsTaking(playerInventory, playerInventory.CurrentSelectedSlot, out _))
+            {
+                return InteractionBlockText.FullInventoryOnTotem;
+            }
+
+            return null;
         }
 
         public bool Interact(GameObject playerInteractor)

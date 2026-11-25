@@ -8,7 +8,7 @@ using UnityEngine;
 
 namespace Systems
 {
-    public class ElectricCircuit : NetworkBehaviour, IInteractable
+    public class ElectricCircuit : NetworkBehaviour, IInteractable, IInteractionBlockReason
     {
         public event Action OnCircuitRestored;
 
@@ -22,9 +22,15 @@ namespace Systems
 
         public bool CanInteract(GameObject interactor)
         {
-            if (!IsServer) return true;
-
+            // The blackout is a replicated flag (MonsterSabotage.LightsOut), so a client can answer this
+            // as well as the host. It used to answer true outright, and clients saw the panel offer
+            // itself with the lights on, then do nothing when used.
             return HasBrokenLights();
+        }
+
+        public string GetBlockedReason(GameObject interactor)
+        {
+            return HasBrokenLights() ? null : InteractionBlockText.LightsAreOn;
         }
 
         public bool Interact(GameObject playerInteractor)

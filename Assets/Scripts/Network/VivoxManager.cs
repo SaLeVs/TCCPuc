@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Unity.Netcode;
 using UnityEngine;
 using Unity.Services.Vivox;
+using Components;
 
 namespace Network
 {
@@ -22,19 +23,31 @@ namespace Network
         public event Action<string> OnLeftChannel;
 
         private static VivoxManager Instance;
+        private static bool _reportedMissing;
+        private static float _nextSearchTime;
 
         public static VivoxManager instance
         {
             get
             {
                 if (Instance != null) return Instance;
+
+                // Asked every frame by the voice components; with none in the scene (a scene opened
+                // straight in the Editor) the search and the error used to run every frame too; now once a second.
+                if (Time.unscaledTime < _nextSearchTime) return null;
+
                 Instance = FindFirstObjectByType<VivoxManager>();
-                if (Instance == null)
+                if (Instance != null) return Instance;
+
+                _nextSearchTime = Time.unscaledTime + 1f;
+
+                if (!_reportedMissing)
                 {
-                    Debug.LogError("VivoxManager not found");
-                    return null;
+                    _reportedMissing = true;
+                    Debug.LogWarning("VivoxManager not found: voice chat is off in this scene.");
                 }
-                return Instance;
+
+                return null;
             }
         }
 
@@ -95,6 +108,13 @@ namespace Network
         private const string ECHO_CHANNEL_NAME = "MicTestChannel";
         private const string LOBBY_CHANNEL_SUFFIX = "_lobby";
         private const string GAME_CHANNEL_SUFFIX = "_game";
+        private const string END_CHANNEL_SUFFIX = "_end";
+        private const string LAN_CHANNEL_PREFIX = "lan_";
+
+        private bool _reportedNoServices;
+        private string _lastLanSessionKey;
+        private bool _leavingTestChannel;
+        private bool _reloginBeforeJoin;
 
         private sealed class VoiceChannel
         {
@@ -120,6 +140,12 @@ namespace Network
         private VoiceChannel _joinedChannel;
         private bool _isInTestChannel;
         private bool _isReconciling;
+
+        // Consecutive failed walks. Retries back off from FirstRetrySeconds, doubling up to MaxRetrySeconds.
+        private int _failedAttempts;
+        private const float FirstRetrySeconds = 2f;
+        private const float MaxRetrySeconds = 30f;
+        private const int WarnAfterFailures = 3;
 
         private string _currentChannelName;
 
@@ -167,6 +193,13 @@ namespace Network
 
         private async Task EnsureLoggedInAsync()
         {
+            // Vivox failed to start at sign-in (its servers unreachable then): a retry starts it now.
+            if (!OnlineServices.IsVoiceAvailable)
+            {
+                await VivoxService.Instance.InitializeAsync();
+                OnlineServices.IsVoiceAvailable = true;
+            }
+
             ApplyGlobalAudioSettings();
 
             if (VivoxService.Instance.IsLoggedIn) return;
@@ -216,11 +249,51 @@ namespace Network
             ReconcileChannels();
         }
 
-        public void EnterGameVoice()
+        /// <param name="lanSessionKey">The match's key from the host (PlayerVoiceIdentity), used when
+        /// there is no Unity lobby to name the channel after - a LAN match. It used to have no voice at all.</param>
+        public void EnterGameVoice(string lanSessionKey = null)
         {
-            if (lobbyManager.JoinedLobby == null) return;
+            string channelBase = lobbyManager != null && lobbyManager.JoinedLobby != null
+                ? lobbyManager.JoinedLobby.Id
+                : string.IsNullOrEmpty(lanSessionKey) ? null : LAN_CHANNEL_PREFIX + lanSessionKey;
 
-            _wantedChannel = new VoiceChannel(lobbyManager.JoinedLobby.Id + GAME_CHANNEL_SUFFIX, ChatCapability.AudioOnly, positional: true);
+            if (channelBase == null) return;
+
+            if (!string.IsNullOrEmpty(lanSessionKey)) _lastLanSessionKey = lanSessionKey;
+
+            // Signed out of the Unity services (a network that blocks them): Vivox cannot log in,
+            // and retrying would only fail every thirty seconds for the whole match.
+            if (!OnlineServices.IsAvailable)
+            {
+                if (!_reportedNoServices)
+                {
+                    _reportedNoServices = true;
+                    LanDiagnosticsLog.Note("VOZ: sem login nos serviços da Unity nesta rede; partida sem chat de voz.");
+                    ScreenToast.Show("Chat de voz indisponível: esta rede bloqueia os serviços da Unity.", ToastKind.Warning);
+                }
+
+                return;
+            }
+
+            _wantedChannel = new VoiceChannel(channelBase + GAME_CHANNEL_SUFFIX, ChatCapability.AudioOnly, positional: true);
+            ReconcileChannels();
+        }
+
+        /// <summary>
+        /// The Win/Lose scene: everyone is out of the building and the players' objects are gone, so
+        /// the positional channel has nothing left to place a voice on (and its mix is kept silent —
+        /// see MixVolume). Everyone moves to a plain group channel of the same match and hears
+        /// everyone, like in the lobby.
+        /// </summary>
+        public void EnterEndScreenVoice()
+        {
+            string channelBase = lobbyManager != null && lobbyManager.JoinedLobby != null
+                ? lobbyManager.JoinedLobby.Id
+                : string.IsNullOrEmpty(_lastLanSessionKey) ? null : LAN_CHANNEL_PREFIX + _lastLanSessionKey;
+
+            if (channelBase == null || !OnlineServices.IsAvailable) return;
+
+            _wantedChannel = new VoiceChannel(channelBase + END_CHANNEL_SUFFIX, ChatCapability.AudioOnly, positional: false);
             ReconcileChannels();
         }
 
@@ -255,20 +328,60 @@ namespace Network
             if (_isReconciling) return;
 
             _isReconciling = true;
+            float retryIn = -1f;
 
             try
             {
                 await ReconcileChannelsAsync();
+
+                if (_failedAttempts >= WarnAfterFailures)
+                {
+                    ScreenToast.Show("Chat de voz reconectado.", ToastKind.Info);
+                }
+
+                _failedAttempts = 0;
             }
             catch (Exception e)
             {
-                Debug.LogError($"Error switching voice channel: {e.Message}");
+                // A failed login or join used to be the end of it: logged, and the player spent the
+                // match without voice. It keeps trying, further apart each time, for as long as the
+                // game still wants a channel.
+                _failedAttempts++;
+                retryIn = Mathf.Min(MaxRetrySeconds, FirstRetrySeconds * Mathf.Pow(2f, _failedAttempts - 1));
+
+                if (_failedAttempts <= WarnAfterFailures || _failedAttempts % 10 == 0)
+                {
+                    Debug.LogWarning($"Voice channel: attempt {_failedAttempts} failed ({e.Message}). Trying again in {retryIn:0} s.");
+                    LanDiagnosticsLog.Note($"VOZ: tentativa {_failedAttempts} falhou ({e.Message}); nova tentativa em {retryIn:0} s.");
+                }
+
+                if (_failedAttempts == WarnAfterFailures)
+                {
+                    ScreenToast.Show("Sem conexão com o chat de voz. Tentando reconectar...", ToastKind.Warning);
+                }
             }
             finally
             {
                 _isReconciling = false;
             }
+
+            if (retryIn >= 0f && this != null && isActiveAndEnabled)
+            {
+                CancelInvoke(nameof(RetryReconcile));
+                Invoke(nameof(RetryReconcile), retryIn);
+            }
         }
+
+        private void RetryReconcile()
+        {
+            if (IsReconciled) return;
+
+            ReconcileChannels();
+        }
+
+        /// <summary>Vivox is where the game wants it: nothing left to join or leave.</summary>
+        private bool IsReconciled =>
+            _joinedChannel?.Name == _wantedChannel?.Name && _wantsTestChannel == _isInTestChannel;
 
         private async Task ReconcileChannelsAsync()
         {
@@ -309,14 +422,48 @@ namespace Network
         {
             // The default back first, so the mic is never left talking to no channel at all.
             await VivoxService.Instance.SetChannelTransmissionModeAsync(TransmissionMode.All);
-            await LeaveIfActiveAsync(ECHO_CHANNEL_NAME);
+            // Flagged so the ChannelLeft this raises is not taken for Vivox dropping the test.
+            _leavingTestChannel = true;
+
+            try
+            {
+                await LeaveIfActiveAsync(ECHO_CHANNEL_NAME);
+            }
+            finally
+            {
+                _leavingTestChannel = false;
+            }
+
             _isInTestChannel = false;
             ApplyOutputVolume();
         }
 
         private async Task JoinAsync(VoiceChannel channel)
         {
+            if (_reloginBeforeJoin)
+            {
+                if (VivoxService.Instance.IsLoggedIn)
+                {
+                    _isInTestChannel = false;
+                    await VivoxService.Instance.LogoutAsync();
+                }
+
+                // Only once the logout went through: a failed one is tried again with the next join.
+                _reloginBeforeJoin = false;
+            }
+
             await EnsureLoggedInAsync();
+
+            // A retry after a join that went through but failed to report it: Vivox refuses to join
+            // the same channel twice, so take the one it is already in.
+            if (VivoxService.Instance.ActiveChannels.ContainsKey(channel.Name))
+            {
+                _joinedChannel = channel;
+                _currentChannelName = channel.Name;
+                UnmuteOutput();
+                ApplyOutputVolume();
+                return;
+            }
 
             if (channel.Positional)
             {
@@ -331,8 +478,28 @@ namespace Network
             }
 
             _joinedChannel = channel;
+            LanDiagnosticsLog.Note($"VOZ: entrou no canal {channel.Name}");
             _currentChannelName = channel.Name;
+            UnmuteOutput();
             ApplyOutputVolume();
+        }
+
+        /// <summary>
+        /// The mic setup mutes Vivox's output for as long as it is open and gives it back on the way
+        /// out — but only as it found it, and a sheet closed before Vivox had logged in, or a run that
+        /// died with it open, left it muted: every voice silent in the lobby and the match, with no
+        /// way to tell. Nothing else in the game mutes it, so every channel joined opens it again.
+        /// </summary>
+        private static void UnmuteOutput()
+        {
+            try
+            {
+                if (VivoxService.Instance.IsOutputDeviceMuted) VivoxService.Instance.UnmuteOutputDevice();
+            }
+            catch (Exception e)
+            {
+                Debug.LogWarning($"Could not unmute the Vivox output: {e.Message}");
+            }
         }
 
         private async Task LeaveJoinedChannelAsync()
@@ -403,7 +570,7 @@ namespace Network
                 {
                     if (participant.PlayerId == playerId)
                     {
-                        participant.SetLocalVolume(HeardVolume(playerId));
+                        participant.SetLocalVolume(MixVolume(participant));
                     }
                 }
             }
@@ -463,6 +630,28 @@ namespace Network
             return Mathf.Clamp(GetParticipantVolume(playerId) + GetSpeakerTrim(playerId), MIN_PARTICIPANT_VOLUME, MAX_PARTICIPANT_VOLUME);
         }
 
+        /// <summary>
+        /// What <paramref name="participant"/> plays at in Vivox's own mix. In the match's positional
+        /// channel every voice is played by Unity through its tap (RemoteVoiceFilter), which carries
+        /// the stream as it arrived whatever this says, so the mix is held at the floor. A voice with
+        /// no tap yet — the first second of a match before the player's id replicates, the Win/Lose
+        /// scene with every player object gone — used to come out of the mix at full level, with no
+        /// distance, and then drop to the tap's level: the jump in volume at every transition.
+        /// Anywhere else the mix is the voice: the volume this player chose plus the speaker's trim.
+        /// </summary>
+        private int MixVolume(VivoxParticipant participant)
+        {
+            if (IsPositionalChannel(participant.ChannelName)) return MIN_PARTICIPANT_VOLUME;
+
+            return HeardVolume(participant.PlayerId);
+        }
+
+        // By name: participants arrive while the join is still being awaited, before _joinedChannel is set.
+        private static bool IsPositionalChannel(string channelName)
+        {
+            return !string.IsNullOrEmpty(channelName) && channelName.EndsWith(GAME_CHANNEL_SUFFIX);
+        }
+
         private void Lobby_OnLobbyUpdated()
         {
             var lobby = lobbyManager != null ? lobbyManager.JoinedLobby : null;
@@ -488,7 +677,7 @@ namespace Network
                         try
                         {
                             if (participant.IsSelf || participant.PlayerId != player.Id) continue;
-                            participant.SetLocalVolume(HeardVolume(player.Id));
+                            participant.SetLocalVolume(MixVolume(participant));
                         }
                         catch (Exception e)
                         {
@@ -509,7 +698,7 @@ namespace Network
 
             try
             {
-                int volume = HeardVolume(participant.PlayerId);
+                int volume = MixVolume(participant);
                 if (volume != 0) participant.SetLocalVolume(volume);
 
                 if (IsParticipantLocallyMuted(participant.PlayerId)) participant.MutePlayerLocally();
@@ -631,8 +820,45 @@ namespace Network
 
         private void VivoxService_OnChannelLeft(string channelName)
         {
-            if (channelName == ECHO_CHANNEL_NAME) return;
+            if (channelName == ECHO_CHANNEL_NAME)
+            {
+                // Dropped by Vivox rather than left: the walk below opens it again if still wanted.
+                if (_isInTestChannel && !_leavingTestChannel) HandleDroppedChannel(channelName, isTest: true);
+                return;
+            }
+
+            // A leave this machine asked for has already forgotten the channel before awaiting it,
+            // so a channel still held here was dropped by Vivox - an RTP timeout, the network
+            // blinking. It used to stay "joined": no voice for the rest of the match, never retried.
+            if (_joinedChannel != null && _joinedChannel.Name == channelName)
+            {
+                HandleDroppedChannel(channelName, isTest: false);
+            }
+
             OnLeftChannel?.Invoke(channelName);
+        }
+
+        private void HandleDroppedChannel(string channelName, bool isTest)
+        {
+            if (isTest)
+            {
+                _isInTestChannel = false;
+            }
+            else
+            {
+                _joinedChannel = null;
+                _currentChannelName = null;
+            }
+
+            // Vivox keeps the dropped session in its group, and joining the same channel again is
+            // refused ("Handle Taken") until the client logs out: the next join starts from a fresh login.
+            _reloginBeforeJoin = true;
+
+            Debug.LogWarning($"Voice channel {channelName} dropped by Vivox; joining it again.");
+            LanDiagnosticsLog.Note($"VOZ: canal {channelName} caiu; entrando de novo.");
+
+            ApplyOutputVolume();
+            ReconcileChannels();
         }
 
         private async void Application_ApplicationQuit()
@@ -658,13 +884,17 @@ namespace Network
             VivoxService.Instance.ChannelLeft -= VivoxService_OnChannelLeft;
             VivoxService.Instance.EffectiveInputDeviceChanged -= MicSettings.ApplyToCurrentDevice;
 
+            CancelInvoke(nameof(RetryReconcile));
+
+            VoiceChatSettings.OnChanged -= ApplyOutputVolume;
+            Application.quitting -= Application_ApplicationQuit;
+
+            // Gone first when the game shuts down.
+            if (Lobby.instance == null) return;
+
             Lobby.instance.OnJoinedLobby -= VivoxService_OnJoinedLobby;
             Lobby.instance.OnLeftLobby -= VivoxService_OnLeftLobby;
             Lobby.instance.OnLobbyUpdated -= Lobby_OnLobbyUpdated;
-
-            VoiceChatSettings.OnChanged -= ApplyOutputVolume;
-
-            Application.quitting -= Application_ApplicationQuit;
         }
         
     }

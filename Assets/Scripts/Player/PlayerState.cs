@@ -47,6 +47,12 @@ namespace Player
 
         // Same test PlayerSpectator already uses to decide who is still worth watching.
         public bool IsHuntable => !IsDead && !HasWon;
+
+        /// <summary>
+        /// Dead or already out of the building: no longer part of what happens inside it. Their voice
+        /// reaches neither the monster nor the players still playing.
+        /// </summary>
+        public bool IsOutOfPlay => IsDead || HasWon || HasEscapedServerSide;
         public Vector3 HuntablePosition => transform.position;
         
         private readonly HashSet<InputLockReason> _inputLockReasons = new();
@@ -140,6 +146,9 @@ namespace Player
             OnPlayerLocked?.Invoke(_isInputLocked);
         }
         
+        /// <summary>Owner-side: whether this particular reason is holding the input.</summary>
+        public bool HasInputLock(InputLockReason reason) => _inputLockReasons.Contains(reason);
+
         public void SetSpectatorMode(bool isSpectating) => playerCamera.SetSpectatorMode(isSpectating);
         
         

@@ -129,9 +129,13 @@ namespace Tutorial
         [SerializeField] private int tutorialBatteryDrainPerSecond = 1;
         [SerializeField] private float darkRoomBattery = 40f;
 
+        [Header("Achados e perdidos")]
+        [Tooltip("Placa do ACHADOS E PERDIDOS na sala de itens: a lição pede para o jogador olhar para ela.")]
+        [SerializeField] private Transform lostAndFound;
+
         [Header("Ritmo do chat")]
-        [SerializeField, Min(0.2f)] private float minLineSeconds = 4.5f;
-        [SerializeField, Min(0f)] private float secondsPerCharacter = 0.1f;
+        [SerializeField, Min(0.2f)] private float minLineSeconds = 3.6f;
+        [SerializeField, Min(0f)] private float secondsPerCharacter = 0.085f;
 
         // ------------------------------------------------------------------ estado
 
@@ -228,6 +232,12 @@ namespace Tutorial
             }
 
             TutorialChat.Forget();
+        }
+
+        private void Awake()
+        {
+            // As zonas lembram quem pisou nelas numa lista estática: uma partida nova começa do zero.
+            TutorialZone.ForgetAll();
         }
 
         private void Start()
@@ -395,6 +405,8 @@ namespace Tutorial
             Say("Viu a luz em cima da porta?");
             Say("Vermelha: ainda não passa.");
             Say("Verde: a porta abre sozinha.");
+            Say("Ela abre quando o chat acabar.");
+            Say("Então leia tudo com calma!");
 
             yield return OpenNext(GateRun);
             yield return EnterRoom(ZoneRunStart);
@@ -603,8 +615,45 @@ namespace Tutorial
             Say("É missão de outro jogador.");
             Say("Só o dono pode pegar.");
 
+            yield return LessonLostAndFound();
+
             TutorialFloorHint.Hide(SignItems);
             yield return OpenNext(GateDoors);
+        }
+
+        /// <summary>
+        /// Dentro da lição de itens: a estante do ACHADOS E PERDIDOS. Na partida, quem morre deixa
+        /// os itens (e os disquetes) nela, e qualquer um pode buscar (PlayerDropper + LostItemsSpawn).
+        /// </summary>
+        private IEnumerator LessonLostAndFound()
+        {
+            Func<bool> looked = IsLookingAtLostAndFound;
+
+            SetObjective("Olhe a estante do ACHADOS E PERDIDOS, na parede da esquerda");
+
+            NewTopic();
+            Teach(looked, "Viu a estante com a placa?");
+
+            yield return WaitFor(looked, 10f,
+                "Na parede da esquerda.",
+                "Perto da porta de entrada.");
+
+            Say("É o ACHADOS E PERDIDOS.");
+            Say("Quem morre deixa os itens lá.");
+            Say("Disquete também vai pra lá.");
+            Say("Qualquer um pode ir buscar.");
+        }
+
+        /// <summary>A placa está no meio da tela, a menos de 9 m (sem placa na cena, passa direto).</summary>
+        private bool IsLookingAtLostAndFound()
+        {
+            if (lostAndFound == null) return true;
+
+            Camera view = Camera.main;
+            if (view == null) return true;
+
+            Vector3 toSign = lostAndFound.position - view.transform.position;
+            return toSign.magnitude < 9f && Vector3.Dot(view.transform.forward, toSign.normalized) > 0.94f;
         }
 
         private IEnumerator LessonDoors()
@@ -974,6 +1023,12 @@ namespace Tutorial
         /// </summary>
         private IEnumerator OpenNext(string gate)
         {
+            // O jogador já fez a tarefa e a porta ainda está vermelha: a faixa diz o porquê.
+            if (_speech.Count > 0 || Time.time < _nextLineTime)
+            {
+                SetObjective("Leia o chat: a porta abre quando as mensagens acabarem");
+            }
+
             yield return WaitSpeech();
             TutorialDoorGate.Open(gate);
         }
@@ -1282,7 +1337,7 @@ namespace Tutorial
             if (_player != null && Vector3.Distance(_player.transform.position, position) > 4f) return;
 
             _nextGateComment = Time.time + 8f;
-            SayNow("Essa porta ainda não abre.", "Abre quando a luz ficar verde.");
+            SayNow("Essa porta ainda não abre.", "Abre quando o chat acabar.");
         }
 
         /// <summary>
@@ -1501,7 +1556,8 @@ namespace Tutorial
         private IEnumerator WaitFor(Func<bool> done, float firstHint, params string[] hints) =>
             WaitFor(done, firstHint, Mathf.Max(8f, firstHint), hints);
 
-        private static string Key(string key) => $"<b><color=#FFD54A>[{key}]</color></b>";
+        // Vermelho de cortina: destaca a tecla no chat e na faixa sem o amarelo de antes.
+        private static string Key(string key) => $"<b><color=#F0705C>[{key}]</color></b>";
 
         // ------------------------------------------------------------------ reflexão
 

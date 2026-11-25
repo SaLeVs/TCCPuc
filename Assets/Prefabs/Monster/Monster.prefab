@@ -587,6 +587,7 @@ MonoBehaviour:
   - {fileID: 0}
   - {fileID: 0}
   - {fileID: 0}
+  lights: []
   emergencyLights:
   - {fileID: 0}
   - {fileID: 0}
@@ -645,7 +646,7 @@ MonoBehaviour:
   ShowTopMostFoldoutHeaderGroup: 1
   attackSound: {fileID: 11400000, guid: e68f4133300620041a3960bd8a6621c4, type: 2}
   distanceToAttack: 1.2
-  damageAmountPerAttack: 15
+  damageAmountPerAttack: 25
   attackCooldown: 4
   attackDuration: 1.1
   hitWindowStart: 0.15
@@ -714,8 +715,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Components::Components.RecordableIdentifier
   targetType: 3
   minimumViewTime: 1
-  audienceGain: 75
-  reviewCooldown: 30
+  audienceGain: 60
+  reviewCooldown: 120
   canBeReviewed: 1
   canBeReviewedForChat: 1
   chatCooldown: 40

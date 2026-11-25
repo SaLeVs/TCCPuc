@@ -22,6 +22,9 @@ namespace Systems
         {
             if (!IsServer) return;
 
+            // Once per match, like the puzzles: a second call would place a second circuit.
+            if (SpawnedCircuit != null) return;
+
             if (circuitPrefab == null)
             {
                 Debug.LogError("ElectricCircuitManager: no circuit prefab assigned.");

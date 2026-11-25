@@ -48,6 +48,11 @@ namespace Ui
         [Tooltip("Metres. Further than this the tag keeps its far height; in between it shrinks smoothly.")]
         [SerializeField, Min(0f)] private float farDistance = 20f;
 
+        [Tooltip("Tallest the tag may get in the world, in metres. Keeping a fixed size on screen made " +
+                 "it a third of the player's height across a room; past the distance where it would " +
+                 "pass this, it stops growing and shrinks with the player instead. About 1/6 of a player.")]
+        [SerializeField, Min(0.01f)] private float maxWorldHeight = 0.3f;
+
         [Tooltip("Metres. Hidden past this. 0 shows it at any distance.")]
         [SerializeField, Min(0f)] private float maxVisibleDistance;
 
@@ -96,6 +101,7 @@ namespace Ui
             float screenHeight = Mathf.Lerp(nearScreenHeight, farScreenHeight,
                 Mathf.InverseLerp(nearDistance, farDistance, distance));
             float worldHeight = screenHeight * 2f * depth * Mathf.Tan(view.fieldOfView * 0.5f * Mathf.Deg2Rad);
+            worldHeight = Mathf.Min(worldHeight, maxWorldHeight);
             float scale = worldHeight / Mathf.Max(_rect.rect.height, 0.01f);
 
             Vector3 parentScale = transform.parent != null ? transform.parent.lossyScale : Vector3.one;

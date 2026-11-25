@@ -5,7 +5,7 @@ using UnityEngine;
 
 namespace Missions.Puzzles
 {
-    public class PipeTotem : PuzzlePieceBase, IInteractable
+    public class PipeTotem : PuzzlePieceBase, IInteractable, IInteractionBlockReason
     {
         [SerializeField] private Vector3 rotationAxis = Vector3.up;
 
@@ -50,6 +50,13 @@ namespace Missions.Puzzles
         {
             if (!interactor.TryGetComponent(out NetworkObject networkObject)) return false;
             return CheckOwnership(networkObject.OwnerClientId);
+        }
+
+        public string GetBlockedReason(GameObject interactor)
+        {
+            return interactor.TryGetComponent(out NetworkObject networkObject)
+                ? OwnershipBlockReason(networkObject.OwnerClientId, InteractionBlockText.OnlyOwnerTurns)
+                : null;
         }
 
         public bool Interact(GameObject playerInteractor)

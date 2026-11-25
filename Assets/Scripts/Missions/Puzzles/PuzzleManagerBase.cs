@@ -32,6 +32,9 @@ namespace Missions.Puzzles
         private readonly List<PuzzlePieceBase> _pieces = new();
         private readonly List<GameObject> _spawnedObjects = new();
 
+        // Server-side. The pieces are laid once per match.
+        private bool _spawnRequested;
+
 
         public override void OnNetworkSpawn()
         {
@@ -44,9 +47,21 @@ namespace Missions.Puzzles
             OnCompleteChanged?.Invoke(newValue);
         }
 
+        /// <summary>
+        /// Once per puzzle, whoever asks. A second call laid a second set of pieces on top of the
+        /// first - the prime suspect for the two green boxes and no star seen in LAN.
+        /// </summary>
         public void RequestSpawn()
         {
             if (!IsServer) return;
+
+            if (_spawnRequested)
+            {
+                Debug.LogWarning($"{name}: asked to spawn its pieces a second time; ignored.", this);
+                return;
+            }
+
+            _spawnRequested = true;
 
             SpawnPuzzle();
             OnSpawnCompleted?.Invoke();

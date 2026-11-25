@@ -317,6 +317,16 @@ namespace Audio
             }
 
             if (_reverbFilter != null) _reverbFilter.enabled = !ghost;
+
+            // Unity only picks up a change of spatializer when a sound starts (see the tap's creation
+            // above), so the switch restarts it. Also when it is not playing: the tap pauses its source
+            // whenever the speaker is silent, and a pause resumes with the old spatializer. The tap's
+            // drift correction realigns after the restart and pauses it again if nothing comes in.
+            if (_audioSource.clip != null)
+            {
+                _audioSource.Stop();
+                _audioSource.Play();
+            }
         }
 
         private void ApplyRange(bool reading)

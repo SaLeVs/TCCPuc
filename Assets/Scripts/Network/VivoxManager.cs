@@ -108,9 +108,11 @@ namespace Network
         private const string ECHO_CHANNEL_NAME = "MicTestChannel";
         private const string LOBBY_CHANNEL_SUFFIX = "_lobby";
         private const string GAME_CHANNEL_SUFFIX = "_game";
+        private const string END_CHANNEL_SUFFIX = "_end";
         private const string LAN_CHANNEL_PREFIX = "lan_";
 
         private bool _reportedNoServices;
+        private string _lastLanSessionKey;
         private bool _leavingTestChannel;
         private bool _reloginBeforeJoin;
 
@@ -257,6 +259,8 @@ namespace Network
 
             if (channelBase == null) return;
 
+            if (!string.IsNullOrEmpty(lanSessionKey)) _lastLanSessionKey = lanSessionKey;
+
             // Signed out of the Unity services (a network that blocks them): Vivox cannot log in,
             // and retrying would only fail every thirty seconds for the whole match.
             if (!OnlineServices.IsAvailable)
@@ -272,6 +276,24 @@ namespace Network
             }
 
             _wantedChannel = new VoiceChannel(channelBase + GAME_CHANNEL_SUFFIX, ChatCapability.AudioOnly, positional: true);
+            ReconcileChannels();
+        }
+
+        /// <summary>
+        /// The Win/Lose scene: everyone is out of the building and the players' objects are gone, so
+        /// the positional channel has nothing left to place a voice on (and its mix is kept silent —
+        /// see MixVolume). Everyone moves to a plain group channel of the same match and hears
+        /// everyone, like in the lobby.
+        /// </summary>
+        public void EnterEndScreenVoice()
+        {
+            string channelBase = lobbyManager != null && lobbyManager.JoinedLobby != null
+                ? lobbyManager.JoinedLobby.Id
+                : string.IsNullOrEmpty(_lastLanSessionKey) ? null : LAN_CHANNEL_PREFIX + _lastLanSessionKey;
+
+            if (channelBase == null || !OnlineServices.IsAvailable) return;
+
+            _wantedChannel = new VoiceChannel(channelBase + END_CHANNEL_SUFFIX, ChatCapability.AudioOnly, positional: false);
             ReconcileChannels();
         }
 
@@ -438,6 +460,7 @@ namespace Network
             {
                 _joinedChannel = channel;
                 _currentChannelName = channel.Name;
+                UnmuteOutput();
                 ApplyOutputVolume();
                 return;
             }
@@ -457,7 +480,26 @@ namespace Network
             _joinedChannel = channel;
             LanDiagnosticsLog.Note($"VOZ: entrou no canal {channel.Name}");
             _currentChannelName = channel.Name;
+            UnmuteOutput();
             ApplyOutputVolume();
+        }
+
+        /// <summary>
+        /// The mic setup mutes Vivox's output for as long as it is open and gives it back on the way
+        /// out — but only as it found it, and a sheet closed before Vivox had logged in, or a run that
+        /// died with it open, left it muted: every voice silent in the lobby and the match, with no
+        /// way to tell. Nothing else in the game mutes it, so every channel joined opens it again.
+        /// </summary>
+        private static void UnmuteOutput()
+        {
+            try
+            {
+                if (VivoxService.Instance.IsOutputDeviceMuted) VivoxService.Instance.UnmuteOutputDevice();
+            }
+            catch (Exception e)
+            {
+                Debug.LogWarning($"Could not unmute the Vivox output: {e.Message}");
+            }
         }
 
         private async Task LeaveJoinedChannelAsync()
@@ -528,7 +570,7 @@ namespace Network
                 {
                     if (participant.PlayerId == playerId)
                     {
-                        participant.SetLocalVolume(HeardVolume(playerId));
+                        participant.SetLocalVolume(MixVolume(participant));
                     }
                 }
             }
@@ -588,6 +630,28 @@ namespace Network
             return Mathf.Clamp(GetParticipantVolume(playerId) + GetSpeakerTrim(playerId), MIN_PARTICIPANT_VOLUME, MAX_PARTICIPANT_VOLUME);
         }
 
+        /// <summary>
+        /// What <paramref name="participant"/> plays at in Vivox's own mix. In the match's positional
+        /// channel every voice is played by Unity through its tap (RemoteVoiceFilter), which carries
+        /// the stream as it arrived whatever this says, so the mix is held at the floor. A voice with
+        /// no tap yet — the first second of a match before the player's id replicates, the Win/Lose
+        /// scene with every player object gone — used to come out of the mix at full level, with no
+        /// distance, and then drop to the tap's level: the jump in volume at every transition.
+        /// Anywhere else the mix is the voice: the volume this player chose plus the speaker's trim.
+        /// </summary>
+        private int MixVolume(VivoxParticipant participant)
+        {
+            if (IsPositionalChannel(participant.ChannelName)) return MIN_PARTICIPANT_VOLUME;
+
+            return HeardVolume(participant.PlayerId);
+        }
+
+        // By name: participants arrive while the join is still being awaited, before _joinedChannel is set.
+        private static bool IsPositionalChannel(string channelName)
+        {
+            return !string.IsNullOrEmpty(channelName) && channelName.EndsWith(GAME_CHANNEL_SUFFIX);
+        }
+
         private void Lobby_OnLobbyUpdated()
         {
             var lobby = lobbyManager != null ? lobbyManager.JoinedLobby : null;
@@ -613,7 +677,7 @@ namespace Network
                         try
                         {
                             if (participant.IsSelf || participant.PlayerId != player.Id) continue;
-                            participant.SetLocalVolume(HeardVolume(player.Id));
+                            participant.SetLocalVolume(MixVolume(participant));
                         }
                         catch (Exception e)
                         {
@@ -634,7 +698,7 @@ namespace Network
 
             try
             {
-                int volume = HeardVolume(participant.PlayerId);
+                int volume = MixVolume(participant);
                 if (volume != 0) participant.SetLocalVolume(volume);
 
                 if (IsParticipantLocallyMuted(participant.PlayerId)) participant.MutePlayerLocally();

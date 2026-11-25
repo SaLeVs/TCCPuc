@@ -55,6 +55,10 @@ namespace Ui.EndScreen
 
             if (!MatchResult.HasValue) MakePreviewResult();
 
+            // Everyone keeps hearing everyone on the end screen: the match's positional channel has no
+            // player objects left to carry the voices.
+            if (VivoxManager.instance != null) VivoxManager.instance.EnterEndScreenVoice();
+
             List<string> survivors = new List<string>(MatchResult.Survivors);
             List<string> players = new List<string>(MatchResult.Players);
 

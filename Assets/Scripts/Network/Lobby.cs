@@ -90,9 +90,16 @@ namespace Network
             {
                 _lobbyUpdateTimer = _lobbyUpdateMaxTimer;
 
+                string polledId = _joinedLobby.Id;
+
                 try
                 {
-                    Unity.Services.Lobbies.Models.Lobby lobby = await LobbyService.Instance.GetLobbyAsync(_joinedLobby.Id);
+                    Unity.Services.Lobbies.Models.Lobby lobby = await LobbyService.Instance.GetLobbyAsync(polledId);
+
+                    // Left (or moved to another lobby) while the poll was out: an answer for the old
+                    // one must not bring it back.
+                    if (_joinedLobby == null || _joinedLobby.Id != polledId) return;
+
                     _joinedLobby = lobby;
                 }
                 catch (Exception e)
@@ -290,24 +297,43 @@ namespace Network
 
         public async void LeaveLobby()
         {
+            Unity.Services.Lobbies.Models.Lobby leaving = _joinedLobby;
+            if (leaving == null) return;
+
+            bool wasHost = IsHost();
+
+            // Forgotten and announced before the service calls, not after them. Those take a second or
+            // more (the host hands the lobby over, then leaves), and in the meantime the player could
+            // already be in the next lobby — which the old "finally" then wiped out, voice channel and
+            // all: no voice on the second run, the host first of all. A second call while this one is
+            // still waiting (the end screen and the disconnect callback both leave) now finds nothing.
+            ResetLobbyState();
+
             try
             {
-                if (_joinedLobby == null) return;
+                OnLeftLobby?.Invoke();
+            }
+            catch (Exception e)
+            {
+                Debug.LogException(e);
+            }
 
-                if (IsHost())
+            try
+            {
+                string lobbyId = leaving.Id;
+
+                if (wasHost)
                 {
-                    string lobbyId = _joinedLobby.Id;
-
                     // The player list stops being refreshed once the match starts, so after a match it
                     // can still name players who have already left. Handing the lobby to one of them
                     // fails; the lobby is deleted instead, which is what an empty one gets anyway.
                     bool migrated = false;
 
-                    if (_joinedLobby.Players.Count > 1)
+                    if (leaving.Players.Count > 1)
                     {
                         try
                         {
-                            await MigrateHostAsync();
+                            await MigrateHostAsync(leaving);
                             await LobbyService.Instance.RemovePlayerAsync(lobbyId, AuthenticationService.Instance.PlayerId);
                             migrated = true;
                         }
@@ -324,7 +350,7 @@ namespace Network
                 }
                 else
                 {
-                    await LobbyService.Instance.RemovePlayerAsync(_joinedLobby.Id, AuthenticationService.Instance.PlayerId);
+                    await LobbyService.Instance.RemovePlayerAsync(lobbyId, AuthenticationService.Instance.PlayerId);
                 }
             }
             catch (Exception e)
@@ -333,29 +359,19 @@ namespace Network
                 // lobby expires on its own without a heartbeat, so leaving it is best effort.
                 Debug.LogWarning($"Lobby: could not leave the lobby cleanly. {e.Message}");
             }
-            finally
-            {
-                _joinedLobby = null;
-                _hostLobby = null;
-                _hasJoinedGame = false;
-                ResetLobbyState();
-                OnLeftLobby?.Invoke();
-            }
-            
         }
 
-        private async Task MigrateHostAsync()
+        private static async Task MigrateHostAsync(Unity.Services.Lobbies.Models.Lobby lobby)
         {
             string myId = AuthenticationService.Instance.PlayerId;
-            Player nextHost = _joinedLobby.Players.Find(p => p.Id != myId);
+            Player nextHost = lobby.Players.Find(p => p.Id != myId);
 
             if (nextHost == null) return;
 
-            _hostLobby = await LobbyService.Instance.UpdateLobbyAsync(_joinedLobby.Id, new UpdateLobbyOptions
+            await LobbyService.Instance.UpdateLobbyAsync(lobby.Id, new UpdateLobbyOptions
             {
                 HostId = nextHost.Id
             });
-            _joinedLobby = _hostLobby;
         }
 
         public async void KickPlayer()

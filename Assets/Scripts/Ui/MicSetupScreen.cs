@@ -146,7 +146,7 @@ namespace Ui
         private bool _hasPreviousMusicVolume;
         private readonly List<Button> _deviceRows = new();
 
-        private float Ceiling => voiceProfile.ShoutEnergy + ceilingOverShout;
+        private float Ceiling => voiceProfile.MicSetupShoutEnergy + ceilingOverShout;
 
 
         private void Start()
@@ -484,7 +484,7 @@ namespace Ui
 
         private Color ColorFor(float energy)
         {
-            if (energy >= voiceProfile.ShoutEnergy) return shoutColor;
+            if (energy >= voiceProfile.MicSetupShoutEnergy) return shoutColor;
             if (energy >= voiceProfile.SpeechEnergy) return speechColor;
             return whisperColor;
         }
@@ -492,8 +492,8 @@ namespace Ui
         private void PlaceZones()
         {
             PlaceZone(whisperZone, 0f, voiceProfile.SpeechEnergy);
-            PlaceZone(speechZone, voiceProfile.SpeechEnergy, voiceProfile.ShoutEnergy);
-            PlaceZone(shoutZone, voiceProfile.ShoutEnergy, 1f);
+            PlaceZone(speechZone, voiceProfile.SpeechEnergy, voiceProfile.MicSetupShoutEnergy);
+            PlaceZone(shoutZone, voiceProfile.MicSetupShoutEnergy, 1f);
             PlaceMark(ceilingMark, Ceiling);
         }
 

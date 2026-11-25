@@ -102,7 +102,7 @@ namespace Tutorial.Building
             if (!EditorSceneManager.SaveCurrentModifiedScenesIfUserWantsTo()) return;
 
             if (File.Exists(ScenePath) &&
-                !EditorUtility.DisplayDialog("Tutorial", "A cena do tutorial já existe e será gerada de novo do zero (mudanças feitas à mão nela se perdem). Continuar?", "Gerar de novo", "Cancelar"))
+                !EditorUtility.DisplayDialog("Tutorial", "A cena do tutorial já existe e será gerada de novo do zero: mudanças feitas à mão nela se perdem, inclusive o bake de luz, o Light Probe Group e o Global Volume que o grupo colocou (2026-11-18). Continuar?", "Gerar de novo", "Cancelar"))
             {
                 return;
             }
@@ -155,6 +155,9 @@ namespace Tutorial.Building
 
             MonsterBrain monster = BuildMonster(home);
             BuildSystems(spawn, monster, home, profile);
+
+            // Textos de parede com a placa do teatro (a do ACHADOS E PERDIDOS do jogo).
+            TutorialPlaques.ConvertScene(scene);
 
             SaveMeshes();
             BuildNavMesh();
@@ -487,7 +490,9 @@ namespace Tutorial.Building
                 }
             }
 
+            // Esta estante é o ACHADOS E PERDIDOS (na partida, quem morre deixa os itens numa assim).
             Prop(room, O + "SM_Metal_Shelf_V2.prefab", new Vector3(-4.5f, 0f, 83.5f), Face(Vector3.right));
+            Refs["lostAndFound"] = LostAndFoundSign(room, new Vector3(-4.79f, 2.25f, 83.5f), 90f);
             Prop(room, O + "SM_Metal_Shelf_V1.prefab", new Vector3(-4.5f, 0f, 88.5f), Face(Vector3.right));
             Prop(room, O + "SM_Metal_Shelf_V2.prefab", new Vector3(4.5f, 0f, 89.6f), Face(Vector3.left));
             Prop(room, O + "SM_Trash_Can_V1.prefab", new Vector3(4.4f, 0f, 81.6f), 0f);
@@ -613,6 +618,14 @@ namespace Tutorial.Building
 
             if (manager != null)
             {
+                // Só o layout PipeGrid: ele encaixa nos canos de entrada e saída da parede. O PipeGrid2
+                // (o outro sorteio do prefab) não está encaixado e fica com folgas e por cima dos canos.
+                SerializedObject layouts = new SerializedObject(manager.GetComponent<PipesPuzzleManager>());
+                SerializedProperty list = layouts.FindProperty("possibleGridLayouts");
+                list.arraySize = 1;
+                list.GetArrayElementAtIndex(0).objectReferenceValue = AssetDatabase.LoadAssetAtPath<PipeGridLayout>("Assets/Scriptable_objects/Missions/PipeGrid.asset");
+                layouts.ApplyModifiedPropertiesWithoutUndo();
+
                 Refs["puzzle"] = manager.GetComponent<PipesPuzzleManager>();
                 Refs["puzzleSelector"] = manager.GetComponent<MissionOwnershipSelector>();
                 CopyPipeWall(room, manager.transform);
@@ -638,7 +651,8 @@ namespace Tutorial.Building
             Prop(room, W + "SM_Bathroom_Trash.prefab", new Vector3(3.6f, 0f, 133.2f), 0f);
             Prop(room, O + "SM_Trash_Can_V1.prefab", new Vector3(1.6f, 0f, 133.4f), 0f);
 
-            float[,] papers = { { 2.4f, 123.5f, 40f }, { 1.1f, 127.6f, 130f }, { -0.4f, 121.6f, 80f }, { 3.3f, 129.4f, 200f }, { -3.2f, 124.3f, 15f } };
+            // Só uma folha no chão (as outras quatro foram tiradas à mão na cena, 2026-11-24).
+            float[,] papers = { { -3.2f, 124.3f, 15f } };
             for (int i = 0; i < papers.GetLength(0); i++)
             {
                 Prop(room, H + "SM_Paper_28x40_V2.prefab", new Vector3(papers[i, 0], 0.003f, papers[i, 1]), papers[i, 2]);
@@ -997,7 +1011,18 @@ namespace Tutorial.Building
             GameObject hudGo = new GameObject("TUTORIAL (tela)");
             hudGo.transform.SetParent(systems, false);
             TutorialHud hud = hudGo.AddComponent<TutorialHud>();
-            Set(hud, "font", _font);
+
+            // Visual do HUD do jogo: painel e etiqueta de MISSÕES, papel do Opções, fita e botão da vitória.
+            Set(hud, "font", AssetDatabase.LoadAssetAtPath<TMP_FontAsset>("Assets/Fonts/Acme-Regular SDF.asset"));
+            Set(hud, "titleFont", AssetDatabase.LoadAssetAtPath<TMP_FontAsset>("Assets/Fonts/FreckleFace-Regular SDF.asset"));
+            Set(hud, "buttonFont", AssetDatabase.LoadAssetAtPath<TMP_FontAsset>("Assets/Fonts/Lalezar-Regular SDF.asset"));
+            Set(hud, "panelSprite", HudSprite("HUD/UI_BackgroundMissions"));
+            Set(hud, "labelSprite", HudSprite("HUD/UI_BackgroundTitleMissions"));
+            Set(hud, "lineSprite", HudSprite("HUD/UI_LineMissions"));
+            Set(hud, "cardSprite", HudSprite("Settings/UI_BackgroundSettings"));
+            Set(hud, "filmSprite", HudSprite("Loading/Film_Straight"));
+            Set(hud, "buttonSprite", HudSprite("Menu/Button_ON"));
+            Set(hud, "decorationSprite", HudSprite("Settings/UI_Line_Decoration"));
 
             TutorialDirector director = tutorial.AddComponent<TutorialDirector>();
             SerializedObject dir = new SerializedObject(director);
@@ -1016,6 +1041,7 @@ namespace Tutorial.Building
             dir.FindProperty("monsterRemote").objectReferenceValue = remote;
             dir.FindProperty("monsterReleasePoint").objectReferenceValue = Refs.GetValueOrDefault("monsterRelease");
             dir.FindProperty("fugaRetryPoint").objectReferenceValue = Refs.GetValueOrDefault("fugaRetry");
+            dir.FindProperty("lostAndFound").objectReferenceValue = Refs.GetValueOrDefault("lostAndFound");
 
             FillArray(dir.FindProperty("audienceProps"), _audienceProps);
             FillArray(dir.FindProperty("escapeDoors"), EscapeDoors.Where(d => d != null).ToArray());
@@ -1481,8 +1507,58 @@ namespace Tutorial.Building
             so.FindProperty("emergency").boolValue = true;
             so.ApplyModifiedPropertiesWithoutUndo();
 
-            GameObject bulb = Box(go.transform, "Lâmpada", Vector3.zero, new Vector3(0.25f, 0.12f, 0.25f), _unlitRed, _layerDefault, false);
-            bulb.transform.localPosition = Vector3.zero;
+            // Sem a caixinha vermelha de "lâmpada": foi tirada à mão na cena (2026-11-24); só a luz.
+        }
+
+        /// <summary>
+        /// A placa ACHADOS E PERDIDOS da cena Game (tábua, moldura e texto Lalezar laranja), com a
+        /// frente virada para <paramref name="yaw"/>.
+        /// </summary>
+        private static Transform LostAndFoundSign(Transform parent, Vector3 position, float yaw)
+        {
+            GameObject sign = new GameObject("Achados e perdidos");
+            sign.transform.SetParent(parent, false);
+            sign.transform.SetPositionAndRotation(position, Quaternion.Euler(0f, yaw, 0f));
+
+            Material board = AssetDatabase.LoadAssetAtPath<Material>(TutorialPlaques.BoardMaterialPath);
+            Material frame = AssetDatabase.LoadAssetAtPath<Material>(TutorialPlaques.FrameMaterialPath);
+
+            SignCube(sign.transform, "Tabua", Vector3.zero, new Vector3(1.8f, 0.44f, 0.04f), board);
+
+            Transform moldura = Group("Moldura", sign.transform).transform;
+            SignCube(moldura, "Borda", new Vector3(0f, 0.21f, 0f), new Vector3(1.8f, 0.03f, 0.05f), frame);
+            SignCube(moldura, "Borda", new Vector3(0f, -0.21f, 0f), new Vector3(1.8f, 0.03f, 0.05f), frame);
+            SignCube(moldura, "Borda", new Vector3(-0.89f, 0f, 0f), new Vector3(0.03f, 0.44f, 0.05f), frame);
+            SignCube(moldura, "Borda", new Vector3(0.89f, 0f, 0f), new Vector3(0.03f, 0.44f, 0.05f), frame);
+
+            GameObject textGo = new GameObject("Texto", typeof(RectTransform));
+            textGo.transform.SetParent(sign.transform, false);
+            textGo.transform.localPosition = new Vector3(0f, 0f, 0.021f);
+            textGo.transform.localRotation = Quaternion.Euler(0f, 180f, 0f);
+
+            TextMeshPro text = textGo.AddComponent<TextMeshPro>();
+            text.font = AssetDatabase.LoadAssetAtPath<TMP_FontAsset>(TutorialPlaques.FontPath);
+            text.text = "ACHADOS E PERDIDOS";
+            text.color = TutorialPlaques.TitleColor;
+            text.alignment = TextAlignmentOptions.Center;
+            text.textWrappingMode = TextWrappingModes.NoWrap;
+            text.enableAutoSizing = true;
+            text.fontSizeMin = 0.5f;
+            text.fontSizeMax = 1.75f;
+            text.rectTransform.sizeDelta = new Vector2(1.62f, 0.34f);
+
+            return sign.transform;
+        }
+
+        private static void SignCube(Transform parent, string name, Vector3 position, Vector3 scale, Material material)
+        {
+            GameObject cube = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            Object.DestroyImmediate(cube.GetComponent<BoxCollider>());
+            cube.name = name;
+            cube.transform.SetParent(parent, false);
+            cube.transform.localPosition = position;
+            cube.transform.localScale = scale;
+            cube.GetComponent<MeshRenderer>().sharedMaterial = material;
         }
 
         /// <summary>Grupo de marcas de chão que some quando a etapa <paramref name="id"/> termina.</summary>
@@ -2045,6 +2121,8 @@ namespace Tutorial.Building
             EditorUtility.SetDirty(material);
             return material;
         }
+
+        private static Sprite HudSprite(string path) => AssetDatabase.LoadAssetAtPath<Sprite>("Assets/Sprites/" + path + ".png");
 
         private static void Set(Object target, string field, Object value)
         {

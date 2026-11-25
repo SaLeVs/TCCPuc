@@ -14,7 +14,7 @@ Nenhum script do jogo foi alterado. Tudo mora em `Assets/Tutorial/`.
 | 2 | Agachar | agacha (Ctrl), passa sob o duto de ar a 1,3 m e a mesa a 1,08 m (o chapéu amassa); grade de 0,8 m mostra o limite | `IsCrouching`, zonas depois de cada obstáculo |
 | 3 | Lanterna | sala escura: liga (F) e acha a porta com a luz verde | estado da lanterna, zona da saída |
 | 4 | Chat | esconde e mostra o chat (C); acha o botão escondido (o botão vermelho do puzzle de luz, atrás do armário) com dicas do chat | `HudAnimationPanel.IsVisible`, botão |
-| 5 | Itens e bateria | pega a pilha, segura (1), usa e vê a barra encher; mira na caixa INDISPONÍVEL (o marcador dela só aparece com a mira em cima, sem o "PEGAR" fantasma ao chegar perto: `revealDistance` 0,01 só nesta cena) | inventário, `IsHoveredBlocked` |
+| 5 | Itens e bateria | pega a pilha, segura (1), usa e vê a barra encher; mira na caixa INDISPONÍVEL (o marcador dela só aparece com a mira em cima, sem o "PEGAR" fantasma ao chegar perto: `revealDistance` 0,01 só nesta cena); olha a placa do ACHADOS E PERDIDOS | inventário, `IsHoveredBlocked`, câmera na placa |
 | 6 | Portas | porta travada chacoalha; abre a outra, passa e fecha | `Door.OnDoorBlocked`, `Door.IsClosed` |
 | 7 | Audiência | grava dois objetos até o olho ficar vermelho | `AudienceContributor.HasBeenSeen` |
 | 8 | Missão e puzzle | recebe a missão "Exaustor", esconde/mostra o painel (V), lê título e dica, gira os canos da parede | `PuzzleManagerBase.IsComplete` |
@@ -47,18 +47,29 @@ No fim, um cartão com **Voltar ao menu** e **Jogar de novo**.
   passa na hora, e a fala que ensinaria a ação já feita é descartada.
 - **Só quem ensina fala.** A conversa da plateia e as reações automáticas do jogo ficam mudas no
   tutorial (a fila da `ChatDirector` é esvaziada a cada quadro).
-- **Ritmo:** a primeira mensagem sai 3 s depois de o jogador nascer; depois, no mínimo 4,5 s entre
-  mensagens (0,1 s por letra nas maiores). Aviso urgente (golpe do monstro, porta de lição ainda
+- **Ritmo:** a primeira mensagem sai 3 s depois de o jogador nascer; depois, no mínimo 3,6 s entre
+  mensagens (0,085 s por letra nas maiores; era 4,5 s / 0,1 s até 2026-11-24). Aviso urgente (golpe do monstro, porta de lição ainda
   fechada) fura a fila e dá pelo menos 2 s depois da mensagem anterior.
 - **Se o jogador empaca,** quem puxou o assunto manda dicas, cada vez mais diretas, cada uma uma vez
   só (`WaitFor`; o tempo só conta depois que as falas pendentes saíram).
 - **Faixa de objetivo** no topo da tela, no centro (entre o painel de missões e o REC); na lição de
   doação, e sempre que o cartão de doação estiver na tela (chegou agora ou foi aberto com B), ela
-  desce para baixo dele; sem cartão volta para cima. Texto comprido encolhe para caber.
-- **Marcas e placas somem** quando a etapa delas termina (`TutorialFloorHint`): fita amarela, "ANDE
-  ATÉ AQUI", "CORRA ATÉ AQUI", "PILHA", o X de gravação, a faixa verde da saída, e também as placas
-  de parede de cada lição ("1 · MOVIMENTO", "2 · AGACHAR", DUTO/MESA/GRADE, "6 · PORTAS", "QUADRO DE
-  LUZ"...). "PALCO PRINCIPAL" fica, é cenário.
+  desce para baixo dele; sem cartão volta para cima. Texto comprido encolhe para caber. Visual do HUD
+  do jogo: fundo do painel de missões (`UI_BackgroundMissions`), etiqueta de papel do título MISSÕES
+  (`UI_BackgroundTitleMissions`) com o passo, linha rasgada (`UI_LineMissions`) como progresso, letra
+  Acme. As teclas saem em vermelho de cortina (`#F0705C`) na faixa e no chat.
+- **Cartão do fim** no estilo da tela de vitória: fita de filme em cima e embaixo (`Film_Straight`),
+  papel amassado do Opções (`UI_BackgroundSettings`), fio decorativo, título em FreckleFace e os
+  botões `Button_ON` com Lalezar.
+- **Marcas e placas somem** quando a etapa delas termina (`TutorialFloorHint`): fita amarela de palco,
+  "ANDE ATÉ AQUI", "CORRA ATÉ AQUI", "PILHA", o X de gravação, a faixa verde da saída, e também as
+  placas de parede de cada lição ("1 · MOVIMENTO", "2 · AGACHAR", DUTO/MESA/GRADE, "6 · PORTAS",
+  "QUADRO DE LUZ"...). "PALCO PRINCIPAL" fica, é cenário.
+- **Placas de parede** são a placa do ACHADOS E PERDIDOS da cena Game (tábua
+  `M_PlacaAchadosEPerdidos`, moldura `SignBoard`, letra Lalezar laranja `#F29E38`), feitas por
+  `Editor/TutorialPlaques.cs` (também no menu `Tools/TCC/Tutorial/Placas de parede no estilo do
+  teatro`). Avisos com cor de sentido (TRAVADA? vermelho, ABERTA verde) mantêm a cor; as placas de
+  SAÍDA continuam verdes.
 - **No tutorial ninguém morre:** depois de cada golpe o jogador é curado, e no terceiro golpe da fuga
   ela recomeça do início do corredor.
 
@@ -67,8 +78,13 @@ No fim, um cartão com **Voltar ao menu** e **Jogar de novo**.
 Cada sala termina numa porta de verdade do jogo (`Door_Black`), trancada com `Door.CloseAndLock`, e a
 luz de emergência do jogo (`SM_Exit_Light`) em cima, do lado de quem chega: **vermelha** enquanto a
 lição não acabou, **verde** quando acaba, e a porta abre sozinha (`ClearLock` + `ForceOpenFrom`, o mesmo
-caminho do monstro quando força uma porta). Quem tenta abrir antes da hora ouve a porta chacoalhar e o
-chat explica. A luz saiu do `LightSabotage`, então o apagão não mexe nela. O comentário automático do
+caminho do monstro quando força uma porta). A porta só abre quando o chat termina de falar: a turma
+avisa isso na primeira lição ("Ela abre quando o chat acabar."), e quando o jogador já fez a tarefa e a
+porta ainda está vermelha a faixa diz "Leia o chat: a porta abre quando as mensagens acabarem". Quem
+tenta abrir antes da hora ouve a porta chacoalhar e o chat explica.
+
+As luzes (`SM_Exit_Light`) foram desligadas na cena pelo commit do bake (6890bb01, 2026-11-18) e
+religadas em 2026-11-24; são Realtime e não entram no bake. A luz saiu do `LightSabotage`, então o apagão não mexe nela. O comentário automático do
 `ChatEventHub` sobre porta trancada ("o monstro está segurando") fica desligado nesta cena
 (`doorCommentRange` = 0 no override da cena), porque essas portas não são o monstro.
 
@@ -85,8 +101,16 @@ A colisão de parede e piso é feita por caixas invisíveis do gerador (as peça
 têm colisor); o NavMesh é assado por elas (`PhysicsColliders`), com as portas de fora.
 
 O puzzle é o dos canos (`PipesManager`, missão "Exaustor"), na mesma pose da sala de canos do jogo,
-com os canos de entrada e saída copiados dela (`MissionRoomPipes`). O layout da grade é sorteado pelo
-próprio jogo (12 ou 18 peças).
+com os canos de entrada e saída copiados dela (`MissionRoomPipes`). No tutorial o `PipesManager` usa
+só o layout `PipeGrid` (12 peças, override de `possibleGridLayouts` na cena): ele encaixa sem folga
+nos canos de entrada (célula 0,0) e de saída (célula 9,2), conferido com a "Prévia na cena" do
+inspector do layout. O `PipeGrid2` (o outro sorteio do prefab) não está encaixado e sai com folgas e
+por cima dos canos de enfeite.
+
+A sala de itens tem o **ACHADOS E PERDIDOS**: a estante de metal da parede esquerda com a mesma placa
+da cena Game. Na lição 5, depois da caixa INDISPONÍVEL, a turma pede para olhar a placa (até 9 m, no
+meio da tela) e explica que quem morre deixa os itens e os disquetes lá (`PlayerDropper` +
+`LostItemsSpawn`), e que qualquer um pode buscar.
 
 ## Peças do jogo usadas (sem alteração)
 
@@ -136,6 +160,13 @@ não mudou).
 nela se perdem. Mude o gerador (posições, salas, luzes) e gere de novo. O NavMesh é assado junto
 (`Assets/Tutorial/Generated/NavMesh-Tutorial.asset`) e a cena entra no Build Settings.
 
+**Cuidado (desde 2026-11-18):** a cena tem trabalho feito à mão que o gerador não refaz: o bake de
+luz (`Bake Light Tutorial Scene.lighting`, lightmaps em `Assets/Scenes/Game0_Tutorial/`), o
+`Light Probe Group`, a `Light` e o `Global Volume` colocados pelo grupo. Gerar de novo apaga isso e
+exige refazer o bake. As correções de 2026-11-24 (luzes das portas, só o PipeGrid, ACHADOS E
+PERDIDOS, placas, HUD, sem as caixinhas vermelhas das luzes de apagão e com uma folha de papel só na
+oficina) foram aplicadas na cena aberta E no gerador, então os dois continuam iguais nesse ponto.
+
 O gerador salva a cena duas vezes: na segunda, com a cena já em arquivo e no Build Settings, cada
 objeto de rede ganha o seu `GlobalObjectIdHash`. Sem isso as portas ficam com o ID do prefab, todas
 iguais, e o host não sobe vindo do menu. Se aparecer "IDs de rede repetidos" no resultado, gere de novo.
@@ -149,8 +180,13 @@ mas não o nome: renomeada para `Tutorial`, a cena perde o chat e o botão do me
 - Um jogador só (host). É uma aula, não uma partida.
 - Sem voz: os componentes de voz saem da instância do jogador. O TTS da doação só fala se o Vivox
   estiver logado (vindo do menu com internet).
+- **Jogar duas vezes:** as zonas guardam "já pisou" numa lista estática que sobrevive à troca de
+  cena. Até 2026-11-24 ela não era zerada, e na segunda partida (Jogar de novo, ou voltar ao menu e
+  entrar de novo) toda zona já contava como pisada: o tutorial terminava sem o jogador chegar na
+  saída. Agora o `TutorialDirector.Awake` chama `TutorialZone.ForgetAll()` (testado em Play: zonas
+  zeradas, passo 1, primeira porta fechada depois do Jogar de novo).
 - Testado no Editor com um bot que joga pelo `InputReader`: Play direto na cena, do começo ao fim, com
-  as duas grades de canos. O caminho Bootstrap → menu → TUTORIAL → voltar ao menu → partida LAN foi
+  as duas grades de canos (antes da troca para só o PipeGrid). O caminho Bootstrap → menu → TUTORIAL → voltar ao menu → partida LAN foi
   testado na versão anterior (o código de rede não mudou depois). Não testado em build.
 - O palco é o `SM_Stage` do jogo (60%, 0,9 m, apoiado no piso), virado para a plateia como na Game: frente curva com as escadas dos cantos, colisão pela própria malha. As laterais (que na Game encostam nas paredes e não têm face) ganharam painel de madeira (`M_GroundHallway`, tábuas deitadas) com friso e rodapé. As caixas de som grandes ficam nas marcas de fita do fundo. O monstro é solto no chão, ao lado do palco, perto da porta da fuga.
 

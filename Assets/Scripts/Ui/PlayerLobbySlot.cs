@@ -73,7 +73,7 @@ namespace UI
             SetPlayerName(userData);
             SetPlayerInfo(userData, isHost);
             SetReadyStatus(player, userData);
-            SetIconImage(userData);
+            SetIconImage(player, userData);
 
             // Nothing to adjust on this machine's own slot.
             SetVoiceControls(Network.Lobby.IsLocalPlayer(player.Id) ? null : player.Id);
@@ -115,8 +115,24 @@ namespace UI
             readyText.text = isReady ? userData.playerName : "";
         }
 
-        private void SetIconImage(UserData userData)
+        private void SetIconImage(Unity.Services.Lobbies.Models.Player player, UserData userData)
         {
+            // The JAF card the host dealt this player: the same colour on every machine, and the one
+            // the pause roster shows for them in the match.
+            Sprite card = PlayerCardPaletteSO.For(player.Id);
+            if (card != null)
+            {
+                playerImage.sprite = card;
+                return;
+            }
+
+            // Not dealt yet (the host deals on its next poll, about a second): the plain JAF card.
+            if (defaultAvatar != null)
+            {
+                playerImage.sprite = defaultAvatar;
+                return;
+            }
+
             // Change for steam avatar later
             int index = Mathf.Clamp(userData.avatarIndex, 0, playerAvatar.Length - 1);
             playerImage.sprite = playerAvatar.Length > 0 ? playerAvatar[index] : defaultAvatar;

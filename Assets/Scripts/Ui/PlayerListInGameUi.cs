@@ -194,6 +194,11 @@ namespace UI
         /// </summary>
         private Sprite IconFor(ulong clientId, PlayerVoiceIdentity identity)
         {
+            // An online match keeps the card each player was dealt in the lobby. A LAN match has no
+            // lobby to deal them, so it draws them here as before.
+            Sprite dealt = identity != null ? PlayerCardPaletteSO.For(identity.VivoxPlayerId) : null;
+            if (dealt != null) return dealt;
+
             if (playerIcons == null || playerIcons.Length == 0) return null;
 
             string key = identity != null ? identity.VoiceSessionKey : null;

@@ -6,42 +6,56 @@ using UnityEngine.UI;
 namespace Ui
 {
     /// <summary>
-    /// Marks the voice profile's thresholds on the mic test panel's energy meter and names where the
-    /// player's voice lands: whether this player's whisper, normal talking and shout fall on the right
-    /// side of those marks is what decides how far their voice carries and when the monster hears it.
-    /// The bar itself is the Vivox sample's AudioDeviceSettings meter.
+    /// The mic test panel's level meter: the whole green-to-red bar always on screen and a white
+    /// needle that follows the voice along it - left for a whisper, the middle for talking, the red
+    /// end for a shout - and a label naming where the voice lands. Whether this player's whisper,
+    /// normal talking and shout fall where they should is what decides how far their voice carries
+    /// and when the monster hears it.
+    ///
+    /// <para>The needle reads the options' local mic test while it runs, and Vivox's own energy for
+    /// this player otherwise (in the lobby or the match). The bar used to be a fill driven by Vivox
+    /// alone, with fixed threshold marks: out of a voice channel nothing moved at all.</para>
     /// </summary>
     public class VoiceLevelMeter : MonoBehaviour
     {
         [SerializeField] private VoiceProfileSO voiceProfile;
 
-        [Tooltip("Thin markers inside the meter, placed at the talking and shout thresholds.")]
+        [Tooltip("The needle that follows the voice. Empty: the white speech marker becomes the needle.")]
+        [SerializeField] private RectTransform levelNeedle;
+
+        [Tooltip("Threshold marks of the old meter. The speech one is used as the needle when there is " +
+                 "no needle of its own; the shout one is hidden then, so only one mark is on the bar.")]
         [SerializeField] private RectTransform speechMarker;
         [SerializeField] private RectTransform shoutMarker;
 
         [SerializeField] private Text label;
 
-        [Tooltip("The bar of the panel (AudioDeviceSettings.DeviceEnergyMask). While the options' mic test runs it shows the microphone read locally; otherwise AudioDeviceSettings fills it from Vivox. Found by name (MeterMask) when empty.")]
+        [Tooltip("The bar of the panel (AudioDeviceSettings.DeviceEnergyMask). Kept whole: the needle " +
+                 "shows the level now. Found by name (MeterMask) when empty.")]
         [SerializeField] private Image meterFill;
 
-        [Tooltip("How fast the bar follows the voice during the mic test.")]
-        [SerializeField, Min(1f)] private float meterSpeed = 18f;
+        [Tooltip("Width of the needle, in the meter's units.")]
+        [SerializeField, Min(1f)] private float needleWidth = 5f;
+
+        [Tooltip("How fast the needle rises with the voice, and how fast it falls back.")]
+        [SerializeField, Min(1f)] private float riseSpeed = 30f;
+        [SerializeField, Min(1f)] private float fallSpeed = 6f;
 
         [Tooltip("Seconds the loudest recent level stays on the label, so a shout can be read.")]
         [SerializeField, Min(0f)] private float peakHoldSeconds = 1.5f;
 
         private float _peak;
         private float _peakUntil;
+        private float _shown;
 
         private VivoxManager _vivox;
         private float _nextVivoxLookup;
-        private float _testEnergy;
 
 
         private void OnEnable()
         {
             _peak = 0f;
-            _testEnergy = 0f;
+            _shown = 0f;
 
             if (meterFill == null)
             {
@@ -49,18 +63,25 @@ namespace Ui
                 if (meter != null) meterFill = meter.GetComponent<Image>();
             }
 
-            if (voiceProfile == null) return;
+            if (levelNeedle == null && speechMarker != null)
+            {
+                levelNeedle = speechMarker;
+                if (shoutMarker != null) shoutMarker.gameObject.SetActive(false);
+            }
 
-            PlaceMarker(speechMarker, voiceProfile.SpeechEnergy);
-            PlaceMarker(shoutMarker, voiceProfile.ShoutEnergy);
+            if (levelNeedle != null)
+            {
+                levelNeedle.gameObject.SetActive(true);
+                levelNeedle.sizeDelta = new Vector2(needleWidth, levelNeedle.sizeDelta.y);
+                levelNeedle.SetAsLastSibling();
+            }
+
+            PlaceNeedle(0f);
         }
 
         private void Update()
         {
-            if (label == null) return;
-
-            float energy = TestEnergy(out bool testing);
-            if (!testing) energy = ResolveVivox() != null ? _vivox.GetSelfAudioEnergy() : 0f;
+            float energy = CurrentEnergy();
 
             if (energy >= _peak || Time.unscaledTime >= _peakUntil)
             {
@@ -68,39 +89,51 @@ namespace Ui
                 _peakUntil = Time.unscaledTime + peakHoldSeconds;
             }
 
-            label.text = $"{NameFor(_peak)}  {_peak:0.00}";
+            if (label != null) label.text = $"{NameFor(_peak)}  {_peak:0.00}";
         }
 
         /// <summary>
-        /// The options' mic test, on the game's energy scale: the microphone level with the mic level on
-        /// top, as the mic setup sheet reads it. 0 and false while no test runs.
+        /// After AudioDeviceSettings, which pulls the bar's fill towards Vivox's reading every frame:
+        /// the bar is put back whole and the needle moved instead.
         /// </summary>
-        private float TestEnergy(out bool testing)
-        {
-            OptionsMicTest test = OptionsMicTest.Active;
-            testing = test != null;
-            if (!testing || voiceProfile == null) return 0f;
-
-            return Mathf.Clamp01(voiceProfile.EnergyFromHeardLevel(test.LevelDb + test.Volume));
-        }
-
         private void LateUpdate()
         {
-            // After AudioDeviceSettings, which pulls the bar towards Vivox's reading every frame: the
-            // mic is muted for Vivox during the test, so that would hold it at zero.
-            float energy = TestEnergy(out bool testing);
-            if (meterFill == null) return;
+            if (meterFill != null) meterFill.fillAmount = 1f;
 
-            if (!testing)
+            float energy = CurrentEnergy();
+            float speed = energy > _shown ? riseSpeed : fallSpeed;
+            _shown = Mathf.Lerp(_shown, energy, 1f - Mathf.Exp(-speed * Time.unscaledDeltaTime));
+
+            PlaceNeedle(_shown);
+        }
+
+        /// <summary>The voice now, 0..1 on the game's energy scale.</summary>
+        private float CurrentEnergy()
+        {
+            OptionsMicTest test = OptionsMicTest.Active;
+
+            // The options' test: the microphone level with the mic level on top, as the mic setup
+            // sheet reads it.
+            if (test != null)
             {
-                // Out of a voice channel nothing else moves the bar: it must not stay up after the test.
-                if (_testEnergy > 0f) meterFill.fillAmount = 0f;
-                _testEnergy = 0f;
-                return;
+                return voiceProfile != null
+                    ? Mathf.Clamp01(voiceProfile.EnergyFromHeardLevel(test.LevelDb + test.Volume))
+                    : 0f;
             }
 
-            _testEnergy = Mathf.Lerp(_testEnergy, energy, 1f - Mathf.Exp(-meterSpeed * Time.unscaledDeltaTime));
-            meterFill.fillAmount = _testEnergy;
+            return ResolveVivox() != null ? Mathf.Clamp01(_vivox.GetSelfAudioEnergy()) : 0f;
+        }
+
+        private void PlaceNeedle(float energy)
+        {
+            if (levelNeedle == null) return;
+
+            levelNeedle.anchorMin = new Vector2(energy, 0f);
+            levelNeedle.anchorMax = new Vector2(energy, 1f);
+
+            // Kept whole inside the bar at both ends: silence sits on the left edge, not half past it.
+            float halfWidth = levelNeedle.sizeDelta.x * 0.5f;
+            levelNeedle.anchoredPosition = new Vector2(Mathf.Lerp(halfWidth, -halfWidth, energy), 0f);
         }
 
         /// <summary>
@@ -126,15 +159,6 @@ namespace Ui
             if (energy >= voiceProfile.SpeechEnergy) return "Fala";
 
             return "Sussurro";
-        }
-
-        private static void PlaceMarker(RectTransform marker, float energy)
-        {
-            if (marker == null) return;
-
-            marker.anchorMin = new Vector2(energy, 0f);
-            marker.anchorMax = new Vector2(energy, 1f);
-            marker.anchoredPosition = Vector2.zero;
         }
     }
 }

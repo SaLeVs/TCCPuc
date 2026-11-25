@@ -8,7 +8,7 @@ using UnityEngine;
 
 namespace Systems
 {
-    public class ElectricCircuit : NetworkBehaviour, IInteractable
+    public class ElectricCircuit : NetworkBehaviour, IInteractable, IInteractionBlockReason
     {
         public event Action OnCircuitRestored;
 
@@ -26,6 +26,11 @@ namespace Systems
             // as well as the host. It used to answer true outright, and clients saw the panel offer
             // itself with the lights on, then do nothing when used.
             return HasBrokenLights();
+        }
+
+        public string GetBlockedReason(GameObject interactor)
+        {
+            return HasBrokenLights() ? null : InteractionBlockText.LightsAreOn;
         }
 
         public bool Interact(GameObject playerInteractor)

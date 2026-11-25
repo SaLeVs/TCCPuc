@@ -12,7 +12,7 @@ namespace Systems
     /// everybody reads the goal and the objectives, sees who is ready and marks themselves
     /// ready. The pick is networked and lands in <see cref="ContractSelection"/> on every peer.
     /// </summary>
-    public class ReadyBoard : NetworkBehaviour, IInteractable, IInteractionLabel
+    public class ReadyBoard : NetworkBehaviour, IInteractable, IInteractionLabel, IInteractionBlockReason
     {
         [Header("Prompt")]
         [Tooltip("Shown to the host, who picks the contract.")]
@@ -211,6 +211,11 @@ namespace Systems
         public bool CanInteract(GameObject interactor)
         {
             return !_isInUse;
+        }
+
+        public string GetBlockedReason(GameObject interactor)
+        {
+            return _isInUse ? InteractionBlockText.BoardInUse : null;
         }
 
         public bool Interact(GameObject playerInteractor)

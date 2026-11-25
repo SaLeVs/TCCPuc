@@ -106,7 +106,8 @@ namespace Systems
 
             if (IsComplete) return completeMessage;
 
-            return $"{noDiskMessage}\nDisquetes: {_disksPlaced.Value}/{_requiredDisks.Value}";
+            // The tutorial's lost-and-found lesson: a dead player's disk is left there for anyone.
+            return $"{noDiskMessage}\nProcure nos ACHADOS E PERDIDOS\nDisquetes: {_disksPlaced.Value}/{_requiredDisks.Value}";
         }
 
         private static bool HasDisk(GameObject interactor) =>

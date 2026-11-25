@@ -8,7 +8,7 @@ namespace Missions.Puzzles
 {
     // Estação no mundo que abre um minigame de UI no jogador dono da missão.
     // Trocar o minigame = trocar o prefab no campo Minigame Prefab.
-    public class MinigamePuzzleManager : PuzzleManagerBase, IInteractable
+    public class MinigamePuzzleManager : PuzzleManagerBase, IInteractable, IInteractionBlockReason
     {
         [SerializeField] private MinigameBase minigamePrefab;
 
@@ -29,6 +29,16 @@ namespace Missions.Puzzles
             if (OwnershipSelector == null) return false;
 
             return OwnershipSelector.IsMissionOwner(networkObject.OwnerClientId);
+        }
+
+        public string GetBlockedReason(GameObject interactor)
+        {
+            if (IsComplete) return InteractionBlockText.MissionComplete;
+            if (!interactor.TryGetComponent(out NetworkObject networkObject)) return null;
+            if (OwnershipSelector == null) return InteractionBlockText.NotYourMission;
+            if (OwnershipSelector.IsMissionOwner(networkObject.OwnerClientId)) return null;
+
+            return InteractionBlockText.Ownership(OwnershipSelector.IsMissionOwnerAssigned, InteractionBlockText.OnlyOwnerUses);
         }
 
         // Roda no cliente dono do jogador (PlayerInteractor), então abre a UI direto, sem RPC.

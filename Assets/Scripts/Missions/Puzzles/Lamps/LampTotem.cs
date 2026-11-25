@@ -4,7 +4,7 @@ using UnityEngine;
 
 namespace Missions.Puzzles
 {
-    public class LampTotem : PuzzlePieceBase, IInteractable
+    public class LampTotem : PuzzlePieceBase, IInteractable, IInteractionBlockReason
     {
         [SerializeField] private Light lampLight;
 
@@ -80,6 +80,13 @@ namespace Missions.Puzzles
             }
 
             return false;
+        }
+
+        public string GetBlockedReason(GameObject interactor)
+        {
+            return interactor.TryGetComponent(out NetworkObject networkObject)
+                ? OwnershipBlockReason(networkObject.OwnerClientId, InteractionBlockText.OnlyOwnerUses)
+                : null;
         }
 
         public bool Interact(GameObject playerInteractor)

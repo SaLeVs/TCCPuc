@@ -5,7 +5,7 @@ using Interfaces;
 
 namespace Systems
 {
-    public class ReadyTotem : NetworkBehaviour, IInteractable
+    public class ReadyTotem : NetworkBehaviour, IInteractable, IInteractionBlockReason
     {
         [SerializeField] private PlayersReady playersReady;
         [SerializeField] private GameObject totemVisual;
@@ -85,6 +85,15 @@ namespace Systems
             if (!interactor.TryGetComponent(out NetworkObject netObj)) return false;
 
             return netObj.OwnerClientId == _ownerClientId.Value;
+        }
+
+        public string GetBlockedReason(GameObject interactor)
+        {
+            if (_isActivated.Value) return InteractionBlockText.AlreadyReady;
+            if (!_isEnabled.Value) return InteractionBlockText.NotOpenYet;
+            if (!interactor.TryGetComponent(out NetworkObject netObj)) return null;
+
+            return netObj.OwnerClientId == _ownerClientId.Value ? null : InteractionBlockText.NotYourTotem;
         }
 
         public override void OnNetworkDespawn()

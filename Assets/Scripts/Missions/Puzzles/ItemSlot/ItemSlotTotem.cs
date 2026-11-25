@@ -6,7 +6,7 @@ using ScriptableObjects;
 
 namespace Missions.Puzzles
 {
-    public class ItemSlotTotem : PuzzlePieceBase, IInteractable
+    public class ItemSlotTotem : PuzzlePieceBase, IInteractable, IInteractionBlockReason
     {
         private const int EMPTY_SLOT = -1;
 
@@ -83,6 +83,16 @@ namespace Missions.Puzzles
             if (!interactor.TryGetComponent(out NetworkObject networkObject)) return false;
 
             return CheckOwnership(networkObject.OwnerClientId);
+        }
+
+        public string GetBlockedReason(GameObject interactor)
+        {
+            if (!interactor.TryGetComponent(out NetworkObject networkObject)) return null;
+
+            string ownership = OwnershipBlockReason(networkObject.OwnerClientId, InteractionBlockText.OnlyOwnerUses);
+            if (ownership != null) return ownership;
+
+            return HasItemInSlot() ? InteractionBlockText.SlotTaken : null;
         }
 
         public bool Interact(GameObject playerInteractor) => false;

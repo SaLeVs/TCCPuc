@@ -122,6 +122,7 @@ namespace Ui
             public float Appear;
             public float Focus;
             public float Blocked;
+            public bool IsBlocked;
             public float Recording;
             public float Registered;
             public bool WasFocused;
@@ -152,6 +153,8 @@ namespace Ui
         private readonly List<Candidate> _candidates = new();
         private readonly List<InteractionMarker> _released = new();
         private readonly HashSet<GameObject> _inFrame = new();
+        private readonly Dictionary<InteractionMarker, Acceptance> _acceptance = new();
+        private const float AcceptanceInterval = 0.25f;
         private readonly RaycastHit[] _hits = new RaycastHit[16];
 
         private RectTransform _rect;
@@ -300,6 +303,12 @@ namespace Ui
                 if (!focused && (marker.transform.position - eye).sqrMagnitude > roughReach * roughReach) continue;
 
                 if (marker.transform.IsChildOf(_playerRoot)) continue;
+
+                // Things that refuse this player get no frame until the crosshair is on them - and
+                // then the prompt says why. A frame on every other player's mission box read as
+                // "you can use this" and cluttered the screen with frames that led nowhere.
+                if (!focused && usable && !recordable && !AcceptsPlayer(marker)) continue;
+
                 if (!marker.TryGetBounds(out Bounds bounds)) continue;
 
                 float distance = Mathf.Max(0f, StableDistance(bounds.ClosestPoint(eye)));
@@ -329,6 +338,31 @@ namespace Ui
 
             if (_candidates.Count > maxMarkers)
                 _candidates.RemoveRange(maxMarkers, _candidates.Count - maxMarkers);
+        }
+
+        /// <summary>
+        /// Whether the object would take the player, asked a few times a second per marker rather
+        /// than every frame: some answers (the light panel's) walk the whole level.
+        /// </summary>
+        private bool AcceptsPlayer(InteractionMarker marker)
+        {
+            float now = Time.unscaledTime;
+
+            // Markers of unloaded rooms stay as dead keys; cheaper to start over now and then.
+            if (_acceptance.Count > 512) _acceptance.Clear();
+
+            if (_acceptance.TryGetValue(marker, out Acceptance cached) && now < cached.NextCheck)
+                return cached.Accepts;
+
+            bool accepts = marker.Interactable.CanInteract(interactor.gameObject);
+            _acceptance[marker] = new Acceptance { Accepts = accepts, NextCheck = now + AcceptanceInterval };
+            return accepts;
+        }
+
+        private struct Acceptance
+        {
+            public bool Accepts;
+            public float NextCheck;
         }
 
         /// <summary>
@@ -366,7 +400,14 @@ namespace Ui
             widget.Alpha = Damp(widget.Alpha, targetAlpha, 10f, dt);
             widget.Appear = Damp(widget.Appear, targetAlpha > 0f ? 1f : 0f, 7f, dt);
             widget.Focus = Damp(widget.Focus, focused ? 1f : 0f, 14f, dt);
-            widget.Blocked = Damp(widget.Blocked, focused && interactor.IsHoveredBlocked ? 1f : 0f, 12f, dt);
+
+            // Settled on the frame the crosshair lands, not eased in: easing started every refused
+            // object out as usable - white frame, key and action label - and only then turned it
+            // red, so the prompt said "yes" and then "no". A change while aimed still eases, fast.
+            bool blockedNow = focused && interactor.IsHoveredBlocked;
+            widget.IsBlocked = blockedNow;
+            if (focused && !widget.WasFocused) widget.Blocked = blockedNow ? 1f : 0f;
+            else widget.Blocked = Damp(widget.Blocked, blockedNow ? 1f : 0f, 30f, dt);
             widget.Recording = Damp(widget.Recording, marker.IsRecordable && IsRecording(marker) ? 1f : 0f, 6f, dt);
             widget.Registered = Damp(widget.Registered, marker.IsRecordable && IsRegistered(marker) ? 1f : 0f, 6f, dt);
 
@@ -485,7 +526,7 @@ namespace Ui
 
             if (show <= 0.01f) return;
 
-            bool blocked = widget.Blocked > 0.5f;
+            bool blocked = widget.IsBlocked;
             string label = blocked ? BlockedText(widget) : widget.Marker.ActionLabel.ToUpperInvariant();
 
             if (widget.Label.text != label) widget.Label.text = label;
@@ -728,6 +769,7 @@ namespace Ui
             widget.Appear = 0f;
             widget.Focus = 0f;
             widget.Blocked = 0f;
+            widget.IsBlocked = false;
             widget.Recording = 0f;
             widget.Registered = 0f;
             widget.WasFocused = false;

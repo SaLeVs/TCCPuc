@@ -71,5 +71,23 @@ namespace Missions.Puzzles
             return selector.IsMissionOwner(clientId);
         }
 
+        /// <summary>
+        /// Why <see cref="CheckOwnership"/> turns this player away, in the HUD's words; null when it does not.
+        /// </summary>
+        protected string OwnershipBlockReason(ulong clientId, string onlyOwner)
+        {
+            PuzzleManagerBase manager = Manager;
+
+            if (manager == null) return Interfaces.InteractionBlockText.NotYourMission;
+            if (manager.IsComplete) return Interfaces.InteractionBlockText.MissionComplete;
+
+            MissionOwnershipSelector selector = manager.OwnershipSelector;
+
+            if (selector == null) return Interfaces.InteractionBlockText.NotYourMission;
+            if (selector.IsMissionOwner(clientId)) return null;
+
+            return Interfaces.InteractionBlockText.Ownership(selector.IsMissionOwnerAssigned, onlyOwner);
+        }
+
     }
 }

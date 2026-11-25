@@ -253,6 +253,11 @@ namespace Objects
 
             // Server-side. Carves the open leaf out of the navmesh so the monster walks round it.
             public NavMeshObstacle OpenObstacle;
+
+            // Where the leaf sits in its parent, from the prefab. A leaf only ever turns, so this
+            // never changes; one found elsewhere is put back (see KeepLeavesOnHinges).
+            public Vector3 HingeLocalPosition;
+            public bool ReportedOffHinge;
         }
 
         // The main leaf first, then any extras.
@@ -333,7 +338,13 @@ namespace Objects
             // swept, so a fast swing meets a player instead of skipping past their surface.
             body.collisionDetectionMode = CollisionDetectionMode.ContinuousSpeculative;
 
-            Leaf leaf = new Leaf { Body = body, ClosedYaw = closedYaw, Mirror = mirror };
+            Leaf leaf = new Leaf
+            {
+                Body = body,
+                ClosedYaw = closedYaw,
+                Mirror = mirror,
+                HingeLocalPosition = body.transform.localPosition
+            };
             CacheLeafGeometry(leaf);
 
             _leaves.Add(leaf);
@@ -1159,6 +1170,7 @@ namespace Objects
             }
 
             UpdateClosedBlocker();
+            KeepLeavesOnHinges();
 
             if (!IsSwinging) return;
 
@@ -1180,6 +1192,35 @@ namespace Objects
                 {
                     WorldSound.Play(closeSound, DoorwayCentre, NetworkObject);
                 }
+            }
+        }
+
+        /// <summary>
+        /// Every peer, every physics step: a leaf that is not on its hinge any more is put back.
+        /// Leaves only turn, so a moved one is always wrong — the stale physics pose after a room
+        /// spawn, or a cause not found yet. Logged once per leaf so the LanLogs show it.
+        /// </summary>
+        private void KeepLeavesOnHinges()
+        {
+            foreach (Leaf leaf in _leaves)
+            {
+                Transform leafTransform = leaf.Body.transform;
+                Vector3 local = leafTransform.localPosition;
+
+                if ((local - leaf.HingeLocalPosition).sqrMagnitude < 0.0001f) continue;
+
+                Vector3 wrong = leafTransform.position;
+
+                leafTransform.localPosition = leaf.HingeLocalPosition;
+                leaf.Body.position = leafTransform.position;
+
+                if (leaf.ReportedOffHinge) continue;
+                leaf.ReportedOffHinge = true;
+
+                Debug.LogWarning(string.Format(System.Globalization.CultureInfo.InvariantCulture,
+                    "[POSE] Folha {0}/{1} ({2}) fora da dobradiça em ({3:0.00}, {4:0.00}, {5:0.00}); reposta em ({6:0.00}, {7:0.00}, {8:0.00}).",
+                    name, leafTransform.name, IsServer ? "host" : "client",
+                    wrong.x, wrong.y, wrong.z, leafTransform.position.x, leafTransform.position.y, leafTransform.position.z));
             }
         }
 
@@ -1385,7 +1426,14 @@ namespace Objects
             {
                 if (snap)
                 {
+                    leaf.Body.transform.localPosition = leaf.HingeLocalPosition;
                     leaf.Body.transform.localRotation = LeafLocalRotation(leaf, angle);
+
+                    // The body is teleported too, not just turned. A client instantiates a room at
+                    // the prefab's pose and only then moves it into its slot; with auto sync off,
+                    // the interpolated leaf kept the physics pose it was born with and was written
+                    // back there — leaves standing near the world origin, on the stage.
+                    leaf.Body.position = leaf.Body.transform.position;
                     leaf.Body.rotation = leaf.Body.transform.rotation;
                     continue;
                 }

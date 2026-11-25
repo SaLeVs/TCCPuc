@@ -101,7 +101,9 @@ namespace Audience
                 StopCoroutine(_fillRoutine);
             }
 
-            _fillRoutine = StartCoroutine(FillRoutine(targetFill));
+            // The audience can pass the goal; the bar just stays full. Unclamped, a target above 1
+            // was never reached by fillAmount (which clamps) and the routine never ended.
+            _fillRoutine = StartCoroutine(FillRoutine(Mathf.Clamp01(targetFill)));
         }
 
         private IEnumerator FillRoutine(float targetFill)

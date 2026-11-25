@@ -95,6 +95,9 @@ public class MirrorMovement : MonoBehaviour
         // Before the player's camera, so the glass shows this frame's image.
         _camera.depth = -50f;
         _camera.enabled = false;
+        // The world only: name tags, interaction markers and other world-space UI face the
+        // player's camera and have no place in a reflection.
+        _camera.cullingMask &= ~LayerMask.GetMask("UI", "HideForMirror");
 
         CollectGlass();
         if (_slots.Count == 0)

@@ -34,7 +34,16 @@ namespace Components
                  "default for this kind of object.")]
         [SerializeField, Min(0f)] private float revealDistance;
 
-        public string ActionLabel => actionLabel;
+        [Tooltip("Frame the object's solid colliders as well as its renderers. For things whose " +
+                 "face is a canvas (the ready board), which a mesh renderer does not cover.")]
+        [SerializeField] private bool frameColliders;
+
+        /// <summary>The verb next to the key: the interactable's own, when it has one, else the marker's.</summary>
+        public string ActionLabel =>
+            Interactable is IInteractionLabel labelled && (Interactable as MonoBehaviour) != null
+            && !string.IsNullOrEmpty(labelled.InteractionLabel)
+                ? labelled.InteractionLabel
+                : actionLabel;
         public float RevealDistance => revealDistance;
 
         public IInteractable Interactable { get; private set; }
@@ -77,11 +86,12 @@ namespace Components
                 found = true;
             }
 
-            if (found) return true;
+            if (found && !frameColliders) return true;
 
             foreach (Collider body in GetComponentsInChildren<Collider>())
             {
                 if (!body.enabled) continue;
+                if (frameColliders && body.isTrigger) continue;
 
                 if (found) bounds.Encapsulate(body.bounds);
                 else bounds = body.bounds;

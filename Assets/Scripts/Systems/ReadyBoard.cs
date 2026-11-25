@@ -12,8 +12,17 @@ namespace Systems
     /// everybody reads the goal and the objectives, sees who is ready and marks themselves
     /// ready. The pick is networked and lands in <see cref="ContractSelection"/> on every peer.
     /// </summary>
-    public class ReadyBoard : NetworkBehaviour, IInteractable
+    public class ReadyBoard : NetworkBehaviour, IInteractable, IInteractionLabel
     {
+        [Header("Prompt")]
+        [Tooltip("Shown to the host, who picks the contract.")]
+        [SerializeField] private string hostPromptLabel = "Escolher contrato";
+
+        [Tooltip("Shown to everyone else, who mark themselves ready for it.")]
+        [SerializeField] private string clientPromptLabel = "Votar";
+
+        public string InteractionLabel => IsSpawned && !IsHost ? clientPromptLabel : hostPromptLabel;
+
         [Header("Ready System")]
         [SerializeField] private PlayersReady playersReady;
 

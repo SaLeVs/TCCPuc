@@ -80,20 +80,35 @@ namespace Objects
         [Tooltip("How many times farther a hit on the outer ring counts. About 1 / sqrt(spill brightness).")]
         [SerializeField, Min(1f)] private float outerRingWeight = 2f;
 
-        [Tooltip("What the probes stop at. Empty = everything but the players and their ragdolls.")]
+        [Tooltip("What the probes stop at. Empty = everything solid, other players and the monster included. The player holding the flashlight is always skipped.")]
         [SerializeField] private LayerMask probeLayers;
 
+        [Tooltip("Radius of the probe down the middle of the beam, so a chair leg, a pole or an arm still dims it.")]
+        [SerializeField, Min(0f)] private float centreProbeRadius = 0.12f;
+
+        private const int MaxHits = 16;
+        private readonly RaycastHit[] _hits = new RaycastHit[MaxHits];
+
+        private Transform _self;
         private float _logScale;
         private float _logClose;
         private bool _wasOn;
 
         private void Awake()
         {
+            // Players, their ragdolls and the monster used to be masked out as whole layers, only so
+            // the probes would not stop inside the holder's own body: walking up to another player
+            // or the monster left the beam blown out on them. Now only the holder is skipped.
             if (probeLayers.value == 0)
             {
-                probeLayers = ~LayerMask.GetMask("Player", "DeadPlayer", "Body", "OcclusionBody",
-                    "Ignore Raycast", "UI", "TransparentFX");
+                // Ragdolls stay out: the holder's own one is a separate object lying right at the
+                // lens while knocked down, and would black the beam out.
+                probeLayers = ~LayerMask.GetMask("DeadPlayer", "OcclusionBody", "Ignore Raycast", "UI",
+                    "TransparentFX", "HideForMirror");
             }
+
+            Unity.Netcode.NetworkObject owner = GetComponentInParent<Unity.Netcode.NetworkObject>();
+            _self = owner != null ? owner.transform : transform.root;
         }
 
         private void LateUpdate()
@@ -157,6 +172,7 @@ namespace Objects
             float reach = beam.range;
 
             float nearest = Probe(origin, forward, reach);
+            nearest = Mathf.Min(nearest, ProbeCentre(origin, forward, reach));
             nearest = Mathf.Min(nearest, ProbeRing(t, innerRing, reach));
             nearest = Mathf.Min(nearest, ProbeRing(t, outerRing, reach) * outerRingWeight);
 
@@ -180,10 +196,39 @@ namespace Objects
 
         private float Probe(Vector3 origin, Vector3 direction, float reach)
         {
-            bool hit = Physics.Raycast(origin, direction, out RaycastHit info, reach, probeLayers,
+            int count = Physics.RaycastNonAlloc(origin, direction, _hits, reach, probeLayers,
                 QueryTriggerInteraction.Ignore);
 
-            return hit ? info.distance : reach;
+            return Nearest(count, reach);
+        }
+
+        private float ProbeCentre(Vector3 origin, Vector3 direction, float reach)
+        {
+            if (centreProbeRadius <= 0f) return reach;
+
+            int count = Physics.SphereCastNonAlloc(origin, centreProbeRadius, direction, _hits, reach,
+                probeLayers, QueryTriggerInteraction.Ignore);
+
+            return Nearest(count, reach);
+        }
+
+        // The nearest hit that is not the holder: their body, their held item, their hat.
+        // A sphere already overlapping something at the start reports distance 0 there; that
+        // collider is skipped too, since the plain rays measure it properly.
+        private float Nearest(int count, float reach)
+        {
+            float nearest = reach;
+
+            for (int i = 0; i < count; i++)
+            {
+                RaycastHit hit = _hits[i];
+                if (hit.distance <= 0f || hit.distance >= nearest) continue;
+                if (_self != null && hit.collider.transform.IsChildOf(_self)) continue;
+
+                nearest = hit.distance;
+            }
+
+            return nearest;
         }
     }
 }

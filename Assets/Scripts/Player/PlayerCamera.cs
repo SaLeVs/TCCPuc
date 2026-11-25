@@ -60,6 +60,12 @@ namespace Player
 
                 inputAxisController.enabled = true;
 
+                // The InputReader is a shared asset and outlives this player: leaving through the
+                // pause menu (back to the main menu) or a scene change with the menu open left its
+                // Game map switched off, so the next player spawned unable to move until Esc was
+                // pressed twice. Every new player starts with the gameplay input on.
+                inputReader.SetGameplayInputEnabled(true);
+
                 CacheBaseSensitivityGains();
                 ApplySensitivity(SensibilitySettings.Current);
                 SensibilitySettings.OnSensibilityChanged += ApplySensitivity;
@@ -278,6 +284,9 @@ namespace Player
                 playerState.OnPlayerDead -= PlayerState_OnPlayerDead;
                 playerState.OnPlayerLocked -= PlayerState_OnPlayerLocked;
                 SensibilitySettings.OnSensibilityChanged -= ApplySensitivity;
+
+                // Despawned while paused: hand the shared InputReader back switched on.
+                if (_isPaused) inputReader.SetGameplayInputEnabled(true);
 
                 cinemachineCamera.Priority = 0;
             }

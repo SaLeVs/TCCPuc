@@ -235,8 +235,10 @@ namespace Player
             // the body would push the spot out past them.
             int lineOfSightMask = standingBlockingMask & ~(1 << gameObject.layer);
 
+            Vector3? walkableFrom = _hasStandingBeforeKnockdown ? _standingBeforeKnockdown : (Vector3?)null;
+
             if (!StandingSpotFinder.TryFind(origin, radius, height, standingBlockingMask, lineOfSightMask,
-                    searchMaxDistance, searchStepSize, searchAngleStep, out Vector3 spot))
+                    searchMaxDistance, searchStepSize, searchAngleStep, walkableFrom, out Vector3 spot))
             {
                 // Getting up at the hips put the capsule inside whatever the body lay against, and
                 // the physics pushed it out on top. Where they stood before going down is known to fit.
@@ -251,7 +253,18 @@ namespace Player
                 spot = origin;
             }
 
-            Teleport(spot + Vector3.up * groundOffset);
+            // The spot is where the capsule fits, but the capsule sits ahead of the pivot. Put there
+            // as is, it stuck out up to that much into whatever was in front, and the physics could
+            // push it out through the far side of a thin wall, like a stall partition.
+            Vector3 centerOffset = Vector3.zero;
+
+            if (playerCapsule != null)
+            {
+                Vector3 center = playerCapsule.transform.TransformPoint(playerCapsule.center) - transform.position;
+                centerOffset = new Vector3(center.x, 0f, center.z);
+            }
+
+            Teleport(spot - centerOffset + Vector3.up * groundOffset);
         }
 
         private void Teleport(Vector3 position)

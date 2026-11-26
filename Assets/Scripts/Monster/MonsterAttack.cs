@@ -1,12 +1,13 @@
 using System;
 using Components.Sound;
+using Interfaces;
 using Unity.Netcode;
 using UnityEngine;
 using UnityEngine.AI;
 
 namespace Monster
 {
-    public class MonsterAttack : NetworkBehaviour
+    public class MonsterAttack : NetworkBehaviour, IPushKnockdownSource
     {
         public event Action OnAttackStartedAnimation;
         public event Action OnAttackEndedAnimation;
@@ -78,6 +79,15 @@ namespace Monster
         public bool IsAttacking => _isAttacking;
 
         public float CooldownRemaining => _cooldownRemaining;
+
+        /// <summary>
+        /// Leaning on a player between swings — cooling down and still on the move — knocks them
+        /// over once it has gone on long enough (PlayerMonsterContact keeps the time). Mid-swing
+        /// the punch decides, and held still (the roar, a door) it is not pushing anyone.
+        /// </summary>
+        public bool CanKnockDownByPushing =>
+            IsServer && IsOnCooldown && !_isAttacking &&
+            _agent != null && _agent.isOnNavMesh && !_agent.isStopped;
 
         private float _timer;
         private float _cooldownRemaining;

@@ -18,6 +18,7 @@ namespace Player
         [SerializeField] private Rigidbody rb;
         [SerializeField] private Transform orientation;
         [SerializeField] private PlayerStairClimber stairClimber;
+        [SerializeField] private PlayerMonsterContact monsterContact;
 
         [SerializeField] private float moveSpeed;
         [SerializeField] private float blendMovementTime = 8.9f;
@@ -41,6 +42,8 @@ namespace Player
         private void Awake()
         {
             SetupSpeedModifiers();
+
+            if (monsterContact == null) monsterContact = GetComponent<PlayerMonsterContact>();
         }
 
         private void SetupSpeedModifiers()
@@ -129,6 +132,14 @@ namespace Player
             // Forced on the body as is, this rode the capsule up over any ledge it was pushed into;
             // the climber turns it along the floor and stops it at what can't be climbed.
             Vector3 desiredVelocity = new Vector3(_currentVelocity.x, 0f, _currentVelocity.y);
+
+            // The monster no longer shoves the body through the physics (that pushed it through
+            // walls); its push comes in here and is stopped by walls like the rest of the move.
+            if (monsterContact != null)
+            {
+                desiredVelocity = monsterContact.ApplyMonsterSeparation(desiredVelocity);
+            }
+
             rb.linearVelocity = stairClimber.ResolveVelocity(desiredVelocity);
             
             float normalizedSpeed = _targetSpeed > 0.001f ? _targetSpeed : 1f;

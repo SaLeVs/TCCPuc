@@ -5072,6 +5072,7 @@ GameObject:
   - component: {fileID: 835645156359992294}
   - component: {fileID: 5202621912057759870}
   - component: {fileID: 1269087466439168254}
+  - component: {fileID: 9221958501296933421}
   m_Layer: 11
   m_Name: Player
   m_TagString: Untagged
@@ -5229,6 +5230,7 @@ MonoBehaviour:
   rb: {fileID: 3158690138509095668}
   orientation: {fileID: 847016756603283365}
   stairClimber: {fileID: 7781779547654773253}
+  monsterContact: {fileID: 9221958501296933421}
   moveSpeed: 3
   blendMovementTime: 8.9
   acceleration: 20
@@ -5857,6 +5859,31 @@ MonoBehaviour:
   ShowTopMostFoldoutHeaderGroup: 1
   chatManager: {fileID: 2860727212537030722}
   playerState: {fileID: 315419889962386199}
+--- !u!114 &9221958501296933421
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6252520807053122715}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6205b596a1255ad45a1756a42e17edf3, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Player::Player.PlayerMonsterContact
+  ShowTopMostFoldoutHeaderGroup: 1
+  knockdown: {fileID: 2757436302559510102}
+  playerDead: {fileID: 3147938662615095034}
+  playerCapsule: {fileID: 2207057075489463036}
+  playerRigidbody: {fileID: 3158690138509095668}
+  monsterMask:
+    serializedVersion: 2
+    m_Bits: 512
+  maxSeparationSpeed: 8
+  pushImpact: {fileID: 11400000, guid: 0e7473129d088dc418f98b1ffa83e2d0, type: 2}
+  pushKnockdownSeconds: 2
+  contactMargin: 0.15
+  contactGraceSeconds: 0.3
 --- !u!1 &6330846754935334704
 GameObject:
   m_ObjectHideFlags: 0

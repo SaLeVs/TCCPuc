@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.AI;
 
 namespace Player
 {
@@ -24,6 +25,28 @@ namespace Player
         private const float MaxStepUp = 0.35f;
         private const float MaxStepDown = 0.6f;
 
+        // A spot has to be on the NavMesh, walkable from where the player stood before going down.
+        // The NavMesh only covers real floor, so this is what turns down the tops of boxes,
+        // toilets, sinks and tables the body landed on.
+        private const float ReferenceNavMeshSnap = 1f;
+        private const float SpotNavMeshSnap = 0.5f;
+        private const float SpotNavMeshMaxRise = 0.3f;
+        private const float SpotNavMeshMaxFlat = 0.35f;
+
+        private static readonly RaycastHit[] FloorHits = new RaycastHit[16];
+        private static NavMeshPath _path;
+
+        private static int _groundLayer = -2;
+
+        private static int GroundLayer
+        {
+            get
+            {
+                if (_groundLayer == -2) _groundLayer = LayerMask.NameToLayer("Ground");
+                return _groundLayer;
+            }
+        }
+
         // Never something to stand on, even when it happens to be under the candidate.
         private static int _notGroundLayers = -1;
 
@@ -46,13 +69,20 @@ namespace Player
         /// nearest free floor was often on the far side of a shut door or a wall, which stood the
         /// player up on the other side of it.
         /// </param>
+        /// <param name="walkableFrom">
+        /// Where the player last stood, known to be walkable. When it is on the NavMesh, a spot is
+        /// only taken if the NavMesh reaches it from there; null skips that check.
+        /// </param>
         public static bool TryFind(Vector3 origin, float radius, float height, LayerMask blockingMask,
-            LayerMask lineOfSightMask, float maxDistance, float stepSize, float angleStep, out Vector3 result)
+            LayerMask lineOfSightMask, float maxDistance, float stepSize, float angleStep, Vector3? walkableFrom,
+            out Vector3 result)
         {
             int groundMask = blockingMask & ~NotGroundLayers;
-            float floorY = BodyFloorY(origin, groundMask);
+            Walkable walkable = Walkable.From(walkableFrom);
+            float floorY = BodyFloorY(origin, groundMask, walkable);
 
-            if (TryPlace(origin, origin, floorY, radius, height, blockingMask, groundMask, lineOfSightMask, out result))
+            if (TryPlace(origin, origin, floorY, radius, height, blockingMask, groundMask, lineOfSightMask, walkable,
+                    out result))
             {
                 return true;
             }
@@ -72,7 +102,7 @@ namespace Player
                     Vector3 offset = new Vector3(Mathf.Cos(radians), 0f, Mathf.Sin(radians)) * distance;
 
                     if (TryPlace(origin, origin + offset, floorY, radius, height, blockingMask, groundMask,
-                            lineOfSightMask, out result))
+                            lineOfSightMask, walkable, out result))
                     {
                         return true;
                     }
@@ -83,20 +113,53 @@ namespace Player
             return false;
         }
 
-        /// <summary>The floor right under the body, or a little under the hips when there is none.</summary>
-        public static float BodyFloorY(Vector3 origin, int groundMask)
+        /// <summary>
+        /// The walkable floor under the body, or a little under the hips when there is none. A body
+        /// lying across a box, a toilet or a sink has that under it first; taken as the floor, the
+        /// search only accepted spots at that height and stood the player up on top of it.
+        /// </summary>
+        private static float BodyFloorY(Vector3 origin, int groundMask, Walkable walkable)
         {
-            if (Physics.Raycast(origin + Vector3.up * BodyFloorProbeLift, Vector3.down, out RaycastHit floor,
-                    BodyFloorProbeDistance, groundMask, QueryTriggerInteraction.Ignore))
+            int count = Physics.RaycastNonAlloc(origin + Vector3.up * BodyFloorProbeLift, Vector3.down, FloorHits,
+                BodyFloorProbeDistance, groundMask, QueryTriggerInteraction.Ignore);
+
+            if (count == 0) return origin.y - BodySightLift;
+
+            // The floor itself is on the Ground layer. Right under a prop there is no NavMesh (the
+            // prop blocks it), so that cannot tell the floor apart there; it only helps when no
+            // Ground was hit at all.
+            int groundLayer = GroundLayer;
+            int nearest = 0;
+            int nearestGround = -1;
+            int nearestWalkable = -1;
+
+            for (int i = 0; i < count; i++)
             {
-                return floor.point.y;
+                if (FloorHits[i].distance < FloorHits[nearest].distance) nearest = i;
+
+                if (FloorHits[i].collider.gameObject.layer == groundLayer &&
+                    (nearestGround < 0 || FloorHits[i].distance < FloorHits[nearestGround].distance))
+                {
+                    nearestGround = i;
+                }
             }
 
-            return origin.y - BodySightLift;
+            if (nearestGround >= 0) return FloorHits[nearestGround].point.y;
+
+            for (int i = 0; i < count; i++)
+            {
+                if ((nearestWalkable < 0 || FloorHits[i].distance < FloorHits[nearestWalkable].distance) &&
+                    walkable.Allows(FloorHits[i].point))
+                {
+                    nearestWalkable = i;
+                }
+            }
+
+            return FloorHits[nearestWalkable >= 0 ? nearestWalkable : nearest].point.y;
         }
 
         private static bool TryPlace(Vector3 origin, Vector3 candidate, float floorY, float radius, float height,
-            LayerMask blockingMask, int groundMask, LayerMask lineOfSightMask, out Vector3 placed)
+            LayerMask blockingMask, int groundMask, LayerMask lineOfSightMask, Walkable walkable, out Vector3 placed)
         {
             placed = candidate;
 
@@ -127,9 +190,67 @@ namespace Player
             }
 
             // And the body has to be able to see it: nothing solid between where it lies and the
-            // bottom of the capsule it would stand up in.
-            return !Physics.Linecast(origin + Vector3.up * BodySightLift, bottom, lineOfSightMask,
-                QueryTriggerInteraction.Ignore);
+            // capsule it would stand up in. Its bottom or its top will do — a body lying on a sink
+            // or a toilet sees the floor in front of it only over the edge of what it lies on.
+            Vector3 sightStart = origin + Vector3.up * BodySightLift;
+
+            if (Physics.Linecast(sightStart, bottom, lineOfSightMask, QueryTriggerInteraction.Ignore) &&
+                Physics.Linecast(sightStart, top, lineOfSightMask, QueryTriggerInteraction.Ignore))
+            {
+                return false;
+            }
+
+            // Last, being the dearest: real floor, reachable on foot from where the player stood.
+            return walkable.Allows(placed);
+        }
+
+        /// <summary>
+        /// Whether a floor point is somewhere the player could have walked to. Inactive — everything
+        /// passes — when there is no reference, or the reference is off the NavMesh (a scene without
+        /// one, or a spot only the player fits, like a duct).
+        /// </summary>
+        private readonly struct Walkable
+        {
+            private readonly bool _active;
+            private readonly Vector3 _from;
+
+            private Walkable(Vector3 from)
+            {
+                _active = true;
+                _from = from;
+            }
+
+            public static Walkable From(Vector3? reference)
+            {
+                if (reference == null) return default;
+
+                if (!NavMesh.SamplePosition(reference.Value, out NavMeshHit hit, ReferenceNavMeshSnap, NavMesh.AllAreas))
+                {
+                    return default;
+                }
+
+                return new Walkable(hit.position);
+            }
+
+            public bool Allows(Vector3 floorPoint)
+            {
+                if (!_active) return true;
+
+                if (!NavMesh.SamplePosition(floorPoint, out NavMeshHit hit, SpotNavMeshSnap, NavMesh.AllAreas))
+                {
+                    return false;
+                }
+
+                if (Mathf.Abs(hit.position.y - floorPoint.y) > SpotNavMeshMaxRise) return false;
+
+                Vector2 flat = new Vector2(hit.position.x - floorPoint.x, hit.position.z - floorPoint.z);
+                if (flat.magnitude > SpotNavMeshMaxFlat) return false;
+
+                // A table or a big box can carry a scrap of NavMesh on top that nothing walks onto.
+                _path ??= new NavMeshPath();
+                return NavMesh.CalculatePath(_from, hit.position, NavMesh.AllAreas, _path) &&
+                       _path.status == NavMeshPathStatus.PathComplete;
+            }
         }
     }
 }

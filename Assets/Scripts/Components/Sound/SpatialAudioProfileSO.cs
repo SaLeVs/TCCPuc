@@ -74,6 +74,23 @@ namespace Components.Sound
             return source;
         }
 
+        /// <summary>
+        /// Walls on or off for one play of a pooled source made by <see cref="AttachTo"/>: off, only
+        /// distance and air shape it. On restores what this profile asks for.
+        /// </summary>
+        public void SetWalls(Behaviour spatial, bool walls)
+        {
+            if (!(spatial is SteamAudioSource source)) return;
+
+            source.occlusion = walls && occlusion;
+            source.transmission = walls && occlusion && transmission;
+
+            if (source.TryGetComponent(out SteamAudioTransmissionFloor floor))
+            {
+                floor.enabled = walls && transmission && occlusion && minimumTransmission.sqrMagnitude > 0f;
+            }
+        }
+
         private void ApplyTransmissionFloor(SteamAudioSource source)
         {
             bool wanted = transmission && occlusion && minimumTransmission.sqrMagnitude > 0f;

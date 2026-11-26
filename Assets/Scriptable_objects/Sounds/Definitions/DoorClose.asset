@@ -12,12 +12,14 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 794629ead15ad304f9e8e059c8fd9ba7, type: 3}
   m_Name: DoorClose
   m_EditorClassIdentifier: Components::Components.Sound.SoundDefinitionSO
-  clips: []
+  clips:
+  - {fileID: 8300000, guid: 4fa8fb280fdd0654e9df447a1e0fc0de, type: 3}
   volume: 1
-  pitchRange: {x: 0.95, y: 1.05}
+  pitchRange: {x: 1, y: 1}
   priority: 128
   range: 14
   heightOffset: 1.2
   followEmitter: 0
+  ignoresWalls: 1
   alertsMonster: 0
   noiseType: 5

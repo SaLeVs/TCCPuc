@@ -1,4 +1,5 @@
 using System;
+using Components.Sound;
 using Inputs;
 using Interfaces;
 using Unity.Netcode;
@@ -20,6 +21,9 @@ namespace Player
         [SerializeField] private float staminaGainPerSecond;
         [SerializeField] private float staminaCooldownThreshold = 5f;
         [SerializeField] private float minMovementThreshold = 0.1f;
+
+        [Tooltip("Panting when the stamina runs out. The owner hears it in their ears, everyone near in 3D.")]
+        [SerializeField] private SoundDefinitionSO exhaustedSound;
 
         public float MaxStamina => staminaMax;
         
@@ -96,6 +100,7 @@ namespace Player
                 {
                     _stamina = 0f;
                     _isExhausted = true;
+                    WorldSound.Play(exhaustedSound, transform.position, NetworkObject);
                 }
             }
             else

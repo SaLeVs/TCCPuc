@@ -138,6 +138,8 @@ namespace Components.Sound
 
             if (slot.Spatial != null)
             {
+                // Pooled: set on every play, so a door's open walls never carry over to a footstep.
+                if (worldProfile != null) worldProfile.SetWalls(slot.Spatial, !sound.IgnoresWalls);
                 slot.Spatial.enabled = true;
             }
 

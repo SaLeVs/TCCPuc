@@ -29,7 +29,7 @@ namespace Ui.Sound
     /// </remarks>
     [DisallowMultipleComponent]
     public class UiButtonSound : MonoBehaviour, IPointerDownHandler, IPointerUpHandler, IPointerClickHandler,
-        ISubmitHandler, IMoveHandler
+        ISubmitHandler, IMoveHandler, IPointerEnterHandler
     {
         [SerializeField] private UiSoundKind kind = UiSoundKind.Auto;
 
@@ -92,6 +92,21 @@ namespace Ui.Sound
         public void OnSubmit(BaseEventData eventData)
         {
             if (SoundsOnPress && _selectable.IsInteractable()) UiSoundRouter.Play(Resolve());
+        }
+
+        /// <summary>
+        /// Hover: buttons, toggles and dropdowns that can be clicked right now. Sliders, scrollbars and
+        /// text fields stay quiet, and so does everything while the cursor is locked to the screen centre
+        /// in play (looking around would sweep it across the world-space boards).
+        /// </summary>
+        public void OnPointerEnter(PointerEventData eventData)
+        {
+            if (kind == UiSoundKind.Silent || _selectable == null || !_selectable.IsInteractable()) return;
+            if (!(_selectable is Button) && !(_selectable is Toggle) && !(_selectable is Dropdown)
+                && !(_selectable is TMPro.TMP_Dropdown)) return;
+            if (Cursor.lockState == CursorLockMode.Locked) return;
+
+            UiSoundRouter.PlayHover();
         }
 
         public void OnPointerDown(PointerEventData eventData) => _pointerHeld = true;

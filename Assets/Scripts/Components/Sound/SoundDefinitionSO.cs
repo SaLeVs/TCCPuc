@@ -31,6 +31,11 @@ namespace Components.Sound
         [Tooltip("Keeps following whoever made it while it plays — a roar moves with the monster.")]
         [SerializeField] private bool followEmitter;
 
+        [Tooltip("Heard the same through walls and doors, only distance counts. For a sound made by the " +
+                 "opening itself - a door swinging - that both rooms should hear: the source sits in the " +
+                 "doorway, so one side always had the leaf or the frame in the way.")]
+        [SerializeField] private bool ignoresWalls;
+
         [Header("Monster hearing")]
         [Tooltip("Reported to the monster's hearing with the same range. Off for the monster's own sounds, " +
                  "or it would go and investigate itself.")]
@@ -43,6 +48,7 @@ namespace Components.Sound
         public float Range => range;
         public float HeightOffset => heightOffset;
         public bool FollowEmitter => followEmitter;
+        public bool IgnoresWalls => ignoresWalls;
         public bool AlertsMonster => alertsMonster;
         public NoiseType NoiseType => noiseType;
 

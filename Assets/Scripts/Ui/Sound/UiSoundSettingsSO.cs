@@ -27,6 +27,13 @@ namespace Ui.Sound
         [Tooltip("Each notch a slider passes while the player drags it (or moves it with the keyboard).")]
         public SoundDefinitionSO sliderTick;
 
+        [Tooltip("The mouse arriving over a button, toggle or dropdown that can be clicked. Empty: no hover sound.")]
+        public SoundDefinitionSO hover;
+
+        [Header("Hover")]
+        [Tooltip("Shortest gap between two hover sounds, in seconds, so sweeping the mouse across a row of buttons does not machine-gun.")]
+        [Min(0f)] public float hoverMinInterval = 0.06f;
+
         [Header("Output")]
         [Tooltip("Mixer group the UI plays through, so the SFX volume in Options applies. Empty plays straight to the listener.")]
         public AudioMixerGroup output;

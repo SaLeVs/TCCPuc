@@ -49,6 +49,11 @@ namespace Objects
                  "so a close that bounces off someone never sounds like it shut.")]
         [SerializeField] private SoundDefinitionSO closeSound;
 
+        [Tooltip("Seconds into the close clip where the leaf hits the frame (Door Close 6-1: 0.128). The " +
+                 "sound starts that much before the swing ends, so the thud lands as the leaf does and the " +
+                 "rattle before it plays while it is still closing.")]
+        [SerializeField, Min(0f)] private float closeSoundImpactTime = 0.128f;
+
         [Header("Impact")]
         [Tooltip("What this door does to a player it hits while swinging. Leave empty for a door that never knocks anyone over.")]
         [SerializeField] private ImpactProfileSO impactProfile;
@@ -203,6 +208,12 @@ namespace Objects
 
         // +1 / -1 while swinging, so an impact knows which way the leaf is travelling.
         private float _swingSign;
+
+        // Server-side. The close sound of the swing in progress has gone out (it starts before the end).
+        private bool _closeSoundSent;
+
+        // What a world sound waits before it starts, for Steam Audio (SoundPlayer.worldStartDelay).
+        private const float WorldSoundStartDelay = 0.04f;
 
         private float _lockedUntilTime;
 
@@ -1153,6 +1164,7 @@ namespace Objects
             _targetAngle = AngleFor(current);
             _swingSign = Mathf.Sign(_targetAngle - _currentAngle);
             _hitThisSwing.Clear();
+            _closeSoundSent = false;
 
             // Back open, bounced or forced: whoever was shoved for the close counts again.
             if (current != DoorState.Closed) _shoved.Clear();
@@ -1181,17 +1193,24 @@ namespace Objects
 
             ApplyAngle(next);
 
+            // Every peer runs the swing; only the server's copy sends the sound. It goes out early
+            // enough that the thud in the clip lands as the leaf reaches the frame.
+            if (IsServer && !_closeSoundSent && Mathf.Approximately(_targetAngle, closedAngle))
+            {
+                float secondsLeft = Mathf.Abs(_targetAngle - _currentAngle) / Mathf.Max(1f, openDegreesPerSecond);
+
+                if (secondsLeft <= closeSoundImpactTime + WorldSoundStartDelay || !IsSwinging)
+                {
+                    _closeSoundSent = true;
+                    WorldSound.Play(closeSound, DoorwayCentre, NetworkObject);
+                }
+            }
+
             if (!IsSwinging)
             {
                 _swingSign = 0f;
                 _hitThisSwing.Clear();
                 _shoved.Clear();
-
-                // Every peer runs the swing; only the server's copy sends the sound.
-                if (IsServer && Mathf.Approximately(_targetAngle, closedAngle))
-                {
-                    WorldSound.Play(closeSound, DoorwayCentre, NetworkObject);
-                }
             }
         }
 

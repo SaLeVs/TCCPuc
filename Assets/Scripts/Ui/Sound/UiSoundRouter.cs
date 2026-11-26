@@ -27,6 +27,7 @@ namespace Ui.Sound
         private UiSoundSettingsSO _settings;
         private AudioSource[] _sources;
         private int _next;
+        private float _lastHoverTime = -10f;
         private Selectable[] _buffer = new Selectable[64];
 
         public static UiSoundSettingsSO Settings => _instance != null ? _instance._settings : null;
@@ -145,6 +146,20 @@ namespace Ui.Sound
             if (_instance == null) return;
 
             _instance.PlayDefinition(_instance._settings.sliderTick, pitch);
+        }
+
+        public static void PlayHover()
+        {
+            if (_instance == null) return;
+
+            UiSoundSettingsSO settings = _instance._settings;
+            if (settings.hover == null) return;
+
+            // Sweeping the mouse across a row of buttons gives one sound per button, not a burst.
+            if (Time.unscaledTime - _instance._lastHoverTime < settings.hoverMinInterval) return;
+            _instance._lastHoverTime = Time.unscaledTime;
+
+            _instance.PlayDefinition(settings.hover, 1f);
         }
 
         private void PlayDefinition(SoundDefinitionSO sound, float pitchScale)

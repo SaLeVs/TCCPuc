@@ -90,6 +90,7 @@ namespace Monster
 
         private void StartMoving()
         {
+            _repathAttempts = 0;
             _agent.isStopped = false;
             _agent.speed = _moveSpeed;
             _agent.updateRotation = false;
@@ -115,11 +116,33 @@ namespace Monster
             }
         }
 
+        private const int MaxRepathAttempts = 3;
+        private int _repathAttempts;
+
+        /// <summary>
+        /// No path while still far away is not an arrival. Right after a door hands the agent back the
+        /// request can come back empty, and remainingDistance then reads 0: the monster used to look
+        /// around and give up metres short. Asks again a few times; if it still has no path, the
+        /// ordinary arrival check below lets it look around from here.
+        /// </summary>
+        private bool NeedsRepath(Vector3 target)
+        {
+            if (_agent.hasPath) return false;
+            if (Vector3.Distance(transform.position, target) <= destinationTolerance + 0.5f) return false;
+            if (_repathAttempts >= MaxRepathAttempts) return false;
+
+            _repathAttempts++;
+            _agent.isStopped = false;
+            _agent.SetDestination(target);
+            return true;
+        }
+
         private void UpdateMove()
         {
             RotateTowardsMovement();
 
             if (_agent.pathPending) return;
+            if (NeedsRepath(_lastKnownPosition)) return;
             if (_agent.remainingDistance > Mathf.Max(_agent.stoppingDistance, destinationTolerance)) return;
 
             StartLookingAround();

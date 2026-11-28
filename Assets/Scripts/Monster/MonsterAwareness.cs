@@ -113,6 +113,25 @@ namespace Monster
         
         public void PinToMax() => _awareness = 1f;
 
+        /// <summary>Bumped on every lure, so Search can tell a new destination arrived mid-sweep.</summary>
+        public int LureCount { get; private set; }
+
+        /// <summary>
+        /// Something drew it on purpose (a solved puzzle, the lights back on, too long unseen).
+        /// Maxing the meter sends it through Alert into Search, which already runs at chase speed.
+        /// </summary>
+        public void RegisterLure(Vector3 point)
+        {
+            _awareness = 1f;
+            InvestigationPoint = point;
+            LureCount++;
+
+            // Held from here, not from MonsterAlert.OnEnter: the meter decayed below Alerted in the
+            // frames before the transition ran, and the monster walked over in Investigate instead
+            // of running in Search. MonsterAlert holds again on enter and releases on exit.
+            IsHeld = true;
+        }
+
         /// <summary>
         /// While held, the meter stops decaying.
         ///

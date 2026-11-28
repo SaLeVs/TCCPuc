@@ -60,6 +60,7 @@ GameObject:
   - component: {fileID: 8220886843260042270}
   - component: {fileID: 9158156660860726962}
   - component: {fileID: 7437886285449800429}
+  - component: {fileID: 1170506419340945106}
   m_Layer: 9
   m_Name: Monster
   m_TagString: Untagged
@@ -907,6 +908,35 @@ CapsuleCollider:
   m_Height: 1.6961818
   m_Direction: 1
   m_Center: {x: 0.048435867, y: 0.8887541, z: 0.06999999}
+--- !u!114 &1170506419340945106
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2397166377357422809}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b281400b8df11b743a133a1c04de5045, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Game::MonsterLures.MonsterLure
+  lureOnPuzzleSolved: 1
+  lureOnLightsRestored: 1
+  lureWhenUnseen: 1
+  globalCooldown: 50
+  unseenSeconds: 180
+  unseenMinOffset: 5
+  unseenMaxOffset: 8
+  sightDistance: 25
+  sightHalfAngle: 70
+  sightBlockers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  sightCheckInterval: 0.25
+  playerEyeHeight: 1.6
+  monsterChestHeight: 1.2
+  lureSound: {fileID: 0}
+  logLures: 1
 --- !u!1 &8968525623132493308
 GameObject:
   m_ObjectHideFlags: 0

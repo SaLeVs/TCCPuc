@@ -11,8 +11,11 @@ namespace Monster.MonsterStates.AlertStates
             _monsterBrain = monsterBrain;
         }
 
+        private int _lureCount;
+
         protected override void OnEnter()
         {
+            _lureCount = _monsterBrain.MonsterAwareness.LureCount;
             _monsterBrain.MonsterSearch.Begin(_monsterBrain.MonsterAwareness.InvestigationPoint, _monsterBrain.MonsterChase.ChaseSpeed);
         }
 
@@ -25,6 +28,13 @@ namespace Monster.MonsterStates.AlertStates
             }
             
             if (_monsterBrain.IsForcingDoor) return;
+
+            // A lure arrived mid-search: run to the new spot instead of finishing the old sweep.
+            if (_lureCount != _monsterBrain.MonsterAwareness.LureCount)
+            {
+                _lureCount = _monsterBrain.MonsterAwareness.LureCount;
+                _monsterBrain.MonsterSearch.Begin(_monsterBrain.MonsterAwareness.InvestigationPoint, _monsterBrain.MonsterChase.ChaseSpeed);
+            }
 
             _monsterBrain.MonsterSearch.Tick(deltaTime);
 
